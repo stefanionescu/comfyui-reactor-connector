@@ -1,0 +1,129 @@
+[tools]
+python = "3.12.13"
+uv = "0.11.21"
+bun = "1.3.11"
+shellcheck = "0.11.0"
+shfmt = "3.13.0"
+gitleaks = "8.30.0"
+typos = "1.43.5"
+
+[tasks.deps]
+description = "Install the locked development environment."
+run = ["uv sync --frozen --group dev", "bun install --frozen-lockfile --ignore-scripts"]
+
+[tasks.setup]
+description = "Configure this repository's local Git hooks."
+run = "uv run --no-sync python -m quality.hook_setup"
+
+[tasks."deps:export"]
+description = "Update ComfyUI's dependency file from project metadata."
+run = "uv run --no-sync python -m scripts.dependencies"
+
+[tasks."deps:check"]
+description = "Check that ComfyUI installs the declared runtime dependencies."
+run = "uv run --no-sync python -m scripts.dependencies --check"
+
+[tasks."audit:python"]
+description = "Check locked Python dependencies against current PyPI advisories."
+run = "uv run --no-sync python -m quality.dependencies"
+
+[tasks."audit:frontend"]
+description = "Check Bun's locked dependencies against current registry advisories."
+run = "bun audit"
+
+[tasks.audit]
+description = "Audit dependency versions using public advisory services."
+depends = ["audit:python", "audit:frontend"]
+
+[tasks."frontend:build"]
+description = "Build the browser assets included in the installed package."
+run = "bun run build"
+
+[tasks."frontend:check"]
+description = "Check that bundled browser assets match their source."
+run = "bun run check:build"
+
+[tasks."type:frontend"]
+run = "bun run typecheck"
+
+[tasks."lint:frontend"]
+run = "bun run lint"
+
+
+[tasks.format]
+description = "Format owned Python source."
+run = "uv run --no-sync ruff format ."
+
+[tasks."format:check"]
+run = "uv run --no-sync ruff format --check ."
+
+[tasks."lint:python"]
+run = "uv run --no-sync ruff check ."
+
+[tasks."lint:shell"]
+run = [
+  "shellcheck .githooks/pre-commit .githooks/commit-msg .githooks/pre-push",
+  "shfmt -d .githooks/pre-commit .githooks/commit-msg .githooks/pre-push",
+]
+
+[tasks."lint:policy"]
+run = "uv run --no-sync python -m quality.repository"
+
+[tasks."lint:secrets"]
+description = "Scan public source files without displaying secret values."
+run = "uv run --no-sync python -m quality.secrets"
+
+[tasks."lint:docs"]
+run = "uv run --no-sync python -m quality.documents"
+
+[tasks."docs:build"]
+run = "uv run --no-sync python -m scripts.node_docs"
+
+[tasks."docs:check"]
+run = "uv run --no-sync python -m scripts.node_docs --check"
+
+[tasks."workflows:build"]
+run = "uv run --no-sync python -m scripts.workflows"
+
+[tasks."workflows:check"]
+run = "uv run --no-sync python -m scripts.workflows --check"
+
+[tasks."models:check"]
+description = "Check all public model metadata without generation or writes."
+run = "uv run --no-sync python -m scripts.models check"
+
+[tasks."models:refresh"]
+description = "Refresh the bundled public catalog for review."
+run = "uv run --no-sync python -m scripts.models refresh"
+
+[tasks."models:validate"]
+run = "uv run --no-sync python -m scripts.models validate"
+
+[tasks."release:package"]
+depends = ["check", "audit"]
+run = "uv run --no-sync python -m scripts.package"
+
+[tasks."comfy:install"]
+description = "Build and install the package; pass --host with the ComfyUI directory."
+depends = ["deps:check", "lint:secrets", "frontend:check", "docs:check", "workflows:check"]
+run = "uv run --no-sync python -m scripts.package --install"
+
+[tasks."type:python"]
+run = "uv run --no-sync basedpyright"
+
+
+
+[tasks.lint]
+depends = ["lint:python", "lint:policy", "lint:secrets", "lint:docs", "lint:frontend", "lint:shell"]
+
+[tasks.check]
+depends = ["deps:check", "format:check", "lint", "docs:check", "workflows:check", "type:python", "frontend:check", "type:frontend"]
+
+[tasks."hook:pre-commit"]
+run = "uv run --no-sync python -m quality.hooks"
+
+[tasks."hook:pre-push"]
+run = "uv run --no-sync python -m quality.pre_push"
+
+[tasks."hook:commit-msg"]
+run = "uv run --no-sync python -m quality.commit_message"

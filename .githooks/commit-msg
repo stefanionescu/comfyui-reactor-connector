@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Validate the supplied message without rewriting it.
+set -euo pipefail
+TASK_ROOT="$(git rev-parse --show-toplevel)"
+readonly TASK_ROOT
+cd "${TASK_ROOT}"
+exec mise run hook:commit-msg -- "$@"

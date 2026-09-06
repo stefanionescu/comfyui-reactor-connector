@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "retrieved_at": "2026-09-06T02:31:42.277666+00:00",
+  "credits_per_dollar": 10000,
+  "prices": [
+    {
+      "id": "3dc9e64e-ebc1-4824-a63b-2ad0dbb15ca8",
+      "name": "fast-h3",
+      "credits_per_second": 70,
+      "observed": true
+    },
+    {
+      "id": "d8690f6b-f876-4f49-b7b1-7412916313de",
+      "name": "happy-oyster",
+      "credits_per_second": 139,
+      "observed": true
+    },
+    {
+      "id": "5de2231d-26cd-4e1b-89e1-5b1c064b5b74",
+      "name": "happy-oyster-adventure",
+      "credits_per_second": 139,
+      "observed": true
+    },
+    {
+      "id": "d843bcb2-208d-450c-ac53-3eb0aa6e715f",
+      "name": "happy-oyster-director",
+      "credits_per_second": 139,
+      "observed": true
+    },
+    {
+      "id": "75c908ff-ffa2-4360-9fd6-85b181dd2d43",
+      "name": "helios",
+      "credits_per_second": 17,
+      "observed": true
+    },
+    {
+      "id": "c5ef2965-36f0-4da8-b629-60953f12d605",
+      "name": "lingbot",
+      "credits_per_second": 33,
+      "observed": true
+    },
+    {
+      "id": "356908d6-a8d5-470f-9a28-3c99a7b0c074",
+      "name": "lingbot-world-2",
+      "credits_per_second": 33,
+      "observed": true
+    },
+    {
+      "id": "8c2e8240-43c8-4599-9cea-409dfe3d9d35",
+      "name": "longlive-v2",
+      "credits_per_second": 17,
+      "observed": true
+    },
+    {
+      "id": "77b6b821-0377-409e-bd67-5313306dcb18",
+      "name": "ltx2",
+      "credits_per_second": 300,
+      "observed": true
+    },
+    {
+      "id": "3f39b140-e0b4-4861-af69-f0b27884ee3a",
+      "name": "sana-streaming",
+      "credits_per_second": 17,
+      "observed": true
+    },
+    {
+      "id": "1d23cc0d-aa12-438e-90d5-76f3a3ee1795",
+      "name": "visko-orbis-dynamic",
+      "credits_per_second": 209,
+      "observed": true
+    },
+    {
+      "id": "d9610e99-2e1c-4dfd-b695-a658eca3013e",
+      "name": "visko-orbis-stable",
+      "credits_per_second": 97,
+      "observed": true
+    },
+    {
+      "id": "75b9886b-1fb5-4bb3-873a-6a44f5b8c70d",
+      "name": "x2",
+      "credits_per_second": 17,
+      "observed": true
+    }
+  ],
+  "guides": [
+    {
+      "slug": "happy-oyster",
+      "title": "HappyOyster",
+      "observed": true
+    },
+    {
+      "slug": "lingbot-world-2",
+      "title": "LingBot World 2",
+      "observed": true
+    },
+    {
+      "slug": "lingbot",
+      "title": "LingBot",
+      "observed": true
+    },
+    {
+      "slug": "x2",
+      "title": "X2",
+      "observed": true
+    },
+    {
+      "slug": "helios",
+      "title": "Helios",
+      "observed": true
+    },
+    {
+      "slug": "longlive-v2",
+      "title": "LongLive-2.0",
+      "observed": true
+    },
+    {
+      "slug": "sana-streaming",
+      "title": "SANA-Streaming",
+      "observed": true
+    },
+    {
+      "slug": "ltx",
+      "title": "LTX",
+      "observed": true
+    },
+    {
+      "slug": "fast-h3",
+      "title": "fast-h3",
+      "observed": true
+    },
+    {
+      "slug": "visko-orbis-dynamic",
+      "title": "visko-orbis-dynamic",
+      "observed": true
+    },
+    {
+      "slug": "visko-orbis-stable",
+      "title": "visko-orbis-stable",
+      "observed": true
+    }
+  ]
+}

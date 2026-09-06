@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Read recording details</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="read-recording-details">Read recording details</h1>
+<p>Generation nodes return <strong>Recording details</strong> alongside their video. Its saved
+socket name is <code>metadata</code>, so existing connections keep working. This output
+is a JSON string. Connect it to a text display node if you want to inspect it or
+use it in another part of your workflow. Saving the video does not automatically
+save this separate text output.</p>
+<h2 id="fields">Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schema_version</code></td>
+<td>Format version of the report. Current value: <code>1</code>.</td>
+</tr>
+<tr>
+<td><code>run_id</code></td>
+<td>Random local identifier for the execution. It gives no access to a Reactor session.</td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>The connector node that produced the result.</td>
+</tr>
+<tr>
+<td><code>model_name</code></td>
+<td>The model connection name used for this execution.</td>
+</tr>
+<tr>
+<td><code>connector_version</code></td>
+<td>Connector version from its project metadata.</td>
+</tr>
+<tr>
+<td><code>sdk_version</code></td>
+<td>Installed Python <code>reactor-sdk</code> version.</td>
+</tr>
+<tr>
+<td><code>package_identity</code></td>
+<td>Content identifier from the installed package manifest, or <code>null</code> for a source checkout without that manifest.</td>
+</tr>
+<tr>
+<td><code>frames</code></td>
+<td>Number of frames written by the connector's encoder.</td>
+</tr>
+<tr>
+<td><code>width</code>, <code>height</code></td>
+<td>Saved video dimensions in pixels.</td>
+</tr>
+<tr>
+<td><code>file_bytes</code></td>
+<td>Size of the completed MP4, including any embedded audio.</td>
+</tr>
+<tr>
+<td><code>has_audio</code></td>
+<td>Whether the MP4 contains an audio track. A track can contain silence.</td>
+</tr>
+<tr>
+<td><code>timestamp_mode</code></td>
+<td>How the connector timed the recorded frames; see below.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="requested-and-saved-lengths">Requested and saved lengths</h2>
+<p><code>requested_duration_seconds</code> is the requested recording length. For continued
+Fast H3 scenes, it is the requested clip length multiplied by the clip count.</p>
+<p><code>duration_seconds</code> is the length reported by the completed MP4's video stream,
+or <code>null</code> if its header gives no duration.</p>
+<p>These facts describe the completed output. Its duration may differ from the
+request because a model chooses a supported clip length or ends early.
+Dimensions and duration come from the saved file, rather than the prompt or
+preview. A header report does not assess the quality of the generated content.</p>
+<h2 id="timing-methods">Timing methods</h2>
+<ul>
+<li><code>sender</code>: the connector preserved the received frame timestamps.</li>
+<li><code>fallback_fps</code>: the stream supplied no initial sender timestamp, so the
+connector used the model adapter's frame rate.</li>
+<li><code>recording_pts</code>: the connector used timestamps from a downloaded Reactor
+recording to align saved video and sound.</li>
+</ul>
+<p>Live controls can add a <code>live</code> object with counts of acknowledged actions,
+preview frames, and control timing. An acknowledged action does not prove that
+the requested change is visible in the video.</p>
+<h2 id="privacy-and-reuse">Privacy and reuse</h2>
+<p>Reports omit prompts, input images, API keys, session tokens, remote session
+IDs and absolute file paths.</p>
+<p>ComfyUI can reuse a cached result, including its original report and <code>run_id</code>.
+The report describes the execution that created the file; it does not prove
+that the latest press of <strong>Run</strong> started a new paid session. Older cached
+results may contain only <code>frames</code>, <code>timestamp_mode</code>, and model-specific fields.
+Consumers should check <code>schema_version</code> and allow missing fields in those
+older results. Do not rerun a model just to update its report.</p>
+<p>Recording length is not billable session time. Setup, waiting, and recording
+preparation can also use credits. This report is not an invoice or a charge
+estimate. Use your Reactor account for billing information.</p>
+</main></body></html>

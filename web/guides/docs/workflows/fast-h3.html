@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Make a Fast H3 clip</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="make-a-fast-h3-clip">Make a Fast H3 clip</h1>
+<p>Open the native Templates browser and choose <strong>reactor-inc</strong>. These
+examples use core ComfyUI nodes and the installed Reactor connector.</p>
+<h2 id="start-from-text">Start from text</h2>
+<ol>
+<li>Open <strong>fast-h3-01-text-to-video</strong>.</li>
+<li>Set your key in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>.</li>
+<li>Keep the six-second request for the first run. Describe visible motion and sound.</li>
+<li>Select <strong>Run</strong>. The clip must finish building before playback begins.</li>
+<li>Review <strong>Preview and save video</strong> and <strong>Preview and save sound</strong>.</li>
+</ol>
+<p>The saved length follows the model's accepted duration, which can differ from
+the requested value. The video contains sound. The separate audio output lets
+you save a lossless audio file or connect other audio processing nodes.</p>
+<p>The connector also builds an additional continuation to let the recording service
+finish the selected clip. That extra generation uses credits and is not saved.
+The same session cap still applies to setup, both builds, playback, and recording.
+The continuation requests the deployment's maximum clip length, currently 14.375 seconds.</p>
+<h2 id="start-or-end-with-an-image">Start or end with an image</h2>
+<ol>
+<li>Open <strong>fast-h3-02-image-to-video</strong> for a first frame,
+<strong>fast-h3-03-first-and-last-frames</strong> for both frames, or
+<strong>fast-h3-04-ending-frame</strong> for the final frame alone.</li>
+<li>Upload the first picture in <strong>Upload your starting image</strong>, when that node is present.</li>
+<li>Describe how the picture should move and what should be heard.</li>
+<li>Upload the last picture in <strong>Choose the final frame</strong>, when that node is present.
+The first-frame example can also accept a second Load Image connected to <strong>Final image</strong>.</li>
+<li>Select <strong>Run</strong> and review the first and last frames as well as sound.</li>
+</ol>
+<p>Use images with the selected canvas shape. The model can crop or resize them.
+The final image can also be used alone by disconnecting the starting image.</p>
+<h2 id="recover-from-a-failed-run">Recover from a failed run</h2>
+<p>Read the node error before running again. If the model chooses a clip length
+above the host limit, request a shorter clip. Build and recording timeouts still use
+credits. Use ComfyUI's cancel control when you want to stop; closing the workflow
+tab does not stop its session.</p>
+<p>The first four examples produce one clip per run. To connect several clips,
+open <a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-05-continue-scene.json">Continue a scene</a> or
+<a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-06-continue-image.json">Continue from an image</a>.
+Set <strong>Number of clips</strong> and put one prompt per line in <strong>Later prompts</strong>.
+The examples request three six-second clips. Check that <strong>Maximum video duration
+(seconds)</strong> in Reactor settings allows at least 18 seconds. The model may round
+each clip up; allow for its accepted length as well.
+The output combines the clips into one video with sound. See the
+<a href="/extensions/reactor-inc/guides/docs/nodes/ReactorIncFastContinue.html">continued-scene guide</a> for length and cost limits.</p>
+<p>See the <a href="/extensions/reactor-inc/guides/workflows/README.html">workflow index</a> for every example, including
+<a href="/extensions/reactor-inc/guides/docs/live.html">live controls</a>.</p>
+</main></body></html>

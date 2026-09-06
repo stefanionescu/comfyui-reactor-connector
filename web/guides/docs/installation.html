@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Install, update, or remove the connector</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="install-update-or-remove-the-connector">Install, update, or remove the connector</h1>
+<p>Use ComfyUI with Python 3.12 or later. Reactor runs the models remotely; this
+connector does not download model weights. You need a Reactor account and credits
+to generate media. You do not need Bun, mise, or the development dependencies
+to use the installed connector.</p>
+<h2 id="install-the-package">Install the package</h2>
+<ol>
+<li>Stop ComfyUI after its current work finishes.</li>
+<li>Extract the connector into <code>ComfyUI/custom_nodes/reactor-inc</code>.</li>
+<li>Check that <code>__init__.py</code>, <code>requirements.txt</code>, <code>web/</code>, and <code>workflows/</code> are directly inside that folder. Avoid an extra nested repository folder.</li>
+<li>Install <code>requirements.txt</code> using the Python environment that runs ComfyUI. Choose the command below for your installation.</li>
+<li>Start ComfyUI. In Desktop, select <strong>Refresh</strong>; in a browser, reload the page.</li>
+</ol>
+<p>For Desktop, use the instance's own ComfyUI directory and Python environment.
+An installation in a different ComfyUI folder will not appear in that instance.</p>
+<h3 id="macos-or-linux-virtual-environment">macOS or Linux virtual environment</h3>
+<p>Run this from the ComfyUI directory. Replace <code>.venv</code> if your environment has a
+different name:</p>
+<pre><code class="language-sh">.venv/bin/python -m pip install \
+  -r custom_nodes/reactor-inc/requirements.txt
+</code></pre>
+<p>If the environment uses uv and has no pip, use its uv command with the same Python:</p>
+<pre><code class="language-sh">uv pip install --python .venv/bin/python \
+  -r custom_nodes/reactor-inc/requirements.txt
+</code></pre>
+<h3 id="windows-virtual-environment">Windows virtual environment</h3>
+<p>Run this in PowerShell from the ComfyUI directory:</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe -m pip install `
+  -r .\custom_nodes\reactor-inc\requirements.txt
+</code></pre>
+<h3 id="windows-portable">Windows portable</h3>
+<p>Run this in PowerShell from the portable directory containing both <code>ComfyUI</code>
+and <code>python_embeded</code>:</p>
+<pre><code class="language-powershell">.\python_embeded\python.exe -m pip install `
+  -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
+</code></pre>
+<p>ComfyUI's <a href="https://docs.comfy.org/installation/install_custom_node">custom-node installation guide</a>
+explains these installation layouts. Install only the connector's runtime
+requirements into ComfyUI. Its <code>uv.lock</code> and <code>package.json</code> belong to development.</p>
+<h2 id="open-your-first-workflow">Open your first workflow</h2>
+<p>Select the Comfy logo to open the main menu, then choose
+<strong>Extensions → Reactor → Reactor settings</strong>.
+Save your key there. Open <strong>Templates → reactor-inc</strong>, choose a workflow,
+and read its <strong>Start here</strong> note. You can also drag a JSON file from the connector's
+<a href="/extensions/reactor-inc/guides/workflows/README.html">workflows folder</a> onto the canvas.</p>
+<p>Opening a template or reading help does not start generation. Selecting <strong>Run</strong>
+can use credits. Live workflows also explain their start control in the notes.
+See <a href="/extensions/reactor-inc/guides/docs/settings.html">settings</a> for time limits and private key storage.</p>
+<h2 id="update-or-restore-a-previous-package">Update or restore a previous package</h2>
+<p>Finish or cancel active work, confirm that Reactor sessions have ended, and stop
+ComfyUI. Keep a copy of the current connector folder outside <code>custom_nodes</code>.
+Replace the whole connector folder with the new package; do not merge old and
+new runtime files. Install the new package's <code>requirements.txt</code>, restart ComfyUI,
+and refresh the ComfyUI window.</p>
+<p>Open the latest example from <strong>Templates</strong> in a new workflow tab. An update does
+not replace graphs that are already open or saved. Keep your old graph until
+you have copied any prompts and settings you want to reuse.</p>
+<p>If your previous folder was named <code>reactor-inc-connector</code>, move it outside
+<code>custom_nodes</code> before installing <code>reactor-inc</code>. Loading both copies creates
+duplicate nodes and routes. The local package installer handles managed copies
+as described in the <a href="/extensions/reactor-inc/guides/docs/development.html#build-and-install-a-package">development guide</a>.</p>
+<p>An older copy can be restored the same way: replace the connector folder with
+your backup and install that copy's requirements. Keep a private backup of the
+<a href="/extensions/reactor-inc/guides/docs/settings.html#supported-access">state directory</a> before changing versions. An older
+package might not understand state or nodes created by a newer one. Restore a
+matching backup only after all sessions have ended; never remove a session wait
+record to force a new run.</p>
+<p>Settings, keys, and model-list history live outside the
+package. Replacing the connector folder preserves them. ComfyUI's input, output,
+and saved workflows also stay separate. Model-list refresh updates metadata;
+it does not update this package.</p>
+<h2 id="remove-the-connector">Remove the connector</h2>
+<p>End active Reactor sessions and stop ComfyUI. Move the connector folder out of
+<code>custom_nodes</code>, then restart ComfyUI. Other packs may use the same dependencies,
+so do not remove shared Python packages as part of this step.</p>
+<p>Removing the connector preserves its private state. To remove that state too,
+first confirm that no Reactor session remains active, then remove only its
+<a href="/extensions/reactor-inc/guides/docs/settings.html#supported-access">state directory</a>. This removes saved keys, settings,
+catalog history. It does not revoke your API key. Manage keys separately in
+your Reactor account.</p>
+<p>For missing nodes or import errors, use the <a href="/extensions/reactor-inc/guides/docs/troubleshooting.html">troubleshooting guide</a>.</p>
+</main></body></html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Work on the connector</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="work-on-the-connector">Work on the connector</h1>
+<p>Install the tools pinned in <code>mise.toml</code>, then run <code>mise run deps</code> to install the
+locked development dependencies. Run <code>mise run setup</code> to configure the three
+repository-local Git hooks. Setup preserves conflicting existing hooks and
+reports that they need review. It does not change global Git settings.</p>
+<p>Bun manages frontend dependencies and runs frontend commands. <code>bun.lock</code> records
+the dependency versions. <code>mise run deps</code> installs those versions with install
+scripts disabled. Checks do not install missing dependencies automatically.
+After changing frontend code, run <code>mise run frontend:build</code> to update the browser
+assets shipped with the connector. People installing the connector in ComfyUI
+do not need Bun.</p>
+<p>Declare runtime dependencies in <code>pyproject.toml</code>, then run <code>mise run deps:export</code>
+to update <code>requirements.txt</code>. <code>mise run deps:check</code> checks that they match without
+changing files or installing packages. The normal checks and package builder
+reject a stale dependency file. Keep development tools in the development group.</p>
+<p>Use <code>mise run check</code> for formatting, lint, types, local links, and generated-file
+consistency. Hooks use the same static checks. They do not run test suites,
+generate media, open provider sessions, or modify ComfyUI. Use separate formatting
+and generation tasks when files need updating.</p>
+<p>Keep run journals, account details, and temporary plans outside the public
+repository. Workflows and node help contain user instructions and relevant limits.
+They must not contain implementation history. Never buy credits or enable
+automatic top-up as part of development.</p>
+<h2 id="commit-messages">Commit messages</h2>
+<p>Use <code>type(scope): description</code>, with an optional scope and optional <code>!</code> before
+the colon for a breaking change. Accepted types are feat, fix, docs, style,
+refactor, perf, test, build, ci, chore, and revert. For example:</p>
+<pre><code class="language-text">fix(video): preserve source timing
+docs: explain model refresh
+feat(worlds)!: revise session controls
+</code></pre>
+<p>The <code>ci</code> type is accepted for compatibility with the reference convention; this
+repository uses local hooks and does not add Git-hosted workflows. Git-generated
+merge subjects, <code>Revert &quot;...&quot;</code>, and nonempty <code>fixup!</code>, <code>squash!</code>, or <code>amend!</code>
+subjects are also accepted. The hook never rewrites a message.</p>
+<h2 id="what-the-hooks-check">What the hooks check</h2>
+<p><code>mise run lint:secrets</code> scans files Git can include, including new untracked files.
+It uses the pinned gitleaks rules plus a Reactor key rule. Ignored private files
+and account state are excluded. The check copies public files into a private
+temporary directory, scans them locally, then removes the copy and report.
+Output contains only file names, line numbers, and rule names; values stay hidden.
+Secret detection supports review but cannot prove that a file contains no secrets.</p>
+<p>The check runs through the normal local hooks and before package tasks. Inline
+allow comments, ignore files, and environment overrides cannot skip a finding.
+Any false-positive exception belongs in <code>.gitleaks.toml</code> and must match the
+specific rule, file, and non-secret expression. Keep other matches active.</p>
+<p>Pre-commit checks staged filenames with NUL-safe Git output. If an affected file
+also has unstaged edits, the hook asks you to stage or separate those edits. It
+then runs the normal checks against the matching worktree. It does not stash,
+format, install dependencies, or stage files.</p>
+<p>Commit-msg checks the subject convention and rejects recognized Reactor
+credentials anywhere in the message. This check supports the broader secret
+review; it does not detect every possible secret format.</p>
+<p>Pre-push validates that every non-deleted ref being pushed names the checked-out
+HEAD and that the worktree is clean. It runs the normal checks, then verifies
+that HEAD and the worktree stayed unchanged. To push another revision, check it
+out and validate it first. Ref deletion alone does not run source checks.</p>
+<p>Hooks can be bypassed through Git's explicit <code>--no-verify</code> option when an urgent
+maintenance task requires it. Record the reason and run the skipped checks
+before accepting or publishing the change. A bypass never establishes release
+acceptance. Do not add automatic bypasses to scripts or silently use one to make
+a failing change pass.</p>
+<p>Native Info links open the installed HTML guides. <code>mise run docs:build</code> generates
+those pages and linked workflow downloads from the same authored Markdown and
+workflow JSON files. Markdown rendering is a development dependency; installing
+the connector does not add it to ComfyUI.</p>
+<h2 id="organize-workflows">Organize workflows</h2>
+<p>Edit the workflow definitions and notes under <code>scripts/</code>, then run
+<code>mise run workflows:build</code>. The generated JSON files live in
+<code>workflows/&lt;model&gt;/</code>. Each workflow has a unique filename, connected inputs and
+outputs, and aligned notes. Run <code>mise run docs:build</code> after changing the examples.</p>
+<p>The package builder includes the model folders and adds identical top-level JSON
+copies inside the installed <code>workflows/</code> folder. ComfyUI's template browser reads
+only top-level files. Its <a href="https://docs.comfy.org/custom-nodes/workflow_templates">template guide</a>
+supports <code>workflows/</code>, and its <a href="https://github.com/Comfy-Org/ComfyUI/blob/master/app/custom_node_manager.py">template loader</a>
+defines that discovery behavior. Do not edit the installed copies; rebuild them
+from the source definitions. Use the built package to populate native Templates.
+From a source checkout, drag an example from its model folder onto the canvas.</p>
+<h2 id="build-and-install-a-package">Build and install a package</h2>
+<p>Run <code>mise run audit</code> before preparing a release or after changing dependencies.
+It queries public advisory services with dependency names and versions. The
+Python task audits the exact lockfile pins that apply to the current platform,
+including development tools. Bun audits <code>bun.lock</code>. Neither task runs package
+code, generates media, applies fixes, or changes the user's ComfyUI environment.</p>
+<p>Audits are separate from <code>mise run check</code> and the offline hooks because they
+need network access. A failed query or an advisory needs review; do not treat
+it as a pass. These checks do not cover every package in a user's ComfyUI or
+prove that a dependency is safe. Review code embedded inside vendor bundles
+separately: overriding a dependency version does not replace an embedded copy.</p>
+<p>Run <code>mise run release:package</code> to write a ComfyUI archive under <code>dist/</code>. Its name
+contains the project version and a hash of the packaged files. The included
+manifest lists every runtime file and its hash. This task does not publish anything.
+It requires both static checks and dependency audits to pass. If an audit fails,
+the release task stops before building the archive.</p>
+<p>Package and help generation use the public file list from Git. Ignored files
+inside a runtime or documentation directory are not added to the package or
+rendered as help. A help link to an excluded file must be fixed before building.</p>
+<p>To install that source into a local ComfyUI instance, pass its source directory:</p>
+<pre><code class="language-sh">mise run comfy:install -- --host &quot;/path/to/ComfyUI&quot;
+</code></pre>
+<p>Replace the example path with the directory containing <code>main.py</code> and <code>comfy_api</code>.
+Finish active work and stop the instance before replacing its package. The task
+builds an archive and installs it into <code>custom_nodes/reactor-inc</code>.
+This local install task runs static build checks; it does not replace the
+release task's dependency audit.
+Install runtime dependencies using the <a href="/extensions/reactor-inc/guides/docs/installation.html">host's Python environment</a>,
+then restart ComfyUI and refresh the browser to load changed code.</p>
+<p>The installer preserves a managed previous package in <code>.reactor-package-backups</code>
+beside the ComfyUI directory. It refuses to replace an existing connector folder
+that has no package manifest. Move an unmanaged copy outside <code>custom_nodes</code>
+yourself if you want to replace it. Private settings, user workflows, and media
+are not part of the package. The <a href="/extensions/reactor-inc/guides/docs/installation.html">installation guide</a> explains
+manual restoration and removal.</p>
+<p>The local installer also moves a managed <code>reactor-inc-connector</code> installation
+to the backup folder when installing <code>reactor-inc</code>. It preserves saved node IDs
+and private settings. Keep only one Reactor package in <code>custom_nodes</code>.</p>
+</main></body></html>

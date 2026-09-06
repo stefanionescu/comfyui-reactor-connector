@@ -1,0 +1,20 @@
+title = "Reactor connector secret rules"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "reactor-api-key"
+description = "Reactor API key"
+regex = '''\brk_[A-Za-z0-9]{20,}\b'''
+keywords = ["rk_"]
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "A reference to fixed HTTP response headers."
+condition = "AND"
+paths = ['''(?:^|[\\/])reactor_comfy[\\/]http_guard\.py$''']
+regexTarget = "match"
+regexes = ['''^response_key else result, headers=PRIVATE_HEADERS$''']

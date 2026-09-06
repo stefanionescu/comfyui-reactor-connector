@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor workflows</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="reactor-workflows">Reactor workflows</h1>
+<p>This folder contains 33 editable ComfyUI workflows. Examples are grouped in model folders. Each JSON file opens as a graph with connected nodes, a short setup note, and extra instructions where needed.</p>
+<h2 id="open-a-workflow">Open a workflow</h2>
+<ol>
+<li>Download or locate a JSON file listed below.</li>
+<li>Drag it onto the ComfyUI canvas. You can also open <strong>Templates</strong>, choose <strong>reactor-inc</strong>, and select the same example.</li>
+<li>Read <strong>Start here</strong>. Upload your own image or video when the example needs one.</li>
+<li>Set your key privately in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>. Select <strong>Run</strong> when the inputs are ready.</li>
+</ol>
+<p>Opening a workflow does not start generation. A new generation uses Reactor credits.
+Use the <a href="/extensions/reactor-inc/guides/workflows/assets/README.html">sample inputs</a> if you need an image or short source clip.</p>
+<h2 id="open-the-latest-example-after-an-update">Open the latest example after an update</h2>
+<p>Updating Reactor does not replace graphs already open in ComfyUI. Save your own changes, create a new workflow tab, and open the example again from <strong>Templates</strong>. Keep the old tab until you have copied any prompts or settings you want to reuse.</p>
+<h2 id="available-files">Available files</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Workflow JSON</th>
+<th>Input</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fast H3</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-01-text-to-video.json">Build a clip with sound</a></td>
+<td>Scene and sound prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Steps</a></td>
+</tr>
+<tr>
+<td>Fast H3</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-02-image-to-video.json">Animate a starting image</a></td>
+<td>Image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Steps</a></td>
+</tr>
+<tr>
+<td>Fast H3</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-03-first-and-last-frames.json">Connect two images with motion</a></td>
+<td>First image, final image, and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Steps</a></td>
+</tr>
+<tr>
+<td>Fast H3</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-04-ending-frame.json">Finish on a chosen image</a></td>
+<td>Final image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Steps</a></td>
+</tr>
+<tr>
+<td>Fast H3</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-05-continue-scene.json">Continue a scene</a></td>
+<td>Prompts for continued clips</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Steps</a></td>
+</tr>
+<tr>
+<td>Fast H3</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/fast-h3/fast-h3-06-continue-image.json">Continue from an image</a></td>
+<td>Starting image and continued clips</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Steps</a></td>
+</tr>
+<tr>
+<td>Helios</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-01-text-to-video.json">Text to video</a></td>
+<td>Scene prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Steps</a></td>
+</tr>
+<tr>
+<td>Helios</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-02-image-to-video.json">Animate a local image</a></td>
+<td>Image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Steps</a></td>
+</tr>
+<tr>
+<td>Helios</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-03-prompt-sequence.json">Follow a prompt sequence</a></td>
+<td>Scheduled prompts</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Steps</a></td>
+</tr>
+<tr>
+<td>Helios</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-04-image-sequence.json">Animate an image through prompt changes</a></td>
+<td>Starting image and scheduled prompts</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Steps</a></td>
+</tr>
+<tr>
+<td>Helios</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-05-live-prompt.json">Change the prompt while recording</a></td>
+<td>Live prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Steps</a></td>
+</tr>
+<tr>
+<td>Helios</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-06-live-image.json">Animate an image with live prompts</a></td>
+<td>Image and live prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Steps</a></td>
+</tr>
+<tr>
+<td>LingBot</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/lingbot/lingbot-01-explore-image.json">Explore a local image</a></td>
+<td>Image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/lingbot.html">Steps</a></td>
+</tr>
+<tr>
+<td>LingBot</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/lingbot/lingbot-02-live-camera.json">Move through an image</a></td>
+<td>Image and prompt; live keys or buttons</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/lingbot.html">Steps</a></td>
+</tr>
+<tr>
+<td>LingBot World 2</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/lingbot-world-2/lingbot-world-2-01-explore-image.json">Explore a local image</a></td>
+<td>Image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/lingbot.html">Steps</a></td>
+</tr>
+<tr>
+<td>LingBot World 2</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/lingbot-world-2/lingbot-world-2-02-live-camera.json">Move and look independently</a></td>
+<td>Image and prompt; live keys or buttons</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/lingbot.html">Steps</a></td>
+</tr>
+<tr>
+<td>LongLive</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/longlive-v2/longlive-v2-01-text-to-video.json">Opening shot</a></td>
+<td>Scene prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/longlive.html">Steps</a></td>
+</tr>
+<tr>
+<td>LongLive</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/longlive-v2/longlive-v2-02-storyboard.json">Soft transition and hard cut</a></td>
+<td>Opening prompt and two scheduled shots</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/longlive.html">Steps</a></td>
+</tr>
+<tr>
+<td>LongLive</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/longlive-v2/longlive-v2-03-live-prompt.json">Change the prompt while recording</a></td>
+<td>Live prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/longlive.html">Steps</a></td>
+</tr>
+<tr>
+<td>LTX</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/ltx2/ltx2-01-speaking-portrait.json">Make a portrait speak</a></td>
+<td>Portrait and speech script</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/ltx.html">Steps</a></td>
+</tr>
+<tr>
+<td>SANA</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/sana-streaming/sana-streaming-01-edit-video.json">Edit a local video</a></td>
+<td>Video and edit prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/sana.html">Steps</a></td>
+</tr>
+<tr>
+<td>SANA</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/sana-streaming/sana-streaming-02-live-prompt.json">Change the prompt while recording</a></td>
+<td>Source video and live controls</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/sana.html">Steps</a></td>
+</tr>
+<tr>
+<td>SANA</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/sana-streaming/sana-streaming-03-webcam.json">Edit a webcam</a></td>
+<td>Webcam and live edit prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/sana.html">Steps</a></td>
+</tr>
+<tr>
+<td>Visko Dynamic</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/visko-orbis-dynamic/visko-dynamic-01-text-to-video.json">Video with sound</a></td>
+<td>Scene and sound prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Steps</a></td>
+</tr>
+<tr>
+<td>Visko Dynamic</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/visko-orbis-dynamic/visko-dynamic-02-image-to-video.json">Animate an image with sound</a></td>
+<td>Image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Steps</a></td>
+</tr>
+<tr>
+<td>Visko Dynamic</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/visko-orbis-dynamic/visko-dynamic-03-live-prompt.json">Change the prompt while recording</a></td>
+<td>Live prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Steps</a></td>
+</tr>
+<tr>
+<td>Visko Stable</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/visko-orbis-stable/visko-stable-01-text-to-video.json">Video with sound</a></td>
+<td>Scene and sound prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Steps</a></td>
+</tr>
+<tr>
+<td>Visko Stable</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/visko-orbis-stable/visko-stable-02-image-to-video.json">Animate an image with sound</a></td>
+<td>Image and prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Steps</a></td>
+</tr>
+<tr>
+<td>Visko Stable</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/visko-orbis-stable/visko-stable-03-live-prompt.json">Change the prompt while recording</a></td>
+<td>Live prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Steps</a></td>
+</tr>
+<tr>
+<td>X2</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/x2/x2-01-edit-video.json">Edit a local video</a></td>
+<td>Video and edit prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/x2.html">Steps</a></td>
+</tr>
+<tr>
+<td>X2</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/x2/x2-02-reference-edit.json">Edit with a reference image</a></td>
+<td>Video, edit prompt, and reference image</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/x2.html">Steps</a></td>
+</tr>
+<tr>
+<td>X2</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/x2/x2-03-webcam.json">Edit and drag a webcam scene</a></td>
+<td>Webcam and live edit prompt</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/x2.html">Steps</a></td>
+</tr>
+<tr>
+<td>X2</td>
+<td><a href="/extensions/reactor-inc/guides/files/workflows/x2/x2-04-live-prompt.json">Drag and edit a video</a></td>
+<td>Source video and live controls</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/x2.html">Steps</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="save-stop-and-get-help">Save, stop, and get help</h2>
+<p><strong>Preview and save video</strong> previews the result and writes to <code>video/reactor/</code> under the ComfyUI output folder. Examples with sound also save a separate audio file.</p>
+<p>Use ComfyUI's cancel control to stop a run. Closing a tab does not cancel an ordinary queued graph. In a live-camera panel, <strong>End session</strong> stops the session and discards the unfinished video.</p>
+<p>Select a Reactor node, then choose <strong>Help</strong> for its inputs, limits, and recovery steps. Use <strong>Fit View</strong> to find all nodes, then zoom in to read or edit them.</p>
+<h2 id="current-limits">Current limits</h2>
+<p>These examples use native ComfyUI nodes and Reactor. Media inputs start empty; the graphs contain no private files, machine-specific paths, or API keys.</p>
+<p>Live workflows stop at the chosen duration. Fast H3 can chain a chosen number of clips; the node guide explains recording length and credit use.</p>
+</main></body></html>

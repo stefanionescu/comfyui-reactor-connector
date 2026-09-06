@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor LongLive: Generate video</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="reactor-longlive-generate-video">Reactor LongLive: Generate video</h1>
+<p>Generate a short video from an opening shot prompt with LongLive-2.0.</p>
+<h2 id="inputs">Inputs</h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>What to provide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scene prompt</td>
+<td>Describe the opening scene and motion. Use 1 to 20,000 characters.</td>
+</tr>
+<tr>
+<td>Video length (seconds)</td>
+<td>Video length; default: 5 seconds. The limit in Reactor settings applies.</td>
+</tr>
+<tr>
+<td>Seed</td>
+<td>Integer from 0 to 4,294,967,295; default: 42.</td>
+</tr>
+<tr>
+<td>Variation</td>
+<td>Change this number for another paid run; default: 0.</td>
+</tr>
+<tr>
+<td>Live controls</td>
+<td>Open live controls in the ComfyUI window that runs the workflow. Default: false.</td>
+</tr>
+</tbody>
+</table>
+<p>Example prompt: “A fox walks along a forest path. The camera follows slowly.”
+Use 2 seconds for a first video. For later shots and cuts, open the
+separate LongLive storyboard workflow.</p>
+<h2 id="run-and-save">Run and save</h2>
+<ol>
+<li>Configure the key privately in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>.</li>
+<li>Open the matching template and provide the inputs described above.</li>
+<li>Connect <strong>Video</strong> to the native <strong>Save Video</strong> node, then select <strong>Run</strong>.</li>
+<li>Play the result in Save Video. Saved files use the workflow's relative output prefix.</li>
+</ol>
+<p>The node returns native <code>VIDEO</code> and recording details as <code>STRING</code>. This operation
+records video without audio. Use Save Video to retain the temporary result.</p>
+<p><strong>Video length (seconds)</strong> limits the captured video; connection and setup also use
+session time. The host recording and session limits both apply. A new execution
+uses Reactor credits. Changing <strong>Variation</strong> requests another execution with the
+same other inputs. Unchanged inputs may reuse the host cache; changing the
+account or execution limits invalidates that reuse. Seeds do not guarantee
+identical results after a provider update.</p>
+<p>Use ComfyUI's cancel control to stop a queued or running operation. Closing a
+browser tab does not cancel the workflow. The connector owns one session at a
+time, applies a session time limit, and disconnects after recording or failure.
+It does not retry rejected commands or uncertain session creation. If the connector cannot confirm
+that the session ended, wait for its time limit before trying again.</p>
+<h2 id="recovery">Recovery</h2>
+<p>Enter a prompt before running. If video stops arriving, check Reactor and your
+account before trying again. Use LongLive Storyboard to schedule later shots.
+This node does not accept a starting image.</p>
+<p><a href="https://docs.reactor.inc/model-api-reference/longlive-v2/schema">LongLive schema</a></p>
+<h2 id="live-controls">Live controls</h2>
+<p>Turn <strong>Live controls</strong> on, select <strong>Run</strong>, then select <strong>Start session</strong> in the
+live panel within 60 seconds. Use <strong>Apply prompt</strong> to change later frames.
+Let recording finish to save the result. <strong>End session</strong> discards the unfinished
+video. Panel prompt changes do not rewrite the saved workflow.</p>
+<p>See the <a href="/extensions/reactor-inc/guides/docs/live.html">live controls guide</a> for input, privacy, and stopping rules.</p>
+<h2 id="check-the-credit-rate">Check the credit rate</h2>
+<p>Select <strong>View credit rate</strong> on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
+time to include setup or other paid time. Session time includes setup and can
+exceed the saved video length. This calculation does not limit spending.
+Open <strong>ComfyUI menu → Extensions → Reactor → Reactor models</strong> and select <strong>Refresh models</strong> for current rates. See <a href="/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate">settings</a>
+for details.</p>
+<h2 id="recording-details">Recording details</h2>
+<p>The <strong>Recording details</strong> output identifies the model and describes the saved file. See
+<a href="/extensions/reactor-inc/guides/docs/recording-details.html">recording details</a> for dimensions, duration, audio
+presence, and cache behavior. It contains no prompts or session credentials.</p>
+</main></body></html>

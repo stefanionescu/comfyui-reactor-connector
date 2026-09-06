@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Run offline checks before a separately requested push.
+set -euo pipefail
+TASK_ROOT="$(git rev-parse --show-toplevel)"
+readonly TASK_ROOT
+cd "${TASK_ROOT}"
+exec mise run hook:pre-push

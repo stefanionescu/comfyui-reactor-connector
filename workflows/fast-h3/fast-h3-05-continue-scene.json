@@ -1,0 +1,204 @@
+{
+  "last_node_id": 9,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        440,
+        120
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+      ],
+      "title": "Start here"
+    },
+    {
+      "id": 8,
+      "type": "MarkdownNote",
+      "pos": [
+        540,
+        60
+      ],
+      "size": [
+        360,
+        180
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "The 3 clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length. It also generates up to 14.375 extra seconds for recording to finish. Those extra seconds use credits but are not saved."
+      ],
+      "title": "Using this workflow"
+    },
+    {
+      "id": 3,
+      "type": "ReactorIncFastContinue",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        440,
+        460
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "metadata",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ReactorIncFastContinue"
+      },
+      "widgets_values": [
+        "Follow a stream through a quiet forest. Water splashes softly.",
+        6.0,
+        42,
+        "fixed",
+        0,
+        "16:9",
+        3,
+        "The stream flows past a mossy rock.\nThe camera follows the stream into a sunlit clearing."
+      ],
+      "title": "Fast H3: Continue a scene"
+    },
+    {
+      "id": 4,
+      "type": "SaveVideo",
+      "pos": [
+        540,
+        300
+      ],
+      "size": [
+        360,
+        310
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "video/reactor/fast-h3-05-continue-scene",
+        "auto",
+        "auto"
+      ],
+      "title": "Preview and save video"
+    },
+    {
+      "id": 7,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        540,
+        670
+      ],
+      "size": [
+        360,
+        130
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveAudioAdvanced"
+      },
+      "widgets_values": [
+        "audio/reactor/fast-h3-05-continue-scene",
+        "flac"
+      ],
+      "title": "Preview and save sound"
+    }
+  ],
+  "links": [
+    [
+      1,
+      3,
+      0,
+      4,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      3,
+      1,
+      7,
+      0,
+      "AUDIO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.6,
+      "offset": [
+        20,
+        20
+      ]
+    }
+  },
+  "version": 0.4
+}

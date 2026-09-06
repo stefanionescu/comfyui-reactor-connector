@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Choose a Reactor workflow</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">Reactor for ComfyUI</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></nav><main><h1 id="choose-a-reactor-workflow">Choose a Reactor workflow</h1>
+<p>The editable graphs are in the top-level <a href="/extensions/reactor-inc/guides/workflows/README.html">workflows folder</a>.
+This folder contains their written guides.</p>
+<p>Use these guides with the JSON files in the native <strong>Templates</strong> browser.
+Choose <strong>reactor-inc</strong>, then select the named example. Opening a template
+does not start a paid session. Set your key once in <strong>ComfyUI menu → Extensions → Reactor → Reactor
+settings</strong>; never put it in a node or workflow note.</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Change prompts while recording or drag in X2</td>
+<td><a href="/extensions/reactor-inc/guides/docs/live.html">Live controls</a></td>
+</tr>
+<tr>
+<td>Edit a webcam</td>
+<td><a href="/extensions/reactor-inc/guides/docs/nodes/ReactorIncSanaWebcam.html">SANA</a> or <a href="/extensions/reactor-inc/guides/docs/nodes/ReactorIncX2Webcam.html">X2</a></td>
+</tr>
+<tr>
+<td>Continue a scene across clips</td>
+<td><a href="/extensions/reactor-inc/guides/docs/nodes/ReactorIncFastContinue.html">Fast H3</a></td>
+</tr>
+<tr>
+<td>Build a clip with sound and optional first or last images</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/fast-h3.html">Fast H3</a></td>
+</tr>
+<tr>
+<td>Generate from text or animate a picture</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html">Helios</a></td>
+</tr>
+<tr>
+<td>Prepare a sequence of prompt changes</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/helios.html#prepare-prompt-changes">Helios sequences</a></td>
+</tr>
+<tr>
+<td>Explore an image with fixed camera directions</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/lingbot.html">LingBot models</a></td>
+</tr>
+<tr>
+<td>Move the camera with keys or buttons while recording</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/lingbot.html">LingBot live examples</a></td>
+</tr>
+<tr>
+<td>Schedule a camera change or a new shot</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/longlive.html">LongLive</a></td>
+</tr>
+<tr>
+<td>Edit a local video or reconstruct it</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/sana.html">SANA</a></td>
+</tr>
+<tr>
+<td>Edit a video with an optional subject reference</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/x2.html">X2</a></td>
+</tr>
+<tr>
+<td>Generate video with sound</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/visko.html">Visko models</a></td>
+</tr>
+<tr>
+<td>Make a portrait speak a script</td>
+<td><a href="/extensions/reactor-inc/guides/docs/workflows/ltx.html">LTX</a></td>
+</tr>
+</tbody>
+</table>
+<p>All examples use native ComfyUI nodes and this connector. They do not require
+other custom node packages. Read the <strong>Start here</strong> note, supply local media
+where needed, and select <strong>Run</strong>. Select <strong>Help</strong> on the Reactor node for its complete input guide. Use <strong>Fit View</strong> to see the graph, then zoom in to read.</p>
+<p><strong>Preview and save video</strong> writes under <code>video/reactor/</code> in the ComfyUI output folder. Examples
+with sound also use <strong>Save Audio (Advanced)</strong> under <code>audio/reactor/</code>. Those prefixes
+are relative paths that you can change. The supplied graphs contain no private
+files or machine-specific paths. Choose your own input files after importing them.</p>
+<p>Video and audio save nodes have separate space, so the video preview does
+not cover the audio controls. Use Fit View after importing, then zoom to the node
+you need. The node's Info panel keeps its guide readable at any canvas zoom.</p>
+<p>The generation node shows the requested video length. Webcam and
+live-prompt examples request twenty seconds. Continued-scene examples request
+three clips of about six seconds each. Connection, preparation, and recording readiness also use session
+time and credits. Check the host limits before a run.
+Change <strong>Variation</strong> for another paid run with otherwise unchanged inputs.
+Use ComfyUI's cancel control to stop a run; closing a tab does not cancel it.</p>
+</main></body></html>

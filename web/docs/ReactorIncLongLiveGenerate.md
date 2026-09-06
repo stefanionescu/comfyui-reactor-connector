@@ -1,0 +1,72 @@
+# Reactor LongLive: Generate video
+
+Generate a short video from an opening shot prompt with LongLive-2.0.
+
+## Inputs
+
+| Input | What to provide |
+| --- | --- |
+| Scene prompt | Describe the opening scene and motion. Use 1 to 20,000 characters. |
+| Video length (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies. |
+| Seed | Integer from 0 to 4,294,967,295; default: 42. |
+| Variation | Change this number for another paid run; default: 0. |
+| Live controls | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+
+Example prompt: “A fox walks along a forest path. The camera follows slowly.”
+Use 2 seconds for a first video. For later shots and cuts, open the
+separate LongLive storyboard workflow.
+
+## Run and save
+
+1. Configure the key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open the matching template and provide the inputs described above.
+3. Connect **Video** to the native **Save Video** node, then select **Run**.
+4. Play the result in Save Video. Saved files use the workflow's relative output prefix.
+
+The node returns native `VIDEO` and recording details as `STRING`. This operation
+records video without audio. Use Save Video to retain the temporary result.
+
+**Video length (seconds)** limits the captured video; connection and setup also use
+session time. The host recording and session limits both apply. A new execution
+uses Reactor credits. Changing **Variation** requests another execution with the
+same other inputs. Unchanged inputs may reuse the host cache; changing the
+account or execution limits invalidates that reuse. Seeds do not guarantee
+identical results after a provider update.
+
+Use ComfyUI's cancel control to stop a queued or running operation. Closing a
+browser tab does not cancel the workflow. The connector owns one session at a
+time, applies a session time limit, and disconnects after recording or failure.
+It does not retry rejected commands or uncertain session creation. If the connector cannot confirm
+that the session ended, wait for its time limit before trying again.
+
+## Recovery
+
+Enter a prompt before running. If video stops arriving, check Reactor and your
+account before trying again. Use LongLive Storyboard to schedule later shots.
+This node does not accept a starting image.
+
+[LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
+
+
+## Live controls
+
+Turn **Live controls** on, select **Run**, then select **Start session** in the
+live panel within 60 seconds. Use **Apply prompt** to change later frames.
+Let recording finish to save the result. **End session** discards the unfinished
+video. Panel prompt changes do not rewrite the saved workflow.
+
+See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for input, privacy, and stopping rules.
+
+## Check the credit rate
+
+Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
+time to include setup or other paid time. Session time includes setup and can
+exceed the saved video length. This calculation does not limit spending.
+Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
+for details.
+
+## Recording details
+
+The **Recording details** output identifies the model and describes the saved file. See
+[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
+presence, and cache behavior. It contains no prompts or session credentials.
