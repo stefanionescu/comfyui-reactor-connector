@@ -1,596 +1,596 @@
 {
-  "ReactorIncFastContinue": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "clip_seconds": {
-        "name": "Clip length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "aspect": {
-        "name": "Aspect ratio"
-      },
-      "clip_count": {
-        "name": "Number of clips"
-      },
-      "later_prompts": {
-        "name": "Later prompts"
-      },
-      "image": {
-        "name": "Starting image"
-      }
+    "ReactorIncFastContinue": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "clip_seconds": {
+                "name": "Clip length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "aspect": {
+                "name": "Aspect ratio"
+            },
+            "clip_count": {
+                "name": "Number of clips"
+            },
+            "later_prompts": {
+                "name": "Later prompts"
+            },
+            "image": {
+                "name": "Starting image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Audio"
+            },
+            "2": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Audio"
-      },
-      "2": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncFastGenerate": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "aspect": {
-        "name": "Aspect ratio"
-      },
-      "image": {
-        "name": "Starting image"
-      },
-      "ending_image": {
-        "name": "Final image"
-      }
+    "ReactorIncFastGenerate": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "aspect": {
+                "name": "Aspect ratio"
+            },
+            "image": {
+                "name": "Starting image"
+            },
+            "ending_image": {
+                "name": "Final image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Audio"
+            },
+            "2": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Audio"
-      },
-      "2": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncHeliosAddPrompt": {
-    "inputs": {
-      "previous": {
-        "name": "Previous steps (JSON)"
-      },
-      "chunk": {
-        "name": "Start chunk"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      }
+    "ReactorIncHeliosAddPrompt": {
+        "inputs": {
+            "previous": {
+                "name": "Previous steps (JSON)"
+            },
+            "chunk": {
+                "name": "Start chunk"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Prompt sequence"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Prompt sequence"
-      }
-    }
-  },
-  "ReactorIncHeliosAnimate": {
-    "inputs": {
-      "image": {
-        "name": "Starting image"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "interactive": {
-        "name": "Live controls"
-      }
+    "ReactorIncHeliosAnimate": {
+        "inputs": {
+            "image": {
+                "name": "Starting image"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "interactive": {
+                "name": "Live controls"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncHeliosGenerate": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "interactive": {
-        "name": "Live controls"
-      }
+    "ReactorIncHeliosGenerate": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "interactive": {
+                "name": "Live controls"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncHeliosSequence": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "sequence": {
-        "name": "Prompt sequence (JSON)"
-      },
-      "image": {
-        "name": "Starting image"
-      }
+    "ReactorIncHeliosSequence": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "sequence": {
+                "name": "Prompt sequence (JSON)"
+            },
+            "image": {
+                "name": "Starting image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncLingBotExplore": {
-    "inputs": {
-      "image": {
-        "name": "Starting image"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "movement": {
-        "name": "Movement"
-      },
-      "look_horizontal": {
-        "name": "Turn left or right"
-      },
-      "look_vertical": {
-        "name": "Look up or down"
-      },
-      "rotation_speed_deg": {
-        "name": "Turn per step (degrees)"
-      },
-      "interactive": {
-        "name": "Live controls"
-      }
+    "ReactorIncLingBotExplore": {
+        "inputs": {
+            "image": {
+                "name": "Starting image"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "movement": {
+                "name": "Movement"
+            },
+            "look_horizontal": {
+                "name": "Turn left or right"
+            },
+            "look_vertical": {
+                "name": "Look up or down"
+            },
+            "rotation_speed_deg": {
+                "name": "Turn per step (degrees)"
+            },
+            "interactive": {
+                "name": "Live controls"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncLingBotWorld2Explore": {
-    "inputs": {
-      "image": {
-        "name": "Starting image"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "movement": {
-        "name": "Movement"
-      },
-      "lateral": {
-        "name": "Sideways movement"
-      },
-      "look_horizontal": {
-        "name": "Turn left or right"
-      },
-      "look_vertical": {
-        "name": "Look up or down"
-      },
-      "rotation_speed_deg": {
-        "name": "Turn per step (degrees)"
-      },
-      "interactive": {
-        "name": "Live controls"
-      }
+    "ReactorIncLingBotWorld2Explore": {
+        "inputs": {
+            "image": {
+                "name": "Starting image"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "movement": {
+                "name": "Movement"
+            },
+            "lateral": {
+                "name": "Sideways movement"
+            },
+            "look_horizontal": {
+                "name": "Turn left or right"
+            },
+            "look_vertical": {
+                "name": "Look up or down"
+            },
+            "rotation_speed_deg": {
+                "name": "Turn per step (degrees)"
+            },
+            "interactive": {
+                "name": "Live controls"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncLongLiveAddShot": {
-    "inputs": {
-      "previous": {
-        "name": "Previous steps (JSON)"
-      },
-      "at_session_chunk": {
-        "name": "Start chunk"
-      },
-      "transition": {
-        "name": "Transition"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      }
+    "ReactorIncLongLiveAddShot": {
+        "inputs": {
+            "previous": {
+                "name": "Previous steps (JSON)"
+            },
+            "at_session_chunk": {
+                "name": "Start chunk"
+            },
+            "transition": {
+                "name": "Transition"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Storyboard"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Storyboard"
-      }
-    }
-  },
-  "ReactorIncLongLiveGenerate": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "interactive": {
-        "name": "Live controls"
-      }
+    "ReactorIncLongLiveGenerate": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "interactive": {
+                "name": "Live controls"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncLongLiveStoryboard": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "storyboard": {
-        "name": "Shots (JSON)"
-      }
+    "ReactorIncLongLiveStoryboard": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "storyboard": {
+                "name": "Shots (JSON)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncLtxSpeak": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "script": {
-        "name": "Spoken words"
-      },
-      "words_per_minute": {
-        "name": "Words per minute"
-      },
-      "image": {
-        "name": "Starting image"
-      }
+    "ReactorIncLtxSpeak": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "script": {
+                "name": "Spoken words"
+            },
+            "words_per_minute": {
+                "name": "Words per minute"
+            },
+            "image": {
+                "name": "Starting image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Audio"
+            },
+            "2": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Audio"
-      },
-      "2": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncSanaEditVideo": {
-    "inputs": {
-      "source": {
-        "name": "Source video"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "anchor_interval": {
-        "name": "Anchor interval"
-      },
-      "interactive": {
-        "name": "Live controls"
-      }
+    "ReactorIncSanaEditVideo": {
+        "inputs": {
+            "source": {
+                "name": "Source video"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "anchor_interval": {
+                "name": "Anchor interval"
+            },
+            "interactive": {
+                "name": "Live controls"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncSanaWebcam": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "anchor_interval": {
-        "name": "Anchor interval"
-      }
+    "ReactorIncSanaWebcam": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "anchor_interval": {
+                "name": "Anchor interval"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncViskoDynamicGenerate": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "audio_prompt": {
-        "name": "Sound prompt"
-      },
-      "resolution": {
-        "name": "Resolution"
-      },
-      "audio_enabled": {
-        "name": "Include sound"
-      },
-      "prompt_passthrough": {
-        "name": "Use prompt unchanged"
-      },
-      "interactive": {
-        "name": "Live controls"
-      },
-      "image": {
-        "name": "Starting image"
-      }
+    "ReactorIncViskoDynamicGenerate": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "audio_prompt": {
+                "name": "Sound prompt"
+            },
+            "resolution": {
+                "name": "Resolution"
+            },
+            "audio_enabled": {
+                "name": "Include sound"
+            },
+            "prompt_passthrough": {
+                "name": "Use prompt unchanged"
+            },
+            "interactive": {
+                "name": "Live controls"
+            },
+            "image": {
+                "name": "Starting image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Audio"
+            },
+            "2": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Audio"
-      },
-      "2": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncViskoStableGenerate": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "seed": {
-        "name": "Seed"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "audio_prompt": {
-        "name": "Sound prompt"
-      },
-      "resolution": {
-        "name": "Resolution"
-      },
-      "audio_enabled": {
-        "name": "Include sound"
-      },
-      "prompt_passthrough": {
-        "name": "Use prompt unchanged"
-      },
-      "interactive": {
-        "name": "Live controls"
-      },
-      "image": {
-        "name": "Starting image"
-      }
+    "ReactorIncViskoStableGenerate": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "seed": {
+                "name": "Seed"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "audio_prompt": {
+                "name": "Sound prompt"
+            },
+            "resolution": {
+                "name": "Resolution"
+            },
+            "audio_enabled": {
+                "name": "Include sound"
+            },
+            "prompt_passthrough": {
+                "name": "Use prompt unchanged"
+            },
+            "interactive": {
+                "name": "Live controls"
+            },
+            "image": {
+                "name": "Starting image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Audio"
+            },
+            "2": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Audio"
-      },
-      "2": {
-        "name": "Recording details"
-      }
-    }
-  },
-  "ReactorIncX2EditVideo": {
-    "inputs": {
-      "source": {
-        "name": "Source video"
-      },
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "keep_backlog": {
-        "name": "Keep queued frames"
-      },
-      "pointer_active": {
-        "name": "Hold pointer"
-      },
-      "pointer_x": {
-        "name": "Pointer X"
-      },
-      "pointer_y": {
-        "name": "Pointer Y"
-      },
-      "interactive": {
-        "name": "Live controls"
-      },
-      "reference_image": {
-        "name": "Reference image"
-      }
+    "ReactorIncX2EditVideo": {
+        "inputs": {
+            "source": {
+                "name": "Source video"
+            },
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "keep_backlog": {
+                "name": "Keep queued frames"
+            },
+            "pointer_active": {
+                "name": "Hold pointer"
+            },
+            "pointer_x": {
+                "name": "Pointer X"
+            },
+            "pointer_y": {
+                "name": "Pointer Y"
+            },
+            "interactive": {
+                "name": "Live controls"
+            },
+            "reference_image": {
+                "name": "Reference image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
+    "ReactorIncX2Webcam": {
+        "inputs": {
+            "prompt": {
+                "name": "Scene prompt"
+            },
+            "duration_seconds": {
+                "name": "Video length (seconds)"
+            },
+            "variation": {
+                "name": "Variation"
+            },
+            "reference_image": {
+                "name": "Reference image"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Video"
+            },
+            "1": {
+                "name": "Recording details"
+            }
+        }
     }
-  },
-  "ReactorIncX2Webcam": {
-    "inputs": {
-      "prompt": {
-        "name": "Scene prompt"
-      },
-      "duration_seconds": {
-        "name": "Video length (seconds)"
-      },
-      "variation": {
-        "name": "Variation"
-      },
-      "reference_image": {
-        "name": "Reference image"
-      }
-    },
-    "outputs": {
-      "0": {
-        "name": "Video"
-      },
-      "1": {
-        "name": "Recording details"
-      }
-    }
-  }
 }

@@ -1,14 +1,14 @@
 {
-  "ReactorInc_OpenNodeHelp": {
-    "label": "Help"
-  },
-  "ReactorInc_OpenSettings": {
-    "label": "Reactor settings"
-  },
-  "ReactorInc_OpenCatalog": {
-    "label": "Reactor models"
-  },
-  "ReactorInc_OpenWorldLibrary": {
-    "label": "Saved Reactor worlds"
-  }
+    "ReactorInc_OpenNodeHelp": {
+        "label": "Help"
+    },
+    "ReactorInc_OpenSettings": {
+        "label": "Reactor settings"
+    },
+    "ReactorInc_OpenCatalog": {
+        "label": "Reactor models"
+    },
+    "ReactorInc_OpenWorldLibrary": {
+        "label": "Saved Reactor worlds"
+    }
 }

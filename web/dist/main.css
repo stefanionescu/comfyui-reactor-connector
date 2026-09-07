@@ -1,0 +1,245 @@
+/* web/styles.css */
+.reactor-settings {
+  width: min(38rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.6rem;
+  padding: 1.5rem;
+  color: var(--fg-color, CanvasText);
+  background: var(--comfy-menu-bg, Canvas);
+  font: inherit;
+}
+.reactor-settings::backdrop {
+  background: #0008;
+}
+.reactor-settings header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.reactor-settings h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.reactor-settings p {
+  line-height: 1.5;
+}
+.reactor-settings form {
+  margin-top: 1.5rem;
+}
+.reactor-settings fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.reactor-settings legend {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.reactor-settings label {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.8rem 0;
+}
+.reactor-settings input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem;
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.25rem;
+  color: var(--input-text, CanvasText);
+  background: var(--comfy-input-bg, Field);
+  font: inherit;
+}
+.reactor-settings button {
+  font: inherit;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.25rem;
+  color: var(--input-text, ButtonText);
+  background: var(--comfy-input-bg, ButtonFace);
+  cursor: pointer;
+}
+.reactor-settings input[type=checkbox] {
+  width: auto;
+  padding: 0;
+  margin: 0;
+}
+.reactor-settings label:has(input[type=checkbox]) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.reactor-settings button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.reactor-settings :focus-visible {
+  outline: 2px solid Highlight;
+  outline-offset: 3px;
+}
+.reactor-settings .reactor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.reactor-settings [role=status] {
+  min-height: 1.5em;
+}
+.reactor-settings summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+.reactor-catalog {
+  box-sizing: border-box;
+  width: min(54rem, calc(100vw - 2rem));
+}
+.reactor-catalog ul {
+  list-style: none;
+  padding: 0;
+}
+.reactor-catalog li {
+  border-top: 1px solid var(--border-color, GrayText);
+  padding: 1rem 0;
+}
+.reactor-catalog h3 {
+  margin: 0 0 0.4rem;
+}
+.reactor-catalog code {
+  overflow-wrap: anywhere;
+}
+.reactor-catalog details {
+  margin: 0.75rem 0;
+}
+.reactor-controls {
+  box-sizing: border-box;
+  width: min(48rem, calc(100vw - 2rem));
+  scroll-padding-bottom: 7rem;
+}
+.reactor-controls h2 {
+  margin: 0 0 0.5rem;
+}
+.reactor-controls p {
+  margin: 0.5rem 0;
+}
+.reactor-controls img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 30vh;
+  margin: auto;
+}
+.reactor-controls img[hidden] {
+  display: none;
+}
+.reactor-controls textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+.reactor-controls footer {
+  position: sticky;
+  bottom: -1.5rem;
+  z-index: 1;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+  background: var(--comfy-menu-bg, Canvas);
+}
+.reactor-webcam {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+.reactor-webcam video {
+  width: 160px;
+  max-height: 120px;
+  object-fit: contain;
+}
+.reactor-webcam video[hidden] {
+  display: none;
+}
+.reactor-webcam select {
+  width: 100%;
+}
+.reactor-webcam p {
+  grid-column: 1 / -1;
+  margin: 0.25rem 0 0.75rem;
+}
+@media (max-width: 600px) {
+  .reactor-webcam {
+    grid-template-columns: 1fr;
+  }
+}
+.reactor-pointer-preview {
+  position: relative;
+}
+.reactor-pointer-marker {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  outline: 2px solid black;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.reactor-node-help {
+  width: min(64rem, calc(100vw - 2rem));
+  padding: 1rem;
+}
+.reactor-node-help iframe {
+  display: block;
+  width: 100%;
+  height: min(72vh, 55rem);
+  border: 0;
+  margin-top: 1rem;
+}
+.reactor-live {
+  width: min(52rem, calc(100vw - 2rem));
+  box-sizing: border-box;
+}
+.reactor-live header {
+  position: sticky;
+  top: -1.5rem;
+  padding: 0.5rem 0;
+  background: var(--comfy-menu-bg, Canvas);
+}
+.reactor-live p {
+  margin: 0.6rem 0;
+}
+.reactor-live .reactor-preview {
+  min-height: 0;
+  background: #111;
+  display: grid;
+  place-items: center;
+}
+.reactor-live img {
+  max-width: 100%;
+  max-height: 32vh;
+  object-fit: contain;
+}
+.reactor-live .reactor-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  touch-action: none;
+}
+@media (max-width: 420px) {
+  .reactor-live .reactor-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.reactor-live textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+.reactor-catalog li p {
+  margin: 0.35rem 0;
+}
+.reactor-controls footer p {
+  margin: 0 0 0.5rem;
+}
