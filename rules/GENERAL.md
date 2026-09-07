@@ -1,20 +1,320 @@
-# General rules
+# How to Work in This Repository
 
-Keep one owner for each behavior. Read its callers before changing it.
-Use small records and explicit data flow. Add an abstraction only when it removes
-complexity demonstrated by actual callers.
+These rules apply to all files in this repository.
 
-Validate user input, files, provider responses, and host boundaries. Trust
-validated internal records. Handle known errors without inventing silent
-fallbacks, guessed defaults, or retries for side effects.
+## Contents
 
-Keep imports free of network calls, installation, background work, and mutable
-runtime initialization. Preserve saved workflow contracts through explicit,
-tested migrations. Never overwrite unrelated user work.
+- [Thinking before coding](#thinking-before-coding)
+- [Scope discipline](#scope-discipline)
+- [No defensive logic](#no-defensive-logic)
+- [Managing sprawl](#managing-sprawl)
+- [Naming](#naming)
+- [Abstractions](#abstractions)
+    - [Prefer duplication over the wrong abstraction](#prefer-duplication-over-the-wrong-abstraction)
+    - [Do not abstract for one caller](#do-not-abstract-for-one-caller)
+    - [Watch for boxing](#watch-for-boxing)
+    - [Inline the wrong abstraction](#inline-the-wrong-abstraction)
+    - [Make the change easy](#make-the-change-easy)
+    - [Keep granularity continuous](#keep-granularity-continuous)
+    - [Use inversion of control deliberately](#use-inversion-of-control-deliberately)
+    - [Prefer data flow and data structures](#prefer-data-flow-and-data-structures)
+- [Secrets and sensitive data](#secrets-and-sensitive-data)
+- [Error messages](#error-messages)
+- [Verification scope](#verification-scope)
+- [Verification commands](#verification-commands)
+- [Code style](#code-style)
+    - [Present state only](#present-state-only)
+    - [Avoid referencing specific file paths](#avoid-referencing-specific-file-paths)
+    - [Punctuation](#punctuation)
+    - [Table of contents](#table-of-contents)
+    - [Comments](#comments)
+    - [Documentation requirements](#documentation-requirements)
+    - [Documentation maintenance](#documentation-maintenance)
+- [Protected files](#protected-files)
+- [Language discipline](#language-discipline)
+- [No backward compatibility](#no-backward-compatibility)
+- [Working with uncommitted changes](#working-with-uncommitted-changes)
 
-Use formatting, linting, type checks, and asset builds. Do not create or run
-tests. Fix reported source errors before continuing.
+## Thinking before coding
 
-Never put credentials in source, commands, workflows, logs, or public evidence.
-Use [plain language](PLAIN_LANGUAGE.md) for all project text.
+Read the relevant code before touching it. Understand the contracts, data flow,
+and ownership boundaries. Then think through your approach:
 
+- What is the simplest change that solves the problem correctly?
+- What are the failure modes? What happens with bad input, missing data, concurrent access, network failures?
+- Does this change affect other parts of the system? Trace the call chain.
+- Will someone reading this code in six months understand what it does and why?
+
+When you rename or move a file, audit the entire codebase for references and update them immediately. Stale imports and broken references are worse than the original problem.
+
+Before adding a new module, directory, or helper, identify the correct owner for
+the behavior. Do not create parallel implementations for a concept that has an
+owner. If a new file is needed, be ready to explain why the owning module should
+grow that way.
+
+## Scope discipline
+
+- Do what was asked. Do not expand scope.
+- If you discover something unrelated that needs fixing, mention it to the user. Do not silently fix it unless it is trivial and in a file you are editing.
+- Do not add features, refactor surrounding code, or "improve" things that were not requested.
+
+## No defensive logic
+
+Do not invent defensive logic for scenarios that are not part of the real contract.
+
+- Do not add guards, fallbacks, retries, optional handling, defaults, or wrappers for states that cannot occur under the real contract.
+- Handle known failure modes at real boundaries: user input, network calls, persistence, permissions, and external services.
+- Trust internal invariants after they are established. If an invariant is unclear, trace the code and clarify the contract instead of adding speculative protection.
+- Do not pad the codebase with logic meant to protect against hypothetical future failures.
+
+## Managing sprawl
+
+Keep one clear implementation for each concept.
+
+- Do not create multiple functions, services, types, or wrappers that do nearly the same thing.
+- Do not wrap a helper with another helper unless the wrapper owns a real boundary, policy, or transformation.
+- Do not add an abstraction for one call site or one concept.
+- Before adding a new helper, find the owner of the behavior and put the logic
+  there.
+- When touching duplicated logic in the same area, collapse it into the owner
+  instead of adding another layer.
+
+## Naming
+
+All naming rules live in [`NAMING.md`](NAMING.md). Follow that file for
+identifiers, files, directories, functions, booleans, role suffixes, language
+case conventions, and boundary names.
+
+The local linting tools under `quality/` and `mise run lint:quality` are also
+authoritative for enforced naming policy.
+
+## Abstractions
+
+Abstractions are useful only when they remove real complexity. They are harmful
+when they hide ownership, combine unrelated behavior, or predict reuse before
+the code proves it.
+
+### Prefer duplication over the wrong abstraction
+
+- Duplication is cheaper than the wrong abstraction.
+- Prefer duplication until there are at least two real examples that prove the
+  same concept exists.
+- Do not build reusable code before the code is usable.
+- Do not preserve an abstraction because of sunk cost.
+
+### Do not abstract for one caller
+
+- Do not introduce an abstraction for one caller.
+- Do not introduce an abstraction for hypothetical future reuse.
+
+### Watch for boxing
+
+- If a shared abstraction starts gaining flags, modes, optional branches, or
+  caller-specific conditionals, treat that as evidence the abstraction is wrong.
+- "Boxing" is forbidden: do not stuff loosely related behavior into one
+  function/class/module with parameters deciding which behavior runs.
+
+### Inline the wrong abstraction
+
+- When an abstraction is wrong, inline it back into each caller, delete the
+  branches each caller does not need, then extract only the common behavior that
+  remains.
+
+### Make the change easy
+
+- Preparatory refactoring is allowed when it makes the requested change easier:
+  first preserve behavior, then make the behavior change.
+- Keep refactoring and behavior changes separate when practical.
+
+### Keep granularity continuous
+
+- Higher-level helpers must be replaceable by a small number of lower-level
+  operations. Do not create API granularity gaps.
+
+### Use inversion of control deliberately
+
+- Use inversion of control when it prevents option explosion across multiple
+  real use cases.
+- Do not add inversion of control for a single use case if it makes the call
+  site harder without reducing complexity.
+
+### Prefer data flow and data structures
+
+- Prefer plain functions and explicit data flow before classes, interfaces,
+  factories, strategies, inheritance, or framework patterns.
+- Prefer data structures and their relationships over code-pattern taxonomies.
+- Push state and I/O outward where practical; keep core logic pure or close to
+  pure when that reduces moving parts.
+
+## Secrets and sensitive data
+
+- Never hardcode API keys, tokens, passwords, or secrets anywhere in the codebase.
+- Never log sensitive data, including tokens, passwords, personal information, or request bodies with authentication headers.
+- Use environment variables or the private credential store for secrets. Access them through the configuration boundary, not directly in node or browser code.
+
+## Error messages
+
+Error messages visible to users, command-line callers, node help, or
+logs must not leak internal system details.
+
+Local development checks may report source paths and line numbers needed to
+locate a failure. Keep credentials and private account values out of diagnostics.
+
+**Never include in error messages:**
+
+- Schema names, table names, column names, or function names
+- Internal identifiers (row IDs, user IDs, session tokens)
+- Stack traces or file paths
+- Implementation details (trigger names, policy names, internal state like "deleted" flags)
+
+**Always:**
+
+- Start error messages with an uppercase letter (sentence case)
+- Make messages actionable: tell the user what went wrong, not how the system works
+- Use generic messages for configuration and infrastructure failures
+- Keep messages consistent in tone and casing across the repository
+
+## Verification scope
+
+Do not create or run automated tests. Do not recreate deleted test files.
+Use the requested formatting, linting, type, build, dependency, and security checks.
+Verify workflows manually in the installed Comfy Desktop app when the task calls
+for runtime verification. Static checks do not prove that a workflow runs.
+
+Use Bun, uv, mise tasks, and local Git hooks. Do not add hosted Git workflows,
+Docker configuration, or inference deployment tooling.
+
+## Verification commands
+
+Run verification within the scope the user has authorized. Requested quality
+work includes its static checks and builds. Automated tests remain excluded.
+
+When verification is requested:
+
+- Run only the command needed for the specific project or files in scope.
+- Prefer project-level commands over project-wide commands.
+- Do not expand verification into unrelated projects.
+- Report failures with the relevant command and the failing area.
+
+## Code style
+
+### Present state only
+
+Comments and documentation describe what the code does right now. Never mention what was removed, deleted, renamed, refactored, or how the code used to work. No changelogs in comments.
+
+Bad: `# Replaced the old recording download.`
+Good: `# Reject redirects before downloading a recording.`
+
+### Avoid referencing specific file paths
+
+Do not narrate source locations in comments. Keep file paths in commands, links,
+and procedures when readers need them to complete the task.
+
+Exceptions: well-known configuration files such as `pyproject.toml`,
+`uv.lock`, and `dev dependency group` may be mentioned by name when
+useful for the task.
+
+### Punctuation
+
+Do not use em dashes or double hyphens. Use a space, comma, or colon instead.
+
+Bad: `The server handles requests - including retries - before responding.`
+Good: `The server handles requests, including retries, before responding.`
+
+### Table of contents
+
+Long documentation files use a `## Contents` section with accurate anchor links to the sections readers need most. Keep it up to date whenever headings change.
+
+### Comments
+
+Keep comments concise and focused on intent ("why"), not narration ("what"). Do not embed default values in comments; they drift when code changes. Reference concept names, not file paths.
+
+Comments and doc comments must never contain:
+
+- **Code change history.** No "changed X to Y", "replaced old Z", "updated to use W", "refactored from". Git tracks history.
+- **What was done to variables or code.** No "added this field", "moved this constant", "renamed from oldName". Describe the present purpose.
+- **File or variable locations.** Do not say "defined in X.ts" or "see the value in config.Y" unless the reference is essential for understanding. Code is searchable; stale path references are not.
+
+Good doc comments describe what a function does, what its parameters mean, and what it returns. They do not narrate how the function came to exist or what it replaced.
+
+### Documentation requirements
+
+Doc comments are required where they clarify public behavior, non-obvious
+contracts, or example and model boundaries. Linters enforce the mandatory level where a
+local rule exists; human review covers the rest.
+
+#### Linter-enforced (mandatory)
+
+Follow the local Python and structural lint rules configured in `pyproject.toml`
+and `quality/`. Do not add comments only to satisfy a generic style preference
+when the code is already obvious.
+
+#### Always comment
+
+Regardless of language or visibility, add a comment when a function:
+
+- Handles edge cases or non-obvious failure modes.
+- Has concurrency, cancellation, or isolation requirements.
+- Makes security or privacy decisions.
+- Encodes domain invariants ("must be monotonic", "idempotent", "retry-safe").
+- Sits on a performance-sensitive hot path.
+- Would take a reader more than ten seconds to understand from the signature and body alone.
+
+These are enforced during code review, not by linters. The comment explains why, not what.
+
+### Documentation maintenance
+
+When editing any file, check that comments and doc comments are still accurate. Stale comments are worse than no comments because they actively mislead.
+
+Specific expectations:
+
+- If you change a function's behavior, update its doc comment to match.
+- If you change a function's parameters, update `@param` tags.
+- If you change what a function returns, update `@returns`.
+- If a comment references behavior that no longer exists, rewrite or remove it.
+- If a comment describes the "why" of a decision you are undoing, remove it.
+
+This applies to Python docstrings, Bash comments, Markdown documentation,
+TypeScript JSDoc, node help, and workflow notes.
+
+## Protected files
+
+Do not modify `AGENTS.md` or files under `rules/` unless the user
+explicitly asks for rule changes.
+
+## Language discipline
+
+All authored text must follow [plain language](WRITING.md).
+
+Use direct, concrete language in code, comments, filenames, and documentation.
+
+- Follow [`NAMING.md`](NAMING.md) for model adapter and wrapper names.
+- Describe optional conditions explicitly.
+- State the actual probability or condition instead of using vague hedging.
+- Describe redundancy directly instead of using idioms.
+
+If code uses vague language, improve it when touching that code.
+
+## No backward compatibility
+
+Never introduce compatibility layers, wrapper functions, re-exports for renamed symbols, deprecated-but-kept code, or any other form of backward-compatible scaffolding.
+
+When something is replaced or renamed:
+
+- Delete the old implementation entirely.
+- Update every call site to use the new version.
+- Remove unused files, functions, types, and variables.
+
+The codebase must reflect the current implementation. Preserve saved workflow
+contracts, public node IDs, model identifiers, and stored settings. Internal
+cleanup does not authorize breaking those external contracts.
+
+## Working with uncommitted changes
+
+When `git status` or the worktree shows changes you did not make, do not panic. Other agents or contributors may be working in parallel.
+
+- Do not revert, stash, clean, or overwrite changes you did not make.
+- Continue working if your changes do not conflict with uncommitted changes.
+- Only stop and ask the user if a change you are about to make directly contradicts or overwrites an uncommitted worktree change.
+- Build on top of uncommitted changes, or commit your own changes alongside them.
+- If another agent is known to be committing those changes separately, leave them alone.
