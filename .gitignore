@@ -1,20 +1,23 @@
+# Local dependencies
 .venv/
+node_modules/
+
+# Python caches
 __pycache__/
 *.py[cod]
-.pytest_cache/
 .ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-dist/
-build/
-*.egg-info/
-node_modules/
+.pytest_cache/
+
+# Build output and check artifacts
+/dist/
+.artifacts/
+
+# Private settings and credentials
 .env
 .env.*
-!.env.example
 .mise.local.toml
+.reactor-private/
+
+# Logs and operating system files
 *.log
 .DS_Store
-.reactor-private/
-/PLAN.md
