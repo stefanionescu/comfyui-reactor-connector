@@ -1,0 +1,15 @@
+"""Static media video values used by the connector."""
+
+MAX_FRAME_RATE = 120
+
+COMPONENT_BITS = 8
+
+MIN_FRAME_DIMENSION = 2
+
+MAX_FRAME_DIMENSION = 4096
+
+MIN_SOURCE_FRAMES = 33
+
+MAX_COMPONENT_BITS = 8
+
+MAX_START_SECONDS = 3600

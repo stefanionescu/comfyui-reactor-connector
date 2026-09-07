@@ -1,57 +1,208 @@
 [build-system]
-requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
+requires = [ "hatchling>=1.27,<2" ]
 
 [project]
 name = "reactor-inc"
 version = "0.1.0"
 description = "Reactor video and world-model nodes for ComfyUI."
 readme = "README.md"
-authors = [{ name = "Stefan Ionescu" }]
 license = "MIT"
-license-files = ["LICENSE.md"]
+license-files = [ "LICENSE.md" ]
+authors = [ { name = "Stefan Ionescu" } ]
 requires-python = ">=3.12"
-dependencies = ["reactor-sdk>=1.4.0,<1.5", "yarl>=1.20,<2"]
+dependencies = [ "reactor-sdk>=1.4.0,<1.5", "yarl>=1.20,<2" ]
 
 [dependency-groups]
 dev = [
   "aiohttp>=3.12,<4",
   "av>=16,<19",
+  "bandit[toml]",
   "basedpyright>=1.31,<2",
   "build>=1.3,<2",
+  "deptry",
+  "import-linter",
+  "interrogate",
   "markdown-it-py>=4,<5",
   "numpy>=2.2,<3",
   "packaging>=25,<27",
   "pillow>=11,<13",
   "pip-audit>=2.10.1,<3",
+  "pip-licenses",
+  "pydoclint",
+  "pyproject-fmt",
   "ruff>=0.12,<1",
+  "tomli",
+  "validate-pyproject",
+  "vulture",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["reactor_comfy"]
+[tool.hatch]
+build.targets.wheel.packages = [ "config", "src" ]
 
 [tool.ruff]
 target-version = "py312"
-line-length = 100
-extend-exclude = ["web/js"]
+line-length = 120
+indent-width = 4
+src = [ "." ]
+exclude = [
+  ".artifacts",
+  ".cache",
+  ".git",
+  ".ruff_cache",
+  ".venv",
+  "__pycache__",
+  "node_modules",
+  "web/dist",
+]
+format.indent-style = "space"
+format.quote-style = "double"
+format.line-ending = "lf"
+format.docstring-code-format = true
+lint.select = [
+  "A",
+  "ANN",
+  "ARG",
+  "ASYNC",
+  "B",
+  "BLE",
+  "C4",
+  "C90",
+  "COM",
+  "D",
+  "DTZ",
+  "E",
+  "EM",
+  "ERA",
+  "EXE",
+  "F",
+  "FA",
+  "FBT",
+  "FIX",
+  "FLY",
+  "FURB",
+  "G",
+  "ICN",
+  "INP",
+  "ISC",
+  "LOG",
+  "N",
+  "PERF",
+  "PGH",
+  "PIE",
+  "PL",
+  "PTH",
+  "Q",
+  "RET",
+  "RSE",
+  "RUF",
+  "SIM",
+  "SLF",
+  "SLOT",
+  "T10",
+  "T20",
+  "TC",
+  "TD",
+  "TRY",
+  "UP",
+  "W",
+  "YTT",
+]
+lint.ignore = [
+  "COM812",
+  "D203",
+  "D213",
+]
+lint.fixable = [
+  "ALL",
+]
+lint.unfixable = []
+lint.mccabe.max-complexity = 8
+lint.pylint.max-args = 5
+lint.pylint.max-bool-expr = 4
+lint.pylint.max-branches = 8
+lint.pylint.max-locals = 10
+lint.pylint.max-public-methods = 12
+lint.pylint.max-returns = 4
+lint.pylint.max-statements = 30
 
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "ASYNC", "SIM", "RUF"]
+# ComfyUI loads the repository as a package even when its folder name has hyphens.
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = [ "N999" ]
+"__main__.py" = [ "N999" ]
+# This Protocol has overloaded declarations without an implementation to document.
+"src/media/recording/streams.py" = [ "D418" ]
 
+[tool.interrogate]
+fail-under = 100
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+ignore-nested-functions = false
+ignore-nested-classes = false
+ignore-setters = false
+ignore-overloaded-functions = false
+exclude = [ ".artifacts", ".git", ".venv", "node_modules", "web/dist" ]
+verbose = 1
+omit-covered-files = false
 
-[tool.basedpyright]
-pythonVersion = "3.12"
-typeCheckingMode = "strict"
-include = ["__init__.py", "reactor_comfy", "quality", "scripts"]
-stubPath = "typings"
-# Host-only modules use stubs for development outside ComfyUI.
-reportMissingModuleSource = "none"
-venvPath = "."
-venv = ".venv"
+[tool.deptry]
+exclude = [ ".artifacts", ".git", ".venv", "node_modules", "web/dist" ]
+ignore_notebooks = true
+# ComfyUI supplies these modules and libraries in its own Python environment.
+per_rule_ignores.DEP001 = [ "comfy", "comfy_api", "comfy_execution", "folder_paths", "server", "torch" ]
+per_rule_ignores.DEP004 = [ "aiohttp", "av", "numpy", "PIL", "tomli", "packaging", "markdown_it" ]
+known_first_party = [ "config", "quality", "scripts", "src" ]
+package_module_name_map.reactor-sdk = [ "reactor" ]
 
-[tool.reactor-comfy.host-dependencies]
-aiohttp = ">=3.12,<4"
-av = ">=16,<19"
-numpy = ">=2.2,<3"
-pillow = ">=11,<13"
-torch = ">=2.6,<3"
+[tool.vulture]
+paths = [ "__init__.py", "__main__.py", "config", "quality", "scripts", "src" ]
+exclude = [ ".artifacts", ".git", ".venv", "node_modules", "web/dist" ]
+ignore_names = []
+ignore_decorators = []
+make_whitelist = false
+min_confidence = 80
+sort_by_size = true
+
+[tool.bandit]
+exclude_dirs = [ ".artifacts", ".git", ".venv", "node_modules", "web/dist" ]
+skips = []
+
+[tool.reactor-comfy]
+host-dependencies.aiohttp = ">=3.12,<4"
+host-dependencies.av = ">=16,<19"
+host-dependencies.numpy = ">=2.2,<3"
+host-dependencies.pillow = ">=11,<13"
+host-dependencies.torch = ">=2.6,<3"
+
+[tool.importlinter]
+root_packages = [ "src", "config", "scripts", "quality" ]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Runtime must not import development tools"
+type = "forbidden"
+source_modules = [ "src", "config" ]
+forbidden_modules = [ "scripts", "quality" ]
+
+[[tool.importlinter.contracts]]
+name = "Settings and discovery must not import execution or host nodes"
+type = "forbidden"
+source_modules = [ "src.settings", "src.discovery" ]
+forbidden_modules = [ "src.execution", "src.nodes" ]
+
+[[tool.importlinter.contracts]]
+name = "Execution must not import host nodes"
+type = "forbidden"
+source_modules = [ "src.execution" ]
+forbidden_modules = [ "src.nodes" ]
+
+[[tool.importlinter.contracts]]
+name = "Static configuration must not import runtime or development code"
+type = "forbidden"
+source_modules = [ "config" ]
+forbidden_modules = [ "src", "scripts", "quality" ]

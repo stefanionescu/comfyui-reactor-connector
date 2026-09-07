@@ -1,0 +1,17 @@
+"""Static generation prompts values used by the connector."""
+
+MAX_PROMPT_CHUNK = 100_000
+
+MAX_PROMPTS = 32
+
+MAX_SEQUENCE_BYTES = 128_000
+
+MAX_SHOT_CHUNK = 100_000
+
+MAX_SHOTS = 32
+
+MAX_STORYBOARD_BYTES = 128_000
+
+OPTIONS_TRANSITION = ["soft", "cut"]
+
+DEFAULT_TRANSITION = "soft"

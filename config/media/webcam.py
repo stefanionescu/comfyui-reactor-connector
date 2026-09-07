@@ -1,0 +1,11 @@
+"""Static media webcam values used by the connector."""
+
+MAX_CAMERA_JPEG_BYTES = 300_000
+
+MAX_CAMERA_WIDTH = 640
+
+MAX_CAMERA_HEIGHT = 480
+
+CAMERA_READY_SECONDS = 2
+
+CAMERA_TIMEOUT_SECONDS = 3

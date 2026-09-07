@@ -1,0 +1,184 @@
+"""Run a model and encoder within the configured recording and session limits."""
+
+import sys
+import json
+import asyncio
+from pathlib import Path
+from functools import partial
+from ...codes import ErrorCode
+from ..failures import safe_error
+from ..events import SessionEvents
+from ...errors import ConnectorError
+from ...media.output import owned_io
+from ..cleanup import finish_session
+from ..outcome import SessionOutcome
+from ..operation import VideoOperation
+from ..diagnostics import FailureReport
+from .resources import SessionResources
+from ..interaction import SessionInteraction
+from ...media.capture import VideoCapture, CaptureResult
+from ...settings.execution import ExecutionConfiguration
+from ...media.recording.assemble import prepare_recording
+from ..transport import Track, Transport, SessionTransport
+
+
+def _video_track(transport: Transport) -> Track:
+    """Require exactly one receive-only main video track."""
+    tracks = [
+        track
+        for track in transport.tracks
+        if track.name == "main_video" and track.kind == "video" and track.direction == "recvonly"
+    ]
+    if len(tracks) != 1:
+        raise ConnectorError(ErrorCode.UNAVAILABLE, "The model did not declare its expected video track.")
+    return tracks[0]
+
+
+async def _generate(session: SessionResources) -> CaptureResult:
+    """Connect, configure the model, and capture the requested video and recording."""
+    await session.capture.ready.wait()
+    if session.worker.done():
+        return await session.worker
+    async with asyncio.timeout(session.settings.connect_timeout_seconds):
+        session.outcome.connection_attempted = True
+        await session.events.call("connect", session.transport.connect())
+    session.events.check()
+    track = _video_track(session.transport)
+    session.track = track
+    track.on_frame(session.capture.receive)
+    if session.interaction is not None:
+        await session.interaction.connected(session.transport, track, session.events)
+    await session.request.configure(session.transport, session.events)
+    if session.interaction is not None:
+        session.interaction.configured(video_started=session.capture.first_frame.is_set())
+    session.events.phase = "capture"
+    async with asyncio.timeout(session.settings.first_frame_timeout_seconds):
+        await session.capture.first_frame.wait()
+    if session.request.requires_audio:
+        # Generation can finish before WebRTC delivers the requested recorded interval.
+        await session.capture.complete.wait()
+    else:
+        await _capture_until_end(session.capture, session.events)
+    result = await asyncio.shield(session.worker)
+    session.events.capture_frames = result.frames
+    if session.request.requires_audio:
+        await session.events.call(
+            "recording",
+            session.transport.save_recording(
+                session.capture.path.with_suffix(".recording.mp4"),
+                maximum_bytes=session.settings.max_capture_megabytes * 1_048_576,
+                timeout_seconds=session.settings.max_session_seconds,
+                on_window=session.events.on_recording_window,
+            ),
+        )
+    return result
+
+
+async def _capture_until_end(capture: VideoCapture, events: SessionEvents) -> None:
+    """Bound the final delivery drain when a finite model reports completion."""
+    captured = asyncio.create_task(capture.complete.wait())
+    completed = asyncio.create_task(events.generation_complete.wait())
+    try:
+        await asyncio.wait({captured, completed}, return_when=asyncio.FIRST_COMPLETED)
+        if completed.done() and not captured.done():
+            # Model messages and video use separate channels. Allow in-flight
+            # frames to arrive, then close without recording a frozen final frame forever.
+            try:
+                await asyncio.wait_for(asyncio.shield(captured), 0.5)
+            except TimeoutError:
+                capture.finish()
+            # codeql[py/ineffectual-statement] -- reason: Await final frame delivery.
+            await captured
+    finally:
+        for task in (captured, completed):
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(captured, completed, return_exceptions=True)
+
+
+def session_failure(events: SessionEvents, error: BaseException | None) -> FailureReport | None:
+    """Record the failed operation without replacing its execution error."""
+    diagnostic = events.diagnostic
+    if diagnostic is None and isinstance(error, ConnectorError):
+        diagnostic = FailureReport.from_error(events.phase, error)
+    if diagnostic is None and isinstance(error, TimeoutError):
+        diagnostic = FailureReport(
+            events.phase,
+            "timeout",
+            json.dumps(
+                {
+                    "reason": "The session deadline expired during this operation.",
+                    "state_received": events.state_ready.is_set(),
+                    "message_types": sorted(events.message_types),
+                    "capture_frames": events.capture_frames,
+                    "recording_window": events.recording_window,
+                    "model_timing": events.model_timing,
+                }
+            ),
+        )
+    return diagnostic
+
+
+async def _run(session: SessionResources) -> CaptureResult:
+    """Own capture and event listeners through generation, failure, and cleanup."""
+    try:
+        session.events.attach()
+        async with asyncio.timeout(session.settings.max_session_seconds):
+            return await session.events.guard(_generate(session))
+    finally:
+        session.outcome.diagnostic = session_failure(session.events, sys.exception())
+        await finish_session(session, sys.exception())
+
+
+async def run_video(
+    request: VideoOperation,
+    configuration: ExecutionConfiguration,
+    destination: Path,
+    *,
+    outcome: SessionOutcome | None = None,
+    interaction: SessionInteraction | None = None,
+) -> CaptureResult:
+    """Validate before billing and clean up after every execution outcome."""
+    settings = configuration.settings
+    request.validate(settings)
+    capture = VideoCapture(
+        destination,
+        request.duration_seconds,
+        settings.max_queue_megabytes * 1_048_576,
+        settings.max_capture_megabytes * 1_048_576,
+        fallback_fps=request.fallback_fps,
+    )
+    try:
+        transport = SessionTransport(request.model_name, configuration.credential, settings.max_session_seconds)
+        events = SessionEvents(transport)
+        session = SessionResources(
+            request=request,
+            transport=transport,
+            settings=settings,
+            capture=capture,
+            events=events,
+            worker=asyncio.create_task(capture.encode()),
+            outcome=outcome or SessionOutcome(),
+            interaction=interaction,
+        )
+        result = await _run(session)
+        if request.requires_audio:
+            result = await prepare_recording(
+                destination.with_suffix(".recording.mp4"),
+                destination,
+                request.recording_duration_seconds,
+                settings,
+                start_seconds=request.recording_start_seconds,
+            )
+    except asyncio.CancelledError:
+        raise
+    except Exception as error:  # noqa: BLE001 -- reason: Translate SDK and native media failures at the public execution boundary.
+        raise safe_error(error) from None
+    else:
+        return result
+    finally:
+        if request.requires_audio:
+            await owned_io(partial(destination.with_suffix(".recording.mp4").unlink, missing_ok=True))
+        if sys.exception() is not None:
+            await owned_io(partial(destination.unlink, missing_ok=True))
+            await owned_io(partial(destination.with_suffix(".wav").unlink, missing_ok=True))

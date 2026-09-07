@@ -1,0 +1,9 @@
+"""Static generation video values used by the connector."""
+
+MAX_ANCHOR_INTERVAL = 1000
+
+MAX_AUDIO_PROMPT_CHARACTERS = 1000
+
+MAX_FORMAT_NAME_CHARACTERS = 64
+
+MAX_EDIT_PROMPT_CHARACTERS = 1000

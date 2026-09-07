@@ -1,33 +1,36 @@
 """Check or refresh public model metadata without using provider credentials."""
 
-import argparse
-import asyncio
+import sys
 import json
-
-from reactor_comfy.catalog.sources import fetch_public_catalog
-from reactor_comfy.catalog.store import BUNDLED, merge_observations, read_snapshot
-from reactor_comfy.catalog.views import model_views
+import asyncio
+import argparse
+from ..src.discovery.views import model_views
+from ..src.discovery.sources import read_public_models
+from ..src.discovery.store import BUNDLED, read_snapshot, merge_observations
 
 
 def main() -> None:
+    """Validate or refresh public model metadata without opening a provider session."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("check", "refresh", "validate"))
     args = parser.parse_args()
     if args.action in {"check", "refresh"}:
-        fresh = asyncio.run(fetch_public_catalog())
+        fresh = asyncio.run(read_public_models())
         candidate = merge_observations(read_snapshot(BUNDLED), fresh) if BUNDLED.exists() else fresh
         models = model_views(candidate)
-        print(f"Observed {len(fresh.prices)} pricing entries and {len(fresh.guides)} model guides.")
-        print(
-            f"The reconciled list contains {len(models)} entries. No provider session was opened."
+        sys.stdout.write(
+            str(f"Observed {len(fresh.prices)} pricing entries and {len(fresh.guides)} model guides.") + "\n"
+        )
+        sys.stdout.write(
+            str(f"The reconciled list contains {len(models)} entries. No provider session was opened.") + "\n"
         )
         if args.action == "refresh":
             BUNDLED.write_text(json.dumps(candidate.to_json(), indent=2) + "\n")
-            print("Updated the public bundled snapshot. Review its changes before release.")
+            sys.stdout.write("Updated the public bundled snapshot. Review its changes before release." + "\n")
     else:
         candidate = read_snapshot(BUNDLED)
-        print(
-            f"Validated {len(candidate.prices)} price records and {len(candidate.guides)} guides."
+        sys.stdout.write(
+            str(f"Validated {len(candidate.prices)} price records and {len(candidate.guides)} guides.") + "\n"
         )
 
 

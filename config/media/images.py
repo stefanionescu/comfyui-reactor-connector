@@ -1,0 +1,11 @@
+"""Static media images values used by the connector."""
+
+BATCH_IMAGE_DIMENSIONS = 4
+
+RGB_CHANNELS = 3
+
+MAX_IMAGE_DIMENSION = 8192
+
+RGB_ARRAY_DIMENSIONS = 3
+
+MAX_FRAME_DIMENSION = 8192

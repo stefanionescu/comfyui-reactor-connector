@@ -1,0 +1,1 @@
+"""Static connector configuration."""

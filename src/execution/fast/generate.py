@@ -1,0 +1,158 @@
+"""Build and play one Fast H3 clip with its accepted duration and native sound."""
+
+import json
+from typing import ClassVar
+from ...codes import ErrorCode
+from ..inputs import VideoInputs
+from ..transport import Transport
+from ..events import SessionEvents
+from ...errors import ConnectorError
+from dataclasses import field, dataclass
+from ...settings.settings import Settings
+from .clip import seconds, FastClip, FastClipEvents, message_payload
+from ....config.generation.fast import MAX_CLIP_SECONDS, MIN_CLIP_SECONDS, MAX_PROMPT_CHARACTERS
+
+
+@dataclass(slots=True)
+class FastRecording:
+    """The selected recording interval and its permitted extension for Fast H3 clips."""
+
+    start_seconds: float = 0
+    duration_seconds: float = 0
+    maximum_seconds: float = 0
+
+
+@dataclass(frozen=True, slots=True)
+class FastGenerateRequest(VideoInputs):
+    """A Fast H3 request with its image endpoints, aspect ratio, and recording interval."""
+
+    aspect: str = "16:9"
+    ending_image: bytes | None = None
+    model_name: ClassVar[str] = "reactor/fast-h3"
+    requires_audio: ClassVar[bool] = True
+    recording: FastRecording = field(default_factory=FastRecording, repr=False, compare=False)
+
+    @property
+    def recording_start_seconds(self) -> float:
+        """Return the playback start reported for the selected clip."""
+        return self.recording.start_seconds
+
+    @property
+    def recording_duration_seconds(self) -> float:
+        """Return the accepted duration of the selected clip."""
+        return self.recording.duration_seconds
+
+    def validate(self, settings: Settings) -> None:
+        """Check Fast H3 prompt, duration, aspect ratio, and ending-image limits."""
+        super(FastGenerateRequest, self).validate(settings)
+        if len(self.prompt) > MAX_PROMPT_CHARACTERS:
+            raise ConnectorError(ErrorCode.INVALID_INPUT, "Use at most 800 prompt characters.")
+        if not MIN_CLIP_SECONDS <= self.duration_seconds <= MAX_CLIP_SECONDS:
+            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose 5.167 to 14.375 seconds for Fast H3.")
+        if self.aspect not in ("16:9", "1:1", "9:16", "4:3"):
+            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose an offered Fast H3 aspect ratio.")
+        if self.ending_image is not None and (
+            type(self.ending_image) is not bytes
+            or not self.ending_image
+            or len(self.ending_image) > settings.max_upload_megabytes * 1_048_576
+        ):
+            raise ConnectorError(ErrorCode.INVALID_INPUT, "Provide an ending image within the upload limit.")
+        self.recording.maximum_seconds = settings.max_capture_seconds
+
+    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+        """Generate and play one clip, then close its recording with trailing media."""
+        audio = [
+            t for t in transport.tracks if t.name == "main_audio" and t.kind == "audio" and t.direction == "recvonly"
+        ]
+        if len(audio) != 1:
+            raise ConnectorError(ErrorCode.UNAVAILABLE, "This Fast H3 deployment has no audio track.")
+        clips = FastClipEvents(events)
+        await events.command("set_autoplay", {"enabled": False})
+        await events.command("set_flush_on_clip_end", {"enabled": False})
+        await events.command("set_canvas", {"aspect": self.aspect})
+        state = await self._state(transport, events)
+        minimum, maximum = (
+            seconds(state.get("clip_seconds_min")),
+            seconds(state.get("clip_seconds_max")),
+        )
+        if not minimum <= self.duration_seconds <= maximum:
+            raise ConnectorError(
+                ErrorCode.INVALID_INPUT,
+                "The requested length is outside this deployment's clip limits.",
+            )
+        clip = await self._queue_clip(transport, events)
+        self.recording.duration_seconds = clip.seconds
+        await events.call("clip_build", clips.wait_ready(clip))
+        await self._play_clip(transport, events, clips, clip)
+        # Later media closes the recording fragment that contains the first clip's end.
+        reply = await events.call(
+            "recording_tail_queue",
+            transport.send_command(
+                "enqueue",
+                {
+                    "prompt": self.prompt,
+                    "seconds": maximum,
+                    "seed": self.seed,
+                    "continue_from_clip_id": clip.clip_id,
+                },
+            ),
+        )
+        events.on_message(reply)
+        events.check()
+        tail = FastClip.read(message_payload(reply, "clip_queued"))
+        if tail.seconds > maximum:
+            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an invalid continuation length.")
+        await events.call("recording_tail_build", clips.wait_ready(tail))
+        await events.command("play", {"clip_id": tail.clip_id})
+
+    async def _queue_clip(self, transport: Transport, events: SessionEvents) -> FastClip:
+        """Upload selected endpoint images and queue a clip within the capture limit."""
+        payload: dict[str, object] = {
+            "prompt": self.prompt,
+            "seconds": self.duration_seconds,
+            "seed": self.seed,
+        }
+        for name, image in (("starting_frame", self.image), ("ending_frame", self.ending_image)):
+            if image is not None:
+                payload[name] = await events.call(
+                    "upload", transport.upload_file(image, name="input.png", mime_type="image/png")
+                )
+        reply = await events.call("enqueue", transport.send_command("enqueue", payload))
+        events.on_message(reply)
+        events.check()
+        clip = FastClip.read(message_payload(reply, "clip_queued"))
+        if clip.seconds > self.recording.maximum_seconds:
+            raise ConnectorError(
+                ErrorCode.INVALID_INPUT,
+                "The accepted clip length exceeds the host capture limit. Choose a shorter clip.",
+            )
+        return clip
+
+    async def _play_clip(
+        self, transport: Transport, events: SessionEvents, clips: FastClipEvents, clip: FastClip
+    ) -> None:
+        """Play the chosen clip and require a precise recording interval."""
+        before = await self._state(transport, events)
+        start = seconds(before.get("seconds_sent"))
+        if before.get("playing") is not False:
+            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 started playback before the clip was selected.")
+        await events.command("play", {"clip_id": clip.clip_id})
+        await events.call("clip_playback", clips.finished.wait())
+        end = seconds(clips.end_seconds)
+        if abs(end - start - clip.seconds) > 1 / 24:
+            raise ConnectorError(
+                ErrorCode.CAPTURE,
+                "Fast H3 did not report a precise clip window. No partial clip will be saved.",
+                diagnostic_detail=json.dumps(
+                    {"start_seconds": start, "end_seconds": end, "clip_seconds": clip.seconds}
+                ),
+            )
+        self.recording.start_seconds = start
+        events.model_timing.update(saved_start_seconds=start, saved_duration_seconds=clip.seconds)
+
+    async def _state(self, transport: Transport, events: SessionEvents) -> dict[str, object]:
+        """Fetch the model state and process any session failure before returning it."""
+        reply = await events.call("get_state", transport.send_command("get_state", {}))
+        events.on_message(reply)
+        events.check()
+        return message_payload(reply, "state_update")
