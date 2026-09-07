@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#MISE description="Check Python source structure, imports, documentation, and dependencies."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv run --no-sync ruff check .
+uv run --no-sync python -m quality.python.runner
+uv run --no-sync lint-imports --cache-dir .artifacts/import-linter
+uv run --no-sync pydoclint --allow-init-docstring true __init__.py __main__.py src config scripts quality
+uv run --no-sync interrogate --fail-under 100 __init__.py __main__.py src config scripts quality
+uv run --no-sync deptry .
+uv run --no-sync vulture __init__.py __main__.py src config scripts quality
+bun --bun node_modules/jscpd/bin/jscpd --config quality/config/duplication/python.json

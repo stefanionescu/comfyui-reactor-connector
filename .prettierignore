@@ -1,0 +1,12 @@
+.artifacts/
+.cache/
+.venv/
+node_modules/
+bun.lock
+uv.lock
+requirements.txt
+web/dist/
+workflows/**/*.json
+workflows/README.md
+rules/DOCUMENTATION.md
+.reactor-private/

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Install development tools and configure this repository’s hooks."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+mise install
+mise run deps
+uv run --no-sync python -m quality.repository.hooks.setup

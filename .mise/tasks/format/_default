@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Format authored Python, web, and documentation files."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv run --no-sync ruff format .
+uv run --no-sync pyproject-fmt --keep-full-version --no-generate-python-version-classifiers pyproject.toml
+bun --bun node_modules/prettier/bin/prettier.cjs . --write

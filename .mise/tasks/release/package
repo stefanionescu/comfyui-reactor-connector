@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#MISE description="Check and build the complete ComfyUI package."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+mise run check
+mise run security
+mise run licenses
+exec uv run --no-sync python -m scripts.release.package "$@"

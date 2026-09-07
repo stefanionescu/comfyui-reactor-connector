@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#MISE description="Install locked development dependencies."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+project_python="$(mise which python)"
+readonly project_python
+uv sync --python "${project_python}" --frozen --group dev
+bun install --frozen-lockfile --ignore-scripts

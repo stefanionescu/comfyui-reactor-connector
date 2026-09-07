@@ -1,0 +1,44 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { PREFIX_COLLISION_ALLOWLIST, SINGLE_FILE_FOLDER_ALLOWLIST } from '#config/folders.js';
+
+const REPO_ROOT = process.cwd();
+
+/**
+ * Check that each configured folder exception still has an existing owner.
+ * @returns Diagnostics for exception paths that no longer exist.
+ */
+function validateFolderPolicy() {
+  const errors = [];
+  for (const [name, entries] of [
+    ['single-file folder allowlist', SINGLE_FILE_FOLDER_ALLOWLIST],
+    ['prefix-collision allowlist', PREFIX_COLLISION_ALLOWLIST],
+  ]) {
+    for (const relativePath of entries) {
+      const absolutePath = path.join(REPO_ROOT, relativePath);
+      if (!fs.existsSync(absolutePath)) {
+        errors.push(
+          `stale ${name} entry in quality/config/folders.js: "${relativePath}" does not exist`,
+        );
+      }
+    }
+  }
+
+  return errors;
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  const errors = validateFolderPolicy();
+  if (errors.length > 0) {
+    console.error('folder policy integrity failed:');
+    for (const error of errors) {
+      console.error(`- ${error}`);
+    }
+    process.exit(1);
+  }
+
+  console.log('folder policy integrity passed.');
+}
+
+export { validateFolderPolicy };

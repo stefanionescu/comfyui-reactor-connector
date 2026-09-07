@@ -1,0 +1,153 @@
+{
+    "version": 1,
+    "python": {
+        "max_trivial_ast_nodes": 10,
+        "max_trivial_statements": 2,
+        "allowlist": [
+            {
+                "path": "src/settings/execution.py",
+                "names": ["ConfigurationGeneration.invalidate"],
+                "reason": "Invalidates a private generation token after credential changes; callers do not access the stored snapshot."
+            },
+            {
+                "path": "src/settings/settings.py",
+                "names": ["Settings.to_json"],
+                "reason": "Defines the public settings response and keeps dataclass serialization inside its owner."
+            },
+            {
+                "path": "src/credentials.py",
+                "names": ["Credential.reveal"],
+                "reason": "Makes intentional access to the redacted credential explicit at authorized private boundaries."
+            },
+            {
+                "path": "src/execution/events.py",
+                "names": ["SessionEvents.command"],
+                "reason": "Multiple model adapters send commands without consuming the reply while retaining the shared error checks."
+            },
+            {
+                "path": "src/execution/prompts.py",
+                "names": ["ScheduledPrompt.to_dict"],
+                "reason": "Owns the saved Helios command payload independently of the dataclass representation."
+            },
+            {
+                "path": "src/execution/transport.py",
+                "names": [
+                    "SessionTransport.request_schema",
+                    "SessionTransport.send_command",
+                    "SessionTransport.publish_track",
+                    "SessionTransport.request_recording",
+                    "SessionTransport.request_clip"
+                ],
+                "reason": "Implements the transport contract and checks connection ownership before each SDK call."
+            },
+            {
+                "path": "src/extension.py",
+                "names": ["ReactorExtension.on_load"],
+                "reason": "ComfyUI invokes this lifecycle callback to initialize runtime state and register local routes."
+            },
+            {
+                "path": "src/live/control/interaction.py",
+                "names": ["ControlInteraction.summary"],
+                "reason": "Extends the camera summary with acknowledged editing actions for the public recording report."
+            },
+            {
+                "path": "src/live/interaction.py",
+                "names": ["CameraInteraction.closed"],
+                "reason": "Implements the session interaction callback that records confirmed or uncertain remote termination."
+            },
+            {
+                "path": "src/live/routes.py",
+                "names": ["LiveRoutes.exchange"],
+                "reason": "Adapts an aiohttp request into the authenticated browser exchange and returns its JSON response."
+            },
+            {
+                "path": "src/media/output.py",
+                "names": ["FileOutput.write"],
+                "reason": "Moves file writes off the host loop and retains cancellation ownership until the write finishes."
+            },
+            {
+                "path": "src/media/video/input.py",
+                "names": ["_copy_file.open_source"],
+                "reason": "Opens the source in an owned worker thread and keeps its handle in the enclosing cleanup scope."
+            },
+            {
+                "path": "src/nodes/fast/continuation.py",
+                "names": ["FastContinue.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/fast/generate.py",
+                "names": ["FastGenerate.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/helios/animate.py",
+                "names": ["HeliosAnimate.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/helios/generate.py",
+                "names": ["HeliosGenerate.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/helios/sequence.py",
+                "names": ["HeliosSequence.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/lingbot/explore.py",
+                "names": ["LingBotExplore.define_schema", "LingBotExplore.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/lingbot/world.py",
+                "names": ["LingBotWorld2Explore.define_schema", "LingBotWorld2Explore.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/longlive/generate.py",
+                "names": ["LongLiveGenerate.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/longlive/storyboard.py",
+                "names": ["LongLiveStoryboard.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/ltx.py",
+                "names": ["LtxSpeak.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/sana/edit.py",
+                "names": ["SanaEditVideo.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/sana/webcam.py",
+                "names": ["SanaWebcam.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/visko/stable.py",
+                "names": ["ViskoStableGenerate.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/x2/edit.py",
+                "names": ["X2EditVideo.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/nodes/x2/webcam.py",
+                "names": ["X2Webcam.fingerprint_inputs"],
+                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            }
+        ]
+    },
+    "shell": {
+        "max_trivial_statements": 2
+    }
+}

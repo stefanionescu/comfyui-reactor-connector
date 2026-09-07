@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Generate ComfyUI runtime requirements."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+exec uv run --no-sync python -m scripts.dependencies "$@"

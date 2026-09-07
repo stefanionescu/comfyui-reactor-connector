@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Check source formatting without changing files."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv run --no-sync ruff format --check .
+uv run --no-sync pyproject-fmt --keep-full-version --no-generate-python-version-classifiers --check pyproject.toml
+bun --bun node_modules/prettier/bin/prettier.cjs . --check

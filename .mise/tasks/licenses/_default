@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Check Python and frontend dependency licenses."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv run --no-sync python -m quality.repository.licenses.check
+bash quality/repository/licenses/check.sh frontend

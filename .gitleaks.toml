@@ -13,8 +13,16 @@ keywords = ["rk_"]
 id = "generic-api-key"
 
 [[rules.allowlists]]
-description = "A reference to fixed HTTP response headers."
+description = "A fixed HTTP response-header expression in the historical guard."
 condition = "AND"
+commits = ["043cd548a82b84fa5328d9220bc2ce2d3cdf5ad4"]
 paths = ['''(?:^|[\\/])reactor_comfy[\\/]http_guard\.py$''']
 regexTarget = "match"
 regexes = ['''^response_key else result, headers=PRIVATE_HEADERS$''']
+
+[[rules.allowlists]]
+description = "Generated package manifest entries contain SHA-256 file hashes."
+condition = "AND"
+paths = ['''(?:^|[\\/!])reactor-inc[\\/]\.reactor-package\.json$''']
+regexTarget = "match"
+regexes = ['''^(?:credentials|authentication)\.py": "[a-f0-9]{64}"$''']

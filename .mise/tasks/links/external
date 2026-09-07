@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Check links to public documentation."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+exec bun quality/web/links/check.mjs --external "$@"

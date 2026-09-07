@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# lint:justify -- reason: Semgrep policy is sourced by the scanner entrypoint -- ticket: quality-security
+# shellcheck disable=SC2034
+
+SEMGREP_FLAGS=(
+  --error
+  --no-rewrite-rule-ids
+  --metrics=off
+  --disable-version-check
+)
+SEMGREP_LOCAL_CONFIGS=(
+  quality/config/security/semgrep/secrets.yml
+  quality/config/security/semgrep/markers.yml
+  quality/config/security/semgrep/frontend.yml
+  quality/config/security/semgrep/hooks.yml
+)
+SEMGREP_SCAN_PATHS=(__init__.py __main__.py src config scripts quality web locales .githooks .mise)
+readonly -a SEMGREP_FLAGS
+readonly -a SEMGREP_LOCAL_CONFIGS
+readonly -a SEMGREP_SCAN_PATHS

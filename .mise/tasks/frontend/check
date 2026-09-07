@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Check that browser files match their source."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+exec bun scripts/frontend.mjs --check "$@"

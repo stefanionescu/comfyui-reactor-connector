@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# lint:justify -- reason: Bearer policy is sourced by scanner scripts -- ticket: quality-security
+# shellcheck disable=SC2034
+
+BEARER_SCAN_PATHS=(__init__.py src scripts quality web)
+BEARER_FLAGS=(
+  --ignore-file "quality/config/security/bearer/false-positives.json"
+  --severity "critical,high,medium"
+  --format json
+  --quiet
+  --no-extract
+  --disable-version-check
+  --exit-code 1
+)
+readonly -a BEARER_SCAN_PATHS
+readonly -a BEARER_FLAGS

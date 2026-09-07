@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#MISE description="Check documentation spelling, Markdown, local links, and generated HTML."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+bun --bun node_modules/markdownlint-cli2/markdownlint-cli2-bin.mjs
+typos .
+bun --bun node_modules/html-validate/bin/html-validate.mjs --config quality/config/html/generated.json 'web/dist/guides/**/*.html'
+bun quality/web/links/check.mjs --local

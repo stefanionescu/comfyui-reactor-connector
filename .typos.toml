@@ -1,0 +1,17 @@
+[files]
+extend-exclude = [
+    "node_modules",
+    ".venv",
+    ".artifacts",
+    "web/dist",
+]
+
+[default.extend-words]
+certifi = "certifi"
+
+# ComfyUI's Windows portable distribution uses this exact directory name.
+[default.extend-identifiers]
+python_embeded = "python_embeded"
+
+# ESLint uses this exact option for immediately invoked function expressions.
+IIFEs = "IIFEs"

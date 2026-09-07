@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Check the quality tools and their configuration."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+bun --bun node_modules/eslint/bin/eslint.js --config quality/web/eslint/index.js quality
+bun quality/repository/naming/index.js --scope quality
+bun quality/repository/integrity/config.js
+bun quality/repository/integrity/folder-policy.js
+bun quality/repository/integrity/stale-paths.js
+uv run --no-sync python -m quality.repository.integrity.policies
+uv run --no-sync python -m quality.repository.integrity.gitleaks
+uv run --no-sync validate-pyproject pyproject.toml
+uv run --no-sync pyproject-fmt --keep-full-version --no-generate-python-version-classifiers --check pyproject.toml

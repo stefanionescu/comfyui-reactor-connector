@@ -1,0 +1,15 @@
+rules:
+    - id: reactor-python-no-obsolete-markers
+      message: Do not use obsolete marker wording in Python source.
+      severity: ERROR
+      languages:
+          - generic
+      paths:
+          include:
+              - /src/**/*.py
+              - /scripts/**/*.py
+              - /__init__.py
+              - /quality/**/*.py
+          exclude:
+              - /quality/config/security/semgrep/markers.yml
+      pattern-regex: '(?i)\b(?:legacy|deprecated|workaround|backward(?:\s|-)?compat(?:ible|ibility)|compatibility)\b'

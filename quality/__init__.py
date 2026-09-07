@@ -1,1 +1,1 @@
-"""Local repository checks independent of runtime code."""
+"""Repository-owned quality tooling."""

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Check public model metadata."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}/.."
+
+exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.models" check "$@"

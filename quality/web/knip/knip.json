@@ -1,0 +1,46 @@
+{
+    "$schema": "https://unpkg.com/knip@6/schema.json",
+    "workspaces": {
+        ".": {
+            "entry": ["web/extension.ts"],
+            "project": ["web/**/*.ts", "!web/dist/**"],
+            "ignoreDependencies": [
+                "@commitlint/cli",
+                "html-validate",
+                "jscpd",
+                "license-checker",
+                "madge",
+                "markdownlint-cli2",
+                "prettier"
+            ],
+            "ignoreUnresolved": ["../../scripts/app.js", "../../scripts/api.js"],
+            "eslint": {
+                "config": ["quality/web/eslint/index.js"]
+            }
+        },
+        "quality": {
+            "entry": [
+                "repository/naming/index.js",
+                "repository/package-json/json.js",
+                "repository/package-json/dependencies.js",
+                "repository/package-json/scripts.js",
+                "repository/integrity/config.js",
+                "security/codeql/frontend/integrity/paths.js",
+                "security/codeql/frontend/integrity/false-positives.js",
+                "security/codeql/frontend/sarif/filter.js",
+                "web/links/check.mjs",
+                "web/madge.config.cjs",
+                "repository/integrity/folder-policy.js",
+                "repository/integrity/stale-paths.js",
+                "repository/licenses/read-policy.js",
+                "shared/eslint/version-policy.js"
+            ],
+            "project": ["**/*.js", "**/*.mjs", "**/*.cjs"]
+        }
+    },
+    "ignoreBinaries": ["mise"],
+    "ignoreIssues": {
+        "quality/config/limits.js": ["duplicates"],
+        "quality/config/paths.js": ["duplicates"]
+    }
+}

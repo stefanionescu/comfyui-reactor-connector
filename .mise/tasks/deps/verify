@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Check dependency metadata, locks, and the local environment."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv lock --check --offline
+uv run --no-sync python -m quality.repository.environment
+CI=1 bun install --frozen-lockfile --dry-run --ignore-scripts --silent
+uv run --no-sync python -m quality.repository.dependencies
+bun quality/repository/package-json/json.js
+bun quality/repository/package-json/dependencies.js
+bun quality/repository/package-json/scripts.js
+bun quality/shared/eslint/version-policy.js
+uv run --no-sync python -m scripts.dependencies --check

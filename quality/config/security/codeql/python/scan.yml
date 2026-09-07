@@ -1,0 +1,12 @@
+name: Repository Python CodeQL configuration
+paths:
+    - .
+paths-ignore:
+    - .git
+    - .reactor-private
+    - dist
+    - .artifacts
+    - .cache
+    - .venv
+    - '**/__pycache__/**'
+    - node_modules

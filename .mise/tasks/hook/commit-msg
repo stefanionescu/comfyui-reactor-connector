@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Validate the supplied commit message with commitlint."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+if [[ ${SKIP_HOOKS:-0} == "1" || ${SKIP_COMMITLINT:-0} == "1" ]]; then
+  printf '%s\n' '[hook] skipped commit message check (SKIP_HOOKS or SKIP_COMMITLINT)'
+  exit 0
+fi
+if (($# != 1)); then
+  printf '%s\n' 'error: provide the commit message file' >&2
+  exit 2
+fi
+exec bun --bun node_modules/@commitlint/cli/cli.js --config .commitlintrc.json --edit "$1"

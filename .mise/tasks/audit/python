@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Audit locked Python packages using public advisories."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+bash quality/security/pip-audit/run.sh
+bash quality/security/osv/run.sh python

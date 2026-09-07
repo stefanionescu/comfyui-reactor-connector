@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Check hooks syntax, formatting, and shell rules."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv run --no-sync python -m quality.shell.syntax --scope hooks "$@"
+uv run --no-sync python -m quality.shell.tools --scope hooks "$@"
+uv run --no-sync python -m quality.shell.runner --scope hooks "$@"

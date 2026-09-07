@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Check frontend types without running the connector."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+exec bun run typecheck "$@"

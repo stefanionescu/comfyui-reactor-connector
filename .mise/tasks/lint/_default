@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#MISE description="Run the source and documentation checks."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+mise run lint:policy
+mise run lint:python
+mise run lint:frontend
+mise run lint:shell
+mise run lint:quality
+mise run lint:docs

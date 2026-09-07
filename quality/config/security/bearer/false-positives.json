@@ -1,0 +1,6 @@
+{
+    "b50df814875fbc402405698c2e1242e8_0": {
+        "comment": "web/dist/main.js: element creates literal UI tags supplied by internal callers; provider content uses textContent. Generated from web/dom.ts.",
+        "false_positive": true
+    }
+}

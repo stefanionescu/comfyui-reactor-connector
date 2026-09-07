@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Check the repository without installs, generation, or paid runs."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+mise run deps:verify
+mise run format:check
+mise run lint
+mise run type:python
+mise run type:frontend
+mise run frontend:check
+mise run docs:check
+mise run workflows:check
+mise run models:validate

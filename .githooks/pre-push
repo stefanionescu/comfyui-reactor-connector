@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Run offline checks before a separately requested push.
+# Check the pushed revision, dependencies, and public documentation links.
 set -euo pipefail
 TASK_ROOT="$(git rev-parse --show-toplevel)"
 readonly TASK_ROOT
 cd "${TASK_ROOT}"
-exec mise run hook:pre-push
+exec mise run hook:pre-push -- "$@"

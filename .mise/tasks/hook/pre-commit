@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#MISE description="Check staged content without changing the index."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+# shellcheck source=../../../quality/repository/hooks/steps.sh
+source "${REPO_ROOT}/quality/repository/hooks/steps.sh"
+
+if [[ ${SKIP_HOOKS:-0} == "1" ]]; then
+  printf '%s\n' '[hook] skipped pre-commit checks (SKIP_HOOKS=1)'
+  exit 0
+fi
+
+stage_report="$(uv run --no-sync python -m quality.repository.hooks.staged)"
+read -r stage_digest stage_scopes <<<"${stage_report}"
+[[ ${stage_digest} == empty ]] && exit 0
+
+run_step "staged secrets" "" bash quality/security/gitleaks/run.sh staged
+run_step "policy" SKIP_LINT mise run lint:policy -- --scope staged
+case ",${stage_scopes}," in
+  *,dependencies,*) run_step "dependency guard" "" mise run deps:verify ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,python,*)
+    run_step "Python" SKIP_PYTHON mise run lint:python
+    run_step "Python types" SKIP_PYTHON mise run type:python
+    ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,frontend,*)
+    run_step "frontend" SKIP_LINT mise run lint:frontend
+    run_step "frontend types" SKIP_LINT mise run type:frontend
+    run_step "browser build" SKIP_LINT mise run frontend:check
+    ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,hooks,*) run_step "hooks" SKIP_HOOKS_SELF mise run lint:hooks ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,mise,*) run_step "mise" SKIP_HOOKS_SELF mise run lint:mise ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,shell,*) run_step "shell" SKIP_SHELL mise run lint:shell ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,quality,*) run_step "quality" SKIP_LINT mise run lint:quality ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,docs,* | *,workflows,*)
+    run_step "documentation" SKIP_LINT mise run lint:docs
+    run_step "help build" SKIP_LINT mise run docs:check
+    ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,workflows,*) run_step "workflow build" SKIP_LINT mise run workflows:check ;;
+  *) ;;
+esac
+case ",${stage_scopes}," in
+  *,models,*) run_step "model snapshot" SKIP_LINT mise run models:validate ;;
+  *) ;;
+esac
+run_step "formatting" SKIP_LINT mise run format:check
+run_step "spelling" SKIP_TYPOS typos .
+uv run --no-sync python -m quality.repository.hooks.staged --verify "${stage_digest}"

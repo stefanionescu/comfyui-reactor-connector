@@ -1,0 +1,12 @@
+name: Reactor connector JavaScript and TypeScript
+
+paths:
+    - web
+    - scripts/frontend.mjs
+    - quality
+
+paths-ignore:
+    - node_modules
+    - .artifacts
+    - .venv
+    - '**/*.md'

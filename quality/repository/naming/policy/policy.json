@@ -1,0 +1,144 @@
+{
+    "matching": {
+        "caseInsensitive": true
+    },
+    "global": {
+        "bannedTerms": [
+            "stuff",
+            "misc",
+            "util",
+            "utils",
+            "helper",
+            "helpers",
+            "shim",
+            "shims",
+            "if_needed",
+            "ifNeeded",
+            "likely",
+            "belt and suspenders"
+        ],
+        "bannedTermExemptions": [
+            "CustomEvent",
+            "HTMLDialogElement",
+            "HTMLElement",
+            "URL",
+            "URLSearchParams",
+            "console",
+            "document",
+            "localStorage",
+            "navigator",
+            "sessionStorage",
+            "window"
+        ],
+        "reservedTerms": [
+            {
+                "term": "config",
+                "allowedKinds": [
+                    "javascript directory",
+                    "javascript file stem",
+                    "javascript variable",
+                    "javascript property"
+                ]
+            }
+        ]
+    },
+    "local": {
+        "bannedTerms": [
+            {
+                "scopes": ["frontend", "quality"],
+                "terms": ["tmp", "temp"]
+            }
+        ]
+    },
+    "languages": {
+        "javascript": {
+            "categories": {
+                "classes": ["pascal"],
+                "directories": ["kebab"],
+                "files": ["kebab"],
+                "functions": ["camel"],
+                "parameters": ["camel"],
+                "properties": ["camel", "upper-snake"],
+                "variables": ["camel", "upper-snake"]
+            }
+        }
+    },
+    "nameRules": [
+        {
+            "pathRegexes": ["^quality/config/security/"],
+            "categories": ["files"],
+            "caseNames": ["kebab"]
+        },
+        {
+            "pathRegexes": ["^web/discovery/api\\.ts$"],
+            "categories": ["properties"],
+            "names": [
+                "connect_name",
+                "documentation_url",
+                "credits_per_second",
+                "node_ids",
+                "retrieved_at",
+                "can_rollback",
+                "mutation_allowed",
+                "automatic_check",
+                "interval_hours",
+                "checked_at",
+                "update_available"
+            ],
+            "caseNames": ["snake"],
+            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
+        },
+        {
+            "pathRegexes": ["^web/live/api\\.ts$"],
+            "categories": ["properties"],
+            "names": [
+                "duration_seconds",
+                "prompt_limit",
+                "termination_confirmed",
+                "controls_ready",
+                "elapsed_seconds",
+                "preview_sequence"
+            ],
+            "caseNames": ["snake"],
+            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
+        },
+        {
+            "pathRegexes": ["^web/live/commands\\.ts$"],
+            "categories": ["properties"],
+            "names": ["prompt_limit", "audio_prompt"],
+            "caseNames": ["snake"],
+            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
+        },
+        {
+            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "categories": ["properties"],
+            "names": ["catalog_auto_check", "catalog_interval_hours"],
+            "caseNames": ["snake"],
+            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
+        },
+        {
+            "pathRegexes": ["^quality/web/madge\\.config\\.cjs$"],
+            "categories": ["files"],
+            "names": ["madge.config"],
+            "structuralPrefixRegexes": ["\\.config$"],
+            "reason": "The graph tool configuration uses the documented .config.cjs suffix."
+        }
+    ],
+    "excludedPaths": [
+        "/.git/",
+        "/.artifacts/",
+        "/dist/",
+        "/node_modules/",
+        "/rules/",
+        "/quality/shared/eslint/plugin/"
+    ],
+    "excludedBasenames": [
+        ".commitlintrc.json",
+        ".license-checker.json",
+        ".markdownlint-cli2.jsonc",
+        "README.md",
+        "AGENTS.md",
+        "bun.lock",
+        "package.json"
+    ]
+}

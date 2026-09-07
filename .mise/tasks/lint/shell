@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#MISE description="Check shell syntax, formatting, and shell rules."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+uv run --no-sync python -m quality.shell.syntax --scope all "$@"
+uv run --no-sync python -m quality.shell.tools --scope all "$@"
+uv run --no-sync python -m quality.shell.runner --scope all "$@"
+bun --bun node_modules/jscpd/bin/jscpd --config quality/config/duplication/bash.json

@@ -1,0 +1,8 @@
+{
+    "version": 1,
+    "package_roots": ["src", "scripts", "quality", "config"],
+    "are_relative_imports_allowed": true,
+    "allow_imports_after_statements": [],
+    "are_dynamic_imports_banned": true,
+    "banned_compatibility_paths": ["linting", "bootstrap"]
+}

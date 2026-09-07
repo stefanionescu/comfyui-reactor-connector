@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Audit Bun dependencies using public advisories."
+set -euo pipefail
+
+REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+cd "${REPO_ROOT}"
+
+bun audit
+bash quality/security/osv/run.sh frontend
