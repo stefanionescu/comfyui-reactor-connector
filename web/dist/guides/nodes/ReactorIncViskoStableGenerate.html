@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor Visko Stable: Generate Video</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="reactor-visko-stable-generate-video">Reactor Visko Stable: Generate Video</h1>
+<p>Generate a scene with synchronized sound. Connect <strong>Video</strong> to native <strong>Save Video</strong>
+and <strong>Audio</strong> to <strong>Save Audio (Advanced)</strong>. To animate an existing picture, connect
+one <strong>Load Image</strong> output to the optional <strong>Starting image</strong> input.</p>
+<h2 id="inputs">Inputs</h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>What to provide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scene prompt</td>
+<td>Describe the scene in 1 to 20,000 characters. This is the connector's input limit.</td>
+</tr>
+<tr>
+<td>Video length (seconds)</td>
+<td>Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.</td>
+</tr>
+<tr>
+<td>Seed</td>
+<td>Integer from 0 to 4,294,967,295. Default: 42.</td>
+</tr>
+<tr>
+<td>Variation</td>
+<td>Change this integer for another paid run. Default: 0.</td>
+</tr>
+<tr>
+<td>Sound prompt</td>
+<td>A short description of sound, up to 1,000 characters. Blank uses the picture alone.</td>
+</tr>
+<tr>
+<td>Resolution</td>
+<td>Blank uses the model default. Otherwise, enter an exact offered resolution name.</td>
+</tr>
+<tr>
+<td>Include sound</td>
+<td>Generate sound when true. False asks the model to provide silence. Default: true.</td>
+</tr>
+<tr>
+<td>Use prompt unchanged</td>
+<td>Send your exact scene prompt when true. False lets Reactor rewrite it first.</td>
+</tr>
+<tr>
+<td>Starting image</td>
+<td>Optional single RGB image, at most 8192 pixels per side and within the upload limit.</td>
+</tr>
+<tr>
+<td>Live controls</td>
+<td>Open live controls in the ComfyUI window that runs the workflow. Default: false.</td>
+</tr>
+</tbody>
+</table>
+<p>Describe instruments, voices, materials, or ambience in <strong>Sound prompt</strong>. Keep it
+to about one sentence: the provider uses roughly the first 128 tokens. An audio
+prompt is not another scene description. Image batches and non-finite pixels are
+rejected before connecting.</p>
+<p>If you enter a resolution, the connector checks that the connected model supports
+it. An unsupported name ends the session before generation, but connection time
+can still use credits. Leave this field blank for a first run. The resolution
+stays the same throughout the run.</p>
+<h2 id="run-and-save">Run and save</h2>
+<ol>
+<li>Set your key privately in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>.</li>
+<li>Open <strong>visko-stable-01-text-to-video</strong> in the native Templates browser.</li>
+<li>Describe a scene and its sound, then select <strong>Run</strong>.</li>
+<li>Play the saved video with sound. Use Save Audio to inspect or retain sound alone.</li>
+</ol>
+<p>To start from an image, open <strong>visko-stable-02-image-to-video</strong> and upload one
+starting picture. Describe what is in that picture and how it should move.
+The example prompt describes a forest path. Replace it when you use another
+subject. <strong>Use prompt unchanged</strong> is on in the image example, so Reactor does
+not rewrite your scene description. The empty sound prompt lets the picture
+guide the sound.</p>
+<p>The connector checks the image, sound, and resolution settings reported when
+Visko starts. If they differ from your choices, it stops the run. These checks
+do not guarantee that the generated scene follows your prompt or image.</p>
+<p>The saved video includes sound. The separate audio output contains the same
+recording's sound at 48 kHz. Both use the recording's timestamps to stay aligned.
+The result ends at the requested duration or the available video's end.</p>
+<p>Preparing the recording can add paid time after generation. The session must
+finish within the limit in Reactor settings. If recording fails, the node
+returns an error and removes unfinished files.</p>
+<h2 id="cost-and-cancellation">Cost and cancellation</h2>
+<p>A new execution uses Reactor credits. Session time includes connection, setup,
+generation, and recording readiness; it can exceed the saved video's duration.
+The configured session time limit applies throughout. Pausing playback or closing
+the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.</p>
+<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Variation</strong> for another paid
+run. A seed does not guarantee identical results across model updates.
+The connector does not automatically retry failed commands or uncertain sessions.</p>
+<p>If the session reaches its limit before recording is ready, try a shorter recording
+or review the host's session limit and expected cost. If a recording is unavailable,
+check provider status before deciding whether to retry. A larger limit must remain
+within your own cost constraints.</p>
+<p><a href="https://docs.reactor.inc/model-api-reference/visko-orbis-stable/schema">Reactor Visko Stable schema</a></p>
+<h2 id="live-controls">Live controls</h2>
+<p>Turn <strong>Live controls</strong> on, select <strong>Run</strong>, then select <strong>Start session</strong> in the
+live panel within 60 seconds. Use <strong>Apply prompt</strong> to change later frames.
+When sound is enabled, use <strong>Apply sound prompt</strong> to change later sound. Leave
+it blank to let the picture guide sound. The preview is silent; play the saved
+video to hear the result. Sound on/off and resolution stay fixed for the recording.
+Let recording finish to save the result. <strong>End session</strong> discards the unfinished
+video. Panel prompt changes do not rewrite the saved workflow.</p>
+<p>See the <a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">live controls guide</a> for input, privacy, and stopping rules.</p>
+<h2 id="credit-rate">Credit rate</h2>
+<p>Select <strong>View credit rate</strong> to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See <a href="/extensions/reactor-inc/guides/ADVANCED.html#credit-rates">credit rates</a>.</p>
+<h2 id="recording-details">Recording details</h2>
+<p>This output describes the saved file and model. See the
+<a href="/extensions/reactor-inc/guides/ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
+</main></body></html>

@@ -1,8 +1,11 @@
-# Reactor LingBot: Explore an image
+# Reactor LingBot: Explore an Image
 
 Move through a scene from your image and save a video. Choose a direction for
 the camera to follow, or turn on **Live controls** to steer with keys and buttons.
 Recording stops after the duration you choose.
+
+Start with a picture that has clear depth, such as a room or path. Try forward
+movement with both look directions idle before combining camera controls.
 
 ## Set up and run
 
@@ -18,18 +21,18 @@ For a first run, use a picture of a path or room with clear depth. Choose
 
 ## Inputs
 
-| Input | What it does |
-| --- | --- |
-| Starting image | Starting picture. Connect one image from Load Image; batches are not supported. |
-| Scene prompt | Describe the scene and motion in 1 to 1,000 characters. |
-| Video length (seconds) | Video length in seconds. Default: 5. The limit in Reactor settings applies. |
-| Seed | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results. |
-| Variation | Change this number to request another paid run with the same other settings. Default: 0. |
-| Movement | Forward, back, strafe left, strafe right, or idle. Choose idle to stay in place. |
-| Turn left or right | Keep looking left or right. Choose idle to stop turning. |
-| Look up or down | Keep looking up or down. You can combine it with horizontal look. |
+| Input                   | What it does                                                                                                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Starting image          | Starting picture. Connect one image from Load Image; batches are not supported.                                                              |
+| Scene prompt            | Describe the scene and motion in 1 to 1,000 characters.                                                                                      |
+| Video length (seconds)  | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                                                  |
+| Seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                      |
+| Variation               | Change this number to request another paid run with the same other settings. Default: 0.                                                     |
+| Movement                | Forward, back, strafe left, strafe right, or idle. Choose idle to stay in place.                                                             |
+| Turn left or right      | Keep looking left or right. Choose idle to stop turning.                                                                                     |
+| Look up or down         | Keep looking up or down. You can combine it with horizontal look.                                                                            |
 | Turn per step (degrees) | Turn amount per model step, in degrees. Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. This is not degrees per second. |
-| Live controls | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above. |
+| Live controls           | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.                        |
 
 Choose one movement direction at a time. In the live panel, forward or back takes priority over sideways movement.
 Camera changes take time to appear because the model applies them as it generates
@@ -84,16 +87,13 @@ the recording.
 
 [Reactor LingBot schema](https://docs.reactor.inc/model-api-reference/lingbot/schema)
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

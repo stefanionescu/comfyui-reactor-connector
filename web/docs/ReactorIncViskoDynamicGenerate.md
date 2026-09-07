@@ -1,4 +1,4 @@
-# Reactor Visko Dynamic: Generate video
+# Reactor Visko Dynamic: Generate Video
 
 Generate a scene with synchronized sound. Connect **Video** to native **Save Video**
 and **Audio** to **Save Audio (Advanced)**. To animate an existing picture, connect
@@ -6,18 +6,18 @@ one **Load Image** output to the optional **Starting image** input.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Scene prompt | Describe the scene in 1 to 20,000 characters. This is the connector's input limit. |
+| Input                  | What to provide                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| Scene prompt           | Describe the scene in 1 to 20,000 characters. This is the connector's input limit.               |
 | Video length (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
-| Seed | Integer from 0 to 4,294,967,295. Default: 42. |
-| Variation | Change this integer for another paid run. Default: 0. |
-| Sound prompt | A short description of sound, up to 1,000 characters. Blank uses the picture alone. |
-| Resolution | Blank uses the model default. Otherwise, enter an exact offered resolution name. |
-| Include sound | Generate sound when true. False asks the model to provide silence. Default: true. |
-| Use prompt unchanged | Send your exact scene prompt when true. False lets Reactor rewrite it first. |
-| Starting image | Optional single RGB image, at most 8192 pixels per side and within the upload limit. |
-| Live controls | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+| Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                    |
+| Variation              | Change this integer for another paid run. Default: 0.                                            |
+| Sound prompt           | A short description of sound, up to 1,000 characters. Blank uses the picture alone.              |
+| Resolution             | Blank uses the model default. Otherwise, enter an exact offered resolution name.                 |
+| Include sound          | Generate sound when true. False asks the model to provide silence. Default: true.                |
+| Use prompt unchanged   | Send your exact scene prompt when true. False lets Reactor rewrite it first.                     |
+| Starting image         | Optional single RGB image, at most 8192 pixels per side and within the upload limit.             |
+| Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
 
 Describe instruments, voices, materials, or ambience in **Sound prompt**. Keep it
 to about one sentence: the provider uses roughly the first 128 tokens. An audio
@@ -73,7 +73,6 @@ within your own cost constraints.
 
 [Reactor Visko Dynamic schema](https://docs.reactor.inc/model-api-reference/visko-orbis-dynamic/schema)
 
-
 ## Live controls
 
 Turn **Live controls** on, select **Run**, then select **Start session** in the
@@ -84,18 +83,15 @@ video to hear the result. Sound on/off and resolution stay fixed for the recordi
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for input, privacy, and stopping rules.
+See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

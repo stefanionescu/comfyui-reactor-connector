@@ -1,4 +1,4 @@
-# Reactor Fast H3: Continue a scene
+# Reactor Fast H3: Continue a Scene
 
 Create several connected clips in one Reactor session and save one video with
 sound. Each clip starts from the previous clip's final frame. Choose a clip count
@@ -6,16 +6,16 @@ so the session has a clear stopping point.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Scene prompt | Opening scene and sound, using 1 to 800 characters. Also used for later clips without their own prompt. |
-| Clip length (seconds) | Requested length of each clip: 5.167–14.375 seconds. Default: 6. Fast H3 chooses the nearest supported length. |
-| Seed | Starting number from 0 to 4,294,967,295. Each later clip adds one, wrapping to zero at the upper limit. Default: 42. |
-| Variation | Change this value for another paid run. Default: 0. |
-| Aspect ratio | Frame shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9. |
-| Number of clips | Total clips, from 2 to 8. Default: 3. Their combined length must fit your video duration limit. |
-| Later prompts | Optional prompts, one per line, starting with clip 2. Each line allows 1 to 800 characters. Leave empty to repeat the opening prompt. |
-| Starting image | Optional RGB first frame for clip 1. Connect Load Image. |
+| Input                 | What to provide                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Scene prompt          | Opening scene and sound, using 1 to 800 characters. Also used for later clips without their own prompt.                               |
+| Clip length (seconds) | Requested length of each clip: 5.167–14.375 seconds. Default: 6. Fast H3 chooses the nearest supported length.                        |
+| Seed                  | Starting number from 0 to 4,294,967,295. Each later clip adds one, wrapping to zero at the upper limit. Default: 42.                  |
+| Variation             | Change this value for another paid run. Default: 0.                                                                                   |
+| Aspect ratio          | Frame shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                                  |
+| Number of clips       | Total clips, from 2 to 8. Default: 3. Their combined length must fit your video duration limit.                                       |
+| Later prompts         | Optional prompts, one per line, starting with clip 2. Each line allows 1 to 800 characters. Leave empty to repeat the opening prompt. |
+| Starting image        | Optional RGB first frame for clip 1. Connect Load Image.                                                                              |
 
 ## Run and save
 
@@ -40,16 +40,13 @@ replacement session automatically.
 Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not cancel
 this ordinary workflow. The prompts and clip count are fixed when you select Run.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

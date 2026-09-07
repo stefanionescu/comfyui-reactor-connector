@@ -1,4 +1,4 @@
-# Reactor Helios: Add a prompt
+# Reactor Helios: Add a Prompt
 
 Add a later prompt to a Helios sequence. This node prepares text locally. It
 does not need an API key or use Reactor credits.
@@ -15,11 +15,11 @@ choose **Show Advanced**. The examples do not require editing JSON.
 4. Connect the last Add a prompt node to **Reactor Helios: Generate a prompt sequence**.
    Set the opening prompt and recording length on that generation node.
 
-| Input | Meaning |
-| --- | --- |
-| Previous steps (JSON) | Earlier prompts from another Add a prompt node. Default: `[]`. |
-| Start chunk | When this later prompt starts, from 1 to 100,000. Each new prompt needs a larger number. Default: 1. |
-| Scene prompt | The scene and motion after the change, from 1 to 20,000 characters. |
+| Input                 | Meaning                                                                                              |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| Previous steps (JSON) | Earlier prompts from another Add a prompt node. Default: `[]`.                                       |
+| Start chunk           | When this later prompt starts, from 1 to 100,000. Each new prompt needs a larger number. Default: 1. |
+| Scene prompt          | The scene and motion after the change, from 1 to 20,000 characters.                                  |
 
 The **Prompt sequence** output contains a JSON prompt list. It can contain
 up to 32 later prompts within 128 KB. The connector rejects unknown fields,
@@ -30,10 +30,10 @@ The generation node sets the opening prompt at chunk zero; add only later
 prompts here. A prompt scheduled after recording ends will not appear in the file.
 
 For example, add sunlight at chunk 1, then a clearing at chunk 3. Open the
-[prompt-sequence workflow](/extensions/reactor-inc/guides/files/workflows/helios/helios-03-prompt-sequence.json) for
+[prompt-sequence workflow](../../workflows/helios/helios-03-prompt-sequence.json) for
 connected nodes and an eight-second recording.
 
 If a sequence is rejected, check the chunk order and connect the previous
 node's output. Do not connect a LongLive storyboard: its format is different.
 
-[Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema#schedule-prompt)
+[Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)

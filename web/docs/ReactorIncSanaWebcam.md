@@ -1,4 +1,4 @@
-# Reactor SANA: Edit a webcam
+# Reactor SANA: Edit a Webcam
 
 Turn your camera video into an edited scene and save the result without sound.
 Use a local, single-user ComfyUI installation with camera access.
@@ -6,13 +6,13 @@ Your camera remains off until you enable it in the live panel.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Scene prompt | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input. |
-| Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds. |
-| Seed | Number from 0 to 4,294,967,295. Default: 42. |
-| Variation | Change this value for another paid run. Default: 0. |
-| Anchor interval | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
+| Input                  | What to provide                                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Scene prompt           | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
+| Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds.                   |
+| Seed                   | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
+| Variation              | Change this value for another paid run. Default: 0.                                                             |
+| Anchor interval        | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
 
 ## Run and save
 
@@ -38,18 +38,15 @@ If camera access fails, use localhost or HTTPS, check camera permissions for Com
 close other applications using the camera. This node requires a SANA deployment
 with the `camera` video input. A deployment without that input cannot run it.
 
-See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for privacy and recovery steps.
+See the [live controls guide](../../ADVANCED.md#live-controls) for privacy and recovery steps.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

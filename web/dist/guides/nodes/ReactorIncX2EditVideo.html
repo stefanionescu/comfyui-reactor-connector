@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor X2: Edit Video</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="reactor-x2-edit-video">Reactor X2: Edit Video</h1>
+<p>Edit a local video through X2. Connect native <strong>Load Video</strong> or <strong>Create Video</strong>
+to <strong>Source video</strong>, and connect <strong>Video</strong> to <strong>Save Video</strong>. To replace or insert a subject,
+connect one <strong>Load Image</strong> output to <strong>Reference image</strong> and describe the change.
+The result contains video without audio.</p>
+<p>Start with <strong>Keep queued frames</strong> and <strong>Hold pointer</strong> disabled. When using a
+reference, describe what to replace and what to preserve. Review the subject
+and background at the beginning, middle, and end; the model may apply only part
+of the requested change.</p>
+<h2 id="inputs">Inputs</h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>What to provide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source video</td>
+<td>One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.</td>
+</tr>
+<tr>
+<td>Scene prompt</td>
+<td>An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.</td>
+</tr>
+<tr>
+<td>Video length (seconds)</td>
+<td>Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.</td>
+</tr>
+<tr>
+<td>Variation</td>
+<td>Change this integer to request another paid run. Default: 0.</td>
+</tr>
+<tr>
+<td>Keep queued frames</td>
+<td>Keep source frames in order when true. False favors recent frames and limits delay.</td>
+</tr>
+<tr>
+<td>Hold pointer</td>
+<td>Hold the pointer at the chosen position while true. Default: false.</td>
+</tr>
+<tr>
+<td>Pointer X</td>
+<td>Horizontal position: 0 is left, 1 is right. Default: 0.5.</td>
+</tr>
+<tr>
+<td>Pointer Y</td>
+<td>Vertical position: 0 is top, 1 is bottom. Default: 0.5.</td>
+</tr>
+<tr>
+<td>Reference image</td>
+<td>Optional single RGB image of the subject to insert or replace. Batches are rejected.</td>
+</tr>
+<tr>
+<td>Live controls</td>
+<td>Open live controls in the ComfyUI window that runs the workflow. Default: false.</td>
+</tr>
+</tbody>
+</table>
+<p>X2 has no seed command. <strong>Variation</strong> controls ComfyUI caching; it is not a model
+seed and does not guarantee reproducibility.</p>
+<p>Source clips must have even dimensions, at most 4096 pixels per side, and a frame
+rate from 1 to 120 fps. The connector supports MP4, MOV, WebM, and AVI. It rejects
+HDR, multiple video streams, and fewer than 33 usable frames before connecting.
+Files and frames must fit the configured upload and memory limits.</p>
+<p>Preparation creates a temporary video-only MP4, respects native file trim
+windows, and limits source length to the video duration limit in Reactor settings. Source audio and
+metadata are omitted. Preparation has a 60-second deadline and supports cancel.</p>
+<h2 id="run-and-save">Run and save</h2>
+<ol>
+<li>Set your key privately in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>.</li>
+<li>Open <strong>x2-01-edit-video</strong> in the native Templates browser.</li>
+<li>Upload a short local video. Keep the example watercolor prompt for a first run.</li>
+<li>Select <strong>Run</strong>, then play the result in Save Video.</li>
+</ol>
+<p>Use <strong>x2-02-reference-edit</strong> to provide a subject image as well. Choose an image
+with a clear subject and describe what to replace in the source clip.</p>
+<p>The local clip is published at its original frame rate. After its last frame, the
+input holds that frame until recording ends. The clip does not loop.
+Keeping queued source frames can delay the model's response; it does not guarantee that the
+saved video includes every source frame. X2 controls output resolution.</p>
+<p>The pointer refers to the output frame. This node holds one position during a
+run when <strong>Live controls</strong> is off. Turn <strong>Live controls</strong> on for live dragging
+and prompt changes. The reference image stays fixed. Release the pointer to stop steering; cleanup also releases it.</p>
+<p>In the live panel, a circle marks the point you choose. <strong>Pointer held</strong> or
+<strong>Pointer released</strong> confirms that the control was accepted. The position is
+measured from the picture's left and top edges. See <a href="/extensions/reactor-inc/guides/ADVANCED.html#drag-in-x2">live controls</a>
+for keyboard use.</p>
+<p>The outputs are native <code>VIDEO</code> and recording details as <code>STRING</code>. Save Video
+retains the temporary result under its relative output prefix. Input copies
+are removed when the session ends or execution fails.</p>
+<h2 id="cost-and-cancellation">Cost and cancellation</h2>
+<p>A new execution uses Reactor credits. Session time includes setup and can
+exceed output duration. The configured recording and server session limits apply.
+Use ComfyUI's cancel control to stop; closing a tab does not cancel a workflow.
+The connector disconnects after recording, failure, or cancellation. It does not
+automatically retry failed commands or uncertain session creation.</p>
+<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Variation</strong> for another paid
+run. If preparation fails, use a shorter SDR clip. If the provider rejects a
+reference or prompt, review those inputs before deciding to run again.</p>
+<p><a href="https://docs.reactor.inc/model-api-reference/x2/schema">Reactor X2 schema</a></p>
+<h2 id="live-controls">Live controls</h2>
+<p>Turn <strong>Live controls</strong> on, select <strong>Run</strong>, then select <strong>Start session</strong> in the
+live panel within 60 seconds. Use <strong>Apply prompt</strong> to change later frames.
+Let recording finish to save the result. <strong>End session</strong> discards the unfinished
+video. Panel prompt changes do not rewrite the saved workflow.</p>
+<p>See the <a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">live controls guide</a> for input, privacy, and stopping rules.</p>
+<h2 id="credit-rate">Credit rate</h2>
+<p>Select <strong>View credit rate</strong> to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See <a href="/extensions/reactor-inc/guides/ADVANCED.html#credit-rates">credit rates</a>.</p>
+<h2 id="recording-details">Recording details</h2>
+<p>This output describes the saved file and model. See the
+<a href="/extensions/reactor-inc/guides/ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
+</main></body></html>

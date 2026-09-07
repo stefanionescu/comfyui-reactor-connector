@@ -1,21 +1,21 @@
-# Reactor Helios: Generate video
+# Reactor Helios: Generate Video
 
 Generate a short video from a prompt using your Reactor account. Connect **Video**
 to ComfyUI's **Save Video** node to preview and save the result.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Scene prompt | Describe the scene and motion. Empty prompts are rejected before a session starts. |
+| Input                  | What to provide                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- |
+| Scene prompt           | Describe the scene and motion. Empty prompts are rejected before a session starts.                      |
 | Video length (seconds) | Requested video duration, from 0.1 to the video duration limit in Reactor settings. Default: 5 seconds. |
-| Seed | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42. |
-| Variation | Change this number to request another paid run with otherwise identical inputs. |
-| Live controls | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+| Seed                   | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                            |
+| Variation              | Change this number to request another paid run with otherwise identical inputs.                         |
+| Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                        |
 
 ## Run and save
 
-1. Open [Helios text to video](/extensions/reactor-inc/guides/files/workflows/helios/helios-01-text-to-video.json).
+1. Open [Helios text to video](../../workflows/helios/helios-01-text-to-video.json).
 2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 3. Describe the scene in **Scene prompt**. For example: “A red ball rolls slowly
    across a wooden table. The camera stays still.”
@@ -43,7 +43,7 @@ before they connect. The default queue wait limit is 120 seconds. A rejected
 command or lost connection ends the run; the connector does not retry it.
 
 For invalid inputs, missing video, or connection errors, follow the
-[troubleshooting guide](/extensions/reactor-inc/guides/docs/troubleshooting.html).
+[troubleshooting guide](../../ADVANCED.md#recovery).
 
 [Reactor Helios reference](https://docs.reactor.inc/model-api-reference/helios/overview)
 
@@ -54,18 +54,15 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for input, privacy, and stopping rules.
+See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

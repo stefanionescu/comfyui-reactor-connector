@@ -1,4 +1,4 @@
-# Reactor LTX: Make a portrait speak
+# Reactor LTX: Make a Portrait Speak
 
 Animate one portrait speaking a script. Connect **Load Image** to **Starting image**, **Video**
 to **Save Video**, and **Audio** to **Save Audio (Advanced)**. The video includes
@@ -6,15 +6,15 @@ sound; the separate audio output lets you save or process the speech alone.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Starting image | One clear RGB portrait, with the whole head visible in a wide frame. Required. |
-| Scene prompt | Optional scene description, up to 800 characters. |
-| Spoken words | Spoken words, from 1 to 10,000 characters. Required. |
+| Input                  | What to provide                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Starting image         | One clear RGB portrait, with the whole head visible in a wide frame. Required.                                        |
+| Scene prompt           | Optional scene description, up to 800 characters.                                                                     |
+| Spoken words           | Spoken words, from 1 to 10,000 characters. Required.                                                                  |
 | Video length (seconds) | Requested saved video length, at least 4 seconds and within the video duration limit in Reactor settings. Default: 5. |
-| Words per minute | Speech pace. Default: 140. Reactor checks the supported range before generation. |
-| Seed | Integer from 0 to 4,294,967,295. Default: 42. |
-| Variation | Change this integer to request another paid run. Default: 0. |
+| Words per minute       | Speech pace. Default: 140. Reactor checks the supported range before generation.                                      |
+| Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                         |
+| Variation              | Change this integer to request another paid run. Default: 0.                                                          |
 
 Use a front-facing portrait of one person. LTX fits the picture to a wide canvas;
 a tall portrait can lose the top of the head. Frame the image before uploading.
@@ -42,7 +42,7 @@ seed, and optional scene description before starting. These settings stay the
 same throughout the run. Each run generates one video.
 
 Native `VIDEO` contains H.264 video and AAC audio. Native `AUDIO` contains 48 kHz
-mono or stereo samples. The **Recording details** output contains recording details. Both media outputs
+mono or stereo samples. Both media outputs
 use the provider recording timestamps, starting at the first video frame. Leading
 audio is trimmed; a later audio start retains silence. Output ends at the requested
 duration or the available video end. AAC decoding can include codec padding beyond
@@ -64,16 +64,13 @@ The connector does not retry ambiguous session creation or model commands.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

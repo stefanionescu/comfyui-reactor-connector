@@ -1,4 +1,4 @@
-# Reactor LongLive: Create a storyboard
+# Reactor LongLive: Create a Storyboard
 
 Generate a short video from an opening shot prompt with LongLive-2.0.
 Schedule later shots before generation starts. Connect one or more **Reactor LongLive: Add a shot** nodes to the **Shots (JSON)** input. Soft transitions change the prompt
@@ -6,13 +6,13 @@ within the scene; cuts start a new scene.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Scene prompt | Describe the opening scene and motion. Use 1 to 20,000 characters. |
-| Video length (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies. |
-| Seed | Integer from 0 to 4,294,967,295; default: 42. |
-| Variation | Change this number for another paid run; default: 0. |
-| Shots (JSON) | Connect Reactor LongLive: Add a shot. An empty list `[]` means the opening shot only. |
+| Input                  | What to provide                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| Scene prompt           | Describe the opening scene and motion. Use 1 to 20,000 characters.                    |
+| Video length (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.              |
+| Seed                   | Integer from 0 to 4,294,967,295; default: 42.                                         |
+| Variation              | Change this number for another paid run; default: 0.                                  |
+| Shots (JSON)           | Connect Reactor LongLive: Add a shot. An empty list `[]` means the opening shot only. |
 
 LongLive generates frames in groups called **chunks**. Each chunk contains
 29 frames, about 1.2 seconds at 24 frames per second. Count chunks from the start
@@ -60,16 +60,13 @@ does not accept a starting image.
 
 [LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

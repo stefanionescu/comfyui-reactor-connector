@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor Fast H3: Continue a Scene</title><style>
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
+a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
+h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
+table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
+pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
+code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="reactor-fast-h3-continue-a-scene">Reactor Fast H3: Continue a Scene</h1>
+<p>Create several connected clips in one Reactor session and save one video with
+sound. Each clip starts from the previous clip's final frame. Choose a clip count
+so the session has a clear stopping point.</p>
+<h2 id="inputs">Inputs</h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>What to provide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scene prompt</td>
+<td>Opening scene and sound, using 1 to 800 characters. Also used for later clips without their own prompt.</td>
+</tr>
+<tr>
+<td>Clip length (seconds)</td>
+<td>Requested length of each clip: 5.167–14.375 seconds. Default: 6. Fast H3 chooses the nearest supported length.</td>
+</tr>
+<tr>
+<td>Seed</td>
+<td>Starting number from 0 to 4,294,967,295. Each later clip adds one, wrapping to zero at the upper limit. Default: 42.</td>
+</tr>
+<tr>
+<td>Variation</td>
+<td>Change this value for another paid run. Default: 0.</td>
+</tr>
+<tr>
+<td>Aspect ratio</td>
+<td>Frame shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.</td>
+</tr>
+<tr>
+<td>Number of clips</td>
+<td>Total clips, from 2 to 8. Default: 3. Their combined length must fit your video duration limit.</td>
+</tr>
+<tr>
+<td>Later prompts</td>
+<td>Optional prompts, one per line, starting with clip 2. Each line allows 1 to 800 characters. Leave empty to repeat the opening prompt.</td>
+</tr>
+<tr>
+<td>Starting image</td>
+<td>Optional RGB first frame for clip 1. Connect Load Image.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="run-and-save">Run and save</h2>
+<ol>
+<li>Open <strong>fast-h3-05-continue-scene</strong> or <strong>fast-h3-06-continue-image</strong> from Templates.</li>
+<li>Set the opening prompt. For the image example, upload a starting image.</li>
+<li>Choose a clip length and count. The examples request three clips of about six seconds.</li>
+<li>Enter later prompts if you want the scene to change between clips.</li>
+<li>Check the video duration and session limits in Reactor settings, then select <strong>Run</strong>.</li>
+<li><strong>Preview and save video</strong> saves the sequence with sound. <strong>Preview and save sound</strong> saves a separate audio file.</li>
+</ol>
+<p>The node returns <code>VIDEO</code>, <code>AUDIO</code>, and recording details as <code>STRING</code>. It queues
+one continuation ahead while earlier clips play. If the next clip is still
+building, the output holds the previous frame. That wait can lengthen the saved
+video. Allow room in your video duration limit for these waits.</p>
+<p>Fast H3 also builds up to 14.375 seconds of continuation to finish the recording.
+Those extra seconds use credits and are not included in the saved result.
+Setup, clip building, playback, and recording cleanup all count toward the session
+limit. A timeout discards the unfinished video; the connector does not start a
+replacement session automatically.</p>
+<p>Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not cancel
+this ordinary workflow. The prompts and clip count are fixed when you select Run.</p>
+<h2 id="credit-rate">Credit rate</h2>
+<p>Select <strong>View credit rate</strong> to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See <a href="/extensions/reactor-inc/guides/ADVANCED.html#credit-rates">credit rates</a>.</p>
+<h2 id="recording-details">Recording details</h2>
+<p>This output describes the saved file and model. See the
+<a href="/extensions/reactor-inc/guides/ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
+</main></body></html>

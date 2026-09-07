@@ -1,24 +1,29 @@
-# Reactor X2: Edit video
+# Reactor X2: Edit Video
 
 Edit a local video through X2. Connect native **Load Video** or **Create Video**
 to **Source video**, and connect **Video** to **Save Video**. To replace or insert a subject,
 connect one **Load Image** output to **Reference image** and describe the change.
 The result contains video without audio.
 
+Start with **Keep queued frames** and **Hold pointer** disabled. When using a
+reference, describe what to replace and what to preserve. Review the subject
+and background at the beginning, middle, and end; the model may apply only part
+of the requested change.
+
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Source video | One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video. |
-| Scene prompt | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected. |
+| Input                  | What to provide                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| Source video           | One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.                 |
+| Scene prompt           | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                     |
 | Video length (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
-| Variation | Change this integer to request another paid run. Default: 0. |
-| Keep queued frames | Keep source frames in order when true. False favors recent frames and limits delay. |
-| Hold pointer | Hold the pointer at the chosen position while true. Default: false. |
-| Pointer X | Horizontal position: 0 is left, 1 is right. Default: 0.5. |
-| Pointer Y | Vertical position: 0 is top, 1 is bottom. Default: 0.5. |
-| Reference image | Optional single RGB image of the subject to insert or replace. Batches are rejected. |
-| Live controls | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+| Variation              | Change this integer to request another paid run. Default: 0.                                     |
+| Keep queued frames     | Keep source frames in order when true. False favors recent frames and limits delay.              |
+| Hold pointer           | Hold the pointer at the chosen position while true. Default: false.                              |
+| Pointer X              | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                        |
+| Pointer Y              | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                          |
+| Reference image        | Optional single RGB image of the subject to insert or replace. Batches are rejected.             |
+| Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
 
 X2 has no seed command. **Variation** controls ComfyUI caching; it is not a model
 seed and does not guarantee reproducibility.
@@ -53,7 +58,7 @@ and prompt changes. The reference image stays fixed. Release the pointer to stop
 
 In the live panel, a circle marks the point you choose. **Pointer held** or
 **Pointer released** confirms that the control was accepted. The position is
-measured from the picture's left and top edges. See [live controls](/extensions/reactor-inc/guides/docs/live.html#drag-in-x2)
+measured from the picture's left and top edges. See [live controls](../../ADVANCED.md#drag-in-x2)
 for keyboard use.
 
 The outputs are native `VIDEO` and recording details as `STRING`. Save Video
@@ -74,7 +79,6 @@ reference or prompt, review those inputs before deciding to run again.
 
 [Reactor X2 schema](https://docs.reactor.inc/model-api-reference/x2/schema)
 
-
 ## Live controls
 
 Turn **Live controls** on, select **Run**, then select **Start session** in the
@@ -82,18 +86,15 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for input, privacy, and stopping rules.
+See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

@@ -1,16 +1,16 @@
-# Reactor X2: Edit a webcam
+# Reactor X2: Edit a Webcam
 
 Edit a live camera scene and drag on the output to steer the subject. Save the
 result as a video without sound. X2 requires a non-empty edit prompt.
 
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Scene prompt | Describe the edit in 1 to 1,000 characters. |
+| Input                  | What to provide                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| Scene prompt           | Describe the edit in 1 to 1,000 characters.                                                    |
 | Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 10 seconds. |
-| Variation | Change this value for another paid run. Default: 0. |
-| Reference image | Optional single RGB image of a subject to insert or replace. Connect Load Image. |
+| Variation              | Change this value for another paid run. Default: 0.                                            |
+| Reference image        | Optional single RGB image of a subject to insert or replace. Connect Load Image.               |
 
 X2 has no seed control. The reference image is set before generation and stays
 fixed during the session. The node returns `VIDEO` and recording details as `STRING`.
@@ -41,18 +41,15 @@ access and causes the session to end. Losing camera input for three seconds also
 ends the session. Check browser camera permissions and use localhost or HTTPS
 if the camera cannot start.
 
-See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for session limits and recovery.
+See the [live controls guide](../../ADVANCED.md#live-controls) for session limits and recovery.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

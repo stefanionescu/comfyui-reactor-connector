@@ -1,21 +1,25 @@
-# Reactor SANA: Edit video
+# Reactor SANA: Edit Video
 
 Apply an edit prompt to a local video clip. Connect native **Load Video** or
 **Create Video** to **Source video**, then connect **Video** to **Save Video**. The output
 contains video without audio. Leave the prompt empty to recreate the source without
 requesting an edit.
 
+Start with a clear subject and simple movement. For example, ask for a watercolor
+painting that keeps the clip’s composition and motion. Leave the prompt empty
+to compare SANA’s reconstruction with the original before asking for an edit.
+
 ## Inputs
 
-| Input | What to provide |
-| --- | --- |
-| Source video | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
-| Scene prompt | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit. |
-| Video length (seconds) | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds. |
-| Seed | Integer from 0 to 4,294,967,295. Default: 42. |
-| Variation | Change this value for another paid run. Default: 0. |
-| Anchor interval | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0. |
-| Live controls | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+| Input                  | What to provide                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Source video           | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
+| Scene prompt           | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
+| Video length (seconds) | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
+| Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
+| Variation              | Change this value for another paid run. Default: 0.                                                                                              |
+| Anchor interval        | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
+| Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
 
 Use a clip with even dimensions, no more than 4096 pixels on either side, and a
 frame rate from 1 to 120 fps. HDR, multiple video streams, unsupported containers,
@@ -71,7 +75,6 @@ rejects the clip or prompt, the session ends without an automatic retry.
 
 [Reactor SANA schema](https://docs.reactor.inc/model-api-reference/sana-streaming/schema)
 
-
 ## Live controls
 
 Turn **Live controls** on, select **Run**, then select **Start session** in the
@@ -79,18 +82,15 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/docs/live.html) for input, privacy, and stopping rules.
+See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Check the credit rate
+## Credit rate
 
-Select **View credit rate** on this node to open its model rate. The time starts with this node's requested video length. Enter a different session
-time to include setup or other paid time. Session time includes setup and can
-exceed the saved video length. This calculation does not limit spending.
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** and select **Refresh models** for current rates. See [settings](/extensions/reactor-inc/guides/docs/settings.html#check-the-credit-rate)
-for details.
+Select **View credit rate** to calculate a rate for your chosen session time.
+Setup can add paid time beyond the video length; this is not a spending limit.
+See [credit rates](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 
-The **Recording details** output identifies the model and describes the saved file. See
-[recording details](/extensions/reactor-inc/guides/docs/recording-details.html) for dimensions, duration, audio
-presence, and cache behavior. It contains no prompts or session credentials.
+This output describes the saved file and model. See the
+[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
