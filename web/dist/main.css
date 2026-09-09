@@ -1,5 +1,6 @@
-/* web/styles.css */
-.reactor-settings {
+/* web/styles/interface.css */
+.reactor-dialog {
+  box-sizing: border-box;
   width: min(38rem, calc(100vw - 2rem));
   max-height: calc(100vh - 2rem);
   overflow: auto;
@@ -10,41 +11,41 @@
   background: var(--comfy-menu-bg, Canvas);
   font: inherit;
 }
-.reactor-settings::backdrop {
+.reactor-dialog::backdrop {
   background: #0008;
 }
-.reactor-settings header {
+.reactor-dialog header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
-.reactor-settings h2 {
+.reactor-dialog h2 {
   margin: 0;
   font-size: 1.3rem;
 }
-.reactor-settings p {
+.reactor-dialog p {
   line-height: 1.5;
 }
-.reactor-settings form {
+.reactor-dialog form {
   margin-top: 1.5rem;
 }
-.reactor-settings fieldset {
+.reactor-dialog fieldset {
   border: 0;
   margin: 0;
   padding: 0;
   min-width: 0;
 }
-.reactor-settings legend {
+.reactor-dialog legend {
   font-weight: 600;
   margin-bottom: 0.75rem;
 }
-.reactor-settings label {
+.reactor-dialog label {
   display: grid;
   gap: 0.35rem;
   margin: 0.8rem 0;
 }
-.reactor-settings input {
+.reactor-dialog input {
   box-sizing: border-box;
   width: 100%;
   padding: 0.55rem;
@@ -54,7 +55,7 @@
   background: var(--comfy-input-bg, Field);
   font: inherit;
 }
-.reactor-settings button {
+.reactor-dialog button {
   font: inherit;
   padding: 0.45rem 0.75rem;
   border: 1px solid var(--border-color, GrayText);
@@ -63,34 +64,34 @@
   background: var(--comfy-input-bg, ButtonFace);
   cursor: pointer;
 }
-.reactor-settings input[type=checkbox] {
+.reactor-dialog input[type=checkbox] {
   width: auto;
   padding: 0;
   margin: 0;
 }
-.reactor-settings label:has(input[type=checkbox]) {
+.reactor-dialog label:has(input[type=checkbox]) {
   display: flex;
   align-items: center;
   gap: 0.6rem;
 }
-.reactor-settings button:disabled {
+.reactor-dialog button:disabled {
   cursor: default;
   opacity: 0.55;
 }
-.reactor-settings :focus-visible {
+.reactor-dialog :focus-visible {
   outline: 2px solid Highlight;
   outline-offset: 3px;
 }
-.reactor-settings .reactor-actions {
+.reactor-dialog .reactor-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 0.75rem;
 }
-.reactor-settings [role=status] {
+.reactor-dialog [role=status] {
   min-height: 1.5em;
 }
-.reactor-settings summary {
+.reactor-dialog summary {
   cursor: pointer;
   padding: 0.5rem 0;
 }
@@ -114,6 +115,9 @@
 }
 .reactor-catalog details {
   margin: 0.75rem 0;
+}
+.reactor-catalog :where(li) p {
+  margin: 0.35rem 0;
 }
 .reactor-controls {
   box-sizing: border-box;
@@ -149,6 +153,9 @@
   padding: 0.5rem 0;
   background: var(--comfy-menu-bg, Canvas);
 }
+.reactor-controls :where(footer) p {
+  margin: 0 0 0.5rem;
+}
 .reactor-webcam {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 160px;
@@ -174,6 +181,9 @@
   .reactor-webcam {
     grid-template-columns: 1fr;
   }
+}
+.reactor-drag-input {
+  touch-action: none;
 }
 .reactor-pointer-preview {
   position: relative;
@@ -236,10 +246,4 @@
 .reactor-live textarea {
   width: 100%;
   box-sizing: border-box;
-}
-.reactor-catalog li p {
-  margin: 0.35rem 0;
-}
-.reactor-controls footer p {
-  margin: 0 0 0.5rem;
 }

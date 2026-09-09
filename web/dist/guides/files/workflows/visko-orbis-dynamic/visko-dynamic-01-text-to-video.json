@@ -11,7 +11,7 @@
       ],
       "size": [
         440,
-        120
+        80
       ],
       "flags": {},
       "order": 1,
@@ -22,16 +22,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 3,
       "type": "ReactorIncViskoDynamicGenerate",
       "pos": [
         40,
-        240
+        200
       ],
       "size": [
         440,
@@ -77,14 +77,14 @@
         false,
         false
       ],
-      "title": "Visko Dynamic: Video with sound"
+      "title": "Visko Dynamic: Video with Sound"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         540,
-        240
+        200
       ],
       "size": [
         360,
@@ -109,14 +109,14 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     },
     {
       "id": 7,
       "type": "SaveAudioAdvanced",
       "pos": [
         540,
-        610
+        570
       ],
       "size": [
         360,
@@ -146,7 +146,7 @@
         "audio/reactor/visko-dynamic-01-text-to-video",
         "flac"
       ],
-      "title": "Preview and save sound"
+      "title": "Preview and Save Sound"
     }
   ],
   "links": [

@@ -11,7 +11,7 @@
       ],
       "size": [
         400,
-        200
+        160
       ],
       "flags": {},
       "order": 1,
@@ -22,16 +22,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload your source video** (at least 33 frames).\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video.\n\nUse standard dynamic range (SDR) video. The edited output has no sound.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 2,
       "type": "LoadVideo",
       "pos": [
         40,
-        320
+        280
       ],
       "size": [
         400,
@@ -56,14 +56,14 @@
       "widgets_values": [
         ""
       ],
-      "title": "Upload your source video"
+      "title": "Upload Your Source Video"
     },
     {
       "id": 3,
       "type": "ReactorIncX2EditVideo",
       "pos": [
         500,
-        320
+        280
       ],
       "size": [
         440,
@@ -106,14 +106,14 @@
         0.5,
         false
       ],
-      "title": "X2: Edit a local video"
+      "title": "X2: Edit a Local Video"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        320
+        280
       ],
       "size": [
         360,
@@ -138,7 +138,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     }
   ],
   "links": [

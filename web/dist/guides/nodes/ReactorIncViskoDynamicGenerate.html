@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor Visko Dynamic: Generate Video</title><link rel="stylesheet" href="/extensions/reactor-inc/guides/docs.css"></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="reactor-visko-dynamic-generate-video">Reactor Visko Dynamic: Generate Video</h1>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Reactor Visko Dynamic: Generate Video</title>
+        <link rel="stylesheet" href="../docs.css">
+    </head>
+    <body>
+        <nav aria-label="Reactor guides">
+            <a href="../README.html">ComfyUI Reactor Connector</a>
+            <a href="../workflows/README.html">Workflows</a>
+            <a href="../ADVANCED.html#live-controls">Live controls</a>
+        </nav>
+        <main><h1 id="reactor-visko-dynamic-generate-video">Reactor Visko Dynamic: Generate Video</h1>
 <p>Generate a scene with synchronized sound. Connect <strong>Video</strong> to native <strong>Save Video</strong>
 and <strong>Audio</strong> to <strong>Save Audio (Advanced)</strong>. To animate an existing picture, connect
 one <strong>Load Image</strong> output to the optional <strong>Starting image</strong> input.</p>
@@ -26,7 +39,7 @@ one <strong>Load Image</strong> output to the optional <strong>Starting image</s
 </tr>
 <tr>
 <td>Variation</td>
-<td>Change this integer for another paid run. Default: 0.</td>
+<td>Change this integer for another run. Default: 0.</td>
 </tr>
 <tr>
 <td>Sound prompt</td>
@@ -59,8 +72,7 @@ to about one sentence: the provider uses roughly the first 128 tokens. An audio
 prompt is not another scene description. Image batches and non-finite pixels are
 rejected before connecting.</p>
 <p>If you enter a resolution, the connector checks that the connected model supports
-it. An unsupported name ends the session before generation, but connection time
-can still use credits. Leave this field blank for a first run. The resolution
+it. An unsupported name ends the session before generation. Leave this field blank for a first run. The resolution
 stays the same throughout the run.</p>
 <h2 id="run-and-save">Run and save</h2>
 <ol>
@@ -81,16 +93,15 @@ do not guarantee that the generated scene follows your prompt or image.</p>
 <p>The saved video includes sound. The separate audio output contains the same
 recording's sound at 48 kHz. Both use the recording's timestamps to stay aligned.
 The result ends at the requested duration or the available video's end.</p>
-<p>Preparing the recording can add paid time after generation. The session must
+<p>Preparing the recording can add time after generation. The session must
 finish within the limit in Reactor settings. If recording fails, the node
 returns an error and removes unfinished files.</p>
-<h2 id="cost-and-cancellation">Cost and cancellation</h2>
-<p>A new execution uses Reactor credits. Session time includes connection, setup,
+<h2 id="cancellation">Cancellation</h2>
+<p>Session time includes connection, setup,
 generation, and recording readiness; it can exceed the saved video's duration.
 The configured session time limit applies throughout. Pausing playback or closing
 the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.</p>
-<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Variation</strong> for another paid
-run. A seed does not guarantee identical results across model updates.
+<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Variation</strong> for another run. A seed does not guarantee identical results across model updates.
 The connector does not automatically retry failed commands or uncertain sessions.</p>
 <p>If the session reaches its limit before recording is ready, try a shorter recording
 or review the host's session limit and expected cost. If a recording is unavailable,
@@ -105,12 +116,11 @@ it blank to let the picture guide sound. The preview is silent; play the saved
 video to hear the result. Sound on/off and resolution stay fixed for the recording.
 Let recording finish to save the result. <strong>End session</strong> discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.</p>
-<p>See the <a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">live controls guide</a> for input, privacy, and stopping rules.</p>
-<h2 id="credit-rate">Credit rate</h2>
-<p>Select <strong>View credit rate</strong> to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See <a href="/extensions/reactor-inc/guides/ADVANCED.html#credit-rates">credit rates</a>.</p>
+<p>See the <a href="../ADVANCED.html#live-controls">live controls guide</a> for input, privacy, and stopping rules.</p>
+<p>Select <strong>View credit rate</strong> for a <a href="../ADVANCED.html#credit-rates">session estimate</a>.</p>
 <h2 id="recording-details">Recording details</h2>
 <p>This output describes the saved file and model. See the
-<a href="/extensions/reactor-inc/guides/ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
-</main></body></html>
+<a href="../ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
+</main>
+    </body>
+</html>

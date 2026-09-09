@@ -26,7 +26,7 @@ For a first run, use a picture of a path or room with clear depth. Choose
 | Scene prompt            | Describe the scene and motion in 1 to 1,000 characters.                                                                                      |
 | Video length (seconds)  | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                                                  |
 | Seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                      |
-| Variation               | Change this number to request another paid run with the same other settings. Default: 0.                                                     |
+| Variation               | Change this number to request another run with the same other settings. Default: 0.                                                          |
 | Movement                | Forward, back, or idle. Choose idle to stay in place.                                                                                        |
 | Sideways movement       | Sideways movement: strafe left, strafe right, or idle. Combine it with forward or back to move diagonally.                                   |
 | Turn left or right      | Keep looking left or right. Choose idle to stop turning.                                                                                     |
@@ -63,10 +63,10 @@ with recording details. For live runs, it also lists camera commands the model
 confirmed receiving and the number of preview frames. Receiving a command does
 not prove that the requested movement is visible.
 
-A new run uses Reactor credits. Setup and connection time also count toward the
-session time limit, so billed time can exceed video length. Running the same
+Setup and connection time also count toward the
+session time limit. Running the same
 workflow again may reuse ComfyUI's cached result. Change **Variation** for another
-paid run. Changing the account or execution limits also prevents reuse.
+run. Changing the account or execution limits also prevents reuse.
 
 ## Stop and recover
 
@@ -79,7 +79,7 @@ If confirmation is missing, check Reactor Usage and wait for the session limit.
 The connector runs one session at a time. It does not automatically repeat a
 rejected command or create a replacement session after a connection failure.
 A missing image, invalid direction, or oversized prompt is rejected before a
-paid session starts. If video stops arriving, check Reactor availability and
+session starts. If video stops arriving, check Reactor availability and
 your account, then consider a shorter recording.
 
 A saved video cannot reopen the scene on Reactor. Playing it again only repeats
@@ -87,11 +87,7 @@ the recording.
 
 [Reactor LingBot World 2 schema](https://docs.reactor.inc/model-api-reference/lingbot-world-2/schema)
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

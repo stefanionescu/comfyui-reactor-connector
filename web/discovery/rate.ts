@@ -1,9 +1,11 @@
+import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { browserLimits } from '#config/browser.ts';
-import type { Fetcher } from '#web/settings/api.ts';
+import { bindWidgetLabel } from '#web/nodes/labels.ts';
 import type { ReactorNode } from '#web/nodes/contracts.ts';
 import { formatCreditSummary } from '#web/discovery/pricing.ts';
+import { message, setTextAttribute, setText } from '#web/localization.ts';
 import { type Model, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
 /**
@@ -44,7 +46,7 @@ class CreditDialog {
 
   private readonly validation = element('p');
 
-  private readonly status = element('p', translate('pricing.loading'));
+  private readonly status = element('p', message('pricing.loading'));
 
   private readonly rates = element('div');
 
@@ -55,11 +57,11 @@ class CreditDialog {
    * @param node - The node whose public rate is requested.
    */
   constructor(private readonly node: ReactorNode) {
-    this.dialog.className = 'reactor-settings';
+    this.dialog.className = 'reactor-dialog';
     this.dialog.setAttribute('aria-labelledby', 'reactor-rate-title');
-    const title = element('h2', translate('pricing.title'));
+    const title = element('h2', message('pricing.title'));
     title.id = 'reactor-rate-title';
-    const close = button(translate('close'));
+    const close = button(message('close'));
     close.addEventListener('click', () => this.dialog.close());
     const header = element('header');
     header.append(title, close);
@@ -67,15 +69,15 @@ class CreditDialog {
     const request = element(
       'p',
       seconds === undefined
-        ? translate('pricing.unknownDuration')
-        : translate('pricing.requestedDuration', { seconds: seconds.toLocaleString() }),
+        ? message('pricing.unknownDuration')
+        : message('pricing.requestedDuration', { seconds }),
     );
-    const label = element('label', translate('pricing.sessionTime'));
+    const label = element('label', message('pricing.sessionTime'));
     this.duration.type = 'number';
     this.duration.min = '0.1';
     this.duration.max = String(browserLimits.maxCalculatorSeconds);
     this.duration.step = 'any';
-    this.duration.placeholder = translate('pricing.enterTime');
+    setTextAttribute(this.duration, 'placeholder', message('pricing.enterTime'));
     if (seconds !== undefined) this.duration.value = String(seconds);
     label.append(this.duration);
     this.validation.setAttribute('role', 'status');
@@ -86,7 +88,7 @@ class CreditDialog {
       request,
       label,
       this.validation,
-      element('p', translate('pricing.estimateNotice')),
+      element('p', message('pricing.estimateNotice')),
       this.status,
       this.rates,
     );
@@ -107,24 +109,29 @@ class CreditDialog {
       this.models = catalog.models.filter((model) =>
         model.node_ids.includes(this.node.comfyClass ?? ''),
       );
-      this.status.textContent = metadataStatus(catalog.retrieved_at);
-      if (!this.models.length) this.status.textContent = translate('pricing.modelUnavailable');
+      setText(this.status, metadataStatus(catalog.retrieved_at));
+      if (!this.models.length) setText(this.status, message('pricing.modelUnavailable'));
       this.render();
     } catch (error) {
       if (!this.controller.signal.aborted)
-        this.status.textContent =
-          error instanceof Error ? error.message : translate('pricing.loadFailed');
+        setText(
+          this.status,
+          error instanceof Error ? error.message : message('pricing.loadFailed'),
+        );
     }
   }
 
   /** Validate session time and update every rate calculation. */
   private render(): void {
     const valid = this.duration.value !== '' && this.duration.validity.valid;
-    this.validation.textContent = valid
-      ? ''
-      : translate('pricing.timeRange', {
-          maximum: browserLimits.maxCalculatorSeconds.toLocaleString(),
-        });
+    setText(
+      this.validation,
+      valid
+        ? ''
+        : message('pricing.timeRange', {
+            maximum: browserLimits.maxCalculatorSeconds,
+          }),
+    );
     this.rates.replaceChildren();
     for (const model of this.models) {
       this.rates.append(element('h3', model.title));
@@ -169,7 +176,7 @@ function openCreditRate(node: ReactorNode, fetcher: Fetcher): void {
 }
 
 /**
- * Add a credit rate button to nodes that start paid sessions.
+ * Add a credit rate button to nodes that generate media.
  * @param node - The newly created ComfyUI node.
  * @param fetcher - ComfyUI's local API client.
  */
@@ -181,7 +188,14 @@ export function bindCreditRate(node: ReactorNode, fetcher: Fetcher): void {
     id === 'ReactorIncLongLiveAddShot'
   )
     return;
-  node.addWidget('button', translate('pricing.viewRate'), '', () => openCreditRate(node, fetcher), {
-    serialize: false,
-  });
+  const widget = node.addWidget(
+    'button',
+    translate('pricing.viewRate'),
+    '',
+    () => openCreditRate(node, fetcher),
+    {
+      serialize: false,
+    },
+  );
+  bindWidgetLabel(node, widget, 'pricing.viewRate');
 }

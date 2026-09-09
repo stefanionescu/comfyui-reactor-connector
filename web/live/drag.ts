@@ -1,4 +1,4 @@
-import { translate } from '#web/language.ts';
+import { setTextAttribute, message } from '#web/localization.ts';
 
 export type Pointer = { x: number; y: number; active: boolean };
 
@@ -21,8 +21,8 @@ export class DragInput {
   ) {
     image.tabIndex = 0;
     image.draggable = false;
-    image.style.touchAction = 'none';
-    image.setAttribute('aria-label', translate('pointer.instructions'));
+    image.classList.add('reactor-drag-input');
+    setTextAttribute(image, 'aria-label', message('pointer.instructions'));
     image.addEventListener(
       'pointerdown',
       (event) => {

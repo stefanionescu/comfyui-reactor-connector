@@ -11,7 +11,7 @@ one **Load Image** output to the optional **Starting image** input.
 | Scene prompt           | Describe the scene in 1 to 20,000 characters. This is the connector's input limit.               |
 | Video length (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                    |
-| Variation              | Change this integer for another paid run. Default: 0.                                            |
+| Variation              | Change this integer for another run. Default: 0.                                                 |
 | Sound prompt           | A short description of sound, up to 1,000 characters. Blank uses the picture alone.              |
 | Resolution             | Blank uses the model default. Otherwise, enter an exact offered resolution name.                 |
 | Include sound          | Generate sound when true. False asks the model to provide silence. Default: true.                |
@@ -25,8 +25,7 @@ prompt is not another scene description. Image batches and non-finite pixels are
 rejected before connecting.
 
 If you enter a resolution, the connector checks that the connected model supports
-it. An unsupported name ends the session before generation, but connection time
-can still use credits. Leave this field blank for a first run. The resolution
+it. An unsupported name ends the session before generation. Leave this field blank for a first run. The resolution
 stays the same throughout the run.
 
 ## Run and save
@@ -51,19 +50,18 @@ The saved video includes sound. The separate audio output contains the same
 recording's sound at 48 kHz. Both use the recording's timestamps to stay aligned.
 The result ends at the requested duration or the available video's end.
 
-Preparing the recording can add paid time after generation. The session must
+Preparing the recording can add time after generation. The session must
 finish within the limit in Reactor settings. If recording fails, the node
 returns an error and removes unfinished files.
 
-## Cost and cancellation
+## Cancellation
 
-A new execution uses Reactor credits. Session time includes connection, setup,
+Session time includes connection, setup,
 generation, and recording readiness; it can exceed the saved video's duration.
 The configured session time limit applies throughout. Pausing playback or closing
 the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.
 
-Unchanged inputs may reuse ComfyUI's cache. Change **Variation** for another paid
-run. A seed does not guarantee identical results across model updates.
+Unchanged inputs may reuse ComfyUI's cache. Change **Variation** for another run. A seed does not guarantee identical results across model updates.
 The connector does not automatically retry failed commands or uncertain sessions.
 
 If the session reaches its limit before recording is ready, try a shorter recording
@@ -83,15 +81,11 @@ video to hear the result. Sound on/off and resolution stay fixed for the recordi
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/ADVANCED.html#live-controls) for input, privacy, and stopping rules.
+See the [live controls guide](/reactor-inc/v1/help/ADVANCED.html#live-controls) for input, privacy, and stopping rules.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](/extensions/reactor-inc/guides/ADVANCED.html#credit-rates).
+Select **View credit rate** for a [session estimate](/reactor-inc/v1/help/ADVANCED.html#credit-rates).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](/extensions/reactor-inc/guides/ADVANCED.html#recording-details) for timing, privacy, and cache behavior.
+[field reference](/reactor-inc/v1/help/ADVANCED.html#recording-details) for timing, privacy, and cache behavior.

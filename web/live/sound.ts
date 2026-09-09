@@ -1,12 +1,12 @@
-import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
+import { message } from '#web/localization.ts';
 
 export class SoundControls {
   readonly view = element('fieldset');
 
   private readonly prompt = element('textarea');
 
-  private readonly apply = button(translate('sound.applyPrompt'));
+  private readonly apply = button(message('sound.applyPrompt'));
 
   private pending: string | undefined;
 
@@ -19,13 +19,13 @@ export class SoundControls {
     this.prompt.value = initialPrompt;
     this.prompt.maxLength = promptLimit;
     this.prompt.rows = 2;
-    const label = element('label', translate('sound.prompt'));
+    const label = element('label', message('sound.prompt'));
     label.append(this.prompt);
     this.view.append(
-      element('legend', translate('sound.title')),
+      element('legend', message('sound.title')),
       label,
       this.apply,
-      element('p', translate('sound.promptNotice')),
+      element('p', message('sound.promptNotice')),
     );
     // eslint-disable-next-line local/no-trivial-functions -- Applying sound queues the prompt and prevents duplicate submission.
     this.apply.addEventListener('click', () => {

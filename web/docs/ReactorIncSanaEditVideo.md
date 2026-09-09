@@ -17,7 +17,7 @@ to compare SANA’s reconstruction with the original before asking for an edit.
 | Scene prompt           | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
 | Video length (seconds) | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
-| Variation              | Change this value for another paid run. Default: 0.                                                                                              |
+| Variation              | Change this value for another run. Default: 0.                                                                                                   |
 | Anchor interval        | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
 
@@ -55,16 +55,16 @@ The node returns native `VIDEO` and recording details as `STRING`. Save Video
 retains the temporary result under its relative output prefix. Input copies are
 removed after the session ends or the operation fails.
 
-## Cost and cancellation
+## Cancellation
 
-A new execution uses Reactor credits. Session time includes upload and setup,
+Session time includes upload and setup,
 so it can exceed the output duration. The host recording and session limits apply.
 The connector disconnects after recording, failure, or cancellation and does not
 automatically retry rejected commands or uncertain session creation.
 
 Use ComfyUI's cancel control to stop. Closing the ComfyUI window does not cancel
 a queued workflow. Unchanged inputs may reuse ComfyUI's cache; change **Variation**
-to request another paid run. Seeds do not guarantee identical output after a
+to request another run. Seeds do not guarantee identical output after a
 provider update.
 
 ## Recovery
@@ -84,11 +84,7 @@ video. Panel prompt changes do not rewrite the saved workflow.
 
 See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

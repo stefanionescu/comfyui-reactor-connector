@@ -1,6 +1,7 @@
-import { translate } from '#web/language.ts';
-import type { Fetcher } from '#web/settings/api.ts';
+import type { Fetcher } from '#web/http.ts';
 import { browserPatterns } from '#config/browser.ts';
+import { translate, formatDate } from '#web/language.ts';
+import { message, type Message } from '#web/localization.ts';
 
 export type Model = {
   key: string;
@@ -29,11 +30,9 @@ export type ModelList = {
   };
 };
 
-const INVALID_MODEL_LIST = translate('models.invalidResponse');
-
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error(INVALID_MODEL_LIST);
+    throw new Error(translate('models.invalidResponse'));
   return value as Record<string, unknown>;
 }
 
@@ -68,7 +67,7 @@ function model(value: unknown): Model {
     row.node_ids.length > 100 ||
     !row.node_ids.every((id) => typeof id === 'string' && /^ReactorInc[A-Za-z0-9]+$/.test(id))
   )
-    throw new Error(INVALID_MODEL_LIST);
+    throw new Error(translate('models.invalidResponse'));
   return row as Model;
 }
 
@@ -92,7 +91,7 @@ function parseCatalog(value: unknown): ModelList {
     document.models.length < 1 ||
     document.models.length > 1024
   )
-    throw new Error(INVALID_MODEL_LIST);
+    throw new Error(translate('models.invalidResponse'));
   const models = document.models.map(model);
   if (document.automatic_check !== undefined) {
     const check = record(document.automatic_check);
@@ -109,10 +108,10 @@ function parseCatalog(value: unknown): ModelList {
       !(check.update_available === null || typeof check.update_available === 'boolean') ||
       !(check.error === null || shortText(check.error, 1024))
     )
-      throw new Error(INVALID_MODEL_LIST);
+      throw new Error(translate('models.invalidResponse'));
   }
   if (new Set(models.map((row) => row.key)).size !== models.length)
-    throw new Error(INVALID_MODEL_LIST);
+    throw new Error(translate('models.invalidResponse'));
   return { ...document, models } as ModelList;
 }
 
@@ -122,10 +121,10 @@ function parseCatalog(value: unknown): ModelList {
  * @returns A readable date or the action needed to load metadata.
  */
 // eslint-disable-next-line local/no-trivial-functions -- Share first-refresh guidance and date formatting between model and rate dialogs.
-export function metadataStatus(retrievedAt: string | null): string {
+export function metadataStatus(retrievedAt: string | null): Message {
   return retrievedAt === null
-    ? translate('models.installedList')
-    : translate('models.lastRefresh', { date: new Date(retrievedAt).toLocaleString() });
+    ? message('models.installedList')
+    : message('models.lastRefresh', { date: () => formatDate(retrievedAt) });
 }
 
 /**
@@ -161,7 +160,7 @@ export async function requestModels(
   try {
     body = await response.json();
   } catch {
-    throw new Error(INVALID_MODEL_LIST);
+    throw new Error(translate('models.invalidResponse'));
   }
   if (!response.ok) {
     const error = record(body).error;

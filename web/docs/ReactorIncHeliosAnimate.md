@@ -11,7 +11,7 @@ Image** to **Starting image** and connect **Video** to **Save Video**.
 | Scene prompt           | Describe the intended scene and motion. Required; cannot be empty.                                |
 | Video length (seconds) | Requested video duration within the video duration limit in Reactor settings. Default: 5 seconds. |
 | Seed                   | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                      |
-| Variation              | Change this number to request another paid run with identical prompt and seed.                    |
+| Variation              | Change this number to request another run with identical prompt and seed.                         |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                  |
 
 The image is uploaded as PNG, then applied together with the prompt before
@@ -25,23 +25,23 @@ An unrelated scene prompt can give the model conflicting instructions.
 
 1. Open [Helios image to video](../../workflows/helios/helios-02-image-to-video.json).
 2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-3. Upload your picture in **Upload your starting image**. You can use the
+3. Upload your picture in **Upload Your Starting Image**. You can use the
    [forest illustration](../../workflows/assets/forest-illustration.png).
 4. Describe the motion in **Scene prompt**. For example: “The camera moves slowly
    along the forest path.” Choose **Video length (seconds)**, then select **Run**.
-5. Play the result in **Preview and save video**. This node also saves the file.
+5. Play the result in **Preview and Save Video**. This node also saves the file.
 
 The Reactor node returns **Video** without sound and **Recording details** as
 text. In your own graph, connect **Video** to **Save Video** to keep the result
 after ComfyUI clears its temporary storage. The model may change the image's
 content or crop.
 
-## Cost and cancellation
+## Cancellation
 
-Setup and generation use Reactor credits. Session time can exceed the saved
+Session time can exceed the saved
 video length. A seed does not guarantee identical results after a model update.
 Unchanged inputs may reuse ComfyUI's cached result. Changing the key or execution
-limits can cause another paid run when you next select **Run**.
+limits can cause another run when you next select **Run**.
 
 Use ComfyUI's cancel control to stop a run. Closing the ComfyUI window does not
 cancel a queued workflow. Failed runs do not return a video. If the session's
@@ -66,11 +66,7 @@ video. Panel prompt changes do not rewrite the saved workflow.
 
 See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

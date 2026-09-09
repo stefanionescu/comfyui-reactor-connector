@@ -1,6 +1,7 @@
 import { element } from '#web/dom.ts';
 import { translate } from '#web/language.ts';
 import type { Pointer } from '#web/live/drag.ts';
+import { setText, message } from '#web/localization.ts';
 
 export class PointerPreview {
   readonly view = element('div');
@@ -46,10 +47,13 @@ export class PointerPreview {
   move(pointer: Pointer): void {
     this.#pointer = pointer;
     this.status.hidden = false;
-    this.#position.textContent = translate('pointer.position', {
-      x: Math.round(pointer.x * 100),
-      y: Math.round(pointer.y * 100),
-    });
+    setText(
+      this.#position,
+      message('pointer.position', {
+        x: Math.round(pointer.x * 100),
+        y: Math.round(pointer.y * 100),
+      }),
+    );
     this.#place();
   }
 
@@ -58,8 +62,8 @@ export class PointerPreview {
    * @param pointer - The pointer update accepted by the server.
    */
   confirm(pointer: Pointer): void {
-    const message = pointer.active ? translate('pointer.held') : translate('pointer.released');
-    if (this.#state.textContent !== message) this.#state.textContent = message;
+    const key = pointer.active ? 'pointer.held' : 'pointer.released';
+    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
   }
 
   /**
@@ -68,7 +72,7 @@ export class PointerPreview {
   stop(): void {
     this.#pointer = undefined;
     this.#marker.hidden = true;
-    if (!this.status.hidden) this.#state.textContent = translate('pointer.stopped');
+    if (!this.status.hidden) setText(this.#state, message('pointer.stopped'));
   }
 
   #place(): void {

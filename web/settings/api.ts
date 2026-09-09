@@ -1,3 +1,4 @@
+import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { browserPatterns, browserLimits } from '#config/browser.ts';
 
@@ -13,7 +14,6 @@ export type Configuration = {
     catalog_interval_hours: number;
   };
 };
-export type Fetcher = (route: string, options: RequestInit) => Promise<Response>;
 
 function record(value: unknown): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {

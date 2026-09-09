@@ -1,15 +1,15 @@
+import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import type { Invitation } from '#web/live/api.ts';
-import type { Fetcher } from '#web/settings/api.ts';
 import { browserLimits, browserPatterns } from '#config/browser.ts';
 
 export type Controls = Invitation & {
   prompt: string;
-  prompt_limit: number;
+  promptLimit: number;
   webcam: boolean;
   pointer: boolean;
   sound: boolean;
-  audio_prompt: string;
+  audioPrompt: string;
   audioPromptLimit: number;
 };
 
@@ -53,14 +53,14 @@ export function controls(value: unknown): Controls | undefined {
     capability: v.capability,
     model: v.model,
     modelTitle: v.model_title,
-    duration_seconds: v.duration_seconds,
+    durationSeconds: v.duration_seconds,
     axes: {},
     prompt: v.prompt,
-    prompt_limit: v.prompt_limit,
+    promptLimit: v.prompt_limit,
     webcam: v.webcam,
     pointer: v.pointer,
     sound: v.sound,
-    audio_prompt: v.audio_prompt,
+    audioPrompt: v.audio_prompt,
     audioPromptLimit: v.audio_prompt_limit,
   };
 }

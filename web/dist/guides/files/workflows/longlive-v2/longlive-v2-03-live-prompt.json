@@ -11,7 +11,7 @@
       ],
       "size": [
         440,
-        120
+        80
       ],
       "flags": {},
       "order": 1,
@@ -22,9 +22,9 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to open the live panel.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to open the live panel."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 8,
@@ -48,7 +48,7 @@
       "widgets_values": [
         "In the live panel, select **Start session** within 60 seconds.\n\nEdit **Scene prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
@@ -90,7 +90,7 @@
         0,
         true
       ],
-      "title": "LongLive: Change the prompt while recording"
+      "title": "LongLive: Change the Prompt while Recording"
     },
     {
       "id": 4,
@@ -122,7 +122,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     }
   ],
   "links": [

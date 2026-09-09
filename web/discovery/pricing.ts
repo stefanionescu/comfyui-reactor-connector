@@ -1,26 +1,29 @@
-import { translate } from '#web/language.ts';
+import { formatNumber } from '#web/language.ts';
 import type { Model } from '#web/discovery/api.ts';
+import { message, type Message } from '#web/localization.ts';
 
 /**
  * Describe a listed credit rate and calculate credits only for a current rate.
  * @param model - A validated entry from the local model list.
- * @param seconds - Optional total paid session time.
+ * @param seconds - Optional total session time.
  * @returns Rate details and an optional calculation for display.
  */
-export function formatCreditSummary(model: Model, seconds: number | undefined): string[] {
+export function formatCreditSummary(model: Model, seconds: number | undefined): Message[] {
   const rate = model.credits_per_second;
-  if (rate === null) return [translate('pricing.rateUnavailable')];
-  const details = [translate('pricing.rate', { rate: rate.toLocaleString() })];
+  if (rate === null) return [message('pricing.rateUnavailable')];
+  const details = [message('pricing.rate', { rate: rate })];
   if (!model.observed) {
-    details.push(translate('pricing.rateOutdated'));
+    details.push(message('pricing.rateOutdated'));
   } else if (seconds !== undefined) {
-    const credits = (rate * seconds).toLocaleString(undefined, {
-      maximumFractionDigits: 2,
-    });
+    // eslint-disable-next-line local/no-trivial-functions -- Defer formatting so existing estimates follow language changes.
+    const credits = () =>
+      formatNumber(rate * seconds, {
+        maximumFractionDigits: 2,
+      });
     details.push(
-      translate('pricing.calculation', {
-        seconds: seconds.toLocaleString(),
-        rate: rate.toLocaleString(),
+      message('pricing.calculation', {
+        seconds: seconds,
+        rate: rate,
         credits,
       }),
     );

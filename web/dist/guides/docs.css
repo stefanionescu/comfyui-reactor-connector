@@ -5,12 +5,14 @@
     sans-serif;
 }
 body {
+  background: var(--guide-background, Canvas);
+  color: var(--guide-color, CanvasText);
   margin: 0 auto;
   max-width: 76ch;
   padding: 2rem 1.25rem 4rem;
 }
 a {
-  color: light-dark(#174b99, #9fc6ff);
+  color: var(--guide-link, light-dark(#174b99, #9fc6ff));
   text-underline-offset: 0.15em;
 }
 h1,
@@ -27,7 +29,7 @@ table {
 }
 th,
 td {
-  text-align: left;
+  text-align: start;
   vertical-align: top;
   padding: 0.6rem;
   border: 1px solid GrayText;
@@ -35,7 +37,7 @@ td {
 pre {
   overflow-x: auto;
   padding: 1rem;
-  background: light-dark(#f1f3f5, #20242a);
+  background: var(--guide-code-background, light-dark(#f1f3f5, #20242a));
 }
 code {
   overflow-wrap: anywhere;

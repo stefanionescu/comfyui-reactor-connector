@@ -53,13 +53,19 @@ def translate(name: MessageFile, key: str, **values: str | int | float) -> str:
 @contextmanager
 def language_scope(language: str) -> Generator[None, None, None]:
     """Select a safe locale for one request or build and restore it when finished."""
-    selected = language.split(",", 1)[0].split(";", 1)[0].strip()
-    languages = available_languages()
-    if selected not in languages:
-        selected = selected.split("-", 1)[0]
-    selected = selected if selected in languages else "en"
+    candidates = locale_candidates(language)
+    languages = {name.lower(): name for name in available_languages()}
+    selected = next((languages[name] for name in candidates if name in languages), "en")
     token = _language.set(selected)
     try:
         yield
     finally:
         _language.reset(token)
+
+
+def locale_candidates(language: str) -> list[str]:
+    """Prefer exact and language-level resources while keeping Chinese writing systems distinct."""
+    exact = language.split(",", 1)[0].split(";", 1)[0].strip().replace("_", "-").lower()
+    traditional = any(exact == tag or exact.startswith(tag + "-") for tag in ("zh-tw", "zh-hk", "zh-mo", "zh-hant"))
+    base = "zh-tw" if traditional else exact.split("-", 1)[0]
+    return list(dict.fromkeys((exact, base, "en")))

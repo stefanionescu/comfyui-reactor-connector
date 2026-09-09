@@ -35,7 +35,7 @@ class ModelChecker:
         self.checked_at: str | None = None
         self.base_revision: str | None = None
         self.candidate_revision: str | None = None
-        self.error: str | None = None
+        self.error_key: str | None = None
         self.running = False
         self.enabled = False
         self.interval_hours = INTEGER_SETTINGS["catalog_interval_hours"]["default"]
@@ -50,7 +50,7 @@ class ModelChecker:
             "update_available": self.candidate_revision != revision
             if self.base_revision == revision and self.candidate_revision is not None
             else None,
-            "error": self.error,
+            "error": translate("main", self.error_key) if self.error_key else None,
         }
 
     async def tick(self) -> None:
@@ -73,11 +73,11 @@ class ModelChecker:
                 base, merged = await asyncio.to_thread(self.store.preview, candidate)
             self.base_revision, self.candidate_revision = base, merged
             self.checked_at = datetime.now(UTC).isoformat()
-            self.error = None
+            self.error_key = None
         except Exception:  # noqa: BLE001 -- reason: Keep background failures recoverable without exposing provider URLs or response bodies.
             # Provider exceptions can contain URLs or response bodies. The settings
             # and model dialogs need a recovery action, not those private details.
-            self.error = translate("main", "errors.automaticCheckFailed")
+            self.error_key = "errors.automaticCheckFailed"
         finally:
             self.running = False
 

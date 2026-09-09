@@ -11,7 +11,7 @@
       ],
       "size": [
         440,
-        120
+        80
       ],
       "flags": {},
       "order": 1,
@@ -22,9 +22,9 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 8,
@@ -35,7 +35,7 @@
       ],
       "size": [
         360,
-        180
+        160
       ],
       "flags": {},
       "order": 8,
@@ -46,16 +46,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "The 3 clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length. It also generates up to 14.375 extra seconds for recording to finish. Those extra seconds use credits but are not saved."
+        "The 3 clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
       "type": "ReactorIncFastContinue",
       "pos": [
         40,
-        300
+        280
       ],
       "size": [
         440,
@@ -99,14 +99,14 @@
         3,
         "The stream flows past a mossy rock.\nThe camera follows the stream into a sunlit clearing."
       ],
-      "title": "Fast H3: Continue a scene"
+      "title": "Fast H3: Continue a Scene"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         540,
-        300
+        280
       ],
       "size": [
         360,
@@ -131,14 +131,14 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     },
     {
       "id": 7,
       "type": "SaveAudioAdvanced",
       "pos": [
         540,
-        670
+        650
       ],
       "size": [
         360,
@@ -168,7 +168,7 @@
         "audio/reactor/fast-h3-05-continue-scene",
         "flac"
       ],
-      "title": "Preview and save sound"
+      "title": "Preview and Save Sound"
     }
   ],
   "links": [

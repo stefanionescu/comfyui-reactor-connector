@@ -11,7 +11,7 @@
       ],
       "size": [
         440,
-        120
+        80
       ],
       "flags": {},
       "order": 1,
@@ -22,9 +22,9 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 8,
@@ -35,7 +35,7 @@
       ],
       "size": [
         360,
-        80
+        60
       ],
       "flags": {},
       "order": 8,
@@ -46,16 +46,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Fast H3 rounds each clip to a supported length. It also generates up to 14.375 extra seconds for recording to finish. Those extra seconds use credits but are not saved."
+        "Fast H3 rounds each clip to a supported length."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
       "type": "ReactorIncFastGenerate",
       "pos": [
         40,
-        240
+        200
       ],
       "size": [
         440,
@@ -97,14 +97,14 @@
         0,
         "16:9"
       ],
-      "title": "Fast H3: Build a clip with sound"
+      "title": "Fast H3: Build a Clip with Sound"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         540,
-        240
+        200
       ],
       "size": [
         360,
@@ -129,14 +129,14 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     },
     {
       "id": 7,
       "type": "SaveAudioAdvanced",
       "pos": [
         540,
-        610
+        570
       ],
       "size": [
         360,
@@ -166,7 +166,7 @@
         "audio/reactor/fast-h3-01-text-to-video",
         "flac"
       ],
-      "title": "Preview and save sound"
+      "title": "Preview and Save Sound"
     }
   ],
   "links": [

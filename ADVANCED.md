@@ -58,14 +58,14 @@ A rejected command or uncertain connection is not retried automatically.
 
 New runs use saved settings. A running session keeps its original key and limits.
 Changing the effective key or execution limits prevents reuse of an earlier
-ComfyUI result on the next run, so selecting **Run** can use credits again.
+ComfyUI result on the next run.
 Model-update settings do not affect reuse of saved results. Change **Variation** to
 request a new run with otherwise unchanged inputs. A seed does not guarantee
 identical results after a provider update.
 
 If another window saves settings first, reload before making your changes again.
 Invalid settings leave the previous file intact. Saving settings does not cancel
-active work, remove saved media, buy credits, or change billing.
+active work or remove saved media.
 
 ## Credit rates
 
@@ -74,14 +74,13 @@ requested video length; continued clips use clip length multiplied by clip count
 For a connected duration input, enter the time yourself.
 
 **Session time to calculate (seconds)** multiplies a public rate by your chosen
-time. Setup, waiting, and recording preparation can add paid time beyond the
+time. Setup, waiting, and recording preparation can add time beyond the
 video length. The calculation is not a quote or spending limit. Refer to Reactor
 for actual charges. A missing or unconfirmed rate produces no calculation.
 
 The dialog shows when rates were checked. Refresh the model list for current
 public prices. To compare models, open **Reactor models** and expand **Calculate
 credits for session time**. Help and credit controls are not saved as node inputs.
-The local **Add a prompt** and **Add a shot** nodes use no credits.
 
 ## Model updates
 
@@ -92,8 +91,7 @@ Each entry shows its last checked rate, any available guide, and node support.
 Installed models appear before the first refresh. Refresh the list to load public
 prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.
 
-**Refresh models** reads Reactor's public prices and model guides. It uses no key,
-starts no generation, spends no credits, and installs no code. Entries come from
+**Refresh models** reads Reactor's public prices and model guides. Entries come from
 published prices or guides; your account determines which models you can run.
 HappyOyster is excluded, including when an older list is restored.
 
@@ -149,7 +147,7 @@ controls** switch, off by default. LongLive storyboards keep their prepared shot
 1. Set the prompt and video length, then select **Run**.
 2. For a webcam node, select **Enable camera** and allow camera access. Check the
    preview. To switch cameras, choose one and select **Use selected camera**.
-3. Select **Start session** within 60 seconds. Connection starts using credits.
+3. Select **Start session** within 60 seconds.
 4. When controls are ready, edit the prompt and select **Apply prompt**.
 5. Let the chosen recording duration finish to save the result.
 
@@ -159,7 +157,7 @@ on the node. Starting and reference images stay fixed throughout the session.
 
 Webcams need localhost or HTTPS, camera permission, and local single-user access.
 The panel requests video only. Frames go to the local host before starting and
-to Reactor only during the paid session. There is no microphone input or separate
+to Reactor only during the session. There is no microphone input or separate
 camera recording. Camera access stops when the panel closes or recording ends.
 
 Input uses up to 640 × 480 pixels and ten new frames per second. The latest frame
@@ -171,7 +169,7 @@ separate preview uses up to 640 × 360 pixels at ten frames per second without s
 Turn **Include sound** on before running. During recording, edit **Sound prompt**
 and select **Apply sound prompt**. Leave it blank to let the picture guide sound.
 Changes affect later sound; play the saved video to hear it. Resolution and sound
-on/off stay fixed during the session. Changing them requires a new paid run.
+on/off stay fixed during the session. Changing them requires a new run.
 
 ### Drag in X2
 
@@ -198,7 +196,7 @@ and clicking its playback does not move the camera.
 
 ### Save or stop
 
-Let recording finish. **Preview and save video** writes the result under ComfyUI's
+Let recording finish. **Preview and Save Video** writes the result under ComfyUI's
 output folder. **End session** stops early and discards the unfinished video.
 ComfyUI cancellation also ends the run. Closing a workflow tab does not cancel it.
 
@@ -251,8 +249,7 @@ Allow missing fields when reading them. Do not rerun solely to update a report.
 
 ## Recovery
 
-Read the error and the node's **Help** before trying again. Another generation
-uses credits. Pausing a video preview does not stop its session.
+Read the error and the node's **Help** before trying again. Pausing a video preview does not stop its session.
 
 | Problem                      | Next step                                                                                        |
 | ---------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -310,6 +307,27 @@ Keep shared Python dependencies that other packs may use. Removing or updating
 the package preserves private state, media, and saved workflows. To remove state
 too, confirm all sessions ended and delete only its [state directory](#keys-and-access).
 Deleting a saved key does not revoke it in Reactor.
+
+## Language
+
+This release includes English text and guides. Installed translations use the
+language selected in ComfyUI. Custom panel labels follow language changes;
+English remains the fallback when a message or guide is missing.
+
+Saved workflow notes and custom titles keep the language used when the workflow
+was built. Changing ComfyUI's language does not rewrite your graph. Node search
+aliases, categories, placeholders, and errors from queued execution currently
+use English. An error already returned by the server keeps its original text.
+
+To build workflow text from an installed locale, choose a separate output folder:
+
+```sh
+mise run workflows:build -- --language fr --output-directory .artifacts/workflows/fr
+```
+
+Add reviewed French resources before using this example; only English resources
+are supplied. The output index links to the repository's shared guides and sample
+files. Keep it with that checkout. It is not a standalone translated package.
 
 ## Development commands
 
@@ -375,3 +393,20 @@ files directly. Rebuild examples before packaging.
 Python checks use actual ComfyUI and dependency types. Where an upstream API lacks
 complete annotations, the code defines only the interface it consumes. Check
 changed host calls manually in the installed ComfyUI as well.
+
+## Recording overhead
+
+### Fast H3
+
+After the selected clip finishes, the connector builds and starts one additional
+continuation. This advances the recording service so it can finish the selected
+clip's media fragments. The continuation uses credits but is omitted from the
+saved output. Its requested length is the deployment's longest clip, currently
+14.375 seconds. The session ends as soon as the selected recording is ready,
+even if that continuation has not finished. The host session cap still applies.
+
+### LTX
+
+LTX may generate up to 20 extra seconds while Reactor prepares the recording.
+These seconds can use credits and are not saved. The session time limit applies
+to the whole run.

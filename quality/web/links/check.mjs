@@ -5,7 +5,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { check } from 'linkinator';
 import { visibleFiles } from '#shared/files.js';
-import { LINK_OPTIONS, LINK_MODES, LINK_USAGE } from '#config/links.js';
+
+import {
+  LINK_OPTIONS,
+  LINK_MODES,
+  LINK_USAGE,
+  LINK_ALIASES,
+  LINK_TEMPLATES,
+} from '#config/links.js';
 
 const root = process.cwd();
 const mode = process.argv[2] ?? '--local';
@@ -18,15 +25,23 @@ function copyPublicFiles(destination) {
     const target = path.join(destination, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(path.join(root, relative), target);
-    if (/\.(?:md|html)$/u.test(relative)) pages.push(relative);
-    if (relative.startsWith('web/dist/')) {
-      // reason: This alias uses a fixed prefix and a Git-listed path under web/dist.
-      // bearer:disable javascript_lang_path_traversal
-      const installed = path.join(destination, 'extensions/reactor-inc', relative.slice(9));
-      fs.mkdirSync(path.dirname(installed), { recursive: true });
-      fs.copyFileSync(target, installed);
-      if (/\.(?:md|html)$/u.test(relative)) pages.push(path.relative(destination, installed));
-    }
+    if (/\.(?:md|html)$/u.test(relative) && !LINK_TEMPLATES.includes(relative))
+      pages.push(relative);
+    pages.push(...copyAliases(destination, relative, target));
+  }
+  return pages;
+}
+
+function copyAliases(destination, relative, target) {
+  const pages = [];
+  for (const [source, alias] of LINK_ALIASES) {
+    if (!relative.startsWith(source)) continue;
+    // reason: Configured aliases copy only Git-listed assets into the private scan directory.
+    // bearer:disable javascript_lang_path_traversal
+    const installed = path.join(destination, alias, relative.slice(source.length));
+    fs.mkdirSync(path.dirname(installed), { recursive: true });
+    fs.copyFileSync(target, installed);
+    if (/\.(?:md|html)$/u.test(relative)) pages.push(path.relative(destination, installed));
   }
   return pages;
 }

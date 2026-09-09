@@ -1,7 +1,7 @@
 # Reactor Helios: Generate a Prompt Sequence
 
 Generate a Helios video with prompt changes prepared before the run. Use
-**Reactor Helios: Add a prompt** to build the sequence without writing commands.
+**Reactor Helios: Add a Prompt** to build the sequence without writing commands.
 You can also connect one starting image.
 
 ## Inputs
@@ -11,7 +11,7 @@ You can also connect one starting image.
 | Scene prompt           | The opening scene and motion, from 1 to 20,000 characters.                              |
 | Video length (seconds) | Recording length. Default: 5 seconds. Reactor settings limit the maximum.               |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                           |
-| Variation              | Change this number for another paid run with the same other inputs. Default: 0.         |
+| Variation              | Change this number for another run with the same other inputs. Default: 0.              |
 | Prompt sequence (JSON) | Connect the last Add a prompt node. `[]` keeps only the opening prompt.                 |
 | Starting image         | Optional single RGB image. The same reference remains in place throughout the sequence. |
 
@@ -34,16 +34,15 @@ consistent. It records eight seconds; the optional image stays fixed.
 1. Open the [text sequence](../../workflows/helios/helios-03-prompt-sequence.json) or
    [image sequence](../../workflows/helios/helios-04-image-sequence.json) template.
 2. Edit the opening prompt and both later prompt builders. For the image
-   example, upload your picture in **Upload your starting image**.
+   example, upload your picture in **Upload Your Starting Image**.
 3. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-4. Select **Run**. Play the result in **Preview and save video**.
+4. Select **Run**. Play the result in **Preview and Save Video**.
 
 The node returns native `VIDEO` without audio and recording details as `STRING`.
 Connect **Video** to ComfyUI's **Save Video** to keep the temporary result.
 Seeds do not guarantee identical output after a provider update.
 
-Preparing the prompt list is free. Generation, setup, and recording use Reactor
-credits. Recording stops at **Video length (seconds)**; the separate host session limit
+Recording stops at **Video length (seconds)**; the separate host session limit
 also applies. Use ComfyUI's cancel control to stop a run. Closing the ComfyUI window
 does not cancel it. The connector disconnects after recording or failure and
 does not automatically retry an uncertain session.
@@ -56,15 +55,11 @@ provide one image within the upload limit; batches are not accepted.
 
 If a change is missing, check its chunk number and the recording length. If
 generation fails, read the reported error and [troubleshooting guide](../../ADVANCED.md#recovery)
-before deciding to spend credits on another run.
+before running again.
 
 [Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

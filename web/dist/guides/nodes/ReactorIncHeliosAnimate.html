@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor Helios: Animate an Image</title><link rel="stylesheet" href="/extensions/reactor-inc/guides/docs.css"></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="reactor-helios-animate-an-image">Reactor Helios: Animate an Image</h1>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Reactor Helios: Animate an Image</title>
+        <link rel="stylesheet" href="../docs.css">
+    </head>
+    <body>
+        <nav aria-label="Reactor guides">
+            <a href="../README.html">ComfyUI Reactor Connector</a>
+            <a href="../workflows/README.html">Workflows</a>
+            <a href="../ADVANCED.html#live-controls">Live controls</a>
+        </nav>
+        <main><h1 id="reactor-helios-animate-an-image">Reactor Helios: Animate an Image</h1>
 <p>Animate one RGB image with a prompt using your Reactor account. Connect <strong>Load
 Image</strong> to <strong>Starting image</strong> and connect <strong>Video</strong> to <strong>Save Video</strong>.</p>
 <h2 id="inputs">Inputs</h2>
@@ -29,7 +42,7 @@ Image</strong> to <strong>Starting image</strong> and connect <strong>Video</str
 </tr>
 <tr>
 <td>Variation</td>
-<td>Change this number to request another paid run with identical prompt and seed.</td>
+<td>Change this number to request another run with identical prompt and seed.</td>
 </tr>
 <tr>
 <td>Live controls</td>
@@ -44,23 +57,23 @@ generation starts. Reactor may crop or resize it for the model. Images over
 An unrelated scene prompt can give the model conflicting instructions.</p>
 <h2 id="run-and-save">Run and save</h2>
 <ol>
-<li>Open <a href="/extensions/reactor-inc/guides/files/workflows/helios/helios-02-image-to-video.json" download="helios-02-image-to-video.json">Helios image to video</a>.</li>
+<li>Open <a href="../files/workflows/helios/helios-02-image-to-video.json" download="helios-02-image-to-video.json">Helios image to video</a>.</li>
 <li>Set your key privately in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>.</li>
-<li>Upload your picture in <strong>Upload your starting image</strong>. You can use the
-<a href="/extensions/reactor-inc/guides/files/workflows/assets/forest-illustration.png" download="forest-illustration.png">forest illustration</a>.</li>
+<li>Upload your picture in <strong>Upload Your Starting Image</strong>. You can use the
+<a href="../files/workflows/assets/forest-illustration.png" download="forest-illustration.png">forest illustration</a>.</li>
 <li>Describe the motion in <strong>Scene prompt</strong>. For example: “The camera moves slowly
 along the forest path.” Choose <strong>Video length (seconds)</strong>, then select <strong>Run</strong>.</li>
-<li>Play the result in <strong>Preview and save video</strong>. This node also saves the file.</li>
+<li>Play the result in <strong>Preview and Save Video</strong>. This node also saves the file.</li>
 </ol>
 <p>The Reactor node returns <strong>Video</strong> without sound and <strong>Recording details</strong> as
 text. In your own graph, connect <strong>Video</strong> to <strong>Save Video</strong> to keep the result
 after ComfyUI clears its temporary storage. The model may change the image's
 content or crop.</p>
-<h2 id="cost-and-cancellation">Cost and cancellation</h2>
-<p>Setup and generation use Reactor credits. Session time can exceed the saved
+<h2 id="cancellation">Cancellation</h2>
+<p>Session time can exceed the saved
 video length. A seed does not guarantee identical results after a model update.
 Unchanged inputs may reuse ComfyUI's cached result. Changing the key or execution
-limits can cause another paid run when you next select <strong>Run</strong>.</p>
+limits can cause another run when you next select <strong>Run</strong>.</p>
 <p>Use ComfyUI's cancel control to stop a run. Closing the ComfyUI window does not
 cancel a queued workflow. Failed runs do not return a video. If the session's
 end is unconfirmed, wait for the stated session limit before trying again.
@@ -69,19 +82,18 @@ Do not restart ComfyUI to bypass this wait.</p>
 before they connect. The default queue wait limit is 120 seconds. A rejected
 command or lost connection ends the run; the connector does not retry it.</p>
 <p>For invalid inputs, missing video, or connection errors, follow the
-<a href="/extensions/reactor-inc/guides/ADVANCED.html#recovery">troubleshooting guide</a>.</p>
+<a href="../ADVANCED.html#recovery">troubleshooting guide</a>.</p>
 <p><a href="https://docs.reactor.inc/model-api-reference/helios/overview">Reactor Helios reference</a></p>
 <h2 id="live-controls">Live controls</h2>
 <p>Turn <strong>Live controls</strong> on, select <strong>Run</strong>, then select <strong>Start session</strong> in the
 live panel within 60 seconds. Use <strong>Apply prompt</strong> to change later frames.
 Let recording finish to save the result. <strong>End session</strong> discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.</p>
-<p>See the <a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">live controls guide</a> for input, privacy, and stopping rules.</p>
-<h2 id="credit-rate">Credit rate</h2>
-<p>Select <strong>View credit rate</strong> to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See <a href="/extensions/reactor-inc/guides/ADVANCED.html#credit-rates">credit rates</a>.</p>
+<p>See the <a href="../ADVANCED.html#live-controls">live controls guide</a> for input, privacy, and stopping rules.</p>
+<p>Select <strong>View credit rate</strong> for a <a href="../ADVANCED.html#credit-rates">session estimate</a>.</p>
 <h2 id="recording-details">Recording details</h2>
 <p>This output describes the saved file and model. See the
-<a href="/extensions/reactor-inc/guides/ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
-</main></body></html>
+<a href="../ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
+</main>
+    </body>
+</html>

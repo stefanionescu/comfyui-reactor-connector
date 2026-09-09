@@ -1,13 +1,14 @@
+import type { Fetcher } from '#web/http.ts';
 import { Webcam } from '#web/live/webcam.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { SoundControls } from '#web/live/sound.ts';
 import { browserLimits } from '#config/browser.ts';
-import type { Fetcher } from '#web/settings/api.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
 import { DragInput, type Pointer } from '#web/live/drag.ts';
 import { exchange, type LiveStatus } from '#web/live/api.ts';
 import { action, type Controls, controls } from '#web/live/commands.ts';
+import { message, setTextAttribute, setText } from '#web/localization.ts';
 
 const panels = new Set<string>();
 
@@ -21,15 +22,15 @@ class ControlPanel {
 
   private readonly image = element('img');
 
-  private readonly status = element('p', translate('controls.chooseInput'));
+  private readonly status = element('p', message('controls.chooseInput'));
 
   private readonly prompt = element('textarea');
 
-  private readonly start = button(translate('controls.start'));
+  private readonly start = button(message('controls.start'));
 
-  private readonly update = button(translate('live.applyPrompt'));
+  private readonly update = button(message('live.applyPrompt'));
 
-  private readonly end = button(translate('cancel'));
+  private readonly end = button(message('cancel'));
 
   private readonly pointerPreview: PointerPreview | undefined;
 
@@ -66,20 +67,20 @@ class ControlPanel {
     private readonly owner: Controls,
     private readonly fetcher: Fetcher,
   ) {
-    this.dialog.className = 'reactor-settings reactor-controls';
-    this.dialog.setAttribute('aria-label', translate('controls.title'));
-    this.image.alt = translate('live.output');
+    this.dialog.className = 'reactor-dialog reactor-controls';
+    setTextAttribute(this.dialog, 'aria-label', message('controls.title'));
+    setTextAttribute(this.image, 'alt', message('live.output'));
     this.image.hidden = true;
     this.pointerPreview = owner.pointer
       ? new PointerPreview(this.image, this.abort.signal)
       : undefined;
     this.status.setAttribute('role', 'status');
     this.prompt.value = owner.prompt;
-    this.prompt.maxLength = owner.prompt_limit;
+    this.prompt.maxLength = owner.promptLimit;
     this.prompt.rows = 2;
     this.prompt.disabled = this.update.disabled = true;
     this.sound = owner.sound
-      ? new SoundControls(owner.audio_prompt, owner.audioPromptLimit)
+      ? new SoundControls(owner.audioPrompt, owner.audioPromptLimit)
       : undefined;
     this.camera = owner.webcam
       ? new Webcam(owner, fetcher, (message) => this.stop(message))
@@ -93,22 +94,21 @@ class ControlPanel {
   /** Build the preview, supported inputs, and session actions. */
   private appendContent(): void {
     this.dialog.append(
-      element('h2', translate('controls.title')),
+      element('h2', message('controls.title')),
       element(
         'p',
-        translate('live.duration', {
+        message('live.duration', {
           model: this.owner.modelTitle,
-          seconds: this.owner.duration_seconds,
+          seconds: this.owner.durationSeconds,
         }),
       ),
-      element('p', translate('controls.recordingNotice')),
+      element('p', message('controls.recordingNotice')),
     );
     if (this.camera) this.dialog.append(this.camera.view);
     this.dialog.append(this.pointerPreview?.view ?? this.image);
-    if (this.owner.pointer)
-      this.dialog.append(element('p', translate('controls.dragInstructions')));
+    if (this.owner.pointer) this.dialog.append(element('p', message('controls.dragInstructions')));
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
-    const label = element('label', translate('live.scenePrompt'));
+    const label = element('label', message('live.scenePrompt'));
     label.append(this.prompt);
     this.dialog.append(label, this.update);
     if (this.sound) this.dialog.append(this.sound.view);
@@ -129,7 +129,7 @@ class ControlPanel {
     });
     this.update.addEventListener('click', () => {
       if (!this.prompt.value.trim() && this.owner.model !== 'reactor/sana-streaming') {
-        this.status.textContent = translate('controls.emptyPrompt');
+        setText(this.status, message('controls.emptyPrompt'));
         return;
       }
       this.pendingPrompt = this.prompt.value;
@@ -197,7 +197,7 @@ class ControlPanel {
     this.ready = reply.controls_ready && !reply.finishing && !this.ending;
     this.prompt.disabled = !this.ready;
     this.sound?.setReady(this.ready);
-    if (this.ready && !wasReady) this.status.textContent = translate('controls.recording');
+    if (this.ready && !wasReady) setText(this.status, message('controls.recording'));
     this.update.disabled = !this.ready || this.pendingPrompt !== undefined;
     if (reply.preview) {
       this.image.src = `data:image/jpeg;base64,${reply.preview}`;
@@ -216,15 +216,10 @@ class ControlPanel {
     this.start.disabled = this.update.disabled = true;
     this.sound?.setReady(false);
     this.pointerPreview?.stop();
-    if (!reply.termination_confirmed)
-      this.status.textContent = translate('controls.connectionClosed');
-    else if (!this.startAttempted)
-      this.status.textContent = translate('controls.recordingNotStarted');
-    else
-      this.status.textContent = reply.failed
-        ? translate('live.discarded')
-        : translate('live.ended');
-    this.end.textContent = translate('close');
+    if (!reply.termination_confirmed) setText(this.status, message('controls.connectionClosed'));
+    else if (!this.startAttempted) setText(this.status, message('controls.recordingNotStarted'));
+    else setText(this.status, reply.failed ? message('live.discarded') : message('live.ended'));
+    setText(this.end, message('close'));
   }
 
   /**
@@ -237,10 +232,10 @@ class ControlPanel {
     if (hasFrame) {
       this.startAttempted = true;
       await action(this.fetcher, this.owner, this.actionSequence++, 'start', {});
-      this.end.textContent = translate('live.endSession');
-      this.status.textContent = translate('controls.connecting');
+      setText(this.end, message('live.endSession'));
+      setText(this.status, message('controls.connecting'));
     } else {
-      this.status.textContent = translate('controls.cameraRequired');
+      setText(this.status, message('controls.cameraRequired'));
       this.start.disabled = false;
     }
     this.startRequested = false;
@@ -257,7 +252,7 @@ class ControlPanel {
         prompt: this.pendingPrompt,
       });
       this.pendingPrompt = undefined;
-      this.status.textContent = translate('controls.promptSent');
+      setText(this.status, message('controls.promptSent'));
     }
     const next = this.pointers.shift();
     if (next) {
@@ -269,7 +264,7 @@ class ControlPanel {
       await action(this.fetcher, this.owner, this.actionSequence++, 'audio_prompt', {
         prompt: audioPrompt,
       });
-      this.status.textContent = translate('controls.soundSent');
+      setText(this.status, message('controls.soundSent'));
     }
   }
 
@@ -319,7 +314,7 @@ class ControlPanel {
     if (reply.closed) this.finish(reply);
     else if (reply.finishing) {
       this.camera?.close();
-      this.status.textContent = translate('live.ending');
+      setText(this.status, message('live.ending'));
     }
     return !this.finished;
   }
@@ -337,7 +332,7 @@ class ControlPanel {
     } catch (error) {
       this.stop(error instanceof Error ? error.message : translate('controls.connectionEnded'));
       this.finished = true;
-      this.end.textContent = translate('close');
+      setText(this.end, message('close'));
     }
   }
 

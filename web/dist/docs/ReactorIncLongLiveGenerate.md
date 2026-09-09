@@ -9,7 +9,7 @@ Generate a short video from an opening shot prompt with LongLive-2.0.
 | Scene prompt           | Describe the opening scene and motion. Use 1 to 20,000 characters.               |
 | Video length (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.         |
 | Seed                   | Integer from 0 to 4,294,967,295; default: 42.                                    |
-| Variation              | Change this number for another paid run; default: 0.                             |
+| Variation              | Change this number for another run; default: 0.                                  |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
 
 Example prompt: “A fox walks along a forest path. The camera follows slowly.”
@@ -27,8 +27,7 @@ The node returns native `VIDEO` and recording details as `STRING`. This operatio
 records video without audio. Use Save Video to retain the temporary result.
 
 **Video length (seconds)** limits the captured video; connection and setup also use
-session time. The host recording and session limits both apply. A new execution
-uses Reactor credits. Changing **Variation** requests another execution with the
+session time. The host recording and session limits both apply. Changing **Variation** requests another execution with the
 same other inputs. Unchanged inputs may reuse the host cache; changing the
 account or execution limits invalidates that reuse. Seeds do not guarantee
 identical results after a provider update.
@@ -54,15 +53,11 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/ADVANCED.html#live-controls) for input, privacy, and stopping rules.
+See the [live controls guide](/reactor-inc/v1/help/ADVANCED.html#live-controls) for input, privacy, and stopping rules.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](/extensions/reactor-inc/guides/ADVANCED.html#credit-rates).
+Select **View credit rate** for a [session estimate](/reactor-inc/v1/help/ADVANCED.html#credit-rates).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](/extensions/reactor-inc/guides/ADVANCED.html#recording-details) for timing, privacy, and cache behavior.
+[field reference](/reactor-inc/v1/help/ADVANCED.html#recording-details) for timing, privacy, and cache behavior.

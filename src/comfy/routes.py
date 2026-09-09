@@ -7,6 +7,7 @@ from server import PromptServer
 from ..language import translate
 from ..runtime import get_runtime
 from ..live.routes import LiveRoutes
+from ...config.routes import HELP_PREFIX
 from ..discovery.routes import ModelRoutes
 from ..settings.store import read_settings
 from ..discovery.checker import ModelChecker
@@ -31,6 +32,12 @@ def register_configuration() -> None:
             ErrorCode.CONFIGURATION,
             translate("main", "errors.privateStateLocation"),
         )
+    PromptServer.instance.routes.static(
+        HELP_PREFIX,
+        Path(__file__).resolve().parents[2] / "web/dist/guides",
+        show_index=False,
+        follow_symlinks=False,
+    )
     ConfigurationRoutes(store, multi_user=args.multi_user).register(PromptServer.instance.routes)
     LiveRoutes(get_runtime().browsers, multi_user=args.multi_user).register(PromptServer.instance.routes)
     checker = ModelChecker(get_runtime().discovery, lambda: read_settings(directory))

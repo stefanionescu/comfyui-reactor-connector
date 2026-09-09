@@ -17,7 +17,7 @@ of the requested change.
 | Source video           | One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.                 |
 | Scene prompt           | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                     |
 | Video length (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
-| Variation              | Change this integer to request another paid run. Default: 0.                                     |
+| Variation              | Change this integer to request another run. Default: 0.                                          |
 | Keep queued frames     | Keep source frames in order when true. False favors recent frames and limits delay.              |
 | Hold pointer           | Hold the pointer at the chosen position while true. Default: false.                              |
 | Pointer X              | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                        |
@@ -58,23 +58,22 @@ and prompt changes. The reference image stays fixed. Release the pointer to stop
 
 In the live panel, a circle marks the point you choose. **Pointer held** or
 **Pointer released** confirms that the control was accepted. The position is
-measured from the picture's left and top edges. See [live controls](/extensions/reactor-inc/guides/ADVANCED.html#drag-in-x2)
+measured from the picture's left and top edges. See [live controls](/reactor-inc/v1/help/ADVANCED.html#drag-in-x2)
 for keyboard use.
 
 The outputs are native `VIDEO` and recording details as `STRING`. Save Video
 retains the temporary result under its relative output prefix. Input copies
 are removed when the session ends or execution fails.
 
-## Cost and cancellation
+## Cancellation
 
-A new execution uses Reactor credits. Session time includes setup and can
+Session time includes setup and can
 exceed output duration. The configured recording and server session limits apply.
 Use ComfyUI's cancel control to stop; closing a tab does not cancel a workflow.
 The connector disconnects after recording, failure, or cancellation. It does not
 automatically retry failed commands or uncertain session creation.
 
-Unchanged inputs may reuse ComfyUI's cache. Change **Variation** for another paid
-run. If preparation fails, use a shorter SDR clip. If the provider rejects a
+Unchanged inputs may reuse ComfyUI's cache. Change **Variation** for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
 reference or prompt, review those inputs before deciding to run again.
 
 [Reactor X2 schema](https://docs.reactor.inc/model-api-reference/x2/schema)
@@ -86,15 +85,11 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](/extensions/reactor-inc/guides/ADVANCED.html#live-controls) for input, privacy, and stopping rules.
+See the [live controls guide](/reactor-inc/v1/help/ADVANCED.html#live-controls) for input, privacy, and stopping rules.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](/extensions/reactor-inc/guides/ADVANCED.html#credit-rates).
+Select **View credit rate** for a [session estimate](/reactor-inc/v1/help/ADVANCED.html#credit-rates).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](/extensions/reactor-inc/guides/ADVANCED.html#recording-details) for timing, privacy, and cache behavior.
+[field reference](/reactor-inc/v1/help/ADVANCED.html#recording-details) for timing, privacy, and cache behavior.

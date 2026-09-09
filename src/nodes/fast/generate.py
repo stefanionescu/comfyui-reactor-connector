@@ -29,7 +29,7 @@ class FastGenerate(io.ComfyNode):
 
     @classmethod
     def define_schema(cls) -> io.Schema:
-        """Declare the saved input names, controls, and output sockets for this node."""
+        """Define the inputs and outputs saved in ComfyUI workflows."""
         controls = generation_controls("fast")
         controls[1] = io.Float.Input(
             "duration_seconds",

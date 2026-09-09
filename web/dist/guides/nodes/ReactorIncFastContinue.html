@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reactor Fast H3: Continue a Scene</title><link rel="stylesheet" href="/extensions/reactor-inc/guides/docs.css"></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="reactor-fast-h3-continue-a-scene">Reactor Fast H3: Continue a Scene</h1>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Reactor Fast H3: Continue a Scene</title>
+        <link rel="stylesheet" href="../docs.css">
+    </head>
+    <body>
+        <nav aria-label="Reactor guides">
+            <a href="../README.html">ComfyUI Reactor Connector</a>
+            <a href="../workflows/README.html">Workflows</a>
+            <a href="../ADVANCED.html#live-controls">Live controls</a>
+        </nav>
+        <main><h1 id="reactor-fast-h3-continue-a-scene">Reactor Fast H3: Continue a Scene</h1>
 <p>Create several connected clips in one Reactor session and save one video with
 sound. Each clip starts from the previous clip's final frame. Choose a clip count
 so the session has a clear stopping point.</p>
@@ -26,7 +39,7 @@ so the session has a clear stopping point.</p>
 </tr>
 <tr>
 <td>Variation</td>
-<td>Change this value for another paid run. Default: 0.</td>
+<td>Change this value for another run. Default: 0.</td>
 </tr>
 <tr>
 <td>Aspect ratio</td>
@@ -53,24 +66,23 @@ so the session has a clear stopping point.</p>
 <li>Choose a clip length and count. The examples request three clips of about six seconds.</li>
 <li>Enter later prompts if you want the scene to change between clips.</li>
 <li>Check the video duration and session limits in Reactor settings, then select <strong>Run</strong>.</li>
-<li><strong>Preview and save video</strong> saves the sequence with sound. <strong>Preview and save sound</strong> saves a separate audio file.</li>
+<li><strong>Preview and Save Video</strong> saves the sequence with sound. <strong>Preview and Save Sound</strong> saves a separate audio file.</li>
 </ol>
 <p>The node returns <code>VIDEO</code>, <code>AUDIO</code>, and recording details as <code>STRING</code>. It queues
 one continuation ahead while earlier clips play. If the next clip is still
 building, the output holds the previous frame. That wait can lengthen the saved
 video. Allow room in your video duration limit for these waits.</p>
-<p>Fast H3 also builds up to 14.375 seconds of continuation to finish the recording.
-Those extra seconds use credits and are not included in the saved result.
+<p>See <a href="../ADVANCED.html#recording-overhead">recording overhead</a> for the additional
+continuation needed to finish saving.
 Setup, clip building, playback, and recording cleanup all count toward the session
 limit. A timeout discards the unfinished video; the connector does not start a
 replacement session automatically.</p>
 <p>Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not cancel
 this ordinary workflow. The prompts and clip count are fixed when you select Run.</p>
-<h2 id="credit-rate">Credit rate</h2>
-<p>Select <strong>View credit rate</strong> to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See <a href="/extensions/reactor-inc/guides/ADVANCED.html#credit-rates">credit rates</a>.</p>
+<p>Select <strong>View credit rate</strong> for a <a href="../ADVANCED.html#credit-rates">session estimate</a>.</p>
 <h2 id="recording-details">Recording details</h2>
 <p>This output describes the saved file and model. See the
-<a href="/extensions/reactor-inc/guides/ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
-</main></body></html>
+<a href="../ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
+</main>
+    </body>
+</html>

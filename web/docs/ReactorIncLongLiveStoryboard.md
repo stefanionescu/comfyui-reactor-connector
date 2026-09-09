@@ -1,7 +1,7 @@
 # Reactor LongLive: Create a Storyboard
 
 Generate a short video from an opening shot prompt with LongLive-2.0.
-Schedule later shots before generation starts. Connect one or more **Reactor LongLive: Add a shot** nodes to the **Shots (JSON)** input. Soft transitions change the prompt
+Schedule later shots before generation starts. Connect one or more **Reactor LongLive: Add a Shot** nodes to the **Shots (JSON)** input. Soft transitions change the prompt
 within the scene; cuts start a new scene.
 
 ## Inputs
@@ -11,14 +11,14 @@ within the scene; cuts start a new scene.
 | Scene prompt           | Describe the opening scene and motion. Use 1 to 20,000 characters.                    |
 | Video length (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.              |
 | Seed                   | Integer from 0 to 4,294,967,295; default: 42.                                         |
-| Variation              | Change this number for another paid run; default: 0.                                  |
-| Shots (JSON)           | Connect Reactor LongLive: Add a shot. An empty list `[]` means the opening shot only. |
+| Variation              | Change this number for another run; default: 0.                                       |
+| Shots (JSON)           | Connect Reactor LongLive: Add a Shot. An empty list `[]` means the opening shot only. |
 
 LongLive generates frames in groups called **chunks**. Each chunk contains
 29 frames, about 1.2 seconds at 24 frames per second. Count chunks from the start
 of generation. Give each later shot a larger chunk number, starting at 1.
 You can add up to 32 later shots. The JSON shot list must fit within 128 KB and
-contain only the fields produced by Reactor LongLive: Add a shot.
+contain only the fields produced by Reactor LongLive: Add a Shot.
 
 Choose a video length that includes all scheduled shots. A later shot does not
 automatically extend the recording. Timing follows the generated frames, so do
@@ -39,8 +39,7 @@ The node returns native `VIDEO` and recording details as `STRING`. This operatio
 records video without audio. Use Save Video to retain the temporary result.
 
 **Video length (seconds)** limits the captured video; connection and setup also use
-session time. The host recording and session limits both apply. A new execution
-uses Reactor credits. Changing **Variation** requests another execution with the
+session time. The host recording and session limits both apply. Changing **Variation** requests another execution with the
 same other inputs. Unchanged inputs may reuse the host cache; changing the
 account or execution limits invalidates that reuse. Seeds do not guarantee
 identical results after a provider update.
@@ -60,11 +59,7 @@ does not accept a starting image.
 
 [LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

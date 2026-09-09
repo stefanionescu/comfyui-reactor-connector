@@ -10,7 +10,7 @@ to ComfyUI's **Save Video** node to preview and save the result.
 | Scene prompt           | Describe the scene and motion. Empty prompts are rejected before a session starts.                      |
 | Video length (seconds) | Requested video duration, from 0.1 to the video duration limit in Reactor settings. Default: 5 seconds. |
 | Seed                   | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                            |
-| Variation              | Change this number to request another paid run with otherwise identical inputs.                         |
+| Variation              | Change this number to request another run with otherwise identical inputs.                              |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                        |
 
 ## Run and save
@@ -20,18 +20,18 @@ to ComfyUI's **Save Video** node to preview and save the result.
 3. Describe the scene in **Scene prompt**. For example: “A red ball rolls slowly
    across a wooden table. The camera stays still.”
 4. Choose **Video length (seconds)**, then select **Run**.
-5. Play the result in **Preview and save video**. This node also saves the file.
+5. Play the result in **Preview and Save Video**. This node also saves the file.
 
 The Reactor node returns **Video** without sound and **Recording details** as
 text. In your own graph, connect **Video** to **Save Video** to keep the result
 after ComfyUI clears its temporary storage.
 
-## Cost and cancellation
+## Cancellation
 
-Setup and generation use Reactor credits. Session time can exceed the saved
+Session time can exceed the saved
 video length. A seed does not guarantee identical results after a model update.
 Unchanged inputs may reuse ComfyUI's cached result. Changing the key or execution
-limits can cause another paid run when you next select **Run**.
+limits can cause another run when you next select **Run**.
 
 Use ComfyUI's cancel control to stop a run. Closing the ComfyUI window does not
 cancel a queued workflow. Failed runs do not return a video. If the session's
@@ -56,11 +56,7 @@ video. Panel prompt changes do not rewrite the saved workflow.
 
 See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

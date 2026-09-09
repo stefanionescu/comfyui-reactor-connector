@@ -1,6 +1,6 @@
+import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { cameraAxes } from '#web/live/input.ts';
-import type { Fetcher } from '#web/settings/api.ts';
 import { browserLimits, browserPatterns } from '#config/browser.ts';
 
 export type Invitation = {
@@ -8,11 +8,11 @@ export type Invitation = {
   capability: string;
   model: string;
   modelTitle: string;
-  duration_seconds: number;
+  durationSeconds: number;
   axes: Record<string, string[]>;
 };
 
-export type CameraInvitation = Invitation & { prompt: string; prompt_limit: number };
+export type CameraInvitation = Invitation & { prompt: string; promptLimit: number };
 
 // eslint-disable-next-line local/no-trivial-functions -- This type guard narrows untrusted event and response values before field access.
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -65,10 +65,10 @@ export function parseInvitation(value: unknown): CameraInvitation | undefined {
     capability: value.capability,
     model: value.model,
     modelTitle: value.model_title,
-    duration_seconds: value.duration_seconds,
+    durationSeconds: value.duration_seconds,
     axes,
     prompt: value.prompt,
-    prompt_limit: value.prompt_limit,
+    promptLimit: value.prompt_limit,
   };
 }
 

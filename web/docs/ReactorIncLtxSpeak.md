@@ -14,7 +14,7 @@ sound; the separate audio output lets you save or process the speech alone.
 | Video length (seconds) | Requested saved video length, at least 4 seconds and within the video duration limit in Reactor settings. Default: 5. |
 | Words per minute       | Speech pace. Default: 140. Reactor checks the supported range before generation.                                      |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                         |
-| Variation              | Change this integer to request another paid run. Default: 0.                                                          |
+| Variation              | Change this integer to request another run. Default: 0.                                                               |
 
 Use a front-facing portrait of one person. LTX fits the picture to a wide canvas;
 a tall portrait can lose the top of the head. Frame the image before uploading.
@@ -24,8 +24,8 @@ before connection. The image limit is 8192 pixels per side.
 Keep the script short enough for the chosen duration. At 140 words per minute,
 five seconds allows about 11 words. A longer script may be cut off. This node
 sets an explicit take length; it does not infer a longer duration from the script.
-The connector may generate up to twenty extra seconds so Reactor can finish
-preparing the recording. Those seconds can use credits and are not saved.
+See [recording overhead](../../ADVANCED.md#recording-overhead) for additional
+generation needed to finish saving.
 The session time limit applies to the whole run.
 The usual speech range is 80–220 words per minute. The range reported by the
 connected model applies to your run.
@@ -48,9 +48,9 @@ audio is trimmed; a later audio start retains silence. Output ends at the reques
 duration or the available video end. AAC decoding can include codec padding beyond
 the exact length of the separate audio output.
 
-## Cost, failures, and cancellation
+## Failures and cancellation
 
-Each new run uses Reactor credits. Connecting, setting up, and preparing the
+Connecting, setting up, and preparing the
 recording can make session time longer than the saved video. The recording must
 be ready within the session time limit in Reactor settings, even if generation
 has finished. A timeout returns an error and
@@ -59,16 +59,12 @@ recording.
 
 Use ComfyUI's cancel control to stop. Closing a tab or pausing playback does not
 end generation. Unchanged inputs may reuse the host cache. Change **Variation** for
-another paid run; seeds do not guarantee identical output across model revisions.
+another run; seeds do not guarantee identical output across model revisions.
 The connector does not retry ambiguous session creation or model commands.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

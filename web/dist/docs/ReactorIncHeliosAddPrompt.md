@@ -1,7 +1,6 @@
 # Reactor Helios: Add a Prompt
 
-Add a later prompt to a Helios sequence. This node prepares text locally. It
-does not need an API key or use Reactor credits.
+Add a later prompt to a Helios sequence. This node prepares text locally.
 
 ## Build a sequence
 
@@ -12,7 +11,7 @@ choose **Show Advanced**. The examples do not require editing JSON.
 1. Leave **Previous steps (JSON)** unconnected for the first later prompt.
 2. Choose its **Start chunk** number and describe the scene in **Scene prompt**.
 3. Connect **Prompt sequence** to the next Add a prompt node's **Previous steps (JSON)** input.
-4. Connect the last Add a prompt node to **Reactor Helios: Generate a prompt sequence**.
+4. Connect the last Add a prompt node to **Reactor Helios: Generate a Prompt Sequence**.
    Set the opening prompt and recording length on that generation node.
 
 | Input                 | Meaning                                                                                              |
@@ -30,7 +29,7 @@ The generation node sets the opening prompt at chunk zero; add only later
 prompts here. A prompt scheduled after recording ends will not appear in the file.
 
 For example, add sunlight at chunk 1, then a clearing at chunk 3. Open the
-[prompt-sequence workflow](/extensions/reactor-inc/guides/files/workflows/helios/helios-03-prompt-sequence.json) for
+[prompt-sequence workflow](/reactor-inc/v1/help/files/workflows/helios/helios-03-prompt-sequence.json) for
 connected nodes and an eight-second recording.
 
 If a sequence is rejected, check the chunk order and connect the previous

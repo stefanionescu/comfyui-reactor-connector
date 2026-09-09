@@ -11,7 +11,7 @@
       ],
       "size": [
         400,
-        140
+        100
       ],
       "flags": {},
       "order": 1,
@@ -22,9 +22,9 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit the opening prompt, **1. Let sunlight through**, and **2. Enter a clearing**.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit the opening prompt, **1. Let Sunlight Through**, and **2. Enter a Clearing**.\n3. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 8,
@@ -48,14 +48,14 @@
       "widgets_values": [
         "Each Helios chunk contains 33 frames. Connect prompts in order and use increasing **Start chunk** values. The opening prompt starts at chunk 0. Later prompts do not extend the recording."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
       "type": "ReactorIncHeliosSequence",
       "pos": [
         500,
-        260
+        220
       ],
       "size": [
         440,
@@ -99,14 +99,14 @@
         0,
         "[]"
       ],
-      "title": "Helios: Follow a prompt sequence"
+      "title": "Helios: Follow a Prompt Sequence"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        260
+        220
       ],
       "size": [
         360,
@@ -131,14 +131,14 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     },
     {
       "id": 5,
       "type": "ReactorIncHeliosAddPrompt",
       "pos": [
         40,
-        260
+        220
       ],
       "size": [
         400,
@@ -165,14 +165,14 @@
         1,
         "Sunlight reaches the forest floor as the camera moves forward."
       ],
-      "title": "1. Let sunlight through"
+      "title": "1. Let Sunlight Through"
     },
     {
       "id": 6,
       "type": "ReactorIncHeliosAddPrompt",
       "pos": [
         40,
-        600
+        560
       ],
       "size": [
         400,
@@ -208,7 +208,7 @@
         3,
         "The camera follows the path into a sunny clearing."
       ],
-      "title": "2. Enter a clearing"
+      "title": "2. Enter a Clearing"
     }
   ],
   "links": [
@@ -252,7 +252,7 @@
         "id": 1,
         "pos": [
           470,
-          300
+          260
         ],
         "linkIds": [
           2
@@ -263,7 +263,7 @@
         "parentId": 1,
         "pos": [
           470,
-          530
+          490
         ],
         "linkIds": [
           2
@@ -274,7 +274,7 @@
         "parentId": 2,
         "pos": [
           10,
-          530
+          490
         ],
         "linkIds": [
           2

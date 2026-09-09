@@ -1,6 +1,6 @@
 {
     "ReactorIncSanaWebcam": {
-        "display_name": "Reactor SANA: Edit a webcam",
+        "display_name": "Reactor SANA: Edit a Webcam",
         "description": "Enable a webcam in the live panel, then record an edited video.",
         "inputs": {
             "prompt": {
@@ -17,7 +17,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "anchor_interval": {
                 "name": "Anchor interval",
@@ -36,7 +36,7 @@
         "search_aliases": []
     },
     "ReactorIncX2Webcam": {
-        "display_name": "Reactor X2: Edit a webcam",
+        "display_name": "Reactor X2: Edit a Webcam",
         "description": "Edit webcam video and drag on the output to steer the subject.",
         "inputs": {
             "prompt": {
@@ -48,7 +48,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request another paid run."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "reference_image": {
                 "name": "Reference image",
@@ -67,7 +67,7 @@
         "search_aliases": []
     },
     "ReactorIncFastGenerate": {
-        "display_name": "Reactor Fast H3: Generate video",
+        "display_name": "Reactor Fast H3: Generate Video",
         "description": "Generate a video clip with sound. Help explains clip lengths, images, and saving.",
         "inputs": {
             "prompt": {
@@ -84,7 +84,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "aspect": {
                 "name": "Aspect ratio",
@@ -119,7 +119,7 @@
         "search_aliases": ["Reactor", "Fast H3", "FastH3", "audio"]
     },
     "ReactorIncFastContinue": {
-        "display_name": "Reactor Fast H3: Continue a scene",
+        "display_name": "Reactor Fast H3: Continue a Scene",
         "description": "Chain clips from their previous final frame and save one video with sound.",
         "inputs": {
             "prompt": {
@@ -136,7 +136,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "aspect": {
                 "name": "Aspect ratio",
@@ -149,7 +149,7 @@
             },
             "clip_count": {
                 "name": "Number of clips",
-                "tooltip": "Total clips in one paid session. Their combined length must fit the video duration limit."
+                "tooltip": "Number of clips in one session. Their combined length must fit the video duration limit."
             },
             "later_prompts": {
                 "name": "Later prompts",
@@ -176,7 +176,7 @@
         "search_aliases": []
     },
     "ReactorIncLtxSpeak": {
-        "display_name": "Reactor LTX: Make a portrait speak",
+        "display_name": "Reactor LTX: Make a Portrait Speak",
         "description": "Animate a portrait speaking a script. Help explains framing, duration, and sound.",
         "inputs": {
             "prompt": {
@@ -193,7 +193,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "script": {
                 "name": "Spoken words",
@@ -223,7 +223,7 @@
         "search_aliases": ["Reactor", "LTX", "speech", "talking portrait"]
     },
     "ReactorIncHeliosGenerate": {
-        "display_name": "Reactor Helios: Generate video",
+        "display_name": "Reactor Helios: Generate Video",
         "description": "Generate a video with your Reactor account. Help includes usage limits.",
         "inputs": {
             "prompt": {
@@ -240,7 +240,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "interactive": {
                 "name": "Live controls",
@@ -259,7 +259,7 @@
         "search_aliases": ["Reactor", "Helios", "text to video"]
     },
     "ReactorIncHeliosAnimate": {
-        "display_name": "Reactor Helios: Animate an image",
+        "display_name": "Reactor Helios: Animate an Image",
         "description": "Animate one image through Reactor. Prompt and image are applied together.",
         "inputs": {
             "image": {
@@ -280,7 +280,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "interactive": {
                 "name": "Live controls",
@@ -299,8 +299,8 @@
         "search_aliases": ["Reactor", "Helios", "image to video"]
     },
     "ReactorIncHeliosAddPrompt": {
-        "display_name": "Reactor Helios: Add a prompt",
-        "description": "Add a later Helios prompt. Preparing the sequence uses no credits.",
+        "display_name": "Reactor Helios: Add a Prompt",
+        "description": "Add a later prompt to a Helios sequence.",
         "inputs": {
             "previous": {
                 "name": "Previous steps (JSON)",
@@ -325,7 +325,7 @@
         "search_aliases": ["Reactor", "Helios", "schedule", "prompt"]
     },
     "ReactorIncHeliosSequence": {
-        "display_name": "Reactor Helios: Generate a prompt sequence",
+        "display_name": "Reactor Helios: Generate a Prompt Sequence",
         "description": "Generate a Helios video with later prompts scheduled by chunk number.",
         "inputs": {
             "prompt": {
@@ -342,7 +342,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "sequence": {
                 "name": "Prompt sequence (JSON)",
@@ -365,7 +365,7 @@
         "search_aliases": ["Reactor", "Helios", "schedule", "prompt sequence"]
     },
     "ReactorIncLingBotExplore": {
-        "display_name": "Reactor LingBot: Explore an image",
+        "display_name": "Reactor LingBot: Explore an Image",
         "description": "Move through a scene from your image and save a video. Choose how long to record.",
         "inputs": {
             "image": {
@@ -386,7 +386,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "movement": {
                 "name": "Movement",
@@ -438,7 +438,7 @@
         "search_aliases": ["Reactor", "LingBot", "camera", "world", "image to video"]
     },
     "ReactorIncLingBotWorld2Explore": {
-        "display_name": "Reactor LingBot World 2: Explore an image",
+        "display_name": "Reactor LingBot World 2: Explore an Image",
         "description": "Move through a scene from your image and save a video. Choose how long to record.",
         "inputs": {
             "image": {
@@ -459,7 +459,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "movement": {
                 "name": "Movement",
@@ -518,7 +518,7 @@
         "search_aliases": ["Reactor", "LingBot World 2", "camera", "world", "image to video"]
     },
     "ReactorIncLongLiveGenerate": {
-        "display_name": "Reactor LongLive: Generate video",
+        "display_name": "Reactor LongLive: Generate Video",
         "description": "Generate a short LongLive scene from an opening shot prompt.",
         "inputs": {
             "prompt": {
@@ -535,7 +535,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "interactive": {
                 "name": "Live controls",
@@ -554,7 +554,7 @@
         "search_aliases": ["Reactor", "LongLive", "text to video"]
     },
     "ReactorIncLongLiveStoryboard": {
-        "display_name": "Reactor LongLive: Create a storyboard",
+        "display_name": "Reactor LongLive: Create a Storyboard",
         "description": "Generate an opening shot and schedule later shots by chunk number.",
         "inputs": {
             "prompt": {
@@ -571,7 +571,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "storyboard": {
                 "name": "Shots (JSON)",
@@ -590,8 +590,8 @@
         "search_aliases": ["Reactor", "LongLive", "shots", "cuts"]
     },
     "ReactorIncLongLiveAddShot": {
-        "display_name": "Reactor LongLive: Add a shot",
-        "description": "Add a LongLive shot. This preparation node uses no credits.",
+        "display_name": "Reactor LongLive: Add a Shot",
+        "description": "Add a shot to a LongLive storyboard.",
         "inputs": {
             "previous": {
                 "name": "Previous steps (JSON)",
@@ -624,7 +624,7 @@
         "search_aliases": ["Reactor", "LongLive", "schedule", "storyboard"]
     },
     "ReactorIncSanaEditVideo": {
-        "display_name": "Reactor SANA: Edit video",
+        "display_name": "Reactor SANA: Edit Video",
         "description": "Edit a video from your computer using a text prompt. Choose the output length.",
         "inputs": {
             "source": {
@@ -645,7 +645,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "anchor_interval": {
                 "name": "Anchor interval",
@@ -668,7 +668,7 @@
         "search_aliases": ["Reactor", "SANA", "video to video", "edit"]
     },
     "ReactorIncX2EditVideo": {
-        "display_name": "Reactor X2: Edit video",
+        "display_name": "Reactor X2: Edit Video",
         "description": "Edit a local clip. Help explains X2 references and pointer controls.",
         "inputs": {
             "source": {
@@ -685,7 +685,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request another paid run."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "keep_backlog": {
                 "name": "Keep queued frames",
@@ -722,7 +722,7 @@
         "search_aliases": ["Reactor", "X2", "video to video", "reference"]
     },
     "ReactorIncViskoStableGenerate": {
-        "display_name": "Reactor Visko Stable: Generate video",
+        "display_name": "Reactor Visko Stable: Generate Video",
         "description": "Generate video with sound from text or a starting image.",
         "inputs": {
             "prompt": {
@@ -739,7 +739,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "audio_prompt": {
                 "name": "Sound prompt",
@@ -782,7 +782,7 @@
         "search_aliases": ["Reactor", "Visko", "audio", "image to video"]
     },
     "ReactorIncViskoDynamicGenerate": {
-        "display_name": "Reactor Visko Dynamic: Generate video",
+        "display_name": "Reactor Visko Dynamic: Generate Video",
         "description": "Generate video with sound from text or a starting image.",
         "inputs": {
             "prompt": {
@@ -799,7 +799,7 @@
             },
             "variation": {
                 "name": "Variation",
-                "tooltip": "Change this value to request a new paid run with the same prompt and seed."
+                "tooltip": "Change this value to generate again with the same inputs."
             },
             "audio_prompt": {
                 "name": "Sound prompt",

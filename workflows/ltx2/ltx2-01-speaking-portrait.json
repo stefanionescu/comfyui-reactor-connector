@@ -11,7 +11,7 @@
       ],
       "size": [
         400,
-        160
+        120
       ],
       "flags": {},
       "order": 1,
@@ -22,16 +22,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a portrait in **Upload your starting image**.\n3. Edit **Spoken words**. Keep the speech short enough for five seconds.\n4. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a portrait in **Upload Your Starting Image**.\n3. Edit **Spoken words**. Keep the speech short enough for five seconds.\n4. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 2,
       "type": "LoadImage",
       "pos": [
         40,
-        280
+        240
       ],
       "size": [
         400,
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload your starting image"
+      "title": "Upload Your Starting Image"
     },
     {
       "id": 8,
@@ -73,7 +73,7 @@
       ],
       "size": [
         440,
-        80
+        60
       ],
       "flags": {},
       "order": 8,
@@ -84,16 +84,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Use a clear portrait with the whole head visible. LTX may generate up to 20 extra seconds while recording starts; those seconds can use credits but are not saved."
+        "Use a clear portrait with the whole head visible."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
       "type": "ReactorIncLtxSpeak",
       "pos": [
         500,
-        280
+        240
       ],
       "size": [
         440,
@@ -142,14 +142,14 @@
         "Hello. Welcome to this short video.",
         140
       ],
-      "title": "LTX: Make a portrait speak"
+      "title": "LTX: Make a Portrait Speak"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        280
+        240
       ],
       "size": [
         360,
@@ -174,14 +174,14 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     },
     {
       "id": 7,
       "type": "SaveAudioAdvanced",
       "pos": [
         1000,
-        650
+        610
       ],
       "size": [
         360,
@@ -211,7 +211,7 @@
         "audio/reactor/ltx2-01-speaking-portrait",
         "flac"
       ],
-      "title": "Preview and save sound"
+      "title": "Preview and Save Sound"
     }
   ],
   "links": [

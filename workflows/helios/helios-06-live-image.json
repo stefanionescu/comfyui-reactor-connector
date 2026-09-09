@@ -11,7 +11,7 @@
       ],
       "size": [
         400,
-        140
+        100
       ],
       "flags": {},
       "order": 1,
@@ -22,16 +22,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload your starting image**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload Your Starting Image**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 2,
       "type": "LoadImage",
       "pos": [
         40,
-        260
+        240
       ],
       "size": [
         400,
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload your starting image"
+      "title": "Upload Your Starting Image"
     },
     {
       "id": 8,
@@ -86,14 +86,14 @@
       "widgets_values": [
         "In the live panel, select **Start session** within 60 seconds.\n\nEdit **Scene prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
       "type": "ReactorIncHeliosAnimate",
       "pos": [
         500,
-        260
+        240
       ],
       "size": [
         440,
@@ -134,14 +134,14 @@
         0,
         true
       ],
-      "title": "Helios: Animate an image with live prompts"
+      "title": "Helios: Animate an Image with Live Prompts"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        260
+        240
       ],
       "size": [
         360,
@@ -166,7 +166,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     }
   ],
   "links": [

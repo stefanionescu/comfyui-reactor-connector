@@ -11,7 +11,7 @@ Your camera remains off until you enable it in the live panel.
 | Scene prompt           | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
 | Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds.                   |
 | Seed                   | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
-| Variation              | Change this value for another paid run. Default: 0.                                                             |
+| Variation              | Change this value for another run. Default: 0.                                                                  |
 | Anchor interval        | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
 
 ## Run and save
@@ -20,9 +20,9 @@ Your camera remains off until you enable it in the live panel.
 2. Describe an edit, such as “Turn the scene into a watercolor painting.”
 3. Select **Run**, then **Enable camera** in the live panel. Allow camera access.
 4. Check the camera preview. To change cameras, choose one and select **Use selected camera**.
-5. Select **Start session** within 60 seconds. This starts a paid Reactor session.
+5. Select **Start session** within 60 seconds.
 6. To change the edit, enter a live prompt and select **Apply prompt**.
-7. Let recording finish. **Preview and save video** saves the result.
+7. Let recording finish. **Preview and Save Video** saves the result.
 
 The node returns `VIDEO` and recording details as `STRING`. SANA may take one
 or more groups of frames to apply a prompt change. Camera frames use up to
@@ -40,11 +40,7 @@ with the `camera` video input. A deployment without that input cannot run it.
 
 See the [live controls guide](../../ADVANCED.md#live-controls) for privacy and recovery steps.
 
-## Credit rate
-
-Select **View credit rate** to calculate a rate for your chosen session time.
-Setup can add paid time beyond the video length; this is not a spending limit.
-See [credit rates](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
 
 ## Recording details
 

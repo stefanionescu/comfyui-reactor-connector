@@ -1,5 +1,6 @@
 """Build portable ComfyUI templates without opening a host or provider session."""
 
+import os
 import sys
 import json
 import argparse
@@ -255,14 +256,24 @@ def append_prompt_sequence(
     nodes.extend([first, second])
 
 
-def main() -> int:
-    """Build or check every registered example and its index; report uncovered nodes and extra files."""
+def arguments() -> argparse.Namespace:
+    """Read build options without changing files or importing the host."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--language", default="en", help="Language for workflow text; missing messages use English.")
-    args = parser.parse_args()
+    parser.add_argument("--output-directory", type=Path, help="Output folder; required for non-English workflows.")
+    return parser.parse_args()
+
+
+def main() -> int:
+    """Build or check every registered example and its index; report uncovered nodes and extra files."""
+    args = arguments()
     root = Path(__file__).resolve().parents[2]
-    destination = root / "workflows"
+    canonical = root / "workflows"
+    destination = args.output_directory.resolve() if args.output_directory else canonical
+    if args.language.lower() != "en" and (destination == canonical or destination.is_relative_to(canonical)):
+        sys.stderr.write("Choose --output-directory outside workflows/ for a non-English build.\n")
+        return 2
     schemas = read_schemas()
     issues = validate_models(schemas)
     issues.extend(inventory_issues(root / "web/docs", root / "web/dist/docs", set(schemas)))
@@ -279,7 +290,12 @@ def main() -> int:
             + "\n"
             for example in EXAMPLES
         }
-        generated[destination / "README.md"] = workflow_index(schemas)
+        generated[destination / "README.md"] = workflow_index(
+            schemas,
+            guide_prefix=Path(os.path.relpath(root / "web/docs", destination)).as_posix(),
+            sample_prefix=Path(os.path.relpath(canonical, destination)).as_posix(),
+            license_path=Path(os.path.relpath(root / "LICENSE.md", destination)).as_posix(),
+        )
     for path, text in generated.items():
         if args.check:
             if not path.exists() or path.read_text() != text:

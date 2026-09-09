@@ -1,10 +1,12 @@
 declare module '*/scripts/app.js' {
   export const app: {
     canvas: { selectedItems?: Set<unknown> };
+    ui: { settings: EventTarget };
     extensionManager: { setting: { get(id: string): unknown } };
     registerExtension(extension: {
       name: string;
-      setup?: () => Promise<void>;
+      init?: () => Promise<void>;
+      setup?: () => void | Promise<void>;
       nodeCreated?: (node: import('#web/nodes/contracts.ts').ReactorNode) => void;
       loadedGraphNode?: (node: import('#web/nodes/contracts.ts').ReactorNode) => void;
       getSelectionToolboxCommands?: (item: unknown) => string[];

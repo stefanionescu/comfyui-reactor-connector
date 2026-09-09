@@ -1,8 +1,10 @@
-import { translate } from '#web/language.ts';
+import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
+import { formatDate } from '#web/language.ts';
 import { modelRow } from '#web/discovery/row.ts';
 import { browserLimits } from '#config/browser.ts';
-import type { Fetcher } from '#web/settings/api.ts';
+import type { Message } from '#web/localization.ts';
+import { message, setTextAttribute, setText } from '#web/localization.ts';
 import { type ModelList, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
 let current: ModelDialog | undefined;
@@ -12,18 +14,18 @@ let current: ModelDialog | undefined;
  * @param check - The scheduler's report, if available.
  * @returns A status message for the model sources section.
  */
-function automaticStatus(check: ModelList['automatic_check']): string {
+function automaticStatus(check: ModelList['automatic_check']): string | Message {
   if (!check) return '';
-  if (!check.enabled) return translate('models.checksOff');
-  if (check.running) return translate('models.checkRunning');
+  if (!check.enabled) return message('models.checksOff');
+  if (check.running) return message('models.checkRunning');
   if (check.error) return check.error;
-  if (check.update_available === true) return translate('models.listChanged');
+  if (check.update_available === true) return message('models.listChanged');
   if (check.checked_at)
-    return translate('models.checkSchedule', {
-      date: new Date(check.checked_at).toLocaleString(),
+    return message('models.checkSchedule', {
+      date: () => formatDate(check.checked_at ?? ''),
       hours: check.interval_hours,
     });
-  return translate('models.checkDue');
+  return message('models.checkDue');
 }
 
 /** Browse public model information without opening an account session. */
@@ -38,11 +40,11 @@ class ModelDialog {
 
   private readonly duration = element('input');
 
-  private readonly refresh = button(translate('models.refresh'));
+  private readonly refresh = button(message('models.refresh'));
 
-  private readonly rollback = button(translate('models.restore'));
+  private readonly rollback = button(message('models.restore'));
 
-  private readonly status = element('p', translate('models.loadingLocal'));
+  private readonly status = element('p', message('models.loadingLocal'));
 
   private readonly checked = element('p');
 
@@ -63,27 +65,27 @@ class ModelDialog {
     private readonly fetcher: Fetcher,
     private nodeId: string | undefined,
   ) {
-    this.dialog.className = 'reactor-settings reactor-catalog';
+    this.dialog.className = 'reactor-dialog reactor-catalog';
     this.dialog.setAttribute('aria-labelledby', 'reactor-catalog-title');
-    const heading = element('h2', translate('models.title'));
+    const heading = element('h2', message('models.title'));
     heading.id = 'reactor-catalog-title';
-    const close = button(translate('close'));
-    close.setAttribute('aria-label', translate('models.close'));
+    const close = button(message('close'));
+    setTextAttribute(close, 'aria-label', message('models.close'));
     close.addEventListener('click', () => this.dialog.close());
     const header = element('header');
     header.append(heading, close);
-    const searchLabel = element('label', translate('models.search'));
+    const searchLabel = element('label', message('models.search'));
     this.search.type = 'search';
-    this.search.placeholder = translate('models.searchPlaceholder');
+    setTextAttribute(this.search, 'placeholder', message('models.searchPlaceholder'));
     searchLabel.append(this.search);
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
-    this.list.setAttribute('aria-label', translate('models.title'));
+    setTextAttribute(this.list, 'aria-label', message('models.title'));
     const sources = element('details');
-    sources.append(element('summary', translate('models.sources')), this.checked, this.automatic);
+    sources.append(element('summary', message('models.sources')), this.checked, this.automatic);
     this.dialog.append(
       header,
-      element('p', translate('models.refreshNotice')),
+      element('p', message('models.refreshNotice')),
       this.actions(),
       this.status,
       searchLabel,
@@ -102,7 +104,7 @@ class ModelDialog {
    * @returns The model browser actions.
    */
   private actions(): HTMLElement {
-    const showAll = button(translate('models.showAll'));
+    const showAll = button(message('models.showAll'));
     showAll.hidden = !this.nodeId;
     showAll.addEventListener('click', () => {
       this.nodeId = undefined;
@@ -123,18 +125,18 @@ class ModelDialog {
    * @returns The collapsed calculation controls.
    */
   private calculation(): HTMLElement {
-    const label = element('label', translate('pricing.sessionTime'));
+    const label = element('label', message('pricing.sessionTime'));
     this.duration.type = 'number';
     this.duration.min = '0.1';
     this.duration.max = String(browserLimits.maxCalculatorSeconds);
     this.duration.step = 'any';
-    this.duration.placeholder = translate('pricing.enterTime');
+    setTextAttribute(this.duration, 'placeholder', message('pricing.enterTime'));
     label.append(this.duration);
     const calculation = element('details');
     calculation.append(
-      element('summary', translate('pricing.calculate')),
+      element('summary', message('pricing.calculate')),
       label,
-      element('p', translate('pricing.totalTimeNotice')),
+      element('p', message('pricing.totalTimeNotice')),
     );
     return calculation;
   }
@@ -154,10 +156,13 @@ class ModelDialog {
         ? this.duration.valueAsNumber
         : undefined;
     this.list.replaceChildren(...visible.map((model) => modelRow(model, seconds)));
-    this.count.textContent = translate('models.count', {
-      visible: visible.length,
-      total: this.catalog?.models.length ?? 0,
-    });
+    setText(
+      this.count,
+      message('models.count', {
+        visible: visible.length,
+        total: this.catalog?.models.length ?? 0,
+      }),
+    );
   }
 
   /**
@@ -167,8 +172,10 @@ class ModelDialog {
    */
   private async updateModels(action: 'read' | 'refresh' | 'rollback'): Promise<void> {
     this.refresh.disabled = this.rollback.disabled = true;
-    this.status.textContent =
-      action === 'refresh' ? translate('models.checking') : translate('models.loading');
+    setText(
+      this.status,
+      action === 'refresh' ? message('models.checking') : message('models.loading'),
+    );
     try {
       const next = await requestModels(
         this.fetcher,
@@ -178,18 +185,20 @@ class ModelDialog {
       );
       if (this.controller.signal.aborted) return;
       this.catalog = next;
-      this.checked.textContent = metadataStatus(next.retrieved_at);
-      this.automatic.textContent = automaticStatus(next.automatic_check);
-      this.status.textContent = {
-        refresh: translate('models.refreshed'),
-        rollback: translate('models.restored'),
-        read: translate('models.loaded'),
-      }[action];
+      setText(this.checked, metadataStatus(next.retrieved_at));
+      setText(this.automatic, automaticStatus(next.automatic_check));
+      setText(
+        this.status,
+        {
+          refresh: message('models.refreshed'),
+          rollback: message('models.restored'),
+          read: message('models.loaded'),
+        }[action],
+      );
       this.render();
     } catch (error) {
       if (!this.controller.signal.aborted)
-        this.status.textContent =
-          error instanceof Error ? error.message : translate('models.loadFailed');
+        setText(this.status, error instanceof Error ? error.message : message('models.loadFailed'));
     } finally {
       this.restoreActions();
     }

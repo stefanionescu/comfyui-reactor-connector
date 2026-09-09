@@ -1,14 +1,15 @@
-import { translate } from '#web/language.ts';
+import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
-import type { Fetcher } from '#web/settings/api.ts';
 import type { Controls } from '#web/live/commands.ts';
+import { translate, type MessageKey } from '#web/language.ts';
+import { message, setTextAttribute, setText } from '#web/localization.ts';
 
 export class Webcam {
   readonly view = element('section');
 
   readonly video = element('video');
 
-  readonly enable = button(translate('camera.enable'));
+  readonly enable = button(message('camera.enable'));
 
   readonly select = element('select');
 
@@ -38,14 +39,16 @@ export class Webcam {
     private fail: (message: string) => void,
   ) {
     this.view.className = 'reactor-webcam';
-    const label = element('label', translate('camera.label'));
+    const label = element('label', message('camera.label'));
     label.append(this.select);
-    this.select.append(new Option(translate('camera.default'), ''));
+    const defaultCamera = element('option', message('camera.default'));
+    defaultCamera.value = '';
+    this.select.append(defaultCamera);
     this.video.muted = true;
     this.video.autoplay = true;
     this.video.playsInline = true;
     this.video.hidden = true;
-    this.video.setAttribute('aria-label', translate('camera.preview'));
+    setTextAttribute(this.video, 'aria-label', message('camera.preview'));
     const controls = element('div');
     controls.append(label, this.enable);
     this.view.append(controls, this.video, this.status);
@@ -58,13 +61,26 @@ export class Webcam {
       if (!(await this.openCamera())) return;
       await this.listCameras();
       if (this.closed) return;
-      this.enable.textContent = translate('camera.select');
-      this.status.textContent = translate('camera.enabled');
+      setText(this.enable, message('camera.select'));
+      setText(this.status, message('camera.enabled'));
     } catch (error) {
       this.stopCamera();
       if (this.closed) return;
-      this.status.textContent =
-        error instanceof Error ? error.message : translate('camera.accessFailed');
+      const errors: Record<string, MessageKey> = {
+        NotAllowedError: 'camera.permissionDenied',
+        SecurityError: 'camera.browserRequirements',
+        NotFoundError: 'camera.notFound',
+        NotReadableError: 'camera.busy',
+        OverconstrainedError: 'camera.unavailableSelection',
+      };
+      setText(
+        this.status,
+        message(
+          error instanceof Error
+            ? (errors[error.name] ?? 'camera.accessFailed')
+            : 'camera.accessFailed',
+        ),
+      );
     } finally {
       if (!this.closed) this.enable.disabled = false;
     }
@@ -76,8 +92,7 @@ export class Webcam {
    */
   private async openCamera(): Promise<boolean> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- DOM types omit browsers and insecure contexts where camera access is unavailable.
-    if (!navigator.mediaDevices?.getUserMedia)
-      throw new Error(translate('camera.browserRequirements'));
+    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException('', 'SecurityError');
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
@@ -114,15 +129,15 @@ export class Webcam {
     this.select.replaceChildren(
       ...devices
         .filter((device) => device.kind === 'videoinput')
-        .map(
-          (device, index) =>
-            new Option(
-              device.label || translate('camera.number', { number: index + 1 }),
-              device.deviceId,
-              false,
-              device.deviceId === selected,
-            ),
-        ),
+        .map((device, index) => {
+          const option = element(
+            'option',
+            device.label || message('camera.number', { number: index + 1 }),
+          );
+          option.value = device.deviceId;
+          option.selected = device.deviceId === selected;
+          return option;
+        }),
     );
   }
 
@@ -184,7 +199,7 @@ export class Webcam {
     this.controller.abort();
     this.stopCamera();
     this.select.disabled = this.enable.disabled = true;
-    this.status.textContent = translate('camera.disabled');
+    setText(this.status, message('camera.disabled'));
     this.canvas.width = this.canvas.height = 0;
   }
 

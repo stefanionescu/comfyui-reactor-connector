@@ -1,4 +1,4 @@
-type NodeWidget = {
+export type NodeWidget = {
   name: string;
   label?: string;
   value: unknown;

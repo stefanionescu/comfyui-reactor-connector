@@ -11,7 +11,7 @@
       ],
       "size": [
         400,
-        140
+        100
       ],
       "flags": {},
       "order": 1,
@@ -22,9 +22,9 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit the opening prompt, **1. Soft transition**, and **2. Hard cut**.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit the opening prompt, **1. Soft Transition**, and **2. Hard Cut**.\n3. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 8,
@@ -48,14 +48,14 @@
       "widgets_values": [
         "Each LongLive chunk is about 1.2 seconds at 24 fps. The soft transition starts near 1.2 seconds; the hard cut near 2.4 seconds. Increase **Video length (seconds)** if you schedule later shots."
       ],
-      "title": "Using this workflow"
+      "title": "Using This Workflow"
     },
     {
       "id": 3,
       "type": "ReactorIncLongLiveStoryboard",
       "pos": [
         500,
-        260
+        220
       ],
       "size": [
         440,
@@ -99,14 +99,14 @@
         0,
         "[]"
       ],
-      "title": "LongLive: Soft transition and hard cut"
+      "title": "LongLive: Soft Transition and Hard Cut"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        260
+        220
       ],
       "size": [
         360,
@@ -131,14 +131,14 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     },
     {
       "id": 5,
       "type": "ReactorIncLongLiveAddShot",
       "pos": [
         40,
-        260
+        220
       ],
       "size": [
         400,
@@ -166,14 +166,14 @@
         "soft",
         "The camera pulls back to show the trees around the fox."
       ],
-      "title": "1. Soft transition"
+      "title": "1. Soft Transition"
     },
     {
       "id": 6,
       "type": "ReactorIncLongLiveAddShot",
       "pos": [
         40,
-        600
+        560
       ],
       "size": [
         400,
@@ -210,7 +210,7 @@
         "cut",
         "A wide view of a still lake at sunrise."
       ],
-      "title": "2. Hard cut"
+      "title": "2. Hard Cut"
     }
   ],
   "links": [
@@ -254,7 +254,7 @@
         "id": 1,
         "pos": [
           470,
-          300
+          260
         ],
         "linkIds": [
           2
@@ -265,7 +265,7 @@
         "parentId": 1,
         "pos": [
           470,
-          530
+          490
         ],
         "linkIds": [
           2
@@ -276,7 +276,7 @@
         "parentId": 2,
         "pos": [
           10,
-          530
+          490
         ],
         "linkIds": [
           2

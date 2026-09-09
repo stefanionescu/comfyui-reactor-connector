@@ -50,7 +50,7 @@ def live_notes(example: Example) -> list[str]:
 
 
 def model_notes(example: Example) -> list[str]:
-    """Explain the model-specific recording, control, and credit limits for this example."""
+    """Explain the model-specific recording and control limits for this example."""
     notes = live_notes(example)
     if example.clip_count > 1:
         notes.append(translate("workflows", "limits.continuation", clips=example.clip_count))
@@ -74,5 +74,4 @@ def sections(example: Example) -> tuple[str, str]:
     notes = model_notes(example)
     if "source" in example.sources and example.mode == "record":
         setup += "\n\n" + notes.pop()
-    setup += translate("workflows", "setup.credits")
     return setup, "\n\n".join(notes)

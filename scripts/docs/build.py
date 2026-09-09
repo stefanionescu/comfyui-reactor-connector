@@ -3,6 +3,7 @@
 import sys
 import argparse
 from pathlib import Path
+from itertools import chain
 from .pages import HelpPages
 from ...config.models.nodes import NODE_MODELS
 
@@ -14,6 +15,11 @@ def inventory_issues(source: Path, output: Path, expected: set[str]) -> list[str
     issues = [f"Write node help for {name}." for name in sorted(expected - authored)]
     issues.extend(f"Remove or register orphaned node help for {name}." for name in sorted(authored - expected))
     issues.extend(f"Remove stale generated node help for {name}." for name in sorted(generated - expected))
+    issues.extend(
+        f"Remove or register orphaned node help for {directory.name}."
+        for directory in source.iterdir()
+        if directory.is_dir() and directory.name not in expected
+    )
     return issues
 
 
@@ -27,7 +33,7 @@ def build_help(root: Path, generated: dict[Path, bytes], *, check: bool) -> list
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-    for path in (root / "web/dist/guides").rglob("*"):
+    for path in chain((root / "web/dist/guides").rglob("*"), (root / "web/dist/docs").rglob("*")):
         if not path.is_file() or path in generated:
             continue
         if check:
@@ -49,7 +55,7 @@ def main() -> int:
     if not issues:
         pages = HelpPages(root)
         generated = pages.build()
-        generated.update({output / guide.name: pages.markdown(guide) for guide in source.glob("*.md")})
+        generated.update({output / guide.relative_to(source): pages.markdown(guide) for guide in source.rglob("*.md")})
         issues.extend(build_help(root, generated, check=args.check))
     for issue in issues:
         sys.stdout.write(issue + "\n")

@@ -378,7 +378,7 @@ export default [
   qualityToolingOverrides,
   ...boundaryOverrides,
   {
-    files: ['web/extension.ts', 'web/help/command.ts', 'web/language.ts'],
+    files: ['web/extension.ts', 'web/help/command.ts', 'web/language.ts', 'web/http.ts'],
     rules: {
       // ComfyUI serves these modules outside the connector's bundled directory.
       'local/import-path-style': [

@@ -11,7 +11,7 @@
       ],
       "size": [
         440,
-        120
+        80
       ],
       "flags": {},
       "order": 1,
@@ -22,16 +22,16 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video.\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
       ],
-      "title": "Start here"
+      "title": "Start Here"
     },
     {
       "id": 3,
       "type": "ReactorIncHeliosGenerate",
       "pos": [
         40,
-        240
+        200
       ],
       "size": [
         440,
@@ -66,14 +66,14 @@
         0,
         false
       ],
-      "title": "Helios: Text to video"
+      "title": "Helios: Text to Video"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         540,
-        240
+        200
       ],
       "size": [
         360,
@@ -98,7 +98,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and save video"
+      "title": "Preview and Save Video"
     }
   ],
   "links": [
