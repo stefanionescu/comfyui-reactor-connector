@@ -17,4 +17,4 @@ export const ALIAS_ROOTS = [
 ];
 export const INTERNAL_PREFIXES = ['./', '../', '#config/', '#web/', '#shared/', '#repository/'];
 
-export const NAMING_POLICY_PATH = 'quality/repository/naming/policy/policy.json';
+export const NAMING_POLICY_PATH = 'quality/config/naming/javascript.json';

@@ -12,7 +12,7 @@ export type Invitation = {
   axes: Record<string, string[]>;
 };
 
-export type CameraInvitation = Invitation & { prompt: string; promptLimit: number };
+export type SceneInvitation = Invitation & { prompt: string; promptCharacterLimit: number };
 
 // eslint-disable-next-line local/no-trivial-functions -- This type guard narrows untrusted event and response values before field access.
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -22,9 +22,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 /**
  * Validate a LingBot session invitation and its supported camera axes.
  * @param value - The untrusted ComfyUI event payload.
- * @returns The camera invitation, or undefined when it is invalid.
+ * @returns The scene invitation, or undefined when it is invalid.
  */
-export function parseInvitation(value: unknown): CameraInvitation | undefined {
+export function parseSceneInvitation(value: unknown): SceneInvitation | undefined {
   if (!isRecord(value) || !isRecord(value.axes)) return;
   if (
     typeof value.lease !== 'string' ||
@@ -68,18 +68,18 @@ export function parseInvitation(value: unknown): CameraInvitation | undefined {
     durationSeconds: value.duration_seconds,
     axes,
     prompt: value.prompt,
-    promptLimit: value.prompt_limit,
+    promptCharacterLimit: value.prompt_limit,
   };
 }
 
 export type LiveStatus = {
   closed: boolean;
-  termination_confirmed: boolean;
+  terminationConfirmed: boolean;
   failed: boolean;
-  controls_ready: boolean;
+  controlsReady: boolean;
   finishing: boolean;
-  elapsed_seconds: number;
-  preview_sequence: number;
+  elapsedSeconds: number;
+  previewSequence: number;
   preview: string;
 };
 
@@ -141,12 +141,12 @@ export async function exchange(
   }
   return {
     closed: value.closed,
-    termination_confirmed: value.termination_confirmed,
+    terminationConfirmed: value.termination_confirmed,
     failed: value.failed,
-    controls_ready: value.controls_ready,
+    controlsReady: value.controls_ready,
     finishing: value.finishing,
-    elapsed_seconds: value.elapsed_seconds,
-    preview_sequence: value.preview_sequence,
+    elapsedSeconds: value.elapsed_seconds,
+    previewSequence: value.preview_sequence,
     preview: value.preview,
   };
 }

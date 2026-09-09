@@ -7,8 +7,8 @@ import { browserLimits } from '#config/browser.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
 import { DragInput, type Pointer } from '#web/live/drag.ts';
 import { exchange, type LiveStatus } from '#web/live/api.ts';
-import { action, type Controls, controls } from '#web/live/commands.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
+import { sendAction, type Controls, parseControlsInvitation } from '#web/live/commands.ts';
 
 const panels = new Set<string>();
 
@@ -76,11 +76,11 @@ class ControlPanel {
       : undefined;
     this.status.setAttribute('role', 'status');
     this.prompt.value = owner.prompt;
-    this.prompt.maxLength = owner.promptLimit;
+    this.prompt.maxLength = owner.promptCharacterLimit;
     this.prompt.rows = 2;
     this.prompt.disabled = this.update.disabled = true;
     this.sound = owner.sound
-      ? new SoundControls(owner.audioPrompt, owner.audioPromptLimit)
+      ? new SoundControls(owner.audioPrompt, owner.audioPromptCharacterLimit)
       : undefined;
     this.camera = owner.webcam
       ? new Webcam(owner, fetcher, (message) => this.stop(message))
@@ -108,7 +108,14 @@ class ControlPanel {
     this.dialog.append(this.pointerPreview?.view ?? this.image);
     if (this.owner.pointer) this.dialog.append(element('p', message('controls.dragInstructions')));
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
-    const label = element('label', message('live.scenePrompt'));
+    const label = element(
+      'label',
+      message(
+        this.owner.model === 'xmax/x2' || this.owner.model === 'reactor/sana-streaming'
+          ? 'live.editPrompt'
+          : 'live.scenePrompt',
+      ),
+    );
     label.append(this.prompt);
     this.dialog.append(label, this.update);
     if (this.sound) this.dialog.append(this.sound.view);
@@ -194,7 +201,7 @@ class ControlPanel {
    */
   private display(reply: LiveStatus): void {
     const wasReady = this.ready;
-    this.ready = reply.controls_ready && !reply.finishing && !this.ending;
+    this.ready = reply.controlsReady && !reply.finishing && !this.ending;
     this.prompt.disabled = !this.ready;
     this.sound?.setReady(this.ready);
     if (this.ready && !wasReady) setText(this.status, message('controls.recording'));
@@ -203,7 +210,7 @@ class ControlPanel {
       this.image.src = `data:image/jpeg;base64,${reply.preview}`;
       this.image.hidden = false;
     }
-    this.previewSequence = reply.preview_sequence;
+    this.previewSequence = reply.previewSequence;
   }
 
   /**
@@ -216,7 +223,7 @@ class ControlPanel {
     this.start.disabled = this.update.disabled = true;
     this.sound?.setReady(false);
     this.pointerPreview?.stop();
-    if (!reply.termination_confirmed) setText(this.status, message('controls.connectionClosed'));
+    if (!reply.terminationConfirmed) setText(this.status, message('controls.connectionClosed'));
     else if (!this.startAttempted) setText(this.status, message('controls.recordingNotStarted'));
     else setText(this.status, reply.failed ? message('live.discarded') : message('live.ended'));
     setText(this.end, message('close'));
@@ -231,7 +238,7 @@ class ControlPanel {
     if (!this.startRequested) return;
     if (hasFrame) {
       this.startAttempted = true;
-      await action(this.fetcher, this.owner, this.actionSequence++, 'start', {});
+      await sendAction(this.fetcher, this.owner, this.actionSequence++, 'start', {});
       setText(this.end, message('live.endSession'));
       setText(this.status, message('controls.connecting'));
     } else {
@@ -248,7 +255,7 @@ class ControlPanel {
   private async sendControls(): Promise<void> {
     if (!this.ready) return;
     if (this.pendingPrompt !== undefined) {
-      await action(this.fetcher, this.owner, this.actionSequence++, 'prompt', {
+      await sendAction(this.fetcher, this.owner, this.actionSequence++, 'prompt', {
         prompt: this.pendingPrompt,
       });
       this.pendingPrompt = undefined;
@@ -256,12 +263,12 @@ class ControlPanel {
     }
     const next = this.pointers.shift();
     if (next) {
-      await action(this.fetcher, this.owner, this.actionSequence++, 'pointer', next);
+      await sendAction(this.fetcher, this.owner, this.actionSequence++, 'pointer', next);
       this.pointerPreview?.confirm(next);
     }
     const audioPrompt = this.sound?.takePrompt();
     if (audioPrompt !== undefined) {
-      await action(this.fetcher, this.owner, this.actionSequence++, 'audio_prompt', {
+      await sendAction(this.fetcher, this.owner, this.actionSequence++, 'audio_prompt', {
         prompt: audioPrompt,
       });
       setText(this.status, message('controls.soundSent'));
@@ -327,7 +334,7 @@ class ControlPanel {
     try {
       while (!this.finished && !this.abort.signal.aborted) {
         if (!(await this.cycle())) break;
-        await new Promise((resolve) => setTimeout(resolve, browserLimits.pollIntervalMilliseconds));
+        await new Promise((fulfill) => setTimeout(fulfill, browserLimits.pollIntervalMilliseconds));
       }
     } catch (error) {
       this.stop(error instanceof Error ? error.message : translate('controls.connectionEnded'));
@@ -351,7 +358,7 @@ class ControlPanel {
  * @param fetcher - ComfyUI's local API client.
  */
 export function openControls(value: unknown, fetcher: Fetcher): void {
-  const owner = controls(value);
+  const owner = parseControlsInvitation(value);
   if (!owner || panels.has(owner.lease)) return;
   panels.add(owner.lease);
   const panel = new ControlPanel(owner, fetcher);

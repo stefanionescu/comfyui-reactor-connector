@@ -9,7 +9,7 @@ Generate a short video from an opening shot prompt with LongLive-2.0.
 | Scene prompt           | Describe the opening scene and motion. Use 1 to 20,000 characters.               |
 | Video length (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.         |
 | Seed                   | Integer from 0 to 4,294,967,295; default: 42.                                    |
-| Variation              | Change this number for another run; default: 0.                                  |
+| Run number             | Change this number for another run; default: 0.                                  |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
 
 Example prompt: “A fox walks along a forest path. The camera follows slowly.”
@@ -27,7 +27,7 @@ The node returns native `VIDEO` and recording details as `STRING`. This operatio
 records video without audio. Use Save Video to retain the temporary result.
 
 **Video length (seconds)** limits the captured video; connection and setup also use
-session time. The host recording and session limits both apply. Changing **Variation** requests another execution with the
+session time. The host recording and session limits both apply. Changing **Run number** requests another execution with the
 same other inputs. Unchanged inputs may reuse the host cache; changing the
 account or execution limits invalidates that reuse. Seeds do not guarantee
 identical results after a provider update.

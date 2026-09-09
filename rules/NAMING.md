@@ -47,6 +47,12 @@ Rules:
 - Generated model or provider-owned names may keep provider spelling, but
   hand-written wrappers around them must follow this guide.
 
+Both naming readers use the same banned-term vocabulary. Python and shell use
+`quality/config/naming/policy.json`; JavaScript and TypeScript use
+`quality/config/naming/javascript.json` for case rules and exact boundary
+exceptions. Keep provider, host API, and persisted names unchanged where those
+contracts require them. Do not add language-wide exemptions for ordinary code.
+
 ## General naming rules
 
 Names are a design tool. A name should let a reader understand the concept,
@@ -73,7 +79,7 @@ Rules:
 - Preserve required external names at boundaries, but translate them into domain
   names before they move inward.
 - Do not use banned generic verbs or role words in local names. The banned list is
-  enforced by `quality/config/naming/policy.json` and includes `load`, `loader`,
+  shared by both naming readers in `quality/config/naming/terms.json` and includes `load`, `loader`,
   `loaded`, `loading`, `resolve`, `resolving`, `resolution`, `manager`, `handler`,
   `helper`, `util`, `utils`, `processor`, `service`, `common`, `core`, and
   `data`. Use precise verbs such as `read`, `choose`, `derive`, `build`, `create`,
@@ -416,7 +422,7 @@ Good:
 ```text
 src/media/capture.py
 src/discovery/store.py
-src/execution/helios.py
+src/execution/helios/request.py
 .mise/tasks/docs/build
 ```
 
@@ -480,13 +486,13 @@ Rules:
 Bad:
 
 ```python
-from src.configuration.settings import Settings as Thing
+from src.settings.settings import Settings as Thing
 ```
 
 Good:
 
 ```python
-from src.configuration.settings import Settings
+from src.settings.settings import Settings
 ```
 
 ### Python types and dataclasses
@@ -788,10 +794,10 @@ quality/repository/integrity/stale-paths.js
 
 Rules:
 
-- Use verbs for functions that perform work: `build`, `copy`, `render`, `validate`, `write`.
+- Use verbs for functions that perform work: `build`, `copy`, `display`, `validate`, `write`.
 - Use nouns for values returned by functions only when the function name still reads as an action, such as `readPackageName`.
 - Use `is`, `has`, or `can` for boolean-returning functions.
-- Name boundary functions by the boundary they own: `readSettings`, `renderHelp`, `sendCommand`.
+- Name boundary functions by the boundary they own: `readSettings`, `buildHelp`, `sendCommand`.
 - Avoid pass-through names that only restate another function.
 
 Bad:
@@ -805,8 +811,8 @@ function check(value) {}
 Good:
 
 ```js
-function renderHelp(page) {}
-function renderNodeHelp(markdown) {}
+function buildHelp(page) {}
+function buildNodeHelp(markdown) {}
 function isConnected(session) {}
 ```
 
@@ -824,14 +830,14 @@ Bad:
 
 ```js
 export default {
-    renderPage() {},
+    buildPage() {},
 };
 ```
 
 Good:
 
 ```js
-export function renderPage(page) {
+export function buildPage(page) {
     return page;
 }
 ```
@@ -871,9 +877,10 @@ Rules:
 - Prefix public node IDs with `ReactorInc`; display names start with `Reactor`.
   Do not derive stable IDs from mutable display labels.
 - Keep ComfyUI callback names and required provider method names exact.
-- Use sentence case for node titles, parameters, sockets, buttons, and workflow
-  notes. Keep proper model names and acronyms unchanged. A task after a model
-  prefix starts with a capital, such as `Reactor Helios: Generate video`.
+- Use title case for node names, workflow titles, and note titles. Capitalize
+  major words and preserve model names and acronyms, such as
+  `Reactor Helios: Generate Video`. Use sentence case for parameters, sockets,
+  buttons, tooltips, status messages, and note body text.
 - Keep visible labels in schemas, `locales/en/nodeDefs.json`, and workflow notes
   consistent. Change display names, never saved keys or output positions, to
   improve labels or capitalization.

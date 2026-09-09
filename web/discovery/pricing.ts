@@ -9,18 +9,18 @@ import { message, type Message } from '#web/localization.ts';
  * @returns Rate details and an optional calculation for display.
  */
 export function formatCreditSummary(model: Model, seconds: number | undefined): Message[] {
-  const rate = model.credits_per_second;
+  const rate = model.creditsPerSecond;
   if (rate === null) return [message('pricing.rateUnavailable')];
-  const details = [message('pricing.rate', { rate: rate })];
+  const summary = [message('pricing.rate', { rate: rate })];
   if (!model.observed) {
-    details.push(message('pricing.rateOutdated'));
+    summary.push(message('pricing.rateOutdated'));
   } else if (seconds !== undefined) {
     // eslint-disable-next-line local/no-trivial-functions -- Defer formatting so existing estimates follow language changes.
     const credits = () =>
       formatNumber(rate * seconds, {
         maximumFractionDigits: 2,
       });
-    details.push(
+    summary.push(
       message('pricing.calculation', {
         seconds: seconds,
         rate: rate,
@@ -28,5 +28,5 @@ export function formatCreditSummary(model: Model, seconds: number | undefined): 
       }),
     );
   }
-  return details;
+  return summary;
 }

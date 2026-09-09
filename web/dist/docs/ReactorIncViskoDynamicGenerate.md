@@ -11,7 +11,7 @@ one **Load Image** output to the optional **Starting image** input.
 | Scene prompt           | Describe the scene in 1 to 20,000 characters. This is the connector's input limit.               |
 | Video length (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                    |
-| Variation              | Change this integer for another run. Default: 0.                                                 |
+| Run number             | Change this integer for another run. Default: 0.                                                 |
 | Sound prompt           | A short description of sound, up to 1,000 characters. Blank uses the picture alone.              |
 | Resolution             | Blank uses the model default. Otherwise, enter an exact offered resolution name.                 |
 | Include sound          | Generate sound when true. False asks the model to provide silence. Default: true.                |
@@ -61,7 +61,7 @@ generation, and recording readiness; it can exceed the saved video's duration.
 The configured session time limit applies throughout. Pausing playback or closing
 the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.
 
-Unchanged inputs may reuse ComfyUI's cache. Change **Variation** for another run. A seed does not guarantee identical results across model updates.
+Unchanged inputs may reuse ComfyUI's cache. Change **Run number** for another run. A seed does not guarantee identical results across model updates.
 The connector does not automatically retry failed commands or uncertain sessions.
 
 If the session reaches its limit before recording is ready, try a shorter recording

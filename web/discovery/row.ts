@@ -11,18 +11,18 @@ import { formatCreditSummary } from '#web/discovery/pricing.ts';
  */
 export function modelRow(model: Model, seconds: number | undefined): HTMLElement {
   const row = element('li');
-  row.append(element('h3', model.title), element('code', model.name));
+  row.append(element('h3', model.title), element('code', model.modelSlug));
   const support =
     model.support === 'available'
       ? message('models.nodesAvailable')
       : message('models.nodeUnavailable');
   row.append(element('p', support));
-  if (model.connect_name)
-    row.append(element('p', message('models.connectName', { name: model.connect_name })));
+  if (model.connectionName)
+    row.append(element('p', message('models.connectName', { name: model.connectionName })));
   for (const detail of formatCreditSummary(model, seconds)) row.append(element('p', detail));
-  if (model.documentation_url) {
+  if (model.documentationUrl) {
     const link = element('a', message('models.openGuide'));
-    link.href = model.documentation_url;
+    link.href = model.documentationUrl;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     row.append(link);

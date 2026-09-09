@@ -27,7 +27,7 @@ class SettingsDialog {
 
   private readonly limitFields = element('fieldset');
 
-  private readonly catalogFields = element('fieldset');
+  private readonly modelCheckFields = element('fieldset');
 
   private readonly automatic = element('input');
 
@@ -130,8 +130,8 @@ class SettingsDialog {
    */
   private populateLimits(configuration: Configuration): void {
     this.limitFields.replaceChildren(element('legend', message('settings.limits')));
-    const advanced = element('details');
-    advanced.append(element('summary', message('settings.advancedLimits')));
+    const additionalLimits = element('details');
+    additionalLimits.append(element('summary', message('settings.advancedLimits')));
     for (const [index, [name, definition]] of Object.entries(configuration.definitions)
       .filter(([name]) => name !== 'catalog_interval_hours')
       .entries()) {
@@ -147,9 +147,9 @@ class SettingsDialog {
       input.required = true;
       this.inputs.set(name, input);
       label.append(input);
-      (index < 2 ? this.limitFields : advanced).append(label);
+      (index < 2 ? this.limitFields : additionalLimits).append(label);
     }
-    this.limitFields.append(advanced, button(message('settings.saveLimits'), 'submit'));
+    this.limitFields.append(additionalLimits, button(message('settings.saveLimits'), 'submit'));
   }
 
   /**
@@ -177,7 +177,7 @@ class SettingsDialog {
    */
   private modelUpdates(): HTMLFormElement {
     const form = element('form');
-    this.catalogFields.disabled = true;
+    this.modelCheckFields.disabled = true;
     const automaticLabel = element('label', message('settings.automaticChecks'));
     this.automatic.type = 'checkbox';
     automaticLabel.prepend(this.automatic);
@@ -186,14 +186,14 @@ class SettingsDialog {
     this.interval.step = '1';
     this.interval.required = true;
     intervalLabel.append(this.interval);
-    this.catalogFields.append(
+    this.modelCheckFields.append(
       element('legend', message('settings.modelUpdates')),
       automaticLabel,
       intervalLabel,
       element('p', message('settings.checkNotice')),
       button(message('settings.saveChecks'), 'submit'),
     );
-    form.append(this.catalogFields);
+    form.append(this.modelCheckFields);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
       if (this.configuration && form.reportValidity()) this.saveModelUpdates(this.configuration);
@@ -268,7 +268,7 @@ class SettingsDialog {
     method?: string,
     body?: unknown,
   ): Promise<void> {
-    this.keyFields.disabled = this.limitFields.disabled = this.catalogFields.disabled = true;
+    this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
     this.reload.disabled = true;
     setText(this.status, message('working'));
     try {
@@ -292,7 +292,7 @@ class SettingsDialog {
       if (!this.controller.signal.aborted) {
         this.keyFields.disabled =
           this.limitFields.disabled =
-          this.catalogFields.disabled =
+          this.modelCheckFields.disabled =
             !this.configuration?.mutationAllowed;
         this.reload.disabled = false;
       }

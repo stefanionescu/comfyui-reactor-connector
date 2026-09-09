@@ -1,174 +1,258 @@
 {
-    "fast-h3-03-first-and-last-frames.title": "Fast H3: Connect Two Images with Motion",
-    "fast-h3-03-first-and-last-frames.prompt": "Move smoothly from the first scene to the final scene. Keep the motion natural. Soft ambience.",
-    "fast-h3-04-ending-frame.title": "Fast H3: Finish on a Chosen Image",
-    "fast-h3-04-ending-frame.prompt": "The camera moves slowly toward this final view. Keep the movement smooth. Soft ambience.",
-    "fast-h3-01-text-to-video.title": "Fast H3: Build a Clip with Sound",
-    "fast-h3-01-text-to-video.prompt": "A small stream flows over smooth stones. Water splashes softly and birds call.",
-    "fast-h3-02-image-to-video.title": "Fast H3: Animate a Starting Image",
-    "fast-h3-02-image-to-video.prompt": "Bring this scene to life with gentle motion. Keep the subject and composition. Soft natural ambience.",
-    "fast-h3-05-continue-scene.title": "Fast H3: Continue a Scene",
-    "fast-h3-05-continue-scene.prompt": "Follow a stream through a quiet forest. Water splashes softly.",
-    "fast-h3-05-continue-scene.later_prompts": "The stream flows past a mossy rock.\nThe camera follows the stream into a sunlit clearing.",
-    "fast-h3-06-continue-image.title": "Fast H3: Continue from an Image",
-    "fast-h3-06-continue-image.prompt": "Bring this scene to life with gentle motion and soft natural ambience.",
-    "fast-h3-06-continue-image.later_prompts": "",
-    "helios-01-text-to-video.title": "Helios: Text to Video",
-    "helios-01-text-to-video.prompt": "A red ball rolls slowly across a wooden table. The camera stays still.",
-    "helios-02-image-to-video.title": "Helios: Animate a Local Image",
-    "helios-02-image-to-video.prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
-    "lingbot-02-live-camera.title": "LingBot: Move through an Image",
-    "lingbot-02-live-camera.prompt": "A path through a quiet forest.",
-    "lingbot-world-2-02-live-camera.title": "LingBot World 2: Move and Look Independently",
-    "lingbot-world-2-02-live-camera.prompt": "A path through a quiet forest.",
-    "lingbot-01-explore-image.title": "LingBot: Explore a Local Image",
-    "lingbot-01-explore-image.prompt": "A quiet garden path. Move forward slowly through the scene.",
-    "lingbot-world-2-01-explore-image.title": "LingBot World 2: Explore a Local Image",
-    "lingbot-world-2-01-explore-image.prompt": "A quiet garden path. Move forward slowly through the scene.",
-    "longlive-v2-01-text-to-video.title": "LongLive: Opening Shot",
-    "longlive-v2-01-text-to-video.prompt": "A fox walks along a forest path. The camera follows slowly.",
-    "longlive-v2-02-storyboard.title": "LongLive: Soft Transition and Hard Cut",
-    "longlive-v2-02-storyboard.prompt": "A fox walks along a forest path. The camera follows slowly.",
-    "ltx2-01-speaking-portrait.title": "LTX: Make a Portrait Speak",
-    "ltx2-01-speaking-portrait.prompt": "A person faces the camera and speaks calmly.",
-    "ltx2-01-speaking-portrait.script": "Hello. Welcome to this short video.",
-    "sana-streaming-01-edit-video.title": "SANA: Edit a Local Video",
-    "sana-streaming-01-edit-video.prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
-    "sana-streaming-03-webcam.title": "SANA: Edit a Webcam",
-    "sana-streaming-03-webcam.prompt": "Turn the scene into a watercolor painting.",
-    "visko-stable-01-text-to-video.title": "Visko Stable: Video with Sound",
-    "visko-stable-01-text-to-video.prompt": "A small stream flows over smooth stones in a quiet forest.",
-    "visko-stable-01-text-to-video.audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-    "visko-stable-02-image-to-video.title": "Visko Stable: Animate an Image with Sound",
-    "visko-stable-02-image-to-video.prompt": "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
-    "visko-stable-02-image-to-video.audio_prompt": "",
-    "visko-dynamic-01-text-to-video.title": "Visko Dynamic: Video with Sound",
-    "visko-dynamic-01-text-to-video.prompt": "A small stream flows over smooth stones in a quiet forest.",
-    "visko-dynamic-01-text-to-video.audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-    "visko-dynamic-02-image-to-video.title": "Visko Dynamic: Animate an Image with Sound",
-    "visko-dynamic-02-image-to-video.prompt": "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
-    "visko-dynamic-02-image-to-video.audio_prompt": "",
-    "x2-01-edit-video.title": "X2: Edit a Local Video",
-    "x2-01-edit-video.prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
-    "x2-02-reference-edit.title": "X2: Edit with a Reference Image",
-    "x2-02-reference-edit.prompt": "Replace the main subject with the subject from the reference image. Keep the background.",
-    "x2-03-webcam.title": "X2: Edit and Drag a Webcam Scene",
-    "x2-03-webcam.prompt": "Turn the scene into a watercolor painting.",
-    "helios-05-live-prompt.title": "Helios: Change the Prompt while Recording",
-    "helios-05-live-prompt.prompt": "The camera moves slowly along a sunlit forest path. Green leaves sway gently.",
-    "helios-06-live-image.title": "Helios: Animate an Image with Live Prompts",
-    "helios-06-live-image.prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
-    "longlive-v2-03-live-prompt.title": "LongLive: Change the Prompt while Recording",
-    "longlive-v2-03-live-prompt.prompt": "A fox walks along a forest path. The camera follows slowly.",
-    "sana-streaming-02-live-prompt.title": "SANA: Change the Prompt while Recording",
-    "sana-streaming-02-live-prompt.prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
-    "visko-stable-03-live-prompt.title": "Visko Stable: Change the Prompt while Recording",
-    "visko-stable-03-live-prompt.prompt": "A small stream flows over smooth stones in a quiet forest.",
-    "visko-stable-03-live-prompt.audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-    "visko-dynamic-03-live-prompt.title": "Visko Dynamic: Change the Prompt while Recording",
-    "visko-dynamic-03-live-prompt.prompt": "A small stream flows over smooth stones in a quiet forest.",
-    "visko-dynamic-03-live-prompt.audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-    "x2-04-live-prompt.title": "X2: Drag and Edit a Video",
-    "x2-04-live-prompt.prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
-    "helios-03-prompt-sequence.title": "Helios: Follow a Prompt Sequence",
-    "helios-03-prompt-sequence.prompt": "The camera moves slowly along a forest path in soft morning light.",
-    "helios-04-image-sequence.title": "Helios: Animate an Image through Prompt Changes",
-    "helios-04-image-sequence.prompt": "The camera moves slowly along a forest path in soft morning light.",
-    "setup.key": "Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.",
-    "setup.video": "Upload a video in **Upload Your Source Video** (at least 33 frames).",
-    "setup.reference": "Upload the subject to insert in **Upload Your Reference Subject**.",
-    "setup.endingImage": "Upload the ending image in **Choose the Final Frame**.",
-    "setup.shots": "Edit the opening prompt, **1. Soft Transition**, and **2. Hard Cut**.",
-    "setup.live": "Select **Run** to open the live panel.",
-    "setup.record": "Select **Run** to create and save the video.",
-    "live.prompt": "Edit **Scene prompt**, then select **Apply prompt** to change later frames.",
-    "live.finish": "Let recording finish to save the video. **End session** stops early and discards it.",
-    "limits.fast": "Fast H3 rounds each clip to a supported length.",
-    "limits.ltx": "Use a clear portrait with the whole head visible.",
-    "limits.sourceVideo": "Use standard dynamic range (SDR) video. The edited output has no sound.",
-    "limits.helios": "Each Helios chunk contains 33 frames. Connect prompts in order and use increasing **Start chunk** values. The opening prompt starts at chunk 0. Later prompts do not extend the recording.",
-    "limits.longlive": "Each LongLive chunk is about 1.2 seconds at 24 fps. The soft transition starts near 1.2 seconds; the hard cut near 2.4 seconds. Increase **Video length (seconds)** if you schedule later shots.",
-    "setup.sequence": "Edit the opening prompt, **1. Let Sunlight Through**, and **2. Enter a Clearing**.",
-    "live.camera": "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.",
-    "live.start": "In the live panel, select **Start session** within 60 seconds.",
-    "live.autumn": "Try: The forest leaves turn orange and red as autumn arrives.",
-    "live.sound": "**Apply sound prompt** changes later sound. The live preview is silent.",
-    "live.drag": "Drag on the output to steer the subject. Escape releases the pointer. **Help** also explains keyboard controls.",
-    "live.move": "In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply prompt** changes later frames.",
-    "setup.viskoImage": "Edit **Scene prompt** to name what is in your image and describe its motion. The example prompt describes a forest path.",
-    "setup.speech": "Edit **Spoken words**. Keep the speech short enough for five seconds.",
-    "setup.prompt": "Edit **Scene prompt** to describe the scene or change you want.",
-    "setup.image": "Upload an image in **Upload Your Starting Image**.",
-    "setup.portrait": "Upload a portrait in **Upload Your Starting Image**.",
-    "limits.continuation": "The {clips} clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.",
-    "limits.totalDuration": "This example requests {seconds:g} seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.",
-    "nodes.startingImage": "Upload Your Starting Image",
-    "nodes.endingImage": "Choose the Final Frame",
-    "nodes.sourceVideo": "Upload Your Source Video",
-    "nodes.saveVideo": "Preview and Save Video",
-    "nodes.referenceImage": "Upload Your Reference Subject",
-    "nodes.softTransition": "1. Soft Transition",
-    "nodes.hardCut": "2. Hard Cut",
-    "nodes.saveAudio": "Preview and Save Sound",
-    "nodes.sunlight": "1. Let Sunlight Through",
-    "nodes.clearing": "2. Enter a Clearing",
-    "prompts.softTransition": "The camera pulls back to show the trees around the fox.",
-    "prompts.hardCut": "A wide view of a still lake at sunrise.",
-    "prompts.sunlight": "Sunlight reaches the forest floor as the camera moves forward.",
-    "prompts.clearing": "The camera follows the path into a sunny clearing.",
-    "notes.start": "Start Here",
-    "notes.usage": "Using This Workflow",
-    "index.input.webcam": "Webcam and live edit prompt",
-    "index.input.continueImage": "Starting image and continued clips",
-    "index.input.continueText": "Prompts for continued clips",
-    "index.input.liveVideo": "Source video and live controls",
-    "index.input.liveImage": "Image and live prompt",
-    "index.input.liveText": "Live prompt",
-    "index.input.speech": "Portrait and speech script",
-    "index.input.shots": "Opening prompt and two scheduled shots",
-    "index.input.sequenceImage": "Starting image and scheduled prompts",
-    "index.input.sequenceText": "Scheduled prompts",
-    "index.input.reference": "Video, edit prompt, and reference image",
-    "index.input.video": "Video and edit prompt",
-    "index.input.firstLast": "First image, final image, and prompt",
-    "index.input.last": "Final image and prompt",
-    "index.input.world": "Image and prompt; live keys or buttons",
-    "index.input.image": "Image and prompt",
-    "index.input.sound": "Scene and sound prompt",
-    "index.input.text": "Scene prompt",
-    "index.title": "Reactor Workflows",
-    "index.intro": "This folder contains {count} editable ComfyUI workflows, grouped by model. Each graph has connected nodes and setup instructions.",
-    "index.openTitle": "Open a workflow",
-    "index.openSteps": "1. Open a JSON file listed below in ComfyUI. Built packages also include these examples in **Templates → reactor-inc**.\n2. Read **Start Here** and upload the required image or video.\n3. Set your key in **Extensions → Reactor → Reactor settings**, then select **Run**.",
-    "index.updateTitle": "Open an updated example",
-    "index.update": "Updates do not replace graphs already open in ComfyUI. Save your changes, then open the new example in another tab. Copy any prompts or settings you want to keep.",
-    "index.filesTitle": "Available files",
-    "index.columns": "| Model | Workflow JSON | Input | Guide |",
-    "index.guide": "Node guide",
-    "index.saveTitle": "Save, stop, and get help",
-    "index.save": "**Preview and Save Video** writes to `video/reactor/` under the ComfyUI output folder. Examples with sound also save a separate audio file.",
-    "index.stop": "Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End session** stops early and discards the unfinished video.",
-    "index.help": "Select a Reactor node and choose **Help** for inputs, limits, and recovery steps. Use **Fit View** to find all nodes.",
-    "index.limitsTitle": "Limits",
-    "index.limits": "Live workflows stop at the chosen duration. Fast H3 can create a chosen number of consecutive clips. Media inputs start empty; use your own files or the samples below.",
-    "index.language": "Only English examples are included. Notes and custom node titles are saved in the graph; changing the interface language does not translate them.",
-    "index.samplesTitle": "Sample inputs",
-    "index.samples": "Download a sample, then select it in the matching image or video input node.",
-    "index.sampleColumns": "| File | Use it for |",
-    "index.forest": "Forest path",
-    "index.forestUse": "Animate an image, explore a scene, or continue a clip.",
-    "index.illustration": "Forest illustration",
-    "index.illustrationUse": "Animate a landscape or use it as a reference image.",
-    "index.portrait": "Fictional portrait",
-    "index.portraitUse": "Make a portrait speak with LTX.",
-    "index.video": "Forest motion",
-    "index.videoUse": "Edit a five-second clip with SANA or X2.",
-    "index.reuseTitle": "Origin and reuse",
-    "index.reuse": "The sample images are generated illustrations. The portrait depicts a fictional adult. Project rights in the samples are licensed under [MIT]({license}). They are inputs, not examples of Reactor output.",
-    "index.videoDetails": "The sample video adds a slow zoom to the forest image: 120 frames at 24 fps, 640 × 360 pixels, standard dynamic range, and no sound. It uses the same license as the images.",
-    "index.previewsTitle": "Workflow previews",
-    "index.previews": "These images show frames from Reactor output. Your results can differ. Project rights in the previews use the same MIT license.",
-    "index.previewColumns": "| Preview | Workflow |",
-    "index.stream": "Stream over rocks",
-    "index.animated": "Animated forest"
+    "fast-h3-01-text-to-video": {
+        "prompt": "A small stream flows over smooth stones. Water splashes softly and birds call.",
+        "title": "Fast H3: Build a Clip with Sound"
+    },
+    "fast-h3-02-image-to-video": {
+        "prompt": "Bring this scene to life with gentle motion. Keep the subject and composition. Soft natural ambience.",
+        "title": "Fast H3: Animate a Starting Image"
+    },
+    "fast-h3-03-first-and-last-frames": {
+        "prompt": "Move smoothly from the first scene to the final scene. Keep the motion natural. Soft ambience.",
+        "title": "Fast H3: Connect Two Images with Motion"
+    },
+    "fast-h3-04-ending-frame": {
+        "prompt": "The camera moves slowly toward this final view. Keep the movement smooth. Soft ambience.",
+        "title": "Fast H3: Finish on a Chosen Image"
+    },
+    "fast-h3-05-continue-scene": {
+        "later_prompts": "The stream flows past a mossy rock.\nThe camera follows the stream into a sunlit clearing.",
+        "prompt": "Follow a stream through a quiet forest. Water splashes softly.",
+        "title": "Fast H3: Continue a Scene"
+    },
+    "fast-h3-06-continue-image": {
+        "later_prompts": "",
+        "prompt": "Bring this scene to life with gentle motion and soft natural ambience.",
+        "title": "Fast H3: Continue from an Image"
+    },
+    "helios-01-text-to-video": {
+        "prompt": "A red ball rolls slowly across a wooden table. The camera stays still.",
+        "title": "Helios: Text to Video"
+    },
+    "helios-02-image-to-video": {
+        "prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
+        "title": "Helios: Animate a Local Image"
+    },
+    "helios-03-prompt-sequence": {
+        "prompt": "The camera moves slowly along a forest path in soft morning light.",
+        "title": "Helios: Follow a Prompt Sequence"
+    },
+    "helios-04-image-sequence": {
+        "prompt": "The camera moves slowly along a forest path in soft morning light.",
+        "title": "Helios: Animate an Image through Prompt Changes"
+    },
+    "helios-05-live-prompt": {
+        "prompt": "The camera moves slowly along a sunlit forest path. Green leaves sway gently.",
+        "title": "Helios: Change the Prompt while Recording"
+    },
+    "helios-06-live-image": {
+        "prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
+        "title": "Helios: Animate an Image with Live Prompts"
+    },
+    "index": {
+        "animated": "Animated forest",
+        "columns": "| Model | Workflow JSON | Input | Guide |",
+        "filesTitle": "Available files",
+        "forest": "Forest path",
+        "forestUse": "Animate an image, explore a scene, or continue a clip.",
+        "guide": "Node guide",
+        "help": "Select a Reactor node and choose **Help** for inputs, limits, and recovery steps. Use **Fit View** to find all nodes.",
+        "illustration": "Forest illustration",
+        "illustrationUse": "Animate a landscape or use it as a reference image.",
+        "input": {
+            "continueImage": "Starting image and continued clips",
+            "continueText": "Prompts for continued clips",
+            "firstLast": "First image, final image, and prompt",
+            "image": "Image and prompt",
+            "last": "Final image and prompt",
+            "liveImage": "Image and live prompt",
+            "liveText": "Live prompt",
+            "liveVideo": "Source video and live controls",
+            "reference": "Video, edit prompt, and reference image",
+            "sequenceImage": "Starting image and scheduled prompts",
+            "sequenceText": "Scheduled prompts",
+            "shots": "Opening prompt and two scheduled shots",
+            "sound": "Scene and sound prompt",
+            "speech": "Portrait and speech script",
+            "text": "Scene prompt",
+            "video": "Video and edit prompt",
+            "webcam": "Webcam and live edit prompt",
+            "world": "Image and prompt; live keys or buttons"
+        },
+        "intro": "This folder contains {count} editable ComfyUI workflows, grouped by model. Each graph has connected nodes and setup instructions.",
+        "language": "Only English examples are included. Notes and custom node titles are saved in the graph; changing the interface language does not translate them.",
+        "limits": "Live workflows stop at the chosen duration. Fast H3 can create a chosen number of consecutive clips. Media inputs start empty; use your own files or the samples below.",
+        "limitsTitle": "Limits",
+        "openSteps": "1. Open a JSON file listed below in ComfyUI. Built packages also include these examples in **Templates → reactor-inc**.\n2. Read **Start Here** and upload the required image or video.\n3. Set your key in **Extensions → Reactor → Reactor settings**, then select **Run**.",
+        "openTitle": "Open a workflow",
+        "portrait": "Fictional portrait",
+        "portraitUse": "Make a portrait speak with LTX.",
+        "previewColumns": "| Preview | Workflow |",
+        "previews": "These images show frames from Reactor output. Your results can differ. Project rights in the previews use the same MIT license.",
+        "previewsTitle": "Workflow previews",
+        "reuse": "The sample images are generated illustrations. The portrait depicts a fictional adult. Project rights in the samples are licensed under [MIT]({license}). They are inputs, not examples of Reactor output.",
+        "reuseTitle": "Origin and reuse",
+        "sampleColumns": "| File | Use it for |",
+        "samples": "Download a sample, then select it in the matching image or video input node.",
+        "samplesTitle": "Sample inputs",
+        "save": "**Preview and Save Video** writes to `video/reactor/` under the ComfyUI output folder. Examples with sound also save a separate audio file.",
+        "saveTitle": "Save, stop, and get help",
+        "stop": "Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End session** stops early and discards the unfinished video.",
+        "stream": "Stream over rocks",
+        "title": "Reactor Workflows",
+        "update": "Updates do not replace graphs already open in ComfyUI. Save your changes, then open the new example in another tab. Copy any prompts or settings you want to keep.",
+        "updateTitle": "Open an updated example",
+        "video": "Forest motion",
+        "videoDetails": "The sample video adds a slow zoom to the forest image: 120 frames at 24 fps, 640 × 360 pixels, standard dynamic range, and no sound. It uses the same license as the images.",
+        "videoUse": "Edit a five-second clip with SANA or X2."
+    },
+    "limits": {
+        "continuation": "The {clips} clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.",
+        "fast": "Fast H3 rounds each clip to a supported length.",
+        "helios": "Each Helios chunk contains 33 frames. Connect prompts in order and use increasing **Start chunk** values. The opening prompt starts at chunk 0. Later prompts do not extend the recording.",
+        "longlive": "Each LongLive chunk is about 1.2 seconds at 24 fps. The soft transition starts near 1.2 seconds; the hard cut near 2.4 seconds. Increase **Video length (seconds)** if you schedule later shots.",
+        "ltx": "Use a clear portrait with the whole head visible.",
+        "sourceVideo": "Use standard dynamic range (SDR) video. The edited output has no sound.",
+        "totalDuration": "This example requests {seconds:g} seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up."
+    },
+    "lingbot-01-explore-image": {
+        "prompt": "A quiet garden path. Move forward slowly through the scene.",
+        "title": "LingBot: Explore a Local Image"
+    },
+    "lingbot-02-live-camera": {
+        "prompt": "A path through a quiet forest.",
+        "title": "LingBot: Move through an Image"
+    },
+    "lingbot-world-2-01-explore-image": {
+        "prompt": "A quiet garden path. Move forward slowly through the scene.",
+        "title": "LingBot World 2: Explore a Local Image"
+    },
+    "lingbot-world-2-02-live-camera": {
+        "prompt": "A path through a quiet forest.",
+        "title": "LingBot World 2: Move and Look Independently"
+    },
+    "live": {
+        "autumn": "Try: The forest leaves turn orange and red as autumn arrives.",
+        "camera": "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.",
+        "drag": "Drag on the output to steer the subject. Escape releases the pointer. **Help** also explains keyboard controls.",
+        "finish": "Let recording finish to save the video. **End session** stops early and discards it.",
+        "move": "In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply prompt** changes later frames.",
+        "prompt": "Edit **Scene prompt**, then select **Apply prompt** to change later frames.",
+        "sound": "**Apply sound prompt** changes later sound. The live preview is silent.",
+        "start": "In the live panel, select **Start session** within 60 seconds.",
+        "editPrompt": "Change **Edit prompt**, then select **Apply prompt** to change later frames."
+    },
+    "longlive-v2-01-text-to-video": {
+        "prompt": "A fox walks along a forest path. The camera follows slowly.",
+        "title": "LongLive: Opening Shot"
+    },
+    "longlive-v2-02-storyboard": {
+        "prompt": "A fox walks along a forest path. The camera follows slowly.",
+        "title": "LongLive: Soft Transition and Hard Cut"
+    },
+    "longlive-v2-03-live-prompt": {
+        "prompt": "A fox walks along a forest path. The camera follows slowly.",
+        "title": "LongLive: Change the Prompt while Recording"
+    },
+    "ltx2-01-speaking-portrait": {
+        "prompt": "A person faces the camera and speaks calmly.",
+        "script": "Hello. Welcome to this short video.",
+        "title": "LTX: Make a Portrait Speak"
+    },
+    "nodes": {
+        "clearing": "2. Enter a Clearing",
+        "endingImage": "Choose the Final Frame",
+        "hardCut": "2. Hard Cut",
+        "referenceImage": "Upload Your Reference Subject",
+        "saveAudio": "Preview and Save Audio",
+        "saveVideo": "Preview and Save Video",
+        "softTransition": "1. Soft Transition",
+        "sourceVideo": "Upload Your Source Video",
+        "startingImage": "Upload Your Starting Image",
+        "sunlight": "1. Let Sunlight Through"
+    },
+    "notes": {
+        "start": "Start Here",
+        "usage": "Using This Workflow"
+    },
+    "prompts": {
+        "clearing": "The camera follows the path into a sunny clearing.",
+        "hardCut": "A wide view of a still lake at sunrise.",
+        "softTransition": "The camera pulls back to show the trees around the fox.",
+        "sunlight": "Sunlight reaches the forest floor as the camera moves forward."
+    },
+    "sana-streaming-01-edit-video": {
+        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
+        "title": "SANA: Edit a Local Video"
+    },
+    "sana-streaming-02-live-prompt": {
+        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
+        "title": "SANA: Change the Prompt while Recording"
+    },
+    "sana-streaming-03-webcam": {
+        "prompt": "Turn the scene into a watercolor painting.",
+        "title": "SANA: Edit a Webcam"
+    },
+    "setup": {
+        "endingImage": "Upload the ending image in **Choose the Final Frame**.",
+        "image": "Upload an image in **Upload Your Starting Image**.",
+        "key": "Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.",
+        "live": "Select **Run** to open the live panel.",
+        "portrait": "Upload a portrait in **Upload Your Starting Image**.",
+        "prompt": "Edit **Scene prompt** to describe the scene or change you want.",
+        "record": "Select **Run** to create and save the video.",
+        "reference": "Upload the subject to insert in **Upload Your Reference Subject**.",
+        "sequence": "Edit the opening prompt, **1. Let Sunlight Through**, and **2. Enter a Clearing**.",
+        "shots": "Edit the opening prompt, **1. Soft Transition**, and **2. Hard Cut**.",
+        "speech": "Edit **Spoken words**. Keep the speech short enough for five seconds.",
+        "video": "Upload a video in **Upload Your Source Video** (at least 33 frames).",
+        "viskoImage": "Edit **Scene prompt** to name what is in your image and describe its motion. The example prompt describes a forest path.",
+        "editPrompt": "Describe the change you want in **Edit prompt**."
+    },
+    "visko-dynamic-01-text-to-video": {
+        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
+        "prompt": "A small stream flows over smooth stones in a quiet forest.",
+        "title": "Visko Dynamic: Video with Sound"
+    },
+    "visko-dynamic-02-image-to-video": {
+        "audio_prompt": "",
+        "prompt": "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
+        "title": "Visko Dynamic: Animate an Image with Sound"
+    },
+    "visko-dynamic-03-live-prompt": {
+        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
+        "prompt": "A small stream flows over smooth stones in a quiet forest.",
+        "title": "Visko Dynamic: Change the Prompt while Recording"
+    },
+    "visko-stable-01-text-to-video": {
+        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
+        "prompt": "A small stream flows over smooth stones in a quiet forest.",
+        "title": "Visko Stable: Video with Sound"
+    },
+    "visko-stable-02-image-to-video": {
+        "audio_prompt": "",
+        "prompt": "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
+        "title": "Visko Stable: Animate an Image with Sound"
+    },
+    "visko-stable-03-live-prompt": {
+        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
+        "prompt": "A small stream flows over smooth stones in a quiet forest.",
+        "title": "Visko Stable: Change the Prompt while Recording"
+    },
+    "x2-01-edit-video": {
+        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
+        "title": "X2: Edit a Local Video"
+    },
+    "x2-02-reference-edit": {
+        "prompt": "Replace the main subject with the subject from the reference image. Keep the background.",
+        "title": "X2: Edit with a Reference Image"
+    },
+    "x2-03-webcam": {
+        "prompt": "Turn the scene into a watercolor painting.",
+        "title": "X2: Edit and Drag a Webcam Scene"
+    },
+    "x2-04-live-prompt": {
+        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
+        "title": "X2: Drag and Edit a Video"
+    }
 }

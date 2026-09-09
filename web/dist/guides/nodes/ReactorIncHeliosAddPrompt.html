@@ -15,14 +15,14 @@
         <main><h1 id="reactor-helios-add-a-prompt">Reactor Helios: Add a Prompt</h1>
 <p>Add a later prompt to a Helios sequence. This node prepares text locally.</p>
 <h2 id="build-a-sequence">Build a sequence</h2>
-<p>Connect <strong>Add a prompt</strong> nodes in order. <strong>Previous steps (JSON)</strong> is an advanced
+<p>Connect <strong>Add a Prompt</strong> nodes in order. <strong>Previous prompts (JSON)</strong> is an advanced
 control for entering a list directly. To show it, right-click the node and
 choose <strong>Show Advanced</strong>. The examples do not require editing JSON.</p>
 <ol>
-<li>Leave <strong>Previous steps (JSON)</strong> unconnected for the first later prompt.</li>
+<li>Leave <strong>Previous prompts (JSON)</strong> unconnected for the first later prompt.</li>
 <li>Choose its <strong>Start chunk</strong> number and describe the scene in <strong>Scene prompt</strong>.</li>
-<li>Connect <strong>Prompt sequence</strong> to the next Add a prompt node's <strong>Previous steps (JSON)</strong> input.</li>
-<li>Connect the last Add a prompt node to <strong>Reactor Helios: Generate a Prompt Sequence</strong>.
+<li>Connect <strong>Prompt sequence</strong> to the next Add a Prompt node's <strong>Previous prompts (JSON)</strong> input.</li>
+<li>Connect the last Add a Prompt node to <strong>Reactor Helios: Generate Video from a Prompt Sequence</strong>.
 Set the opening prompt and recording length on that generation node.</li>
 </ol>
 <table>
@@ -34,8 +34,8 @@ Set the opening prompt and recording length on that generation node.</li>
 </thead>
 <tbody>
 <tr>
-<td>Previous steps (JSON)</td>
-<td>Earlier prompts from another Add a prompt node. Default: <code>[]</code>.</td>
+<td>Previous prompts (JSON)</td>
+<td>Earlier prompts from another Add a Prompt node. Default: <code>[]</code>.</td>
 </tr>
 <tr>
 <td>Start chunk</td>

@@ -3,20 +3,6 @@
         "caseInsensitive": true
     },
     "global": {
-        "bannedTerms": [
-            "stuff",
-            "misc",
-            "util",
-            "utils",
-            "helper",
-            "helpers",
-            "shim",
-            "shims",
-            "if_needed",
-            "ifNeeded",
-            "likely",
-            "belt and suspenders"
-        ],
         "bannedTermExemptions": [
             "CustomEvent",
             "HTMLDialogElement",
@@ -70,35 +56,9 @@
             "caseNames": ["kebab"]
         },
         {
-            "pathRegexes": ["^web/discovery/api\\.ts$"],
-            "categories": ["properties"],
-            "names": [
-                "connect_name",
-                "documentation_url",
-                "credits_per_second",
-                "node_ids",
-                "retrieved_at",
-                "can_rollback",
-                "mutation_allowed",
-                "automatic_check",
-                "interval_hours",
-                "checked_at",
-                "update_available"
-            ],
-            "caseNames": ["snake"],
-            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
-        },
-        {
             "pathRegexes": ["^web/live/api\\.ts$"],
             "categories": ["properties"],
-            "names": [
-                "duration_seconds",
-                "prompt_limit",
-                "termination_confirmed",
-                "controls_ready",
-                "elapsed_seconds",
-                "preview_sequence"
-            ],
+            "names": ["preview_sequence"],
             "caseNames": ["snake"],
             "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
         },
@@ -129,6 +89,27 @@
             "names": ["getCustomNodesI18n"],
             "exclude": true,
             "reason": "ComfyUI exposes its translation loader with this exact method name."
+        },
+        {
+            "pathRegexes": ["^web/host\\.d\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["extensionManager", "loadedGraphNode", "fetchApi"],
+            "exclude": true,
+            "reason": "ComfyUI supplies these exact API member names."
+        },
+        {
+            "pathRegexes": ["^web/nodes/contracts\\.ts$"],
+            "categories": ["properties"],
+            "names": ["advanced"],
+            "exclude": true,
+            "reason": "ComfyUI widgets use this exact property to control advanced inputs."
+        },
+        {
+            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "categories": ["properties"],
+            "names": ["catalog_auto_check", "catalog_interval_hours"],
+            "exclude": true,
+            "reason": "These persisted setting keys are sent unchanged to the server."
         }
     ],
     "excludedPaths": [

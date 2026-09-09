@@ -14,7 +14,7 @@ sound; the separate audio output lets you save or process the speech alone.
 | Video length (seconds) | Requested saved video length, at least 4 seconds and within the video duration limit in Reactor settings. Default: 5. |
 | Words per minute       | Speech pace. Default: 140. Reactor checks the supported range before generation.                                      |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                         |
-| Variation              | Change this integer to request another run. Default: 0.                                                               |
+| Run number             | Change this integer to request another run. Default: 0.                                                               |
 
 Use a front-facing portrait of one person. LTX fits the picture to a wide canvas;
 a tall portrait can lose the top of the head. Frame the image before uploading.
@@ -58,7 +58,7 @@ removes partial media. The connector never substitutes a silent video for a fail
 recording.
 
 Use ComfyUI's cancel control to stop. Closing a tab or pausing playback does not
-end generation. Unchanged inputs may reuse the host cache. Change **Variation** for
+end generation. Unchanged inputs may reuse the host cache. Change **Run number** for
 another run; seeds do not guarantee identical output across model revisions.
 The connector does not retry ambiguous session creation or model commands.
 

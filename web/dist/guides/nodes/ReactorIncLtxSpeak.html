@@ -50,7 +50,7 @@ sound; the separate audio output lets you save or process the speech alone.</p>
 <td>Integer from 0 to 4,294,967,295. Default: 42.</td>
 </tr>
 <tr>
-<td>Variation</td>
+<td>Run number</td>
 <td>Change this integer to request another run. Default: 0.</td>
 </tr>
 </tbody>
@@ -91,7 +91,7 @@ has finished. A timeout returns an error and
 removes partial media. The connector never substitutes a silent video for a failed
 recording.</p>
 <p>Use ComfyUI's cancel control to stop. Closing a tab or pausing playback does not
-end generation. Unchanged inputs may reuse the host cache. Change <strong>Variation</strong> for
+end generation. Unchanged inputs may reuse the host cache. Change <strong>Run number</strong> for
 another run; seeds do not guarantee identical output across model revisions.
 The connector does not retry ambiguous session creation or model commands.</p>
 <p><a href="https://docs.reactor.inc/model-api-reference/ltx/schema">Reactor LTX schema</a></p>

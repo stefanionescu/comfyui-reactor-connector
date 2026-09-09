@@ -4,8 +4,8 @@
         "description": "Enable a webcam in the live panel, then record an edited video.",
         "inputs": {
             "prompt": {
-                "name": "Scene prompt",
-                "placeholder": "Scene prompt"
+                "name": "Edit prompt",
+                "placeholder": "Edit prompt"
             },
             "duration_seconds": {
                 "name": "Video length (seconds)",
@@ -16,11 +16,11 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "anchor_interval": {
-                "name": "Anchor interval",
+                "name": "Source refresh interval (chunks)",
                 "tooltip": "Return to the camera source after this many model chunks. Use 0 to turn this off."
             }
         },
@@ -40,15 +40,15 @@
         "description": "Edit webcam video and drag on the output to steer the subject.",
         "inputs": {
             "prompt": {
-                "name": "Scene prompt",
-                "placeholder": "Scene prompt"
+                "name": "Edit prompt",
+                "placeholder": "Edit prompt"
             },
             "duration_seconds": {
                 "name": "Video length (seconds)"
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "reference_image": {
                 "name": "Reference image",
@@ -83,8 +83,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "aspect": {
                 "name": "Aspect ratio",
@@ -135,8 +135,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "aspect": {
                 "name": "Aspect ratio",
@@ -192,8 +192,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "script": {
                 "name": "Spoken words",
@@ -239,8 +239,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "interactive": {
                 "name": "Live controls",
@@ -279,8 +279,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "interactive": {
                 "name": "Live controls",
@@ -303,7 +303,7 @@
         "description": "Add a later prompt to a Helios sequence.",
         "inputs": {
             "previous": {
-                "name": "Previous steps (JSON)",
+                "name": "Previous prompts (JSON)",
                 "tooltip": "Leave [] for the first later prompt, or connect the previous builder."
             },
             "chunk": {
@@ -325,7 +325,7 @@
         "search_aliases": ["Reactor", "Helios", "schedule", "prompt"]
     },
     "ReactorIncHeliosSequence": {
-        "display_name": "Reactor Helios: Generate a Prompt Sequence",
+        "display_name": "Reactor Helios: Generate Video from a Prompt Sequence",
         "description": "Generate a Helios video with later prompts scheduled by chunk number.",
         "inputs": {
             "prompt": {
@@ -341,12 +341,12 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "sequence": {
                 "name": "Prompt sequence (JSON)",
-                "tooltip": "Connect Reactor Helios: Add a prompt. [] keeps the opening prompt."
+                "tooltip": "Connect Reactor Helios: Add a Prompt. [] keeps the opening prompt."
             },
             "image": {
                 "name": "Starting image",
@@ -385,12 +385,12 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "movement": {
                 "name": "Movement",
-                "tooltip": "Keep moving in this direction while recording. Choose idle to stay in place.",
+                "tooltip": "Keep moving in this direction while recording. Choose Stop to stay in place.",
                 "options": {
                     "idle": "Stop",
                     "forward": "Forward",
@@ -458,12 +458,12 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "movement": {
                 "name": "Movement",
-                "tooltip": "Keep moving in this direction while recording. Choose idle to stay in place.",
+                "tooltip": "Keep moving in this direction while recording. Choose Stop to stay in place.",
                 "options": {
                     "idle": "Stop",
                     "forward": "Forward",
@@ -534,8 +534,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "interactive": {
                 "name": "Live controls",
@@ -554,7 +554,7 @@
         "search_aliases": ["Reactor", "LongLive", "text to video"]
     },
     "ReactorIncLongLiveStoryboard": {
-        "display_name": "Reactor LongLive: Create a Storyboard",
+        "display_name": "Reactor LongLive: Generate Video from a Storyboard",
         "description": "Generate an opening shot and schedule later shots by chunk number.",
         "inputs": {
             "prompt": {
@@ -570,12 +570,12 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "storyboard": {
                 "name": "Shots (JSON)",
-                "tooltip": "Connect Reactor LongLive: Add a shot, or enter a validated shot list."
+                "tooltip": "Connect Reactor LongLive: Add a Shot, or enter a validated shot list."
             }
         },
         "outputs": {
@@ -594,7 +594,7 @@
         "description": "Add a shot to a LongLive storyboard.",
         "inputs": {
             "previous": {
-                "name": "Previous steps (JSON)",
+                "name": "Previous shots (JSON)",
                 "tooltip": "Leave [] for the first shot, or connect the previous shot node."
             },
             "at_session_chunk": {
@@ -603,7 +603,7 @@
             },
             "transition": {
                 "name": "Transition",
-                "tooltip": "Soft keeps the scene memory. Cut starts a new scene.",
+                "tooltip": "Soft transition continues from the preceding scene. Hard cut starts a new scene.",
                 "options": {
                     "soft": "Soft transition",
                     "cut": "Hard cut"
@@ -632,8 +632,8 @@
                 "tooltip": "Connect one local SDR clip with at least 33 frames."
             },
             "prompt": {
-                "name": "Scene prompt",
-                "placeholder": "Scene prompt"
+                "name": "Edit prompt",
+                "placeholder": "Edit prompt"
             },
             "duration_seconds": {
                 "name": "Video length (seconds)",
@@ -644,11 +644,11 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "anchor_interval": {
-                "name": "Anchor interval",
+                "name": "Source refresh interval (chunks)",
                 "tooltip": "Return to the source image after this many model chunks. Use 0 to turn this off."
             },
             "interactive": {
@@ -676,16 +676,16 @@
                 "tooltip": "Connect one local SDR clip of at least 33 frames."
             },
             "prompt": {
-                "name": "Scene prompt",
+                "name": "Edit prompt",
                 "tooltip": "Describe the edit in 1 to 1,000 characters.",
-                "placeholder": "Scene prompt"
+                "placeholder": "Edit prompt"
             },
             "duration_seconds": {
                 "name": "Video length (seconds)"
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "keep_backlog": {
                 "name": "Keep queued frames",
@@ -696,10 +696,12 @@
                 "tooltip": "Hold the pointer at the chosen position while recording."
             },
             "pointer_x": {
-                "name": "Pointer X"
+                "name": "Horizontal position (0–1)",
+                "tooltip": "0 is the left edge; 1 is the right edge."
             },
             "pointer_y": {
-                "name": "Pointer Y"
+                "name": "Vertical position (0–1)",
+                "tooltip": "0 is the top edge; 1 is the bottom edge."
             },
             "reference_image": {
                 "name": "Reference image",
@@ -738,8 +740,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "audio_prompt": {
                 "name": "Sound prompt",
@@ -798,8 +800,8 @@
                 "tooltip": "Number used by the model to generate the video. Results can change after model updates."
             },
             "variation": {
-                "name": "Variation",
-                "tooltip": "Change this value to generate again with the same inputs."
+                "name": "Run number",
+                "tooltip": "Change this number to run again with unchanged inputs. This does not change the seed."
             },
             "audio_prompt": {
                 "name": "Sound prompt",

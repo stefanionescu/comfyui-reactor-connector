@@ -34,7 +34,7 @@ to compare SANA’s reconstruction with the original before asking for an edit.<
 <td>One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output.</td>
 </tr>
 <tr>
-<td>Scene prompt</td>
+<td>Edit prompt</td>
 <td>Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.</td>
 </tr>
 <tr>
@@ -46,11 +46,11 @@ to compare SANA’s reconstruction with the original before asking for an edit.<
 <td>Integer from 0 to 4,294,967,295. Default: 42.</td>
 </tr>
 <tr>
-<td>Variation</td>
+<td>Run number</td>
 <td>Change this value for another run. Default: 0.</td>
 </tr>
 <tr>
-<td>Anchor interval</td>
+<td>Source refresh interval (chunks)</td>
 <td>Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.</td>
 </tr>
 <tr>
@@ -93,7 +93,7 @@ so it can exceed the output duration. The host recording and session limits appl
 The connector disconnects after recording, failure, or cancellation and does not
 automatically retry rejected commands or uncertain session creation.</p>
 <p>Use ComfyUI's cancel control to stop. Closing the ComfyUI window does not cancel
-a queued workflow. Unchanged inputs may reuse ComfyUI's cache; change <strong>Variation</strong>
+a queued workflow. Unchanged inputs may reuse ComfyUI's cache; change <strong>Run number</strong>
 to request another run. Seeds do not guarantee identical output after a
 provider update.</p>
 <h2 id="recovery">Recovery</h2>

@@ -39,15 +39,23 @@ def read_messages(name: MessageFile, language: str = "en") -> dict[str, object]:
 
 def translate(name: MessageFile, key: str, **values: str | int | float) -> str:
     """Read a message in the current request language, with an English fallback."""
-    messages = read_messages(name)
-    localized = read_messages(name, _language.get())
-    if name == "main":
-        messages = cast("dict[str, object]", messages["reactorInc"])
-        localized = cast("dict[str, object]", localized.get("reactorInc", {}))
-    message = localized.get(key, messages[key])
-    if not isinstance(message, str):
-        raise TypeError(key)
+    path = f"reactorInc.{key}" if name == "main" else key
+    message = _read_message(read_messages(name, _language.get()), path)
+    if message is None:
+        message = _read_message(read_messages(name), path)
+    if message is None:
+        raise KeyError(key)
     return message.format_map(values) if values else message
+
+
+def _read_message(source: object, key: str) -> str | None:
+    """Resolve a nested string without treating a group as a message."""
+    value = source
+    for part in key.split("."):
+        if not isinstance(value, dict):
+            return None
+        value = cast("dict[str, object]", value).get(part)
+    return value if isinstance(value, str) else None
 
 
 @contextmanager

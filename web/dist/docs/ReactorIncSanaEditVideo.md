@@ -11,15 +11,15 @@ to compare SANA’s reconstruction with the original before asking for an edit.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Source video           | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
-| Scene prompt           | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
-| Video length (seconds) | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
-| Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
-| Variation              | Change this value for another run. Default: 0.                                                                                                   |
-| Anchor interval        | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
-| Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
+| Input                            | What to provide                                                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Source video                     | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
+| Edit prompt                      | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
+| Video length (seconds)           | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
+| Seed                             | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
+| Run number                       | Change this value for another run. Default: 0.                                                                                                   |
+| Source refresh interval (chunks) | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
+| Live controls                    | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
 
 Use a clip with even dimensions, no more than 4096 pixels on either side, and a
 frame rate from 1 to 120 fps. HDR, multiple video streams, unsupported containers,
@@ -63,7 +63,7 @@ The connector disconnects after recording, failure, or cancellation and does not
 automatically retry rejected commands or uncertain session creation.
 
 Use ComfyUI's cancel control to stop. Closing the ComfyUI window does not cancel
-a queued workflow. Unchanged inputs may reuse ComfyUI's cache; change **Variation**
+a queued workflow. Unchanged inputs may reuse ComfyUI's cache; change **Run number**
 to request another run. Seeds do not guarantee identical output after a
 provider update.
 

@@ -10,7 +10,7 @@ to ComfyUI's **Save Video** node to preview and save the result.
 | Scene prompt           | Describe the scene and motion. Empty prompts are rejected before a session starts.                      |
 | Video length (seconds) | Requested video duration, from 0.1 to the video duration limit in Reactor settings. Default: 5 seconds. |
 | Seed                   | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                            |
-| Variation              | Change this number to request another run with otherwise identical inputs.                              |
+| Run number             | Change this number to request another run with otherwise identical inputs.                              |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                        |
 
 ## Run and save

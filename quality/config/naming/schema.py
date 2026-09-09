@@ -1,6 +1,7 @@
 """Naming quality-policy location and closed schema members."""
 
 NAMING_POLICY_PATH = "quality/config/naming/policy.json"
+NAMING_TERMS_PATH = "quality/config/naming/terms.json"
 NAMING_POLICY_VERSION = 1
 NAMING_CASES = {"kebab", "pascal", "snake", "upper-snake"}
 NAMING_LANGUAGE_KEYS = {

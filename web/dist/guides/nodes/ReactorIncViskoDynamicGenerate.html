@@ -38,7 +38,7 @@ one <strong>Load Image</strong> output to the optional <strong>Starting image</s
 <td>Integer from 0 to 4,294,967,295. Default: 42.</td>
 </tr>
 <tr>
-<td>Variation</td>
+<td>Run number</td>
 <td>Change this integer for another run. Default: 0.</td>
 </tr>
 <tr>
@@ -101,7 +101,7 @@ returns an error and removes unfinished files.</p>
 generation, and recording readiness; it can exceed the saved video's duration.
 The configured session time limit applies throughout. Pausing playback or closing
 the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.</p>
-<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Variation</strong> for another run. A seed does not guarantee identical results across model updates.
+<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Run number</strong> for another run. A seed does not guarantee identical results across model updates.
 The connector does not automatically retry failed commands or uncertain sessions.</p>
 <p>If the session reaches its limit before recording is ready, try a shorter recording
 or review the host's session limit and expected cost. If a recording is unavailable,

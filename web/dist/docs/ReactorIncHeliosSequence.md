@@ -1,4 +1,4 @@
-# Reactor Helios: Generate a Prompt Sequence
+# Reactor Helios: Generate Video from a Prompt Sequence
 
 Generate a Helios video with prompt changes prepared before the run. Use
 **Reactor Helios: Add a Prompt** to build the sequence without writing commands.
@@ -11,8 +11,8 @@ You can also connect one starting image.
 | Scene prompt           | The opening scene and motion, from 1 to 20,000 characters.                              |
 | Video length (seconds) | Recording length. Default: 5 seconds. Reactor settings limit the maximum.               |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                           |
-| Variation              | Change this number for another run with the same other inputs. Default: 0.              |
-| Prompt sequence (JSON) | Connect the last Add a prompt node. `[]` keeps only the opening prompt.                 |
+| Run number             | Change this number for another run with the same other inputs. Default: 0.              |
+| Prompt sequence (JSON) | Connect the last Add a Prompt node. `[]` keeps only the opening prompt.                 |
 | Starting image         | Optional single RGB image. The same reference remains in place throughout the sequence. |
 
 Give later prompts distinct, increasing chunk numbers. The sequence allows up

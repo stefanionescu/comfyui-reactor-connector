@@ -4,19 +4,19 @@ Add a later shot to a LongLive storyboard. This node prepares the shot list loca
 
 ## Build a sequence
 
-Connect **Add a shot** nodes in order. **Previous steps (JSON)** is an advanced
+Connect **Add a Shot** nodes in order. **Previous shots (JSON)** is an advanced
 control for entering a list directly. To show it, right-click the node and
 choose **Show Advanced**. The examples do not require editing JSON.
 
-1. Leave **Previous steps (JSON)** unconnected for the first later shot.
+1. Leave **Previous shots (JSON)** unconnected for the first later shot.
 2. Choose when the shot starts in **Start chunk**, then set its transition and prompt.
-3. Connect the **Storyboard** output to another Reactor LongLive: Add a Shot node's **Previous steps (JSON)**
-   input to add another shot, or to Reactor LongLive: Create a Storyboard to generate the video.
+3. Connect the **Shots** output to another Reactor LongLive: Add a Shot node's **Previous shots (JSON)**
+   input to add another shot, or to Reactor LongLive: Generate Video from a Storyboard to generate the video.
 4. Set the opening prompt and video length on the generation node.
 
 | Input                 | Meaning                                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Previous steps (JSON) | The earlier shot list. Default: `[]`. Connect another Reactor LongLive: Add a Shot node to extend its list.      |
+| Previous shots (JSON) | The earlier shot list. Default: `[]`. Connect another Reactor LongLive: Add a Shot node to extend its list.      |
 | Start chunk           | Chunk number from the start of generation, from 1 to 100,000. Each later shot needs a larger number. Default: 1. |
 | Transition            | `soft` changes the prompt within the scene. `cut` starts a new scene. Default: soft.                             |
 | Scene prompt          | The later shot's description, from 1 to 20,000 characters.                                                       |
@@ -32,7 +32,7 @@ about 1.2 seconds at 24 frames per second. Record long enough to include the lat
 shots. A shot at chunk 20 will not appear in a two-second video.
 
 Example: add a soft pullback at chunk 1, then a cut to a lake at chunk 2. Connect
-the list to Reactor LongLive: Create a Storyboard and record five seconds. Watch
+the list to Reactor LongLive: Generate Video from a Storyboard and record five seconds. Watch
 the resulting transitions; this node alone does not produce video.
 
 If the list is invalid, check ordering and connect the previous node's output

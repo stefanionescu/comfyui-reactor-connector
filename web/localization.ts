@@ -80,7 +80,7 @@ export function refreshText(): void {
       bindings.delete(binding);
       continue;
     }
-    renderBinding(target, binding);
+    updateBinding(target, binding);
   }
 }
 
@@ -89,7 +89,7 @@ function bindingText(target: Node, attribute: string | undefined): string | null
   return target instanceof Element && attribute ? target.getAttribute(attribute) : null;
 }
 
-function renderBinding(target: Node, binding: Binding): void {
+function updateBinding(target: Node, binding: Binding): void {
   binding.rendered = translate(
     binding.message.key,
     binding.message.values,

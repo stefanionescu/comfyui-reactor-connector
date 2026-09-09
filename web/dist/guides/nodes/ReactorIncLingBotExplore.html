@@ -55,16 +55,16 @@ movement with both look directions idle before combining camera controls.</p>
 <td>Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.</td>
 </tr>
 <tr>
-<td>Variation</td>
+<td>Run number</td>
 <td>Change this number to request another run with the same other settings. Default: 0.</td>
 </tr>
 <tr>
 <td>Movement</td>
-<td>Forward, back, strafe left, strafe right, or idle. Choose idle to stay in place.</td>
+<td>Forward, Back, Move left, Move right, or Stop. Choose Stop to stay in place.</td>
 </tr>
 <tr>
 <td>Turn left or right</td>
-<td>Keep looking left or right. Choose idle to stop turning.</td>
+<td>Keep looking left or right. Choose Stop to stop turning.</td>
 </tr>
 <tr>
 <td>Look up or down</td>
@@ -103,7 +103,7 @@ confirmed receiving and the number of preview frames. Receiving a command does
 not prove that the requested movement is visible.</p>
 <p>Setup and connection time also count toward the
 session time limit. Running the same
-workflow again may reuse ComfyUI's cached result. Change <strong>Variation</strong> for another
+workflow again may reuse ComfyUI's cached result. Change <strong>Run number</strong> for another
 run. Changing the account or execution limits also prevents reuse.</p>
 <h2 id="stop-and-recover">Stop and recover</h2>
 <p>Use ComfyUI's cancel control to stop a run. Closing an ordinary workflow tab does

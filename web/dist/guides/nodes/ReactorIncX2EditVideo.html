@@ -35,7 +35,7 @@ of the requested change.</p>
 <td>One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.</td>
 </tr>
 <tr>
-<td>Scene prompt</td>
+<td>Edit prompt</td>
 <td>An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.</td>
 </tr>
 <tr>
@@ -43,7 +43,7 @@ of the requested change.</p>
 <td>Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.</td>
 </tr>
 <tr>
-<td>Variation</td>
+<td>Run number</td>
 <td>Change this integer to request another run. Default: 0.</td>
 </tr>
 <tr>
@@ -55,11 +55,11 @@ of the requested change.</p>
 <td>Hold the pointer at the chosen position while true. Default: false.</td>
 </tr>
 <tr>
-<td>Pointer X</td>
+<td>Horizontal position (0–1)</td>
 <td>Horizontal position: 0 is left, 1 is right. Default: 0.5.</td>
 </tr>
 <tr>
-<td>Pointer Y</td>
+<td>Vertical position (0–1)</td>
 <td>Vertical position: 0 is top, 1 is bottom. Default: 0.5.</td>
 </tr>
 <tr>
@@ -72,7 +72,7 @@ of the requested change.</p>
 </tr>
 </tbody>
 </table>
-<p>X2 has no seed command. <strong>Variation</strong> controls ComfyUI caching; it is not a model
+<p>X2 has no seed command. <strong>Run number</strong> controls ComfyUI caching; it is not a model
 seed and does not guarantee reproducibility.</p>
 <p>Source clips must have even dimensions, at most 4096 pixels per side, and a frame
 rate from 1 to 120 fps. The connector supports MP4, MOV, WebM, and AVI. It rejects
@@ -110,7 +110,7 @@ exceed output duration. The configured recording and server session limits apply
 Use ComfyUI's cancel control to stop; closing a tab does not cancel a workflow.
 The connector disconnects after recording, failure, or cancellation. It does not
 automatically retry failed commands or uncertain session creation.</p>
-<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Variation</strong> for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
+<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Run number</strong> for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
 reference or prompt, review those inputs before deciding to run again.</p>
 <p><a href="https://docs.reactor.inc/model-api-reference/x2/schema">Reactor X2 schema</a></p>
 <h2 id="live-controls">Live controls</h2>

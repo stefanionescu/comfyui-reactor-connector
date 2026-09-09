@@ -26,10 +26,10 @@ For a first run, use a picture of a path or room with clear depth. Choose
 | Scene prompt            | Describe the scene and motion in 1 to 1,000 characters.                                                                                      |
 | Video length (seconds)  | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                                                  |
 | Seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                      |
-| Variation               | Change this number to request another run with the same other settings. Default: 0.                                                          |
-| Movement                | Forward, back, or idle. Choose idle to stay in place.                                                                                        |
+| Run number              | Change this number to request another run with the same other settings. Default: 0.                                                          |
+| Movement                | Forward, Back, or Stop. Choose Stop to stay in place.                                                                                        |
 | Sideways movement       | Sideways movement: strafe left, strafe right, or idle. Combine it with forward or back to move diagonally.                                   |
-| Turn left or right      | Keep looking left or right. Choose idle to stop turning.                                                                                     |
+| Turn left or right      | Keep looking left or right. Choose Stop to stop turning.                                                                                     |
 | Look up or down         | Keep looking up or down. You can combine it with horizontal look.                                                                            |
 | Turn per step (degrees) | Turn amount per model step, in degrees. Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. This is not degrees per second. |
 | Live controls           | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.                        |
@@ -65,7 +65,7 @@ not prove that the requested movement is visible.
 
 Setup and connection time also count toward the
 session time limit. Running the same
-workflow again may reuse ComfyUI's cached result. Change **Variation** for another
+workflow again may reuse ComfyUI's cached result. Change **Run number** for another
 run. Changing the account or execution limits also prevents reuse.
 
 ## Stop and recover

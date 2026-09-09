@@ -6,13 +6,13 @@ Your camera remains off until you enable it in the live panel.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                                 |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Scene prompt           | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
-| Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds.                   |
-| Seed                   | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
-| Variation              | Change this value for another run. Default: 0.                                                                  |
-| Anchor interval        | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
+| Input                            | What to provide                                                                                                 |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Edit prompt                      | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
+| Video length (seconds)           | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds.                   |
+| Seed                             | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
+| Run number                       | Change this value for another run. Default: 0.                                                                  |
+| Source refresh interval (chunks) | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
 
 ## Run and save
 

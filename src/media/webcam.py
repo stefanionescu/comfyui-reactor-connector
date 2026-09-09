@@ -62,7 +62,7 @@ class WebcamFrames:
             self.received_at = time.monotonic()
 
     def is_ready(self) -> bool:
-        """Require a recent camera frame before starting a paid session."""
+        """Require a recent camera frame before starting a session."""
         with self.lock:
             return (
                 not self.closed
@@ -90,7 +90,7 @@ class WebcamFrames:
                 await asyncio.sleep(1 / 24)
         except asyncio.CancelledError:
             raise
-        except Exception as error:  # noqa: BLE001 -- reason: Forward all publisher failures to the session owner so it terminates the paid session.
+        except Exception as error:  # noqa: BLE001 -- reason: Forward all publisher failures to the session owner so it terminates the session.
             fail(error)
 
     def clear(self) -> None:

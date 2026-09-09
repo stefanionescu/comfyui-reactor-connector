@@ -14,16 +14,16 @@ let current: ModelDialog | undefined;
  * @param check - The scheduler's report, if available.
  * @returns A status message for the model sources section.
  */
-function automaticStatus(check: ModelList['automatic_check']): string | Message {
+function automaticStatus(check: ModelList['automaticCheck']): string | Message {
   if (!check) return '';
   if (!check.enabled) return message('models.checksOff');
   if (check.running) return message('models.checkRunning');
   if (check.error) return check.error;
-  if (check.update_available === true) return message('models.listChanged');
-  if (check.checked_at)
+  if (check.updateAvailable === true) return message('models.listChanged');
+  if (check.checkedAt)
     return message('models.checkSchedule', {
-      date: () => formatDate(check.checked_at ?? ''),
-      hours: check.interval_hours,
+      date: () => formatDate(check.checkedAt ?? ''),
+      hours: check.intervalHours,
     });
   return message('models.checkDue');
 }
@@ -54,7 +54,7 @@ class ModelDialog {
 
   private readonly list = element('ul');
 
-  private catalog: ModelList | undefined;
+  private modelList: ModelList | undefined;
 
   /**
    * Build the model browser and its optional node filter.
@@ -65,10 +65,10 @@ class ModelDialog {
     private readonly fetcher: Fetcher,
     private nodeId: string | undefined,
   ) {
-    this.dialog.className = 'reactor-dialog reactor-catalog';
-    this.dialog.setAttribute('aria-labelledby', 'reactor-catalog-title');
+    this.dialog.className = 'reactor-dialog reactor-models';
+    this.dialog.setAttribute('aria-labelledby', 'reactor-models-title');
     const heading = element('h2', message('models.title'));
-    heading.id = 'reactor-catalog-title';
+    heading.id = 'reactor-models-title';
     const close = button(message('close'));
     setTextAttribute(close, 'aria-label', message('models.close'));
     close.addEventListener('click', () => this.dialog.close());
@@ -94,8 +94,8 @@ class ModelDialog {
       this.count,
       this.list,
     );
-    this.search.addEventListener('input', () => this.render());
-    this.duration.addEventListener('input', () => this.render());
+    this.search.addEventListener('input', () => this.updateView());
+    this.duration.addEventListener('input', () => this.updateView());
     this.dialog.addEventListener('close', () => this.dispose(), { once: true });
   }
 
@@ -109,7 +109,7 @@ class ModelDialog {
     showAll.addEventListener('click', () => {
       this.nodeId = undefined;
       showAll.hidden = true;
-      this.render();
+      this.updateView();
     });
     this.refresh.disabled = this.rollback.disabled = true;
     this.refresh.addEventListener('click', () => void this.updateModels('refresh'));
@@ -142,14 +142,16 @@ class ModelDialog {
   }
 
   /** Update matching models and calculations from the current controls. */
-  private render(): void {
+  private updateView(): void {
     const query = this.search.value.trim().toLowerCase();
     const nodeId = this.nodeId;
     const visible =
-      this.catalog?.models.filter(
+      this.modelList?.models.filter(
         (model) =>
-          (!nodeId || model.node_ids.includes(nodeId)) &&
-          `${model.name} ${model.title} ${model.connect_name ?? ''}`.toLowerCase().includes(query),
+          (!nodeId || model.nodeIds.includes(nodeId)) &&
+          `${model.modelSlug} ${model.title} ${model.connectionName ?? ''}`
+            .toLowerCase()
+            .includes(query),
       ) ?? [];
     const seconds =
       this.duration.validity.valid && this.duration.value !== ''
@@ -160,7 +162,7 @@ class ModelDialog {
       this.count,
       message('models.count', {
         visible: visible.length,
-        total: this.catalog?.models.length ?? 0,
+        total: this.modelList?.models.length ?? 0,
       }),
     );
   }
@@ -181,12 +183,12 @@ class ModelDialog {
         this.fetcher,
         this.controller.signal,
         action,
-        this.catalog?.revision,
+        this.modelList?.revision,
       );
       if (this.controller.signal.aborted) return;
-      this.catalog = next;
-      setText(this.checked, metadataStatus(next.retrieved_at));
-      setText(this.automatic, automaticStatus(next.automatic_check));
+      this.modelList = next;
+      setText(this.checked, metadataStatus(next.retrievedAt));
+      setText(this.automatic, automaticStatus(next.automaticCheck));
       setText(
         this.status,
         {
@@ -195,7 +197,7 @@ class ModelDialog {
           read: message('models.loaded'),
         }[action],
       );
-      this.render();
+      this.updateView();
     } catch (error) {
       if (!this.controller.signal.aborted)
         setText(this.status, error instanceof Error ? error.message : message('models.loadFailed'));
@@ -207,8 +209,8 @@ class ModelDialog {
   /** Re-enable allowed list changes after the current request finishes. */
   private restoreActions(): void {
     if (this.controller.signal.aborted) return;
-    this.refresh.disabled = !this.catalog?.mutation_allowed;
-    this.rollback.disabled = !this.catalog?.mutation_allowed || !this.catalog.can_rollback;
+    this.refresh.disabled = !this.modelList?.mutationAllowed;
+    this.rollback.disabled = !this.modelList?.mutationAllowed || !this.modelList.canRollback;
   }
 
   /** Show the dialog and read the local model list. */

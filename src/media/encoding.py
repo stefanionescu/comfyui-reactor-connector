@@ -7,7 +7,6 @@ import struct
 import numpy as np
 from pathlib import Path
 from fractions import Fraction
-from ..language import translate
 from dataclasses import dataclass
 from typing import cast, BinaryIO, Protocol
 from contextlib import AbstractContextManager
@@ -165,12 +164,10 @@ def encode(source: BinaryIO, settings: EncoderSettings) -> dict[str, str | int]:
 def read_settings(arguments: list[str]) -> EncoderSettings:
     """Parse the fixed capture worker command and require positive encoding limits."""
     if len(arguments) != WORKER_ARGUMENT_COUNT:
-        msg = translate("main", "errors.workerArguments")
-        raise ValueError(msg)
+        raise ValueError
     settings = EncoderSettings(Path(arguments[1]), *(int(value) for value in arguments[2:]))
     if min(settings.duration_us, settings.frame_bytes, settings.output_bytes, settings.fps) < 1:
-        msg = translate("main", "errors.workerLimits")
-        raise ValueError(msg)
+        raise ValueError
     return settings
 
 

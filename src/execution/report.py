@@ -64,7 +64,7 @@ class RunReport:
 
 @lru_cache(maxsize=1)
 def connector_version() -> str:
-    """Read the package's single version source before a paid connection starts."""
+    """Read the package's single version source before a connection starts."""
     path = Path(__file__).resolve().parents[2] / "pyproject.toml"
     invalid = ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.packageVersionMissing"))
     try:

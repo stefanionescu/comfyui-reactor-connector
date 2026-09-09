@@ -17,6 +17,7 @@ from quality.lib.json_config import (
 )
 from quality.config.naming.schema import (
     NAMING_CASES,
+    NAMING_TERMS_PATH,
     NAMING_POLICY_PATH,
     NAMING_LANGUAGE_KEYS,
     NAMING_POLICY_VERSION,
@@ -46,7 +47,13 @@ def read_policy(root: str | Path = ".") -> NamingPolicy:
     if require_int(payload["version"], f"{NAMING_POLICY_PATH}.version", minimum=1) != NAMING_POLICY_VERSION:
         message = f"{NAMING_POLICY_PATH}.version must be {NAMING_POLICY_VERSION}"
         raise JsonConfigError(message)
-    validate_global_policy(require_mapping(payload["global_policy"], f"{NAMING_POLICY_PATH}.global_policy"))
+    global_policy = require_mapping(payload["global_policy"], f"{NAMING_POLICY_PATH}.global_policy")
+    validate_global_policy(global_policy)
+    vocabulary = read_json_mapping(Path(root) / NAMING_TERMS_PATH)
+    require_keys(vocabulary, required={"banned_terms"}, context=NAMING_TERMS_PATH)
+    global_policy["banned_terms"] = require_string_list(
+        vocabulary["banned_terms"], f"{NAMING_TERMS_PATH}.banned_terms", is_nonempty=True
+    )
     validate_languages(require_mapping(payload["languages"], f"{NAMING_POLICY_PATH}.languages"))
     rules_context = f"{NAMING_POLICY_PATH}.name_rules"
     rules = [
@@ -69,10 +76,9 @@ def read_policy(root: str | Path = ".") -> NamingPolicy:
 def validate_global_policy(policy: dict[str, object]) -> None:
     """Validate repository-wide naming members."""
     context = f"{NAMING_POLICY_PATH}.global_policy"
-    require_keys(policy, required={"are_digits_banned", "banned_term_exemptions", "banned_terms"}, context=context)
+    require_keys(policy, required={"are_digits_banned", "banned_term_exemptions"}, context=context)
     require_bool(policy["are_digits_banned"], f"{context}.are_digits_banned")
     require_string_list(policy["banned_term_exemptions"], f"{context}.banned_term_exemptions")
-    require_string_list(policy["banned_terms"], f"{context}.banned_terms", is_nonempty=True)
 
 
 def validate_languages(languages: dict[str, object]) -> None:

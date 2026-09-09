@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to open the live panel."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Describe the change you want in **Edit prompt**.\n3. Select **Run** to open the live panel."
       ],
       "title": "Start Here"
     },
@@ -46,7 +46,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.\n\nEdit **Scene prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
+        "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.\n\nChange **Edit prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
       ],
       "title": "Using This Workflow"
     },

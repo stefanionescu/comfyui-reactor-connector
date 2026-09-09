@@ -23,6 +23,8 @@ def setup_steps(example: Example) -> list[str]:
         prompt_key = "setup.viskoImage"
     elif example.model == "ltx2":
         prompt_key = "setup.speech"
+    elif example.model in {"sana-streaming", "x2"}:
+        prompt_key = "setup.editPrompt"
     else:
         prompt_key = "setup.prompt"
     steps.append(translate("workflows", prompt_key))
@@ -35,7 +37,7 @@ def live_notes(example: Example) -> list[str]:
     keys: list[str] = []
     if example.mode in {"live", "webcam"}:
         keys.append("live.camera" if example.mode == "webcam" else "live.start")
-        keys.append("live.prompt")
+        keys.append("live.editPrompt" if example.model in {"sana-streaming", "x2"} else "live.prompt")
         if example.slug == "helios-05-live-prompt":
             keys.append("live.autumn")
         if example.model.startswith("visko-"):

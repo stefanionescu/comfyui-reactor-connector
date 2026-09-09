@@ -5,6 +5,7 @@
     "imports": {
         "#config/*.js": "./config/*.js",
         "#config/*.mjs": "./config/*.mjs",
+        "#config/*.json": "./config/*.json",
         "#web/*.js": "./web/*.js",
         "#web/*.mjs": "./web/*.mjs",
         "#shared/*.js": "./shared/*.js",

@@ -171,8 +171,8 @@ export class Webcam {
   }
 
   private async send(): Promise<void> {
-    const blob = await new Promise<Blob | null>((resolve) =>
-      this.canvas.toBlob(resolve, 'image/jpeg', 0.8),
+    const blob = await new Promise<Blob | null>((fulfill) =>
+      this.canvas.toBlob(fulfill, 'image/jpeg', 0.8),
     );
     if (this.closed || !blob) return;
     const response = await this.fetcher('/reactor-inc/v1/live/camera', {

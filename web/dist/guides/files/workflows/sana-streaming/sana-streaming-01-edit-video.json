@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Describe the change you want in **Edit prompt**.\n4. Select **Run** to create and save the video.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
       ],
       "title": "Start Here"
     },

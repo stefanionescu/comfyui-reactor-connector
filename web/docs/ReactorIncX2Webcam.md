@@ -7,9 +7,9 @@ result as a video without sound. X2 requires a non-empty edit prompt.
 
 | Input                  | What to provide                                                                                |
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
-| Scene prompt           | Describe the edit in 1 to 1,000 characters.                                                    |
+| Edit prompt            | Describe the edit in 1 to 1,000 characters.                                                    |
 | Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 10 seconds. |
-| Variation              | Change this value for another run. Default: 0.                                                 |
+| Run number             | Change this value for another run. Default: 0.                                                 |
 | Reference image        | Optional single RGB image of a subject to insert or replace. Connect Load Image.               |
 
 X2 has no seed control. The reference image is set before generation and stays

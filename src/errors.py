@@ -16,7 +16,6 @@ class ErrorCode(StrEnum):
     TIMEOUT = "timeout"
     CAPTURE = "capture"
     CLEANUP = "cleanup"
-    BUDGET = "budget"
     DISCOVERY = "catalog"
 
 

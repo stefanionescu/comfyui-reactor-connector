@@ -1,23 +1,23 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
-import { action } from '#web/live/commands.ts';
 import { CameraStates } from '#web/live/state.ts';
 import { browserLimits } from '#config/browser.ts';
+import { sendAction } from '#web/live/commands.ts';
 import { CameraInput, cameraKeys } from '#web/live/input.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
 
 import {
-  type CameraInvitation,
+  type SceneInvitation,
   exchange,
-  parseInvitation,
+  parseSceneInvitation,
   type LiveStatus,
 } from '#web/live/api.ts';
 
 const panels = new Set<string>();
 
 /** Own the camera controls and live preview for a LingBot session. */
-class CameraPanel {
+class ScenePanel {
   private readonly previousFocus = document.activeElement;
 
   private readonly controller = new AbortController();
@@ -66,15 +66,15 @@ class CameraPanel {
    * @param fetcher - ComfyUI's local API client.
    */
   constructor(
-    private readonly owner: CameraInvitation,
+    private readonly owner: SceneInvitation,
     private readonly fetcher: Fetcher,
   ) {
     this.dialog.className = 'reactor-dialog reactor-live';
-    setTextAttribute(this.dialog, 'aria-label', message('live.cameraTitle'));
+    setTextAttribute(this.dialog, 'aria-label', message('live.sceneTitle'));
     this.status.setAttribute('role', 'status');
     this.promptStatus.setAttribute('role', 'status');
     this.prompt.value = owner.prompt;
-    this.prompt.maxLength = owner.promptLimit;
+    this.prompt.maxLength = owner.promptCharacterLimit;
     this.prompt.rows = 2;
     this.prompt.disabled = this.apply.disabled = true;
     this.surface.className = 'reactor-preview';
@@ -112,10 +112,10 @@ class CameraPanel {
     this.appendContent();
   }
 
-  /** Build the session header, movement controls, and prompt input. */
+  /** Build the session header, movement parseControlsInvitation, and prompt input. */
   private appendContent(): void {
     const header = element('header');
-    header.append(element('h2', message('live.cameraTitle')), this.end);
+    header.append(element('h2', message('live.sceneTitle')), this.end);
     const promptLabel = element('label', message('live.scenePrompt'));
     promptLabel.append(this.prompt);
     this.dialog.append(
@@ -190,13 +190,13 @@ class CameraPanel {
   private display(result: LiveStatus): void {
     if (this.disposed) return;
     for (const control of this.controls.querySelectorAll('button'))
-      control.disabled = !result.controls_ready || this.ending;
-    this.prompt.disabled = !result.controls_ready || this.ending;
+      control.disabled = !result.controlsReady || this.ending;
+    this.prompt.disabled = !result.controlsReady || this.ending;
     this.apply.disabled = this.prompt.disabled || this.pendingPrompt !== undefined;
     setText(
       this.elapsed,
       message('live.elapsed', {
-        seconds: Math.round(result.elapsed_seconds * 10) / 10,
+        seconds: Math.round(result.elapsedSeconds * 10) / 10,
       }),
     );
     if (result.preview) {
@@ -219,7 +219,7 @@ class CameraPanel {
     } else if (!this.ending) {
       setText(
         this.status,
-        result.controls_ready && result.preview_sequence > 0
+        result.controlsReady && result.previewSequence > 0
           ? message('live.previewReady')
           : message('live.waitingVideo'),
       );
@@ -232,7 +232,7 @@ class CameraPanel {
    */
   private finish(result: LiveStatus): void {
     this.finished = true;
-    if (!result.termination_confirmed) setText(this.status, message('live.unconfirmedEnd'));
+    if (!result.terminationConfirmed) setText(this.status, message('live.unconfirmedEnd'));
     else setText(this.status, result.failed ? message('live.discarded') : message('live.ended'));
   }
 
@@ -243,13 +243,13 @@ class CameraPanel {
    */
   private async sendPrompt(result: LiveStatus): Promise<void> {
     if (
-      !result.controls_ready ||
+      !result.controlsReady ||
       result.finishing ||
       this.ending ||
       this.pendingPrompt === undefined
     )
       return;
-    await action(this.fetcher, this.owner, this.actionSequence++, 'prompt', {
+    await sendAction(this.fetcher, this.owner, this.actionSequence++, 'prompt', {
       prompt: this.pendingPrompt,
     });
     this.pendingPrompt = undefined;
@@ -274,13 +274,13 @@ class CameraPanel {
           AbortSignal.timeout(2000),
           input.release,
         );
-        this.previewSequence = result.preview_sequence;
+        this.previewSequence = result.previewSequence;
         this.display(result);
         if (result.closed) this.finish(result);
         else {
           await this.sendPrompt(result);
-          await new Promise((resolve) =>
-            setTimeout(resolve, browserLimits.pollIntervalMilliseconds),
+          await new Promise((fulfill) =>
+            setTimeout(fulfill, browserLimits.pollIntervalMilliseconds),
           );
         }
       }
@@ -312,10 +312,10 @@ class CameraPanel {
  * @param value - The untrusted ComfyUI event payload.
  * @param fetcher - ComfyUI's local API client.
  */
-export function openLive(value: unknown, fetcher: Fetcher): void {
-  const owner = parseInvitation(value);
+export function openSceneControls(value: unknown, fetcher: Fetcher): void {
+  const owner = parseSceneInvitation(value);
   if (!owner || panels.has(owner.lease)) return;
   panels.add(owner.lease);
-  const panel = new CameraPanel(owner, fetcher);
+  const panel = new ScenePanel(owner, fetcher);
   panel.show();
 }

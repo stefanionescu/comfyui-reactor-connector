@@ -1,4 +1,4 @@
-"""Expose each Visko deployment with native synchronized video and audio outputs."""
+"""Generate Visko Dynamic video with synchronized audio."""
 
 from typing import ClassVar
 from .stable import ViskoStableGenerate

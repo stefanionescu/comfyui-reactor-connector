@@ -92,9 +92,9 @@ class CreditDialog {
       this.status,
       this.rates,
     );
-    this.duration.addEventListener('input', () => this.render());
+    this.duration.addEventListener('input', () => this.updateView());
     this.dialog.addEventListener('close', () => this.dispose(), { once: true });
-    this.render();
+    this.updateView();
   }
 
   /**
@@ -104,14 +104,14 @@ class CreditDialog {
    */
   private async readRates(fetcher: Fetcher): Promise<void> {
     try {
-      const catalog = await requestModels(fetcher, this.controller.signal, 'read');
+      const modelList = await requestModels(fetcher, this.controller.signal, 'read');
       if (this.controller.signal.aborted) return;
-      this.models = catalog.models.filter((model) =>
-        model.node_ids.includes(this.node.comfyClass ?? ''),
+      this.models = modelList.models.filter((model) =>
+        model.nodeIds.includes(this.node.comfyClass ?? ''),
       );
-      setText(this.status, metadataStatus(catalog.retrieved_at));
+      setText(this.status, metadataStatus(modelList.retrievedAt));
       if (!this.models.length) setText(this.status, message('pricing.modelUnavailable'));
-      this.render();
+      this.updateView();
     } catch (error) {
       if (!this.controller.signal.aborted)
         setText(
@@ -122,7 +122,7 @@ class CreditDialog {
   }
 
   /** Validate session time and update every rate calculation. */
-  private render(): void {
+  private updateView(): void {
     const valid = this.duration.value !== '' && this.duration.validity.valid;
     setText(
       this.validation,

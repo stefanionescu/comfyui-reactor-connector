@@ -59,7 +59,7 @@ A rejected command or uncertain connection is not retried automatically.
 New runs use saved settings. A running session keeps its original key and limits.
 Changing the effective key or execution limits prevents reuse of an earlier
 ComfyUI result on the next run.
-Model-update settings do not affect reuse of saved results. Change **Variation** to
+Model-update settings do not affect reuse of saved results. Change **Run number** to
 request a new run with otherwise unchanged inputs. A seed does not guarantee
 identical results after a provider update.
 
@@ -130,14 +130,14 @@ Choose a recording duration before running. The live panel belongs to the
 ComfyUI window that started the workflow. Leaving it open does not extend the
 session. Find the examples in the [workflow index](workflows/README.md).
 
-| Task                                     | Use                                             |
-| ---------------------------------------- | ----------------------------------------------- |
-| Change the scene while recording         | Helios, LongLive, or Visko live-prompt workflow |
-| Change an edit while a source clip plays | SANA or X2 live-prompt workflow                 |
-| Drag an edited subject                   | X2 live-prompt or webcam workflow               |
-| Edit a camera feed                       | SANA or X2 webcam workflow                      |
-| Move through an image                    | LingBot or LingBot World 2 live-camera workflow |
-| Continue several clips                   | Fast H3 continued-scene workflow                |
+| Task                                     | Use                                                     |
+| ---------------------------------------- | ------------------------------------------------------- |
+| Change the scene while recording         | Helios, LongLive, or Visko live-prompt workflow         |
+| Change an edit while a source clip plays | SANA or X2 live-prompt workflow                         |
+| Drag an edited subject                   | X2 live-prompt or webcam workflow                       |
+| Edit a camera feed                       | SANA or X2 webcam workflow                              |
+| Move through an image                    | LingBot or LingBot World 2 workflow with scene controls |
+| Continue several clips                   | Fast H3 continued-scene workflow                        |
 
 Ordinary Helios, LongLive, Visko, SANA, and X2 generation nodes have a **Live
 controls** switch, off by default. LongLive storyboards keep their prepared shots.
@@ -183,7 +183,7 @@ later frames to judge its effect. X2 processes groups of frames, so changes can 
 
 ### Move in LingBot
 
-Upload an image and run a live-camera workflow. Click the picture: W and S move
+Upload an image and run a workflow with scene controls. Click the picture: W and S move
 forward and back, A and D move sideways, and arrow keys turn. Click a direction
 button briefly or hold it to keep moving. Escape releases movement. World 2 can
 combine forward and sideways movement.

@@ -4,28 +4,28 @@ import { translate, formatDate } from '#web/language.ts';
 import { message, type Message } from '#web/localization.ts';
 
 export type Model = {
-  key: string;
-  name: string;
+  entryKey: string;
+  modelSlug: string;
   title: string;
-  connect_name: string | null;
-  documentation_url: string | null;
-  credits_per_second: number | null;
+  connectionName: string | null;
+  documentationUrl: string | null;
+  creditsPerSecond: number | null;
   observed: boolean;
   support: 'available' | 'adapter_required';
-  node_ids: string[];
+  nodeIds: string[];
 };
 export type ModelList = {
   revision: string;
-  retrieved_at: string | null;
+  retrievedAt: string | null;
   models: Model[];
-  can_rollback: boolean;
-  mutation_allowed: boolean;
-  automatic_check?: {
+  canRollback: boolean;
+  mutationAllowed: boolean;
+  automaticCheck?: {
     enabled: boolean;
     running: boolean;
-    interval_hours: number;
-    checked_at: string | null;
-    update_available: boolean | null;
+    intervalHours: number;
+    checkedAt: string | null;
+    updateAvailable: boolean | null;
     error: string | null;
   };
 };
@@ -37,17 +37,17 @@ function record(value: unknown): Record<string, unknown> {
 }
 
 // eslint-disable-next-line local/no-trivial-functions -- This shared type guard validates repeated fields at the API boundary.
-function shortText(value: unknown, max = 200): value is string {
+function isShortText(value: unknown, max = 200): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= max;
 }
 
-function model(value: unknown): Model {
+function parseModel(value: unknown): Model {
   const row = record(value);
   if (
-    !shortText(row.key) ||
-    !shortText(row.name) ||
-    !shortText(row.title) ||
-    !(row.connect_name === null || shortText(row.connect_name)) ||
+    !isShortText(row.key) ||
+    !isShortText(row.name) ||
+    !isShortText(row.title) ||
+    !(row.connect_name === null || isShortText(row.connect_name)) ||
     !(
       row.documentation_url === null ||
       (typeof row.documentation_url === 'string' &&
@@ -68,7 +68,17 @@ function model(value: unknown): Model {
     !row.node_ids.every((id) => typeof id === 'string' && /^ReactorInc[A-Za-z0-9]+$/.test(id))
   )
     throw new Error(translate('models.invalidResponse'));
-  return row as Model;
+  return {
+    entryKey: row.key,
+    modelSlug: row.name,
+    title: row.title,
+    connectionName: row.connect_name,
+    documentationUrl: row.documentation_url,
+    creditsPerSecond: row.credits_per_second,
+    observed: row.observed,
+    support: row.support as Model['support'],
+    nodeIds: row.node_ids as string[],
+  };
 }
 
 /**
@@ -76,14 +86,14 @@ function model(value: unknown): Model {
  * @param value - The untrusted JSON response.
  * @returns The validated list; malformed responses throw an error.
  */
-function parseCatalog(value: unknown): ModelList {
+function parseModelList(value: unknown): ModelList {
   const document = record(value);
   if (
     typeof document.revision !== 'string' ||
     !browserPatterns.revision.test(document.revision) ||
     !(
       document.retrieved_at === null ||
-      (shortText(document.retrieved_at, 40) && Number.isFinite(Date.parse(document.retrieved_at)))
+      (isShortText(document.retrieved_at, 40) && Number.isFinite(Date.parse(document.retrieved_at)))
     ) ||
     typeof document.can_rollback !== 'boolean' ||
     typeof document.mutation_allowed !== 'boolean' ||
@@ -92,27 +102,45 @@ function parseCatalog(value: unknown): ModelList {
     document.models.length > 1024
   )
     throw new Error(translate('models.invalidResponse'));
-  const models = document.models.map(model);
-  if (document.automatic_check !== undefined) {
-    const check = record(document.automatic_check);
-    if (
-      typeof check.enabled !== 'boolean' ||
-      typeof check.running !== 'boolean' ||
-      typeof check.interval_hours !== 'number' ||
-      !Number.isSafeInteger(check.interval_hours) ||
-      check.interval_hours < 1 ||
-      !(
-        check.checked_at === null ||
-        (shortText(check.checked_at, 40) && Number.isFinite(Date.parse(check.checked_at)))
-      ) ||
-      !(check.update_available === null || typeof check.update_available === 'boolean') ||
-      !(check.error === null || shortText(check.error, 1024))
-    )
-      throw new Error(translate('models.invalidResponse'));
-  }
-  if (new Set(models.map((row) => row.key)).size !== models.length)
+  const models = document.models.map(parseModel);
+  if (new Set(models.map((row) => row.entryKey)).size !== models.length)
     throw new Error(translate('models.invalidResponse'));
-  return { ...document, models } as ModelList;
+  return {
+    revision: document.revision,
+    retrievedAt: document.retrieved_at,
+    canRollback: document.can_rollback,
+    mutationAllowed: document.mutation_allowed,
+    models,
+    ...(document.automatic_check === undefined
+      ? {}
+      : { automaticCheck: parseAutomaticCheck(document.automatic_check) }),
+  };
+}
+
+function parseAutomaticCheck(value: unknown): NonNullable<ModelList['automaticCheck']> {
+  const check = record(value);
+  if (
+    typeof check.enabled !== 'boolean' ||
+    typeof check.running !== 'boolean' ||
+    typeof check.interval_hours !== 'number' ||
+    !Number.isSafeInteger(check.interval_hours) ||
+    check.interval_hours < 1 ||
+    !(
+      check.checked_at === null ||
+      (isShortText(check.checked_at, 40) && Number.isFinite(Date.parse(check.checked_at)))
+    ) ||
+    !(check.update_available === null || typeof check.update_available === 'boolean') ||
+    !(check.error === null || isShortText(check.error, 1024))
+  )
+    throw new Error(translate('models.invalidResponse'));
+  return {
+    enabled: check.enabled,
+    running: check.running,
+    intervalHours: check.interval_hours,
+    checkedAt: check.checked_at,
+    updateAvailable: check.update_available,
+    error: check.error,
+  };
 }
 
 /**
@@ -164,7 +192,7 @@ export async function requestModels(
   }
   if (!response.ok) {
     const error = record(body).error;
-    throw new Error(shortText(error, 1024) ? error : translate('models.requestFailed'));
+    throw new Error(isShortText(error, 1024) ? error : translate('models.requestFailed'));
   }
-  return parseCatalog(body);
+  return parseModelList(body);
 }

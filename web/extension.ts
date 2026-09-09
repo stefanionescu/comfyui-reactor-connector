@@ -2,10 +2,10 @@ import './styles/interface.css';
 import { api } from '../../scripts/api.js';
 import { app } from '../../scripts/app.js';
 import { requestLocal } from '#web/http.ts';
-import { openLive } from '#web/live/dialog.ts';
 import { refreshText } from '#web/localization.ts';
 import { openControls } from '#web/live/controls.ts';
 import { openModels } from '#web/discovery/dialog.ts';
+import { openSceneControls } from '#web/live/scene.ts';
 import { openSettings } from '#web/settings/dialog.ts';
 import { bindCreditRate } from '#web/discovery/rate.ts';
 import { HELP_COMMAND, helpCommands, openNodeHelp } from '#web/help/command.ts';
@@ -30,7 +30,7 @@ app.registerExtension({
 
     api.addEventListener('reactor-inc.live', (event) => {
       if (event instanceof CustomEvent) {
-        openLive(event.detail, requestLocal);
+        openSceneControls(event.detail, requestLocal);
       }
     });
 
@@ -48,7 +48,7 @@ app.registerExtension({
   commands: [
     {
       id: HELP_COMMAND,
-      label: translate('help'),
+      label: translate('help.label'),
       icon: 'pi pi-question-circle',
       function: openNodeHelp,
     },

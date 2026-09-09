@@ -4,35 +4,41 @@ import english from '#locales/en/main.json';
 
 export type MessageValues = Record<string, string | number | (() => string)>;
 
-export type MessageKey = keyof typeof english.reactorInc;
+type MessagePaths<Messages> = {
+  [Key in keyof Messages & string]: Messages[Key] extends string
+    ? Key
+    : `${Key}.${MessagePaths<Messages[Key]>}`;
+}[keyof Messages & string];
+
+export type MessageKey = MessagePaths<typeof english.reactorInc>;
 
 export const languageEvents = new EventTarget();
 
-let messages: Record<string, Record<string, string>> = {};
+let messages: Record<string, unknown> = {};
 
 /**
- * Keep string messages from one installed language document.
- * @param document - A language entry returned by ComfyUI.
- * @returns The connector's messages, or an empty set if none are provided.
+ * Resolve a nested message from a language resource.
+ * @param source - The resource or group received from ComfyUI.
+ * @param key - A dot-separated path to a string message.
+ * @returns The message, or undefined when a translation is missing or invalid.
  */
-function readLanguage(document: unknown): Record<string, string> {
-  if (typeof document !== 'object' || document === null) return {};
-  const source = (document as Record<string, unknown>).reactorInc;
-  if (typeof source !== 'object' || source === null) return {};
-  const translated: Record<string, string> = {};
-  for (const [key, value] of Object.entries(source)) {
-    if (typeof value === 'string') translated[key] = value;
+function readMessage(source: unknown, key: string): string | undefined {
+  let value = source;
+  for (const part of key.split('.')) {
+    if (typeof value !== 'object' || value === null || !Object.hasOwn(value, part))
+      return undefined;
+    value = (value as Record<string, unknown>)[part];
   }
-  return translated;
+  return typeof value === 'string' ? value : undefined;
 }
 
 /** Load the connector's messages from ComfyUI's installed language files. */
 export async function initializeLanguage(): Promise<void> {
   try {
     const languages = await api.getCustomNodesI18n();
-    const available: Record<string, Record<string, string>> = {};
+    const available: Record<string, unknown> = {};
     for (const [language, document] of Object.entries(languages)) {
-      available[language.toLowerCase()] = readLanguage(document);
+      available[language.toLowerCase()] = document;
     }
     messages = available;
   } catch {
@@ -53,10 +59,11 @@ export async function initializeLanguage(): Promise<void> {
  */
 export function translate(key: MessageKey, values: MessageValues = {}, fallback?: string): string {
   const languages = localeCandidates(selectedLocale());
-  const defaults: Record<string, string> = english.reactorInc;
   const message =
-    languages.map((language) => messages[language]?.[key]).find((value) => value !== undefined) ??
-    defaults[key] ??
+    languages
+      .map((language) => readMessage(messages[language], `reactorInc.${key}`))
+      .find((value) => value !== undefined) ??
+    readMessage(english.reactorInc, key) ??
     fallback ??
     key;
   return message.replaceAll(/\{(\w+)\}/g, (placeholder: string, name: string) =>

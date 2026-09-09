@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import { analyzeNaming } from '#repository/naming/analyze.js';
-import { usage, readPolicy, scopeParts } from '#repository/naming/policy/policy.js';
+import { usage, readPolicy, scopeParts } from '#repository/naming/policy.js';
 
 /**
  * Read and validate the requested naming scopes.

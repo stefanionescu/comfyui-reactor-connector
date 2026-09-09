@@ -11,7 +11,7 @@ Image** to **Starting image** and connect **Video** to **Save Video**.
 | Scene prompt           | Describe the intended scene and motion. Required; cannot be empty.                                |
 | Video length (seconds) | Requested video duration within the video duration limit in Reactor settings. Default: 5 seconds. |
 | Seed                   | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                      |
-| Variation              | Change this number to request another run with identical prompt and seed.                         |
+| Run number             | Change this number to request another run with identical prompt and seed.                         |
 | Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                  |
 
 The image is uploaded as PNG, then applied together with the prompt before

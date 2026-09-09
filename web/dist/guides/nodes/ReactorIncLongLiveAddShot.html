@@ -15,14 +15,14 @@
         <main><h1 id="reactor-longlive-add-a-shot">Reactor LongLive: Add a Shot</h1>
 <p>Add a later shot to a LongLive storyboard. This node prepares the shot list locally.</p>
 <h2 id="build-a-sequence">Build a sequence</h2>
-<p>Connect <strong>Add a shot</strong> nodes in order. <strong>Previous steps (JSON)</strong> is an advanced
+<p>Connect <strong>Add a Shot</strong> nodes in order. <strong>Previous shots (JSON)</strong> is an advanced
 control for entering a list directly. To show it, right-click the node and
 choose <strong>Show Advanced</strong>. The examples do not require editing JSON.</p>
 <ol>
-<li>Leave <strong>Previous steps (JSON)</strong> unconnected for the first later shot.</li>
+<li>Leave <strong>Previous shots (JSON)</strong> unconnected for the first later shot.</li>
 <li>Choose when the shot starts in <strong>Start chunk</strong>, then set its transition and prompt.</li>
-<li>Connect the <strong>Storyboard</strong> output to another Reactor LongLive: Add a Shot node's <strong>Previous steps (JSON)</strong>
-input to add another shot, or to Reactor LongLive: Create a Storyboard to generate the video.</li>
+<li>Connect the <strong>Shots</strong> output to another Reactor LongLive: Add a Shot node's <strong>Previous shots (JSON)</strong>
+input to add another shot, or to Reactor LongLive: Generate Video from a Storyboard to generate the video.</li>
 <li>Set the opening prompt and video length on the generation node.</li>
 </ol>
 <table>
@@ -34,7 +34,7 @@ input to add another shot, or to Reactor LongLive: Create a Storyboard to genera
 </thead>
 <tbody>
 <tr>
-<td>Previous steps (JSON)</td>
+<td>Previous shots (JSON)</td>
 <td>The earlier shot list. Default: <code>[]</code>. Connect another Reactor LongLive: Add a Shot node to extend its list.</td>
 </tr>
 <tr>
@@ -60,7 +60,7 @@ do not add it here at chunk zero.</p>
 about 1.2 seconds at 24 frames per second. Record long enough to include the later
 shots. A shot at chunk 20 will not appear in a two-second video.</p>
 <p>Example: add a soft pullback at chunk 1, then a cut to a lake at chunk 2. Connect
-the list to Reactor LongLive: Create a Storyboard and record five seconds. Watch
+the list to Reactor LongLive: Generate Video from a Storyboard and record five seconds. Watch
 the resulting transitions; this node alone does not produce video.</p>
 <p>If the list is invalid, check ordering and connect the previous node's output
 instead of copying and editing its JSON.</p>

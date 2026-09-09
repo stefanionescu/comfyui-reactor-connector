@@ -13,11 +13,11 @@ export class SoundControls {
   /**
    * Build the sound prompt controls in their disabled state.
    * @param initialPrompt - The workflow's starting sound prompt.
-   * @param promptLimit - The model's maximum sound prompt length.
+   * @param promptCharacterLimit - The model's maximum sound prompt length.
    */
-  constructor(initialPrompt: string, promptLimit: number) {
+  constructor(initialPrompt: string, promptCharacterLimit: number) {
     this.prompt.value = initialPrompt;
-    this.prompt.maxLength = promptLimit;
+    this.prompt.maxLength = promptCharacterLimit;
     this.prompt.rows = 2;
     const label = element('label', message('sound.prompt'));
     label.append(this.prompt);

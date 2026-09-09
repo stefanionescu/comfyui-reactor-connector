@@ -3,11 +3,12 @@ import path from 'node:path';
 import { NAMING_POLICY_PATH } from '#config/paths.js';
 import { GENERATED_SOURCE_FILES } from '#config/files.js';
 import { buildTermEntries } from '#shared/naming/identifier-parts.js';
+import vocabulary from '#config/naming/terms.json' with { type: 'json' };
 import { SCOPE_PREFIXES, VALID_SCOPES, VALID_SCOPE_USAGE } from '#config/repository.js';
 
 const repoRoot = process.cwd();
 const policyPath = path.join(repoRoot, NAMING_POLICY_PATH);
-const usage = `Usage: node quality/repository/naming/check.js [--scope ${VALID_SCOPE_USAGE}]`;
+const usage = `Usage: bun quality/repository/naming/check.js [--scope ${VALID_SCOPE_USAGE}]`;
 const generatedFiles = new Set(GENERATED_SOURCE_FILES);
 
 function toPosix(value) {
@@ -178,7 +179,7 @@ function readPolicy() {
   const global = assertPlainRecord(parsed.global, 'global');
   const local = assertPlainRecord(parsed.local, 'local');
   const caseInsensitive = Boolean(parsed.matching?.caseInsensitive);
-  const globalTerms = normalizeTerms(global.bannedTerms, 'global.bannedTerms');
+  const globalTerms = normalizeTerms(vocabulary.banned_terms, 'banned_terms');
 
   return {
     ...parsed,
@@ -259,9 +260,9 @@ function nameRulesForEntry(policy, relativePath, entry) {
  */
 function termEntriesForPath(policy, relativePath) {
   const entries = [...policy.global.termEntries];
-  for (const scopedEntry of policy.scopedTermEntries) {
-    if (scopedEntry.scopes.some((scope) => pathHasScope(relativePath, scope))) {
-      entries.push(...scopedEntry.termEntries);
+  for (const scopeEntry of policy.scopedTermEntries) {
+    if (scopeEntry.scopes.some((scope) => pathHasScope(relativePath, scope))) {
+      entries.push(...scopeEntry.termEntries);
     }
   }
   return entries;

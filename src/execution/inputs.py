@@ -34,7 +34,7 @@ class VideoInputs:
         """Models without held controls rely on the session owner's disconnect."""
 
     def validate(self, settings: Settings) -> None:
-        """Check prompt, capture, and image limits before a paid connection."""
+        """Check prompt, capture, and image limits before a connection."""
         if type(self.prompt) is not str or not self.prompt.strip() or len(self.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptLength"))
         validate_capture_inputs(self.duration_seconds, self.seed, settings)

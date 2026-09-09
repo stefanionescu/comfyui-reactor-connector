@@ -15,7 +15,7 @@ import {
   nameRulesForEntry,
   pathHasScope,
   termEntriesForPath,
-} from '#repository/naming/policy/policy.js';
+} from '#repository/naming/policy.js';
 
 function addViolation(violations, seen, violation) {
   const key = [violation.file, violation.line, violation.name, violation.kind, violation.rule].join(

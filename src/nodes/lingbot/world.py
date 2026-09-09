@@ -19,7 +19,7 @@ class LingBotWorld2Explore(io.ComfyNode):
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
         """Include current settings and model metadata in the ComfyUI cache key."""
-        return await operation_fingerprint("lingbot-world-2-bounded-v1")
+        return await operation_fingerprint("lingbot-world-2-video-v2")
 
     @classmethod
     async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.

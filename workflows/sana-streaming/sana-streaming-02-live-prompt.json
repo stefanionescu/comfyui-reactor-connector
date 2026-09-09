@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Describe the change you want in **Edit prompt**.\n4. Select **Run** to open the live panel."
       ],
       "title": "Start Here"
     },
@@ -78,7 +78,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "In the live panel, select **Start session** within 60 seconds.\n\nEdit **Scene prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
+        "In the live panel, select **Start session** within 60 seconds.\n\nChange **Edit prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
       ],
       "title": "Using This Workflow"
     },

@@ -1,4 +1,4 @@
-"""Prepare native ComfyUI video inputs before requesting a paid session."""
+"""Prepare native ComfyUI video inputs before requesting a session."""
 
 import io
 import sys

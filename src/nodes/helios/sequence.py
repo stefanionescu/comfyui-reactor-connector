@@ -1,4 +1,4 @@
-"""Build a Helios prompt sequence using ordinary ComfyUI connections."""
+"""Generate a Helios video from connected, scheduled prompts."""
 
 import asyncio
 from ...media.images import image_png

@@ -10,7 +10,7 @@ to **Save Audio (Advanced)**. Optional images can set its first and last frames.
 | Scene prompt           | Required scene and sound description, up to 800 characters.                                                              |
 | Video length (seconds) | Requested clip length, from 5.167 to 14.375 seconds and within the video duration limit in Reactor settings. Default: 6. |
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                            |
-| Variation              | Change this integer for another run. Default: 0.                                                                         |
+| Run number             | Change this integer for another run. Default: 0.                                                                         |
 | Aspect ratio           | Canvas shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                    |
 | Starting image         | Optional first frame from Load Image.                                                                                    |
 | Final image            | Optional last frame from a second Load Image.                                                                            |
@@ -57,7 +57,7 @@ media. It does not retry an ambiguous queue or playback command.
 
 Use ComfyUI's cancel control to end the session. Closing a tab or pausing
 a preview does not cancel. Unchanged inputs can reuse ComfyUI's cache. Change
-**Variation** to run again. A seed cannot guarantee identical results after provider
+**Run number** to run again. A seed cannot guarantee identical results after provider
 model updates.
 
 [Reactor Fast H3 schema](https://docs.reactor.inc/model-api-reference/fast-h3/schema)

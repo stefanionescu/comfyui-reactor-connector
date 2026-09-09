@@ -12,20 +12,20 @@ of the requested change.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
-| Source video           | One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.                 |
-| Scene prompt           | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                     |
-| Video length (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
-| Variation              | Change this integer to request another run. Default: 0.                                          |
-| Keep queued frames     | Keep source frames in order when true. False favors recent frames and limits delay.              |
-| Hold pointer           | Hold the pointer at the chosen position while true. Default: false.                              |
-| Pointer X              | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                        |
-| Pointer Y              | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                          |
-| Reference image        | Optional single RGB image of the subject to insert or replace. Batches are rejected.             |
-| Live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
+| Input                     | What to provide                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------ |
+| Source video              | One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.                 |
+| Edit prompt               | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                     |
+| Video length (seconds)    | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
+| Run number                | Change this integer to request another run. Default: 0.                                          |
+| Keep queued frames        | Keep source frames in order when true. False favors recent frames and limits delay.              |
+| Hold pointer              | Hold the pointer at the chosen position while true. Default: false.                              |
+| Horizontal position (0–1) | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                        |
+| Vertical position (0–1)   | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                          |
+| Reference image           | Optional single RGB image of the subject to insert or replace. Batches are rejected.             |
+| Live controls             | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
 
-X2 has no seed command. **Variation** controls ComfyUI caching; it is not a model
+X2 has no seed command. **Run number** controls ComfyUI caching; it is not a model
 seed and does not guarantee reproducibility.
 
 Source clips must have even dimensions, at most 4096 pixels per side, and a frame
@@ -73,7 +73,7 @@ Use ComfyUI's cancel control to stop; closing a tab does not cancel a workflow.
 The connector disconnects after recording, failure, or cancellation. It does not
 automatically retry failed commands or uncertain session creation.
 
-Unchanged inputs may reuse ComfyUI's cache. Change **Variation** for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
+Unchanged inputs may reuse ComfyUI's cache. Change **Run number** for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
 reference or prompt, review those inputs before deciding to run again.
 
 [Reactor X2 schema](https://docs.reactor.inc/model-api-reference/x2/schema)

@@ -1,4 +1,4 @@
-"""Expose each Visko deployment with native synchronized video and audio outputs."""
+"""Generate Visko Stable video with synchronized audio."""
 
 import asyncio
 from typing import ClassVar

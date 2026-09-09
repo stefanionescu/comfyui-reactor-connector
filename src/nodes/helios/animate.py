@@ -15,7 +15,7 @@ class HeliosAnimate(io.ComfyNode):
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
         """Include current settings and model metadata in the ComfyUI cache key."""
-        return await operation_fingerprint("helios-bounded-v1")
+        return await operation_fingerprint("helios-video-v2")
 
     @classmethod
     def define_schema(cls) -> io.Schema:

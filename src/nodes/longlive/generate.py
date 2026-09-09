@@ -24,7 +24,7 @@ class LongLiveGenerate(io.ComfyNode):
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
         """Include current settings and model metadata in the ComfyUI cache key."""
-        return await operation_fingerprint("longlive-bounded-v1")
+        return await operation_fingerprint("longlive-video-v2")
 
     @classmethod
     async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.

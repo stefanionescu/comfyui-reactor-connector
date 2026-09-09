@@ -9,7 +9,7 @@ from ...comfy.execution import execute_video, operation_fingerprint
 
 
 class LongLiveStoryboard(io.ComfyNode):
-    """Prepare scheduled soft shots and hard cuts before generation starts."""
+    """Generate a video from scheduled shots and transitions."""
 
     @classmethod
     def define_schema(cls) -> io.Schema:

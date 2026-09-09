@@ -4,21 +4,21 @@ Add a later prompt to a Helios sequence. This node prepares text locally.
 
 ## Build a sequence
 
-Connect **Add a prompt** nodes in order. **Previous steps (JSON)** is an advanced
+Connect **Add a Prompt** nodes in order. **Previous prompts (JSON)** is an advanced
 control for entering a list directly. To show it, right-click the node and
 choose **Show Advanced**. The examples do not require editing JSON.
 
-1. Leave **Previous steps (JSON)** unconnected for the first later prompt.
+1. Leave **Previous prompts (JSON)** unconnected for the first later prompt.
 2. Choose its **Start chunk** number and describe the scene in **Scene prompt**.
-3. Connect **Prompt sequence** to the next Add a prompt node's **Previous steps (JSON)** input.
-4. Connect the last Add a prompt node to **Reactor Helios: Generate a Prompt Sequence**.
+3. Connect **Prompt sequence** to the next Add a Prompt node's **Previous prompts (JSON)** input.
+4. Connect the last Add a Prompt node to **Reactor Helios: Generate Video from a Prompt Sequence**.
    Set the opening prompt and recording length on that generation node.
 
-| Input                 | Meaning                                                                                              |
-| --------------------- | ---------------------------------------------------------------------------------------------------- |
-| Previous steps (JSON) | Earlier prompts from another Add a prompt node. Default: `[]`.                                       |
-| Start chunk           | When this later prompt starts, from 1 to 100,000. Each new prompt needs a larger number. Default: 1. |
-| Scene prompt          | The scene and motion after the change, from 1 to 20,000 characters.                                  |
+| Input                   | Meaning                                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| Previous prompts (JSON) | Earlier prompts from another Add a Prompt node. Default: `[]`.                                       |
+| Start chunk             | When this later prompt starts, from 1 to 100,000. Each new prompt needs a larger number. Default: 1. |
+| Scene prompt            | The scene and motion after the change, from 1 to 20,000 characters.                                  |
 
 The **Prompt sequence** output contains a JSON prompt list. It can contain
 up to 32 later prompts within 128 KB. The connector rejects unknown fields,
