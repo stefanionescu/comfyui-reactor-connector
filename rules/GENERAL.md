@@ -2,21 +2,25 @@
 
 These rules apply to all files in this repository.
 
+An owner is the module responsible for a behavior. A contract defines the inputs,
+outputs, and behavior that callers rely on. A boundary receives data or commands
+from another component, process, or service.
+
 ## Contents
 
 - [Thinking before coding](#thinking-before-coding)
 - [Scope discipline](#scope-discipline)
-- [No defensive logic](#no-defensive-logic)
-- [Managing sprawl](#managing-sprawl)
+- [Handle real failure modes](#handle-real-failure-modes)
+- [Keep one implementation](#keep-one-implementation)
 - [Naming](#naming)
 - [Abstractions](#abstractions)
     - [Prefer duplication over the wrong abstraction](#prefer-duplication-over-the-wrong-abstraction)
     - [Do not abstract for one caller](#do-not-abstract-for-one-caller)
-    - [Watch for boxing](#watch-for-boxing)
+    - [Keep unrelated behavior separate](#keep-unrelated-behavior-separate)
     - [Inline the wrong abstraction](#inline-the-wrong-abstraction)
     - [Make the change easy](#make-the-change-easy)
-    - [Keep granularity continuous](#keep-granularity-continuous)
-    - [Use inversion of control deliberately](#use-inversion-of-control-deliberately)
+    - [Keep operations easy to combine](#keep-operations-easy-to-combine)
+    - [Pass dependencies when needed](#pass-dependencies-when-needed)
     - [Prefer data flow and data structures](#prefer-data-flow-and-data-structures)
 - [Secrets and sensitive data](#secrets-and-sensitive-data)
 - [Error messages](#error-messages)
@@ -55,10 +59,10 @@ grow that way.
 ## Scope discipline
 
 - Do what was asked. Do not expand scope.
-- If you discover something unrelated that needs fixing, mention it to the user. Do not silently fix it unless it is trivial and in a file you are editing.
+- Report unrelated findings without adding them to the task.
 - Do not add features, refactor surrounding code, or "improve" things that were not requested.
 
-## No defensive logic
+## Handle real failure modes
 
 Do not invent defensive logic for scenarios that are not part of the real contract.
 
@@ -67,12 +71,13 @@ Do not invent defensive logic for scenarios that are not part of the real contra
 - Trust internal invariants after they are established. If an invariant is unclear, trace the code and clarify the contract instead of adding speculative protection.
 - Do not pad the codebase with logic meant to protect against hypothetical future failures.
 
-## Managing sprawl
+## Keep one implementation
 
 Keep one clear implementation for each concept.
 
 - Do not create multiple functions, services, types, or wrappers that do nearly the same thing.
-- Do not wrap a helper with another helper unless the wrapper owns a real boundary, policy, or transformation.
+- Put validation, policy, and transformations in the module that owns the operation.
+  Do not add forwarding wrappers or compatibility layers.
 - Do not add an abstraction for one call site or one concept.
 - Before adding a new helper, find the owner of the behavior and put the logic
   there.
@@ -81,12 +86,10 @@ Keep one clear implementation for each concept.
 
 ## Naming
 
-All naming rules live in [`NAMING.md`](NAMING.md). Follow that file for
-identifiers, files, directories, functions, booleans, role suffixes, language
-case conventions, and boundary names.
-
-The local linting tools under `quality/` and `mise run lint:quality` are also
-authoritative for enforced naming policy.
+Name files, directories, and declarations for what they do. Use consistent domain
+terms and the casing required by the language. Keep required host API names exact.
+Retain the naming, folder, file-size, function-size, and import-spacing policies.
+Keep a blank line after the complete import block, including before comments.
 
 ## Abstractions
 
@@ -107,12 +110,12 @@ the code proves it.
 - Do not introduce an abstraction for one caller.
 - Do not introduce an abstraction for hypothetical future reuse.
 
-### Watch for boxing
+### Keep unrelated behavior separate
 
 - If a shared abstraction starts gaining flags, modes, optional branches, or
   caller-specific conditionals, treat that as evidence the abstraction is wrong.
-- "Boxing" is forbidden: do not stuff loosely related behavior into one
-  function/class/module with parameters deciding which behavior runs.
+- Do not combine unrelated behavior in one function, class, or module and use
+  flags to choose between it. Give each behavior a clear owner.
 
 ### Inline the wrong abstraction
 
@@ -126,17 +129,15 @@ the code proves it.
   first preserve behavior, then make the behavior change.
 - Keep refactoring and behavior changes separate when practical.
 
-### Keep granularity continuous
+### Keep operations easy to combine
 
-- Higher-level helpers must be replaceable by a small number of lower-level
-  operations. Do not create API granularity gaps.
+- Let callers use the operations they need directly. Avoid APIs that force a
+  caller to choose between one large operation and duplicating its internals.
 
-### Use inversion of control deliberately
+### Pass dependencies when needed
 
-- Use inversion of control when it prevents option explosion across multiple
-  real use cases.
-- Do not add inversion of control for a single use case if it makes the call
-  site harder without reducing complexity.
+- Let callers pass a dependency when existing callers need different behavior.
+- Do not add factories or dependency-injection layers for hypothetical callers.
 
 ### Prefer data flow and data structures
 
@@ -176,25 +177,22 @@ locate a failure. Keep credentials and private account values out of diagnostics
 
 ## Verification scope
 
-Do not create or run automated tests. Do not recreate deleted test files.
-Use the requested formatting, linting, type, build, dependency, and security checks.
-Verify workflows manually in the installed Comfy Desktop app when the task calls
-for runtime verification. Static checks do not prove that a workflow runs.
+Do not create or run automated tests, or recreate deleted test files.
+Run formatting, linting, type checks, builds, dependency checks, security scans,
+and browser or manual checks only when the user explicitly requests them.
+An implementation or documentation change does not itself request verification.
 
-Use Bun, uv, mise tasks, and local Git hooks. Do not add hosted Git workflows,
-Docker configuration, or inference deployment tooling.
+Use the existing local tools when checks are requested. Do not add hosted Git
+workflows, Docker configuration, or inference deployment tooling.
 
 ## Verification commands
 
-Run verification within the scope the user has authorized. Requested quality
-work includes its static checks and builds. Automated tests remain excluded.
+When verification is requested, use the existing command for the affected files
+or behavior. Do not expand it to unrelated areas or reference projects. Report
+what ran, what failed, and what was not checked.
 
-When verification is requested:
-
-- Run only the command needed for the specific project or files in scope.
-- Prefer project-level commands over project-wide commands.
-- Do not expand verification into unrelated projects.
-- Report failures with the relevant command and the failing area.
+For requested runtime checks, use the installed package in Comfy Desktop.
+Source inspection and static checks do not prove that a workflow runs.
 
 ## Code style
 
@@ -240,14 +238,13 @@ Good doc comments describe what a function does, what its parameters mean, and w
 ### Documentation requirements
 
 Doc comments are required where they clarify public behavior, non-obvious
-contracts, or example and model boundaries. Linters enforce the mandatory level where a
-local rule exists; human review covers the rest.
+contracts, or example and model boundaries. Keep the existing comment and
+docstring requirements. Explain constraints that names and types cannot express.
 
-#### Linter-enforced (mandatory)
+#### Required comments
 
-Follow the local Python and structural lint rules configured in `pyproject.toml`
-and `quality/`. Do not add comments only to satisfy a generic style preference
-when the code is already obvious.
+Keep required Python docstrings and shell function comments. Do not add comments
+that merely repeat the code.
 
 #### Always comment
 
@@ -260,11 +257,12 @@ Regardless of language or visibility, add a comment when a function:
 - Sits on a performance-sensitive hot path.
 - Would take a reader more than ten seconds to understand from the signature and body alone.
 
-These are enforced during code review, not by linters. The comment explains why, not what.
+Explain the reason for the behavior. A separate reviewer is not required.
 
 ### Documentation maintenance
 
-When editing any file, check that comments and doc comments are still accurate. Stale comments are worse than no comments because they actively mislead.
+Update comments and docstrings affected by the change. Remove statements that
+are no longer true; do not expand the task into unrelated documentation cleanup.
 
 Specific expectations:
 
@@ -284,11 +282,11 @@ explicitly asks for rule changes.
 
 ## Language discipline
 
-All authored text must follow [plain language](WRITING.md).
+Write text that readers can find, understand, and use for their task.
 
 Use direct, concrete language in code, comments, filenames, and documentation.
 
-- Follow [`NAMING.md`](NAMING.md) for model adapter and wrapper names.
+- Name model adapters for the model and the operation they perform.
 - Describe optional conditions explicitly.
 - State the actual probability or condition instead of using vague hedging.
 - Describe redundancy directly instead of using idioms.
@@ -297,7 +295,8 @@ If code uses vague language, improve it when touching that code.
 
 ## No backward compatibility
 
-Never introduce compatibility layers, wrapper functions, re-exports for renamed symbols, deprecated-but-kept code, or any other form of backward-compatible scaffolding.
+Do not add compatibility layers, forwarding wrappers, aliases for renamed
+symbols, or deprecated implementations. Replace the old interface directly.
 
 When something is replaced or renamed:
 
@@ -305,16 +304,21 @@ When something is replaced or renamed:
 - Update every call site to use the new version.
 - Remove unused files, functions, types, and variables.
 
-The codebase must reflect the current implementation. Preserve saved workflow
-contracts, public node IDs, model identifiers, and stored settings. Internal
-cleanup does not authorize breaking those external contracts.
+Keep only the current implementation. For a requested rename or replacement,
+update affected callers, schemas, examples, and stored data together. Migrate
+required stored data directly; do not retain old IDs, aliases, forwarding
+wrappers, dual paths, or deprecated implementations.
+
+Keep names imposed by the current ComfyUI and Reactor APIs exact. Protect user
+graphs, media, and credentials. Do not discard user data to avoid a migration.
 
 ## Working with uncommitted changes
 
 When `git status` or the worktree shows changes you did not make, do not panic. Other agents or contributors may be working in parallel.
 
 - Do not revert, stash, clean, or overwrite changes you did not make.
-- Continue working if your changes do not conflict with uncommitted changes.
-- Only stop and ask the user if a change you are about to make directly contradicts or overwrites an uncommitted worktree change.
+- Continue when your changes do not conflict with existing work.
+- Ask only when the requested change conflicts with existing work and you cannot
+  determine how to complete it without overwriting that work.
 - Build on top of uncommitted changes, or commit your own changes alongside them.
 - If another agent is known to be committing those changes separately, leave them alone.

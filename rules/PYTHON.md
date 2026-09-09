@@ -3,14 +3,14 @@
 These rules apply to connector source, media workers, local quality tools,
 build scripts, generated Python examples, and committed Python snippets.
 
-Use this file together with [`GENERAL.md`](GENERAL.md), [`NAMING.md`](NAMING.md),
-and the local tooling configured in `pyproject.toml` and `quality/`.
+Use the sections that apply to the code being changed. Keep work scoped to the
+requested behavior and explain non-obvious constraints in plain language.
 
 ## Contents
 
 - [Core Python philosophy](#core-python-philosophy)
-- [Source material decisions](#source-material-decisions)
-- [Local tooling authority](#local-tooling-authority)
+- [Project standards](#project-standards)
+- [Structural rules](#structural-rules)
 - [Runtime, encoding, and files](#runtime-encoding-and-files)
 - [Environment and configuration](#environment-and-configuration)
 - [Package installation security](#package-installation-security)
@@ -55,9 +55,9 @@ Rules:
   than one style.
 - Do not make style-only churn outside the requested scope.
 - Do not preserve obsolete Python APIs, wrappers, re-exports, or alternate code
-  paths. Follow [`GENERAL.md`](GENERAL.md) for replacement work.
-- Make public behavior clear through names, type annotations, docstrings, and
-  manual verification when runtime behavior changes.
+  paths. Update affected callers and remove superseded code in the same change.
+- Make public behavior clear through names, type annotations, and docstrings.
+  Run manual verification only when the user explicitly requests it.
 - Use exceptions for exceptional conditions, not for ordinary branch logic.
 - Use built-in language features directly when they express the operation
   clearly.
@@ -106,10 +106,9 @@ def get_instance():
     return importlib.import_module("loader").build_examples()
 ```
 
-## Source material decisions
+## Project standards
 
-These rules adapt PEP 8, PEP 257, and the Google Python Style Guide into one
-local standard for this repository.
+Use these defaults for Python source, imports, types, and documentation.
 
 | Topic                        | Local decision                                                                                                                                                                                                           |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -118,7 +117,7 @@ local standard for this repository.
 | Standard-library line length | PEP 8's 79-character code limit and 72-character comment/docstring limit describe the Python standard library, not this repo.                                                                                            |
 | Google line length           | Google's 80-character default is useful guidance for docstring summaries and comments, but local Ruff formatting is authoritative.                                                                                       |
 | Formatter                    | Ruff format is the local formatter. Do not hand-format against a different style.                                                                                                                                        |
-| Linter                       | Ruff lint, BasedPyright, import-linter, and custom `quality/` scripts are local policy. Pylint guidance from Google maps to these local tools.                                                                           |
+| Linter                       | Keep the existing lint, type, import, and structural policies. Run checks only when requested.                                                                           |
 | Runtime                      | The project requires Python 3.12. Use Python 3.12 syntax when it improves clarity.                                                                                                                                       |
 | Future imports               | Prefer `from __future__ import annotations` in Python modules.                                                                                                                                                           |
 | Quotes                       | Ruff format uses double quotes. Use double quotes for ordinary strings unless another quote avoids escaping. Docstrings always use triple double quotes.                                                                 |
@@ -138,32 +137,19 @@ local standard for this repository.
 | Package installs             | Deployment installs should use pinned, hashed, binary-only requirements where practical. Do not use direct setuptools install commands.                                                                                  |
 | Verification                 | Run authorized static checks; never create or run automated tests.                                                                                                                                                       |
 
-When editing an existing file, follow the surrounding style where the source
-guides allow a choice. When creating new code, use the decisions in this table.
+Follow the surrounding style where these rules allow a choice. Use the table
+above for new code.
 
-## Local tooling authority
+## Structural rules
 
-The local Python quality stack is:
+Keep the existing lint, type, import, naming, and size policies. Do not broaden
+exceptions or copy suppressions into unrelated files. If a rule and its checker
+disagree, report the conflict; change tooling only when requested.
 
-- Ruff format.
-- Ruff lint.
-- BasedPyright.
-- import-linter.
-- Custom structural linters in `quality/`.
-- Naming checks described in [`NAMING.md`](NAMING.md).
+Run verification commands only when the user explicitly asks. Use the existing
+command for the affected files or behavior.
 
-Rules:
-
-- Treat local lint failures as policy failures.
-- Do not add per-file ignores, inline ignores, or broad config exceptions unless
-  the user explicitly asks for a tooling change or the violation is unavoidable.
-- Do not copy an existing per-file ignore into new files.
-- Do not broaden an existing exception to make unrelated code pass.
-- Do not disable a rule when a clear code change can satisfy it.
-- Do not run verification commands unless the user asks. When asked, run only
-  the requested or necessary scoped command.
-
-Current local tooling constraints include:
+Keep these structural requirements:
 
 - Python source under configured directories uses snake_case `.py` filenames.
 - Runtime files should stay under 300 counted code lines.
@@ -269,8 +255,8 @@ dependencies with a standalone inference environment.
 Rules:
 
 - Use the committed `uv.lock` for the development environment.
-- Install development dependencies through `mise run deps` and verify them with
-  `mise run deps:verify`.
+- Install dependencies through the existing project task when installation is
+  requested. Run dependency checks only when explicitly requested.
 - Review dependency and lock changes. Do not bypass a resolver conflict or copy
   vulnerability exceptions from another project.
 - Prefer compatible wheels. Review any required source build and its tools.
@@ -284,11 +270,11 @@ Rules:
 - Install the local project through the package installer. Do not use
   `python setup.py install`, `python setup.py develop`, or `easy_install`.
 - Do not change host dependencies merely to satisfy development tooling.
-- Audit the resolved Python dependencies with `mise run audit:python`.
+- When a dependency audit is requested, check the resolved dependency versions.
 
-Build the actual ComfyUI distribution with `mise run release:package`. Install that
-artifact into the local host for manual verification; an editable development
-import is not evidence that the distributed package works.
+When distribution verification is requested, build and install the actual package
+in the local host. An editable development import does not prove that the
+distributed package works.
 
 ## Module structure
 
@@ -765,9 +751,7 @@ doc = """A docstring-like string."""
 
 ## Naming
 
-Follow [`NAMING.md`](NAMING.md) for all naming choices.
-
-Python-specific rules from the source guides:
+Name declarations for the operation or domain concept they represent:
 
 - Packages and modules use short, lowercase names. Use underscores when they
   improve readability.
@@ -816,7 +800,8 @@ clss = "value"
 
 ## Comments and docstrings
 
-Comments and docstrings must match [`GENERAL.md`](GENERAL.md).
+Comments and docstrings describe current behavior, constraints, and reasons for
+non-obvious decisions. Keep implementation history out of them.
 
 Rules:
 
@@ -2064,8 +2049,8 @@ Rules:
 - Prefer composition over inheritance for code sharing.
 - Do not subclass only to reuse methods or state.
 - Do not use the template method pattern as a default design. A base class that
-  defines control flow and calls subclass hooks is harder to read and easier to
-  break than a wrapper with explicit delegation.
+  defines control flow and calls subclass hooks can hide the execution order.
+  Prefer direct calls between the functions that own the operations.
 - Do not mix three different inheritance purposes in one hierarchy: code
   sharing, interface definition, and specialization.
 - Use protocols or small ABCs for interfaces.
@@ -2079,8 +2064,8 @@ Rules:
   that only apply for some type values.
 - Make invalid states unrepresentable where practical.
 - Use composition when behavior varies across more than one axis.
-- Use a wrapper when you need one behavior plus cross-cutting behavior such as
-  tracking, caching, timing, or logging.
+- Put required tracking, caching, timing, and logging in the operation that
+  owns them. Do not add a forwarding class or wrapper just to attach them.
 - Consider `functools.singledispatch` when an operation varies by type but does
   not clearly belong to one class.
 - Public attributes have no leading underscore.
@@ -2118,33 +2103,6 @@ class EmailAddress:
     address: str
     password_hash: str | None
     forwarding_targets: list[str] | None
-```
-
-Good wrapper:
-
-```python
-class TrackingRepository:
-    """Repository wrapper that records retrieved products."""
-
-    def __init__(self, repository: Repository) -> None:
-        self._repository = repository
-        self.seen: set[Product] = set()
-
-    def add_product(self, product: Product) -> None:
-        self._repository.add_product(product)
-        self.seen.add(product)
-```
-
-Bad subclass-based code sharing:
-
-```python
-class BaseRepository(abc.ABC):
-    def add_product(self, product: Product) -> None:
-        self._add_product(product)
-        self.seen.add(product)
-
-    @abc.abstractmethod
-    def _add_product(self, product: Product) -> None: ...
 ```
 
 ### Decorators
@@ -2803,9 +2761,8 @@ Rules:
   `src/settings/`.
 - Keep static defaults, limits, patterns, and configurable values in root
   `config/`, grouped by purpose. Include that package in the distribution.
-- Keep development-check configuration in `quality/config/`.
-- Keep the root ComfyUI entrypoint and the `scripts` and `quality` tooling
-  packages outside `src/`. Runtime code must not import development packages.
+- Keep the root ComfyUI entrypoint and development packages outside `src/`.
+  Runtime code must not import development packages.
 - ComfyUI imports the repository as a custom-node package. Use explicit relative
   imports between its runtime and root configuration packages.
 - Run Python entrypoints through the configured environment or `python -m`
@@ -2869,25 +2826,19 @@ Rules:
 
 ## Manual verification
 
-Do not create or run automated tests. Use the configured static checks and builds.
-Operate the actual installed package in Comfy Desktop when runtime verification
-is required. Verify every affected node, workflow, and model with its real inputs,
-outputs, live controls, cancellation, and cleanup. Keep run evidence private.
+Do not create or run automated tests. Run static checks, builds, and manual checks
+only when the user explicitly requests verification. A code change does not
+itself request those checks.
+
+For requested runtime checks, use the installed package in Comfy Desktop. Exercise
+the affected behavior with real inputs, including cancellation and cleanup when
+relevant. Keep results private and report only what was actually checked.
 
 ## Verification commands
 
-Use the requested project tasks:
-
-```bash
-mise run lint:python
-mise run type:python
-mise run check
-mise run security
-```
-
-`mise run check` covers formatting, linting, strict types, dependency consistency,
-and generated-file freshness. Formatting and generation remain explicit mutation
-tasks. Do not create or run automated tests, including through hooks.
+Use the existing task for the requested check and affected scope. Do not add
+verification infrastructure or broaden checks to unrelated areas. Formatting and
+generation are explicit mutation tasks, not implicit parts of reviewing code.
 
 Resolve host types through `COMFYUI_PATH` in ignored local configuration. Use the
 actual installed ComfyUI source and its Python environment, dependency annotations,
@@ -2909,7 +2860,7 @@ Before finishing Python changes, review the diff for these points:
 - Do concrete implementations return concrete types?
 - Is `Any` avoided where `object`, a protocol, or a type variable would express
   the contract?
-- Are names consistent with [`NAMING.md`](NAMING.md)?
+- Do names describe their purpose and follow the casing and vocabulary rules?
 - Are functions small, focused, and under the local length limit?
 - Are defaults immutable or initialized inside the function?
 - Are None checks explicit?
@@ -3100,8 +3051,11 @@ main()
 
 - Keep registration small and free of network activity. Use documented ComfyUI
   node APIs and native image, audio, and video types.
-- Preserve node IDs, serialized widget and socket names, model identifiers, and
-  stored settings. Change visible labels without changing saved contracts.
+- Keep host- and provider-required identifiers exact. For requested changes to
+  project-owned node IDs, saved keys, or settings, update affected callers and
+  examples together and migrate required stored data directly. Do not keep
+  compatibility aliases or discard user data. A label-only edit changes no
+  saved keys.
 - Keep host imports at their boundary. Isolated media workers run by file path
   with the selected host interpreter; do not add imports that require the
   repository working directory or mutate `sys.path`.

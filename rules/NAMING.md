@@ -4,8 +4,7 @@ This is the single source of truth for naming in this repository. It covers
 general naming principles plus Python, Bash, TypeScript, JavaScript, CSS,
 ComfyUI node contracts, and Reactor model identifiers.
 
-Use this file together with the automated checks. This document explains how to
-choose names. The local tooling enforces the concrete policy.
+Use names that make the purpose and scope clear without reading the implementation.
 
 ## Contents
 
@@ -24,34 +23,16 @@ choose names. The local tooling enforces the concrete policy.
 
 ## Authority and local enforcement
 
-Naming decisions must satisfy both this guide and the local quality tooling.
+Apply these naming rules to files, directories, declarations, CLI flags,
+environment variables, workflow examples, and documentation examples.
 
-Rules:
-
-- Follow this file when choosing names for files, directories, modules,
-  packages, classes, dataclasses, functions, methods, parameters, variables,
-  constants, CLI flags, environment variables, workflow examples and
-  documentation examples.
-- Also follow `ruff` naming checks configured in `pyproject.toml`.
-- Also follow the structural naming checks in
-  `quality/python/rules/prefix_collisions.py`,
-  `quality/python/rules/single_file_folders.py`, and
-  `quality/python/rules/imports/layout.py`.
-- Also follow the repository-wide structural naming authority under
-  `quality/repository/naming/` and the policy in
-  `quality/config/naming/policy.json`.
-- Treat local lint failures as authoritative. If this guide and tooling disagree,
-  fix the disagreement instead of working around it locally.
-- Do not bypass naming policy by hiding bad names in string keys, aliases,
-  generated wrappers, or CLI flags.
-- Generated model or provider-owned names may keep provider spelling, but
-  hand-written wrappers around them must follow this guide.
-
-Both naming readers use the same banned-term vocabulary. Python and shell use
-`quality/config/naming/policy.json`; JavaScript and TypeScript use
-`quality/config/naming/javascript.json` for case rules and exact boundary
-exceptions. Keep provider, host API, and persisted names unchanged where those
-contracts require them. Do not add language-wide exemptions for ordinary code.
+- Keep the existing naming, folder, file-size, and function-size limits.
+- Do not weaken a check or hide a name in a string key or alias to bypass policy.
+- Keep exact names required by the current host or provider API at that boundary.
+  Use domain names for code owned by this project.
+- When a guide and a checker disagree, report the conflict. Change the checker
+  only when the user requests a tooling change.
+- Running naming checks requires an explicit verification request.
 
 ## General naming rules
 
@@ -78,8 +59,7 @@ Rules:
 - Use role words when primitive or weak types do not carry enough meaning.
 - Preserve required external names at boundaries, but translate them into domain
   names before they move inward.
-- Do not use banned generic verbs or role words in local names. The banned list is
-  shared by both naming readers in `quality/config/naming/terms.json` and includes `load`, `loader`,
+- Do not use banned generic verbs or role words in local names. These include `load`, `loader`,
   `loaded`, `loading`, `resolve`, `resolving`, `resolution`, `manager`, `handler`,
   `helper`, `util`, `utils`, `processor`, `service`, `common`, `core`, and
   `data`. Use precise verbs such as `read`, `choose`, `derive`, `build`, `create`,
@@ -398,8 +378,7 @@ Rules:
   sibling files.
 - Source modules under `src/` are named for cohesive capabilities:
   configuration, discovery, execution, live controls, media, and host nodes.
-- Quality modules under `quality/python/rules/`, `quality/repository/`, and
-  `quality/security/` are named for the rule or workflow they enforce.
+- Name development-check modules for the rule or workflow they enforce.
 - Do not create catch-all files or directories for unrelated code.
 - Do not move code into shared locations just because a future caller might
   appear.
@@ -428,8 +407,7 @@ src/execution/helios/request.py
 
 ## Python
 
-Python naming follows PEP 8 where it fits this repository, with local rules from
-`pyproject.toml` and `quality/config/naming/policy.json`.
+Use the Python casing and structure rules below.
 
 ### Python case rules
 
@@ -778,7 +756,7 @@ Bad:
 web/utils.ts
 web/shared/helpers.ts
 web/settings/helpers.ts
-quality/repository/misc/index.js
+src/misc/index.js
 ```
 
 Good:
@@ -787,7 +765,7 @@ Good:
 web/help/links.ts
 web/settings/api.ts
 web/live/controls.ts
-quality/repository/integrity/stale-paths.js
+src/workflows/validate-links.js
 ```
 
 ### JavaScript functions
@@ -868,8 +846,10 @@ Good:
 
 ## Data, models, and external boundaries
 
-Model identifiers, node IDs, saved input keys, routes, and stored settings are
-external contracts. Internal cleanup must preserve them.
+Keep identifiers required by the current ComfyUI and Reactor APIs exact.
+Project-owned node IDs, saved keys, routes, and settings may change as part of a
+requested replacement. Update affected callers and examples together and migrate
+required stored data directly. Do not keep old aliases or discard user data.
 
 Rules:
 
@@ -882,10 +862,10 @@ Rules:
   `Reactor Helios: Generate Video`. Use sentence case for parameters, sockets,
   buttons, tooltips, status messages, and note body text.
 - Keep visible labels in schemas, `locales/en/nodeDefs.json`, and workflow notes
-  consistent. Change display names, never saved keys or output positions, to
-  improve labels or capitalization.
-- Name example workflows for the model and the user task. Preserve published
-  filenames and saved connections.
+  consistent. A label-only change must not alter saved keys or output positions.
+  Change stored structures only when the requested behavior requires it.
+- Name example workflows for the model and the user task. When renaming an
+  example, update its links and affected connections in the same change.
 - Add units where needed, such as `duration_seconds` and `timestamp_us`.
 - Never include prompts, tokens, private identifiers, or machine paths in public
   artifact names.
@@ -921,4 +901,4 @@ Before accepting a new name, ask:
 - Does each boolean read as a positive assertion?
 - Are external names isolated to boundary modules?
 - Are model, data, and result names treated as contracts?
-- Does the name satisfy `pyproject.toml` and the local quality rules under `quality/`?
+- Does the name meet the casing, vocabulary, prefix, and folder rules?

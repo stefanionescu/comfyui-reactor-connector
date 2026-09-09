@@ -6,7 +6,7 @@ build scripts, configuration modules, and JavaScript quality tools.
 ## Contents
 
 - [Core JavaScript philosophy](#core-javascript-philosophy)
-- [Source material decisions](#source-material-decisions)
+- [Project standards](#project-standards)
 - [Scope](#scope)
 - [Runtime standard](#runtime-standard)
 - [Source files](#source-files)
@@ -33,14 +33,12 @@ installed runtime package.
 
 Prefer plain values, small functions, explicit module boundaries, and readable control flow. Avoid clever runtime indirection, implicit globals, hidden side-effects, and abstractions that obscure the owner of browser behavior.
 
-If enforcement differs from this document, fix the enforcement or update the rule explicitly. Do not use drift as a reason to ignore the standard.
+If a checker and a rule disagree, report the conflict. Do not weaken either to
+bypass it. Change tooling or rules only when the user requests that work.
 
-## Source material decisions
+## Project standards
 
-These rules adapt the following source material:
-
-- Google JavaScript style principles for modules, constants, and runtime checks.
-- The source repo quality tooling conventions for ESLint, shell, security, and repository integrity policy.
+Use these defaults for modules, imports, browser code, and runtime checks.
 
 | Topic              | Adopted Rule                                                                                                                                                           |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -48,7 +46,7 @@ These rules adapt the following source material:
 | Modules            | Use ES modules. Keep CommonJS only where a tool requires its configuration format.                                                                                     |
 | Browser scripts    | Keep browser TypeScript under `web/`. Do not put executable inline scripts in generated help.                                                                          |
 | Exports            | Prefer named exports for module code. Allow default exports only where ecosystem config files require them.                                                            |
-| Naming             | Use `rules/NAMING.md` for identifiers, files, modules, and role names.                                                                                                 |
+| Naming             | Use purpose-based names and consistent casing for identifiers, files, and modules.                                                                                                 |
 | Runtime boundaries | Treat configuration, Markdown, provider responses, user input, and generated paths as runtime boundaries that require explicit escaping, validation, or normalization. |
 
 Project-specific rules are authoritative when they deliberately choose a stricter or clearer standard.
@@ -59,7 +57,7 @@ Apply this guide to:
 
 - `web/**/*.ts`, including `.d.ts` declarations.
 - `scripts/frontend.mjs`.
-- `quality/**/*.js`, `quality/**/*.mjs`, and `quality/**/*.cjs`.
+- JavaScript development tools and their configuration modules.
 
 Keep generated browser assets and help under `web/dist/`.
 
@@ -84,7 +82,8 @@ Rules:
 
 ## Source files
 
-Keep JavaScript files as normal UTF-8 source files with imports before implementation. Do not put imports after statements.
+Use UTF-8 source files. Put imports before implementation and keep a blank line
+after the complete import block, including before comments.
 
 Rules:
 
@@ -104,7 +103,8 @@ Follow the owner boundary of the file you are editing.
 Rules:
 
 - Keep the Madge configuration in CommonJS because its configuration loader requires that format.
-- Use ES modules for `quality/` code because `quality/package.json` owns module aliases for `#config`, `#web`, `#shared`, and `#repository`.
+- Use ES modules for development tools. Use the package's configured imports
+  directly; do not add alias or forwarding modules.
 - Prefer named imports and named exports for module code.
 - Avoid mutable exports such as `export let`.
 - Avoid default exports in app modules.
@@ -119,7 +119,6 @@ code. Preserve the exact host module imports supplied by ComfyUI.
 
 - `web/` owns authored browser code, styles, and node guides.
 - `web/dist/` contains generated browser files and help served by ComfyUI.
-- `quality/` owns development checks and their configuration.
 
 Keep configuration declarative. Do not import executable tooling into policy
 configuration. Keep generated paths within their declared output directory.
@@ -156,9 +155,10 @@ Browser scripts should be defensive at DOM boundaries without swallowing real pr
 
 ## Naming
 
-JavaScript naming rules live in [`NAMING.md`](NAMING.md). Follow that file for identifier casing, filename casing, module names, constants, boundary names, and unused parameters.
-
-The quality tooling under `quality/repository/naming` is authoritative for automated naming and banned-term policy.
+Use camelCase for functions, variables, and parameters; PascalCase for classes and
+types; and UPPER_SNAKE_CASE for constants that use the repository's constant
+convention. Name modules for their behavior. Avoid generic names such as helper,
+manager, or utils, and keep external API names exact at the boundary.
 
 ## Values, literals, and coercion
 
@@ -181,7 +181,7 @@ Rules:
 
 - Use object literals for grouped data instead of positional parameter lists.
 - Use destructuring when it clarifies the fields being used.
-- Follow [`NAMING.md`](NAMING.md) for destructured local names.
+- Give destructured values clear local names without repeating their context.
 - Avoid mutation of input objects unless the function name and owner contract make mutation explicit.
 - Prefer array methods when they improve clarity, but do not contort simple loops only to satisfy style preference.
 - Narrow indexed reads before use when the value may be absent.
@@ -200,7 +200,8 @@ Rules:
 - Use early returns to keep error and missing-state handling readable.
 - Avoid pass-through functions that only rename another call.
 
-For public quality-tool functions, export the function directly and check it through the owning runner. Do not add a wrapper module or automated tests.
+Export public tool functions directly. Do not add wrapper modules or automated
+tests. Use the existing runner only when verification is requested.
 
 ## Classes
 
@@ -292,18 +293,10 @@ Rules:
 
 ## Verification commands
 
-Use the repo-owned entrypoints:
+Run linting, formatting, type checks, builds, scans, and browser checks only when
+the user explicitly requests them. A code or documentation edit does not request
+verification. Use the existing task for the affected scope; do not create a new
+runner, workflow, or automated test.
 
-```sh
-mise run format:check
-mise run lint
-mise run lint:quality
-mise run lint:shell
-mise run type:frontend
-mise run frontend:check
-mise run docs:check
-```
-
-Use the repository integrity checks when changing quality-tool paths. Do not
-create or run automated tests. All authored text must follow
-[plain language](WRITING.md).
+Write comments and user-visible text in plain language. Explain what readers
+need to know and what action they can take.

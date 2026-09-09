@@ -1,23 +1,22 @@
 # Working on Bash
 
-These rules apply to executable shell scripts, sourced shell libraries, local
-hooks, package builds, and quality commands,
-package-coordinator script bodies,
-Make recipes that invoke Bash, and one-off shell snippets committed to the
-repository.
+These rules apply to shell scripts, sourced libraries, local hooks, package
+builds, task entry points, Make recipes that invoke Bash, and committed snippets.
+They cover syntax, quoting, errors, processes, pipelines, and resource cleanup.
 
-Service-specific commands stay in the owning rule file. Bash syntax, error
-handling, quoting, process execution, pipeline-script safety, and shell review
-standards live here.
+Read the changed code against the applicable rules. Run lint, formatting, builds,
+scans, or runtime verification only when the user explicitly requests those checks.
+Do not create or run automated tests. Examples illustrate shell behavior; they
+are not instructions to execute commands during every edit.
 
 ## Contents
 
 - [Core Bash philosophy](#core-bash-philosophy)
-- [Source material decisions](#source-material-decisions)
+- [Project standards](#project-standards)
 - [When to use Bash](#when-to-use-bash)
 - [File types and invocation](#file-types-and-invocation)
 - [File encoding and line endings](#file-encoding-and-line-endings)
-- [Runtime compatibility](#runtime-compatibility)
+- [Runtime requirements](#runtime-requirements)
 - [Deprecated and forbidden syntax](#deprecated-and-forbidden-syntax)
 - [Script structure](#script-structure)
 - [Module ownership and visibility](#module-ownership-and-visibility)
@@ -47,7 +46,7 @@ standards live here.
 - [Publishing and long-running pipelines](#publishing-and-long-running-pipelines)
 - [Local tasks and hooks](#local-tasks-and-hooks)
 - [Security rules](#security-rules)
-- [Portability rules](#portability-rules)
+- [Platform requirements](#platform-requirements)
 - [Linting and formatting](#linting-and-formatting)
 - [No Bash tests](#no-bash-tests)
 - [Debugging Bash](#debugging-bash)
@@ -86,7 +85,7 @@ Good Bash:
 ```bash
 #!/usr/bin/env bash
 #
-# Validate the configured model before starting the runtime.
+# Require the model identifier before starting the runtime.
 
 set -euo pipefail
 
@@ -101,7 +100,7 @@ fail() {
 
 main() {
   [[ -f pyproject.toml ]] || fail 'Run this command from the repository root'
-  mise run models:validate
+  [[ -n "${MODEL_ID:-}" ]] || fail 'Set MODEL_ID before starting the runtime'
 }
 
 main "$@"
@@ -117,17 +116,15 @@ for file in $(ls); do
 done
 ```
 
-## Source material decisions
+## Project standards
 
-These rules adapt the pasted Google Shell Style Guide, BashGuide practices,
-BashPitfalls, Shellharden guidance, BashFAQ entries, and Bash Hackers material
-into one local standard.
+Use these defaults for shell code. Keep runtime requirements explicit.
 
 | Topic               | Local decision                                                                                                                                                                                                           |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Shell language      | Executable shell scripts use Bash, not `sh`, unless a constrained runtime explicitly requires POSIX `sh`.                                                                                                                |
 | Shebang             | New cross-platform repo scripts use `#!/usr/bin/env bash`. Linux-only remote host scripts may use `#!/bin/bash` when the target guarantees that path. Follow the surrounding script family when editing.                 |
-| Bash version        | Default to Bash 3.2-compatible syntax unless the script declares and checks a newer Bash requirement.                                                                                                                    |
+| Bash version        | Use the declared Bash runtime; do not add support for older versions.                                                                                                                    |
 | Script size         | Bash is acceptable for small utilities and orchestration. Over about 100 lines, complex branching, complex parsing, or nested data structures, split and simplify the Bash instead of adding another scripting language. |
 | Quoting             | Quote variable expansions and command substitutions by default. Use arrays for argument lists.                                                                                                                           |
 | Conditionals        | Prefer `[[ ... ]]` for Bash string/file conditionals and `(( ... ))` for trusted arithmetic comparisons. Validate untrusted numeric input before arithmetic contexts.                                                    |
@@ -135,7 +132,7 @@ into one local standard.
 | Deprecated syntax   | Ban legacy and ambiguous forms even when Bash still accepts them. Use the clearer replacement forms listed in this guide.                                                                                                |
 | Function comments   | Every function gets a one-line header comment. Public, library, or non-obvious functions also document globals, arguments, outputs, and return behavior.                                                                 |
 | Pipelines           | Split long pipelines one command per line. Understand `pipefail`, `PIPESTATUS`, and commands such as `grep -q` that may close the pipe early.                                                                            |
-| External examples   | Translate generic examples into this repo's Python, ComfyUI, package builds, local hooks, and quality tasks.                                                                                                             |
+| External examples   | Use examples that explain a real shell operation in this project.                                                                                                             |
 
 ## When to use Bash
 
@@ -174,7 +171,7 @@ Executable scripts:
   externally defined hook and task entrypoints whose coordinator owns the
   invocation contract.
 - Must not be sourced by another repository script.
-- Follow [`NAMING.md`](NAMING.md) for shell filename and extension rules.
+- Use names that describe the script task and match its invocation type.
 
 Libraries:
 
@@ -188,7 +185,7 @@ Libraries:
 - Configuration libraries may assign documented configuration values while
   loading. Other libraries may only declare readonly owner constants, source
   direct dependencies, and define functions.
-- Follow [`NAMING.md`](NAMING.md) for shell library filename rules.
+- Name shell libraries for the behavior they contain.
 
 Every file declares its runtime contract in the header:
 
@@ -196,7 +193,7 @@ Every file declares its runtime contract in the header:
 #!/usr/bin/env bash
 #
 # Run the configured package checks.
-# Runtime: Bash 3.2+, Linux.
+# Runtime: Bash 5+, Linux.
 ```
 
 Use `macOS and Linux` only when the file is supported and reviewed on both
@@ -254,35 +251,15 @@ mv -- "${script}.tmp" "${script}"
 A file that starts with a BOM before `#!` may fail to execute as a script. Treat
 that the same as a broken shebang.
 
-## Runtime compatibility
+## Runtime requirements
 
-macOS ships Bash 3.2 by default. Unless a script checks for a newer version,
-avoid Bash 4+ and Bash 5+ features:
+Use the Bash version selected for the script's execution environment. State its
+minimum version in the script header and use features available in that version.
+Do not default to Bash 3.2 or add older-shell compatibility paths.
 
-- associative arrays;
-- `readarray` and `mapfile`;
-- `globstar`;
-- namerefs with `declare -n`;
-- `${var@Q}` and other newer parameter transformations;
-- `coproc`;
-- `BASH_XTRACEFD`;
-- `wait -n`;
-- `local -n`;
-- `shopt -s lastpipe`;
-- process-substitution behavior that has not been verified on the target OS.
-
-If a script requires a newer Bash:
-
-```bash
-require_bash_4() {
-  if (( BASH_VERSINFO[0] < 4 )); then
-    printf 'error: bash 4 or newer is required\n' >&2
-    return 1
-  fi
-}
-```
-
-State the requirement in the file header and fail before doing work.
+If a script needs a newer Bash than its callers provide, update the runtime
+requirement as part of the requested change. Fail clearly when that requirement
+is not met. Do not silently choose another implementation.
 
 ## Deprecated and forbidden syntax
 
@@ -557,8 +534,8 @@ after the first match can create false failures under `pipefail`.
 - Do not use unguarded `${1}` when an argument may be missing. Use `${1:-}`.
 - Be careful with arrays under `set -u`; check lengths before indexing.
 - If empty arrays are meaningful, require Bash 4.4 or newer before relying on
-  their behavior under `set -u`. Bash 3.2-compatible scripts must guard array
-  access explicitly.
+  behavior under `set -u`. Declare that runtime requirement instead of adding
+  older-shell workarounds.
 
 ## Output, logging, and errors
 
@@ -731,8 +708,8 @@ Rules:
   and `select`.
 - Put `else`, `elif`, `fi`, `done`, and `esac` on their own aligned lines.
 - Prefer one command per line over dense semicolon chains.
-- Follow [`NAMING.md`](NAMING.md) for function, variable, constant, and
-  environment variable names.
+- Use snake_case for functions and local variables, and UPPER_SNAKE_CASE for
+  constants and exported environment variables.
 
 Control flow:
 
@@ -786,10 +763,9 @@ generate_results \
 
 ## Naming
 
-Bash naming rules live in [`NAMING.md`](NAMING.md). Follow that file for shell
-file stems, script extensions, function names, variable names, constants,
-environment variables, loop variables, package-like function prefixes, and names
-that would collide with shell builtins or common commands.
+Name scripts and functions for their task. Use snake_case for local names and
+UPPER_SNAKE_CASE for constants and exported environment variables. Avoid names
+that shadow shell builtins or common commands.
 
 - Bash files in one directory must not share the first filename component before
   `_` or `-`.
@@ -797,9 +773,6 @@ that would collide with shell builtins or common commands.
   files role names such as `main.sh`, `state.sh`, `query.sh`, or `report.sh`.
 - External hook families may use a configured shared prefix when the external
   interface owns those filenames.
-
-The local linting tools under `quality/` and `mise run lint:quality` are also
-authoritative for enforced naming policy.
 
 ## Functions
 
@@ -1005,21 +978,12 @@ Rules:
 - Use a `while read` loop or Bash 4+ `readarray` only when runtime support is
   guaranteed.
 - Avoid arrays as ersatz nested data structures.
-- On Bash 3.2-compatible scripts, indexed arrays are allowed; associative arrays
-  are not.
+- Use indexed or associative arrays according to the data and declared runtime.
 
 Safe multi-line command output into an array on Bash 4+:
 
 ```bash
 readarray -t files < <(find . -type f -name '*.sql' -print)
-```
-
-Bash 3.2-compatible line loop:
-
-```bash
-while IFS= read -r file; do
-  files+=("${file}")
-done < <(find . -type f -name '*.sql' -print)
 ```
 
 For filenames, prefer NUL delimiters:
@@ -1115,9 +1079,8 @@ Rules:
   and index are trusted.
 - Do not put untrusted strings into `(( ... ))`, `$(( ... ))`, `[[ value -gt n
 ]]`, array indices, or arithmetic `for` expressions.
-- Avoid associative arrays in arithmetic contexts. Project-default Bash 3.2 does
-  not support associative arrays, and newer Bash versions differ in expansion
-  behavior.
+- Keep untrusted associative-array keys out of arithmetic contexts, where
+  shell expansion can interpret them as expressions.
 - Convert base-10 strings with care. `10#${value}` only works for unsigned
   numbers.
 - Call `date` one time when multiple fields must describe the same instant.
@@ -2101,18 +2064,13 @@ Do not use retries to mask:
 
 ## Local tasks and hooks
 
-- Keep mise task wrappers small. Put reusable behavior in its owning script.
+- Keep task entry points small. Put reusable behavior in the script that owns it.
 - Use pinned tools and existing dependencies. Hooks must not install packages.
 - Keep checks read-only. Formatting and generation use separate tasks.
 - Keep logs and scanner reports in ignored private directories.
 - Preserve other hook owners. Configure hooks only for this repository.
 - Propagate command failures. Never hide a failure behind a final message.
 - Do not create hosted Git workflows, Docker tooling, or automated tests.
-
-```bash
-mise run lint:python
-mise run lint:shell
-```
 
 ## Security rules
 
@@ -2150,57 +2108,39 @@ find . -type f -exec sh -c 'lint_sql {}' \;
 Safe xargs:
 
 ```bash
-find . -type f -name '*.sql' -print0 | xargs -0 shellcheck --
+find . -type f -name '*.sh' -print0 | xargs -0 shellcheck --
 ```
 
 If a value must become a command argument, keep it as an argument. Do not turn it
 into code.
 
-## Portability rules
+## Platform requirements
 
-Rules:
+Target the platforms required by the task. Do not add platform-detection layers
+or wrapper functions for hypothetical environments.
 
-- Default to Bash 3.2-compatible syntax unless runtime support is checked.
-- Every file header declares the supported platform and minimum Bash version.
-- The declared contract and syntax must agree. Bash 4+ features such as
-  `mapfile`, `readarray`, associative arrays, and `${value,,}` require a
-  checked Bash 4+ entry boundary; otherwise they are forbidden.
-- Account for macOS/BSD and GNU differences in `sed`, `date`, `readlink`,
-  `mktemp`, `stat`, `xargs`, and `grep`.
-- Prefer project-provided wrappers for platform-specific behavior.
-- Do not use `realpath` unless the target platform guarantees it.
-- Use `pwd -P` after `cd` for physical paths when symlinks matter.
-- Avoid `sed -i` unless platform-specific behavior is handled.
-- Avoid `date` parsing that differs between GNU and BSD.
-- Do not assume `/bin/bash` is a modern Bash on macOS.
-- Do not use Linux-only utilities in macOS-compatible scripts without checks.
-- Do not assume local hooks has the same PATH as a developer shell.
-
-Portable-ish script directory:
-
-```bash
-SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-readonly SCRIPT_DIR
-```
-
-When absolute path resolution must handle symlinks across platforms, prefer a
-small verified Bash helper or product-owned application code.
+- State the supported platform and minimum Bash version in the script header.
+- Use the selected runtime and utilities directly.
+- Account for utility differences only on platforms the script must support.
+- Use physical paths when symlink resolution matters.
+- Do not assume hooks inherit the developer shell's PATH.
+- Keep process checks, quoting, and exit-status handling correct on the target.
 
 ## Linting and formatting
 
 Rules:
 
-- Run the owning project's shell lint command when touching Bash.
-- Fix ShellCheck findings in the touched scope.
-- Format touched scripts with the project formatter when one exists.
+- Run shell checks only when the user explicitly requests verification.
+- Fix ShellCheck findings relevant to the requested work. Do not use them to
+  expand the task into unrelated cleanup.
+- Run formatting only when requested, using the existing formatter for the
+  affected scripts.
 - Do not add broad or unexplained lint suppressions.
 - Every suppression must explain why the warning is intentionally accepted.
 - Prefer changing code to satisfy ShellCheck over adding disable comments.
-- Project-wide ShellCheck exceptions belong in `quality/config/shellcheckrc` and
-  require an explicit rule-level rationale. This repository disables SC2310 and
-  SC2311 because libraries must check statuses explicitly and may not depend on
-  inherited `errexit`; those diagnostics otherwise report each intentional
-  conditional function call.
+- Keep each shared ShellCheck exception narrow and explain the actual shell
+  behavior that requires it. Do not change shared exceptions unless the user
+  requests a tooling change.
 
 Expected tools:
 
@@ -2208,13 +2148,8 @@ Expected tools:
 - shfmt for formatting when the script family uses it.
 - Additional security scanners only when requested or included in the requested project task.
 
-Common commands by area:
-
-```bash
-mise run lint:shell
-```
-
-Run from the repository root.
+For requested checks, use the existing task for the affected scripts. Do not
+add a second entry point or broaden the run to unrelated files.
 
 ShellCheck suppression shape:
 
@@ -2238,10 +2173,10 @@ Rules:
 - Do not create sample files only to exercise Bash behavior.
 - Do not move Bash orchestration into another scripting language only to make it
   easier to test.
-- Bash verification is static review, ShellCheck, shfmt, and `bash -n`.
-- Runtime trial runs are allowed only when they are part of the requested
-  workflow or needed to verify a real publish/local command, not as a new test
-  suite.
+- Requested Bash checks may use ShellCheck, shfmt, and `bash -n`.
+  Reading the changed script does not authorize running those commands.
+- Run a script for verification only when the user requests that check.
+  Executing a requested workflow is separate from creating a test suite.
 
 ## Debugging Bash
 
@@ -2331,21 +2266,22 @@ When fixing or refactoring Bash:
    helper has a real shared contract.
 7. Do not convert a large script in one pass unless the task is explicitly a
    script cleanup.
-8. Do not change shebangs across a script family unless runtime compatibility is
-   verified.
-9. Run the narrow shell lint/format command first, then broader checks when the
-   owning rule file requires them.
+8. Change shebangs only when the requested work changes the runtime requirement.
+   Update affected callers in the same change.
+9. Run linting, formatting, or runtime checks only when explicitly requested,
+   and keep them scoped to the affected scripts.
 
 When a script is too complex:
 
-- keep the Bash wrapper thin;
+- keep shell orchestration small;
 - move parsing or business logic into product-owned application code;
 - keep command invocation and environment validation in Bash only if that is the
   simplest operational boundary.
 
 ## Review checklist
 
-Before finishing Bash work, verify:
+Review the changed script against the applicable points below. Run commands
+only when explicitly requested:
 
 - The file has the correct shebang and header.
 - The file is exactly one invocation type: executable entrypoint or
@@ -2411,7 +2347,7 @@ reference index.
 | `set -euo pipefail`, `errexit`, `pipefail`, `nounset`                      | [Shell Options](#shell-options)                                                                                                                                                        |
 | `eval`, configured shells, `find -exec sh -c`, `xargs`, network-to-shell   | [Security Rules](#security-rules), [Network Commands](#network-commands)                                                                                                               |
 | `sudo`, `su`, process matching, closed descriptors                         | [Process Management and Privilege Boundaries](#process-management-and-privilege-boundaries), [Pipelines and Redirection](#pipelines-and-redirection)                                   |
-| BOM, CRLF, Bash version, macOS/GNU differences                             | [File Encoding and Line Endings](#file-encoding-and-line-endings), [Runtime Compatibility](#runtime-compatibility), [Portability Rules](#portability-rules)                            |
+| BOM, CRLF, Bash version, macOS/GNU differences                             | [File Encoding and Line Endings](#file-encoding-and-line-endings), [Runtime Requirements](#runtime-requirements), [Platform Requirements](#platform-requirements)                            |
 | ShellCheck, readability, structure, comments, debugging                    | [Script Structure](#script-structure), [Comments and Documentation](#comments-and-documentation), [Linting and Formatting](#linting-and-formatting), [Debugging Bash](#debugging-bash) |
 
 ## Anti-patterns

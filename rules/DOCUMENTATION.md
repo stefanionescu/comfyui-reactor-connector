@@ -8,12 +8,14 @@ Documentation is part of the product. A project is not fully usable when its
 behavior exists only in source code, issue discussions, chat messages, or the
 memory of a maintainer.
 
-All authored text must follow [plain language](WRITING.md), including
-strict ISO 24495-1:2023 review. A passing linter does not establish conformity.
+Apply ISO 24495-1:2023: include what readers need, organize it so they can find
+it, use language they can understand, and make the next action clear. A passing
+linter does not establish conformity.
 
-Use this guide with [`GENERAL.md`](GENERAL.md) for present-state writing and code
-comment requirements, [`NAMING.md`](NAMING.md) for names used in examples, and
-[`PLANNING.md`](PLANNING.md) when a documentation plan is requested.
+Apply review guidance to the text affected by the task. Do not create unrelated pages,
+require a separate reviewer, or run checks unless the user asks for that work.
+Code and command examples illustrate documentation patterns; they do not impose
+repository tooling, approval, or deployment requirements.
 
 ## Contents
 
@@ -23,7 +25,7 @@ comment requirements, [`NAMING.md`](NAMING.md) for names used in examples, and
 - [Write for a defined reader](#write-for-a-defined-reader)
 - [Organize the documentation set](#organize-the-documentation-set)
 - [Split a README and an advanced guide deliberately](#split-a-readme-and-an-advanced-guide-deliberately)
-- [Use cognitive funneling](#use-cognitive-funneling)
+- [Order information by reader need](#order-information-by-reader-need)
 - [Choose the correct topic type](#choose-the-correct-topic-type)
 - [Plan documentation before writing](#plan-documentation-before-writing)
 - [Voice and tone](#voice-and-tone)
@@ -439,7 +441,7 @@ Move content elsewhere when it has a different owner:
 Delete the advanced guide and merge its unique material back into the README if
 the guide becomes small or no longer serves a distinct audience.
 
-## Use cognitive funneling
+## Order information by reader need
 
 Order information from broad and widely relevant to narrow and specialized.
 This structure helps readers decide quickly whether to continue.
@@ -577,8 +579,6 @@ Use:
 
 Do not turn a landing page into a duplicate guide.
 
-
-
 ### Combining topic types
 
 A README can contain several topic types because it is an entry document.
@@ -601,7 +601,7 @@ For non-trivial documentation work:
 1. List the claims that require evidence.
 1. Identify security, permission, compatibility, and data-loss caveats.
 1. Choose the smallest example that proves normal use.
-1. Outline sections in cognitive-funnel order.
+1. Put purpose and common tasks before reference details and unusual cases.
 1. Identify links, images, and examples that need maintenance ownership.
 
 Do not create a new page for one paragraph that belongs naturally on an
@@ -610,8 +610,9 @@ existing page.
 Do not begin by copying source comments, tickets, or implementation notes.
 Translate verified behavior into a reader-focused explanation.
 
-A documentation plan must follow [`PLANNING.md`](PLANNING.md). Include the exact
-text diff when the user asks for a plan rather than implementation.
+When a documentation plan is requested, state the reader's task, affected pages,
+and proposed changes. Include exact patches only when requested or needed to
+explain a specific edit.
 
 ## Voice and tone
 
@@ -1449,13 +1450,13 @@ Delete obsolete content. Git already preserves history.
 
 ### Platform extensions
 
-Shortcodes, Liquid tags, custom alerts, tab components, cards, and generated
-macros are acceptable only when the documentation platform owns and tests them.
+Use shortcodes, Liquid tags, alerts, tabs, cards, and generated macros only when
+the page's renderer supports them.
 
 For each extension:
 
-- Confirm it renders in every supported documentation surface.
-- Provide a useful fallback when a secondary renderer does not support it.
+- Use only extensions supported by the renderer for the affected page.
+- Use ordinary Markdown when an extension would require a compatibility layer.
 - Keep essential meaning in text.
 - Avoid nesting components unless the platform documents that combination.
 - Do not use a component only for visual decoration.
@@ -1474,7 +1475,7 @@ For tabs:
   a tab unless the renderer explicitly supports them.
 - Do not link directly to one tab unless the platform guarantees a durable
   target.
-- Confirm that unsupported renderers show a usable linear fallback.
+- Use ordinary headings and sections when the target renderer does not support tabs.
 
 Use collapsible panels only for optional secondary detail. Do not hide:
 
@@ -2031,9 +2032,9 @@ Do not rely on a warning after the command.
 Prefer examples that can be exercised by automated documentation checks or by a
 normal project workflow.
 
-Repositories should validate important examples where practical. Agents must
-still follow [`GENERAL.md`](GENERAL.md) on whether tests, lint, formatting, or
-verification commands are authorized for the current task.
+Read examples for accuracy as part of editing them. Run example commands, lint,
+formatting, or other checks only when the user explicitly requests verification.
+Do not create or run automated tests.
 
 Do not pin volatile output unless the exact output is part of the public
 contract.
@@ -2375,9 +2376,9 @@ Use a footnote only when:
 Prefer Markdown-native footnotes when the renderer supports them:
 
 ```markdown
-The legacy mode remains available.[^legacy]
+Recording needs enough free disk space.[^recording]
 
-[^legacy]: Legacy mode does not support encrypted backups.
+[^recording]: Check the destination before starting a long recording.
 ```
 
 Do not use footnotes for safety information or required steps.
@@ -2506,23 +2507,14 @@ Branch line numbers move as the file changes.
 
 Use branch links when the reader needs the current file as a whole.
 
-### Link across documentation versions explicitly
+### Link to the version in use
 
-Do not surprise a reader with a link to a different product or documentation
-version.
+Use current project pages for internal navigation. Link to external API or tool
+documentation for the version the project uses. Name the version when the
+destination could otherwise confuse the reader. Do not maintain parallel project
+guides or redirect layers for obsolete versions.
 
-When a cross-version link is necessary:
-
-- Name the destination version in the surrounding sentence.
-- Include the version in the destination path when the platform requires it.
-- Prefer the same topic in the target version.
-- Explain why the reader needs the older or newer version.
-- Do not use a cross-version link as a substitute for maintaining the current
-  page.
-
-Use current-version relative links for normal navigation.
-
-### Treat heading anchors as contracts
+### Update heading links
 
 Changing a heading changes its generated anchor on most platforms.
 
@@ -2530,9 +2522,8 @@ Before changing a published heading:
 
 - Search the repository for links to the old anchor.
 - Update every owned link.
-- Consider external links and bookmarks.
-- Preserve an old anchor only when the publishing system treats it as a public
-  compatibility contract and the repository has an approved anchor mechanism.
+- Use the current heading and update affected links.
+- Do not retain old anchors or add redirect aliases for backward compatibility.
 
 Do not put step numbers or volatile version labels in headings unless needed.
 
@@ -2852,7 +2843,7 @@ relationships that are difficult to understand from prose.
 Prefer Mermaid when the renderer supports it because the source is searchable,
 reviewable, and versioned with the text.
 
-Use an editable SVG created by an approved diagram tool when Mermaid cannot
+Use an editable SVG from the project's diagram tool when Mermaid cannot
 produce a clear layout. Store the editable diagram definition with the asset.
 
 Diagram rules:
@@ -3219,8 +3210,6 @@ The repository visibility was changed.
 
 Do not repeat context already supplied by the event table or category.
 
-
-
 ## Maintain documentation continuously
 
 Documentation evolves with the product.
@@ -3246,14 +3235,10 @@ Do not defer a required documentation update as optional cleanup.
 
 ### Keep comments and guides aligned
 
-When public behavior changes:
-
-- Update the reader-facing guide.
-- Update public code comments.
-- Update API or generated reference.
-- Update examples.
-- Update troubleshooting.
-- Update diagrams.
+When public behavior changes, update the existing material that describes the
+affected behavior. This may include a guide, comment, reference, example,
+troubleshooting entry, or diagram. Do not create missing documentation layers
+or revise unrelated material to satisfy a checklist.
 
 Do not describe the same behavior differently at each layer.
 
@@ -3268,8 +3253,8 @@ Do not:
 - Keep obsolete commands for historical interest.
 - Preserve screenshots that show a removed interface.
 
-Use versioned documentation when readers still
-need an older-version path.
+Document the current implementation. Remove obsolete instructions instead of
+maintaining parallel guides for older versions.
 
 ### Maintain external links
 
@@ -3338,12 +3323,12 @@ Repositories should automate, when appropriate:
 - Front-matter schemas.
 - Accessibility rules that tools can detect.
 
-Automation does not prove factual accuracy or usability. Human review remains
-required.
+Automation does not prove factual accuracy or usability. Read the changed text
+for both; do not require a separate reviewer or approval.
 
-Agents must follow the current repository rule on whether verification commands
-are authorized. This section describes project design, not permission to run
-checks.
+Add automation or run checks only when explicitly requested. Do not add tests
+or hosted workflows. The list above describes possible checks, not a required
+set of tools.
 
 ## Review documentation systematically
 
@@ -3787,8 +3772,6 @@ curl --request METHOD \
 ```
 ````
 
-
-
 ## Documentation anti-patterns
 
 Do not accept these patterns.
@@ -3806,7 +3789,7 @@ and license information.
 ### README as complete internal manual
 
 Do not force every reader through exhaustive internals before setup. Use
-cognitive funneling and create an advanced guide only when the depth is
+a reading order based on the reader's task and create an advanced guide only when the depth is
 substantial.
 
 ### Advanced guide as overflow storage
@@ -3968,21 +3951,24 @@ Document each node's purpose, inputs and units, outputs, prerequisites, example,
 limits, saving, cancellation, and recovery. Keep shared explanations in the
 advanced guide and link to them. Node schemas own exact socket and widget names.
 
-Use title case for document H1 titles. Use sentence case for lower headings,
-node and note titles, parameter display labels, buttons, and table heads.
+Use title case for document H1 titles and for node, workflow, and note titles.
+Use sentence case for lower headings, parameter display labels, buttons, note
+body text, and table heads.
 Preserve proper names, model spellings, API identifiers, and quoted host labels.
 Use the node titles actually visible in each workflow's instructions.
 
 Keep workflow notes compact and close to the action they explain. Size notes to
 the rendered text, align related nodes, leave gaps above title bars, and keep
 cables and widgets visible. Do not use a giant note as a graph background.
-Inspect every rendered workflow and help surface in Comfy Desktop.
+When visual verification is explicitly requested, inspect the affected workflows
+and help in Comfy Desktop. Do not expand a text edit into a review of every surface.
 
 Keep credentials, private machine paths, run records, acceptance status, and
 implementation journals out of public guides, examples, and workflow notes.
 Describe concrete actions such as recording a video or moving the camera.
 Do not invent abstract names for ordinary actions.
 
-Verify the actual distributed package manually in Comfy Desktop. Do not create
-or run automated tests. Keep the verification record private and describe only
-available behavior in product documentation.
+When distribution verification is explicitly requested, use the actual installed
+package in Comfy Desktop and check the affected behavior. Do not create or run
+automated tests. Keep results private and describe only available behavior in
+product documentation.
