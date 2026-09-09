@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from quality.lib.process import run_command
 from quality.lib.output import write_error, write_line
-from quality.repository.hooks.staged import git_output
 
 HOOKS = ("pre-commit", "commit-msg", "pre-push")
 
@@ -22,7 +21,11 @@ def configure_hooks(root: Path) -> None:
         msg = "Existing Git hooks were preserved. Review their integration before setup."
         raise ValueError(msg)
     if not current:
-        directory = Path(git_output("rev-parse", "--git-path", "hooks").decode().strip())
+        directory = Path(
+            run_command(["git", "rev-parse", "--git-path", "hooks"], is_output_captured=True, is_failure_raised=True)
+            .stdout.decode()
+            .strip()
+        )
         if any((root / directory / name).exists() for name in HOOKS):
             msg = "Existing Git hooks were preserved. Review their integration before setup."
             raise ValueError(msg)
@@ -38,7 +41,11 @@ def configure_hooks(root: Path) -> None:
 def main() -> int:
     """Configure the local hook path after checking existing ownership."""
     try:
-        root = Path(git_output("rev-parse", "--show-toplevel").decode().strip())
+        root = Path(
+            run_command(["git", "rev-parse", "--show-toplevel"], is_output_captured=True, is_failure_raised=True)
+            .stdout.decode()
+            .strip()
+        )
         configure_hooks(root)
     except (OSError, ValueError, RuntimeError) as error:
         write_error(str(error) if isinstance(error, ValueError) else "Git hook setup failed.")

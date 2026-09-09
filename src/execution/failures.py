@@ -1,7 +1,7 @@
 """Translate SDK failures without retaining provider text in visible errors."""
 
-from ..codes import ErrorCode
-from ..errors import ConnectorError
+from ..language import translate
+from ..errors import ErrorCode, ConnectorError
 from reactor_sdk import AuthError, ReactorError
 
 
@@ -44,17 +44,19 @@ def phase_error(error: object, phase: str) -> ConnectorError:
     safe = safe_error(error)
     if isinstance(error, ConnectorError):
         return error
-    return ConnectorError(safe.code, f"{safe} Stage: {phase}. Code: {diagnostic_code(error)}.")
+    return ConnectorError(
+        safe.code, translate("main", "errors.phase", message=str(safe), phase=phase, code=diagnostic_code(error))
+    )
 
 
 PROVIDER_ERRORS = {
-    "UNAUTHORIZED": (ErrorCode.AUTHENTICATION, "Reactor refused access. Check your key and model access."),
-    "RATE_LIMITED": (ErrorCode.UNAVAILABLE, "Reactor is limiting requests. Wait before starting another run."),
-    "REQUEST_TIMEOUT": (ErrorCode.TIMEOUT, "Reactor did not reply within its request limit."),
-    "NOT_FOUND": (ErrorCode.UNAVAILABLE, "The requested Reactor model or protocol is unavailable. Check for updates."),
+    "UNAUTHORIZED": (ErrorCode.AUTHENTICATION, "errors.accessRefused"),
+    "RATE_LIMITED": (ErrorCode.UNAVAILABLE, "errors.providerRateLimit"),
+    "REQUEST_TIMEOUT": (ErrorCode.TIMEOUT, "errors.providerRequestTimeout"),
+    "NOT_FOUND": (ErrorCode.UNAVAILABLE, "errors.modelUnavailable"),
     "VERSION_MISMATCH": (
         ErrorCode.UNAVAILABLE,
-        "The requested Reactor model or protocol is unavailable. Check for updates.",
+        "errors.modelUnavailable",
     ),
 }
 
@@ -66,10 +68,10 @@ def safe_error(error: object) -> ConnectorError:
     if isinstance(error, AuthError):
         return ConnectorError(
             ErrorCode.AUTHENTICATION,
-            "Reactor could not authenticate. Check your saved key and network connection.",
+            translate("main", "errors.authenticationFailed"),
         )
     if isinstance(error, TimeoutError):
-        return ConnectorError(ErrorCode.TIMEOUT, "Reactor exceeded the configured time limit.")
-    default = (ErrorCode.TRANSPORT, "Reactor could not complete this run. Check your connection and account status.")
+        return ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.sessionTimeout"))
+    default = (ErrorCode.TRANSPORT, "errors.runFailed")
     code, message = PROVIDER_ERRORS.get(error.code, default) if isinstance(error, ReactorError) else default
-    return ConnectorError(code, message)
+    return ConnectorError(code, translate("main", message))

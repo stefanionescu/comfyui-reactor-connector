@@ -1,8 +1,9 @@
 """Build and execute LongLive shots without making users write model commands."""
 
 from comfy_api.latest import io
-from ...execution.storyboard import LongLiveRequest
-from ..host import execute_video, operation_fingerprint
+from ..schema import translate_schema
+from ...execution.longlive.request import LongLiveRequest
+from ...comfy.execution import execute_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
 
@@ -12,14 +13,12 @@ class LongLiveGenerate(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncLongLiveGenerate",
-            display_name="Reactor LongLive: Generate video",
-            category="Reactor/Generate",
-            inputs=[*generation_controls(), live_control()],
-            outputs=video_outputs(),
-            description="Generate a short LongLive scene from an opening shot prompt.",
-            search_aliases=["Reactor", "LongLive", "text to video"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncLongLiveGenerate",
+                inputs=[*generation_controls(), live_control()],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

@@ -1,26 +1,53 @@
-"""Static settings values used by the connector."""
+"""Define editable settings, their units, defaults, and supported ranges."""
 
-MAX_TIMEOUT_SECONDS = 3600
+from typing import TypedDict
+from .security import MAX_SESSION_SECONDS
 
-DEFAULT_MAX_CAPTURE_SECONDS = 60
 
-DEFAULT_MAX_SESSION_SECONDS = 180
+class IntegerSetting(TypedDict):
+    """One numeric setting shared by server validation and the settings form."""
 
-DEFAULT_CONNECT_TIMEOUT_SECONDS = 60
+    default: int
+    maximum: int
+    minimum: int
 
-DEFAULT_FRAME_TIMEOUT_SECONDS = 30
 
-DEFAULT_CLEANUP_TIMEOUT_SECONDS = 10
-
-DEFAULT_QUEUE_TIMEOUT_SECONDS = 120
-
-DEFAULT_MAX_UPLOAD_MEGABYTES = 100
-
-DEFAULT_MAX_CAPTURE_MEGABYTES = 512
-
-DEFAULT_MAX_QUEUE_MEGABYTES = 64
-
-DEFAULT_DISCOVERY_INTERVAL_HOURS = 24
+INTEGER_SETTINGS: dict[str, IntegerSetting] = {
+    "max_capture_seconds": {
+        "default": 60,
+        "minimum": 1,
+        "maximum": MAX_SESSION_SECONDS,
+    },
+    "max_session_seconds": {
+        "default": 180,
+        "minimum": 1,
+        "maximum": MAX_SESSION_SECONDS,
+    },
+    "connect_timeout_seconds": {
+        "default": 60,
+        "minimum": 1,
+        "maximum": MAX_SESSION_SECONDS,
+    },
+    "first_frame_timeout_seconds": {
+        "default": 30,
+        "minimum": 1,
+        "maximum": MAX_SESSION_SECONDS,
+    },
+    "cleanup_timeout_seconds": {
+        "default": 10,
+        "minimum": 1,
+        "maximum": MAX_SESSION_SECONDS,
+    },
+    "queue_timeout_seconds": {
+        "default": 120,
+        "minimum": 1,
+        "maximum": MAX_SESSION_SECONDS,
+    },
+    "max_upload_megabytes": {"default": 100, "minimum": 1, "maximum": 4096},
+    "max_capture_megabytes": {"default": 512, "minimum": 1, "maximum": 4096},
+    "max_queue_megabytes": {"default": 64, "minimum": 1, "maximum": 4096},
+    "catalog_interval_hours": {"default": 24, "minimum": 1, "maximum": 8760},
+}
 
 DEFAULT_DISCOVERY_AUTO_CHECK = True
 
@@ -29,3 +56,12 @@ MAX_SETTINGS_BYTES = 4096
 MAX_SETTINGS_FILE_BYTES = 65_536
 
 SETTINGS_TIMEOUT_SECONDS = 5
+
+__all__ = [
+    "DEFAULT_DISCOVERY_AUTO_CHECK",
+    "INTEGER_SETTINGS",
+    "MAX_SETTINGS_BYTES",
+    "MAX_SETTINGS_FILE_BYTES",
+    "SETTINGS_TIMEOUT_SECONDS",
+    "IntegerSetting",
+]

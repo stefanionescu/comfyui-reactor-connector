@@ -2,20 +2,12 @@
 
 import time
 import asyncio
-from ..codes import ErrorCode
-from .lease import BrowserInput
-from dataclasses import dataclass
-from ..errors import ConnectorError
+from .state import BrowserInput
+from .state import CameraChange
+from ..language import translate
 from ..execution.events import SessionEvents
+from ..errors import ErrorCode, ConnectorError
 from ...config.live import MAX_QUEUED_MOVEMENTS, COMMAND_TIMEOUT_SECONDS, MAX_QUEUED_MOVEMENT_SECONDS
-
-
-@dataclass(frozen=True, slots=True)
-class CameraChange:
-    """One requested camera value and the time it entered the command queue."""
-
-    value: str
-    queued_at: float
 
 
 class CameraCommands:
@@ -42,7 +34,7 @@ class CameraCommands:
                     queue.put_nowait(CameraChange(value, time.monotonic()))
                 except asyncio.QueueFull:
                     raise ConnectorError(
-                        ErrorCode.UNAVAILABLE, "Camera input exceeded its pending command limit."
+                        ErrorCode.UNAVAILABLE, translate("main", "errors.cameraCommandLimit")
                     ) from None
                 self.desired[axis] = value
 
@@ -64,7 +56,7 @@ class CameraCommands:
             self.events.on_error(
                 ConnectorError(
                     ErrorCode.TIMEOUT,
-                    "A live camera command was not acknowledged in time. The session is ending.",
+                    translate("main", "errors.cameraCommandTimeout"),
                     diagnostic_detail=f"The {axis} reply exceeded five seconds.",
                 )
             )
@@ -72,7 +64,7 @@ class CameraCommands:
     async def _apply(self, axis: str, change: CameraChange) -> None:
         """Send fresh camera input and record only acknowledged direction changes."""
         if change.value != "idle" and time.monotonic() - change.queued_at > MAX_QUEUED_MOVEMENT_SECONDS:
-            raise ConnectorError(ErrorCode.TIMEOUT, "Camera input became stale before it could be sent.")
+            raise ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.cameraInputStale"))
         started = time.monotonic()
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
             await self.events.command(f"set_{axis}", {axis: change.value})

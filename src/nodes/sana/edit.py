@@ -5,14 +5,14 @@ import folder_paths
 from pathlib import Path
 from dataclasses import replace
 from ...runtime import get_runtime
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...settings.store import read_settings
 from ...media.video.input import prepared_video
 from ...execution.sana.request import SanaRequest
-from ....config.prompts import DEFAULT_EDIT_PROMPT
 from ....config.generation.video import MAX_ANCHOR_INTERVAL
 from ..controls import live_control, video_outputs, generation_controls
-from ..host import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 
 
 class SanaEditVideo(io.ComfyNode):
@@ -26,30 +26,24 @@ class SanaEditVideo(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncSanaEditVideo",
-            display_name="Reactor SANA: Edit video",
-            category="Reactor/Edit",
-            inputs=[
-                io.Video.Input(
-                    "source",
-                    display_name="Source video",
-                    tooltip="Connect one local SDR clip with at least 33 frames.",
-                ),
-                *generation_controls(DEFAULT_EDIT_PROMPT),
-                io.Int.Input(
-                    "anchor_interval",
-                    display_name="Anchor interval",
-                    default=0,
-                    min=0,
-                    max=MAX_ANCHOR_INTERVAL,
-                    tooltip=("Return to the source image after this many model chunks. Use 0 to turn this off."),
-                ),
-                live_control(),
-            ],
-            outputs=video_outputs(),
-            description=("Edit a video from your computer using a text prompt. Choose the output length."),
-            search_aliases=["Reactor", "SANA", "video to video", "edit"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncSanaEditVideo",
+                inputs=[
+                    io.Video.Input(
+                        "source",
+                    ),
+                    *generation_controls("edit"),
+                    io.Int.Input(
+                        "anchor_interval",
+                        default=0,
+                        min=0,
+                        max=MAX_ANCHOR_INTERVAL,
+                    ),
+                    live_control(),
+                ],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

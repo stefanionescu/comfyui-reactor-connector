@@ -1,4 +1,4 @@
-"""Static generation prompts values used by the connector."""
+"""Prompt sequence and storyboard limits and transition options."""
 
 MAX_PROMPT_CHUNK = 100_000
 
@@ -15,3 +15,14 @@ MAX_STORYBOARD_BYTES = 128_000
 OPTIONS_TRANSITION = ["soft", "cut"]
 
 DEFAULT_TRANSITION = "soft"
+
+__all__ = [
+    "DEFAULT_TRANSITION",
+    "MAX_PROMPTS",
+    "MAX_PROMPT_CHUNK",
+    "MAX_SEQUENCE_BYTES",
+    "MAX_SHOTS",
+    "MAX_SHOT_CHUNK",
+    "MAX_STORYBOARD_BYTES",
+    "OPTIONS_TRANSITION",
+]

@@ -1,21 +1,14 @@
-export const fields = [
-  ['max_capture_seconds', 'Maximum video duration (seconds)'],
-  ['max_session_seconds', 'Maximum session duration (seconds)'],
-  ['connect_timeout_seconds', 'Connection timeout (seconds)'],
-  ['first_frame_timeout_seconds', 'First-frame timeout (seconds)'],
-  ['cleanup_timeout_seconds', 'Disconnect timeout (seconds)'],
-  ['queue_timeout_seconds', 'Queue wait timeout (seconds)'],
-  ['max_upload_megabytes', 'Maximum upload size (MiB)'],
-  ['max_capture_megabytes', 'Maximum video file size (MiB)'],
-  ['max_queue_megabytes', 'Maximum queued frame data (MiB)'],
-] as const;
+import { translate } from '#web/language.ts';
+import { browserPatterns, browserLimits } from '#config/browser.ts';
 
-export type FieldName = (typeof fields)[number][0];
+type SettingDefinition = { label: string; minimum: number; maximum: number };
 export type Configuration = {
   revision: string;
   credentialSource: 'missing' | 'saved' | 'environment';
+  credentialLimit: number;
   mutationAllowed: boolean;
-  settings: Record<FieldName, number> & {
+  definitions: Record<string, SettingDefinition> & { catalog_interval_hours: SettingDefinition };
+  settings: Record<string, number | boolean> & {
     catalog_auto_check: boolean;
     catalog_interval_hours: number;
   };
@@ -24,9 +17,38 @@ export type Fetcher = (route: string, options: RequestInit) => Promise<Response>
 
 function record(value: unknown): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new Error('ComfyUI returned an invalid Reactor settings response.');
+    throw new Error(translate('settings.invalidResponse'));
   }
   return value as Record<string, unknown>;
+}
+
+/**
+ * Read the settings fields and ranges supplied by the backend.
+ * @param value - The untrusted field definitions.
+ * @returns Validated definitions for the settings form.
+ */
+function parseDefinitions(value: unknown): Configuration['definitions'] {
+  const definitions = record(value);
+  if (!Object.hasOwn(definitions, 'catalog_interval_hours'))
+    throw new Error(translate('settings.incompleteResponse'));
+  const result: Record<string, SettingDefinition> = {};
+  for (const [name, raw] of Object.entries(definitions)) {
+    const field = record(raw);
+    if (
+      !/^[a-z][a-z_]+$/.test(name) ||
+      typeof field.label !== 'string' ||
+      field.label.length < 1 ||
+      field.label.length > 200 ||
+      typeof field.minimum !== 'number' ||
+      !Number.isSafeInteger(field.minimum) ||
+      typeof field.maximum !== 'number' ||
+      !Number.isSafeInteger(field.maximum) ||
+      field.minimum > field.maximum
+    )
+      throw new Error(translate('settings.invalidDefinition'));
+    result[name] = { label: field.label, minimum: field.minimum, maximum: field.maximum };
+  }
+  return result as Configuration['definitions'];
 }
 
 /**
@@ -40,37 +62,38 @@ function parseConfiguration(value: unknown): Configuration {
   const credential = record(document.credential);
   if (
     typeof document.revision !== 'string' ||
-    !/^[a-f0-9]{64}$/.test(document.revision) ||
+    !browserPatterns.revision.test(document.revision) ||
     typeof document.mutation_allowed !== 'boolean' ||
     typeof credential.source !== 'string' ||
     !['missing', 'saved', 'environment'].includes(credential.source)
   ) {
-    throw new Error('ComfyUI returned an invalid Reactor settings response.');
+    throw new Error(translate('settings.invalidResponse'));
   }
+  const definitions = parseDefinitions(document.integer_settings);
   if (
     typeof settings.catalog_auto_check !== 'boolean' ||
-    typeof settings.catalog_interval_hours !== 'number' ||
-    !Number.isInteger(settings.catalog_interval_hours) ||
-    settings.catalog_interval_hours < 1 ||
-    settings.catalog_interval_hours > 3600
+    typeof document.credential_limit !== 'number' ||
+    !Number.isSafeInteger(document.credential_limit) ||
+    document.credential_limit < 1
   )
-    throw new Error('ComfyUI returned invalid model check settings.');
-  const validated = {
-    catalog_auto_check: settings.catalog_auto_check,
-    catalog_interval_hours: settings.catalog_interval_hours,
-  } as Configuration['settings'];
-  for (const [name] of fields) {
+    throw new Error(translate('settings.invalidChecks'));
+  for (const [name, definition] of Object.entries(definitions)) {
     const value = settings[name];
-    if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 3600) {
-      throw new Error('ComfyUI returned an invalid Reactor limit.');
-    }
-    validated[name] = value;
+    if (
+      typeof value !== 'number' ||
+      !Number.isSafeInteger(value) ||
+      value < definition.minimum ||
+      value > definition.maximum
+    )
+      throw new Error(translate('settings.invalidLimit'));
   }
   return {
     revision: document.revision,
     credentialSource: credential.source as Configuration['credentialSource'],
     mutationAllowed: document.mutation_allowed,
-    settings: validated,
+    settings: settings as Configuration['settings'],
+    definitions,
+    credentialLimit: document.credential_limit,
   };
 }
 
@@ -94,7 +117,10 @@ export async function requestConfiguration(
     method,
     cache: 'no-store',
     credentials: 'same-origin',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
+    signal: AbortSignal.any([
+      signal,
+      AbortSignal.timeout(browserLimits.requestTimeoutMilliseconds),
+    ]),
     headers: { 'Content-Type': 'application/json', 'X-Reactor-Comfy': '1' },
   };
   if (body !== undefined) options.body = JSON.stringify(body);
@@ -102,20 +128,18 @@ export async function requestConfiguration(
   try {
     response = await fetcher(`/reactor-inc/v1${route}`, options);
   } catch {
-    throw new Error('Cannot reach Reactor settings. Check ComfyUI and try again.');
+    throw new Error(translate('settings.unreachable'));
   }
   let document: unknown;
   try {
     document = await response.json();
   } catch {
-    throw new Error('ComfyUI returned an unreadable Reactor settings response.');
+    throw new Error(translate('settings.unreadableResponse'));
   }
   if (!response.ok) {
     const error = record(document).error;
     throw new Error(
-      typeof error === 'string' && error.length <= 1024
-        ? error
-        : 'ComfyUI could not save Reactor settings.',
+      typeof error === 'string' && error.length <= 1024 ? error : translate('settings.saveFailed'),
     );
   }
   return parseConfiguration(document);

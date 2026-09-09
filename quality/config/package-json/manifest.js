@@ -9,7 +9,6 @@ export const PACKAGE_JSON_DEPENDENCY_KEYS = [
 ];
 export const PACKAGE_JSON_RANGE_PATTERN = /^[\^~><=*]+/u;
 export const PACKAGE_JSON_FIX_FLAG = '--fix';
-export const PACKAGE_JSON_DIRECTORIES = ['', '.', 'quality'];
 
 export const PACKAGE_JSON_LINT_MESSAGES = {
   fileNotFoundPrefix: 'File not found:',

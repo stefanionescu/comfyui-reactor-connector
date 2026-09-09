@@ -7,10 +7,10 @@ import json
 import math
 import hashlib
 from uuid import UUID
-from ..codes import ErrorCode
 from datetime import datetime
+from ..language import translate
 from dataclasses import dataclass
-from ..errors import ConnectorError
+from ..errors import ErrorCode, ConnectorError
 from ..serialization import Json, mapping_value
 from ...config.discovery import (
     MAX_MODELS,
@@ -25,25 +25,6 @@ from ...config.discovery import (
 
 
 SLUG = re.compile(SLUG_PATTERN_TEXT)
-
-
-def invalid() -> ConnectorError:
-    """Create the safe error used for invalid public model metadata."""
-    return ConnectorError(ErrorCode.DISCOVERY, "The model catalog has an invalid or unsupported format.")
-
-
-def slug(value: Json) -> str:
-    """Require a model name that is safe to use in documented identifiers."""
-    if not isinstance(value, str) or SLUG.fullmatch(value) is None:
-        raise invalid()
-    return value
-
-
-def rows(value: Json) -> list[dict[str, Json]]:
-    """Require a nonempty list of model records within the catalog size limit."""
-    if not isinstance(value, list) or not 1 <= len(value) <= MAX_MODELS:
-        raise invalid()
-    return [mapping_value(row) for row in value]
 
 
 @dataclass(frozen=True, slots=True)
@@ -168,7 +149,26 @@ class Snapshot:
             or len({guide.slug for guide in guides}) != len(guides)
         ):
             raise invalid()
-        # Excluded models stay out of bundled, refreshed, and restored snapshots.
+        # Exclude unsupported HappyOyster entries from refreshed and restored metadata.
         prices = tuple(price for price in prices if not price.name.startswith("happy-oyster"))
         guides = tuple(guide for guide in guides if not guide.slug.startswith("happy-oyster"))
         return cls(retrieved_at, conversion, prices, guides)
+
+
+def invalid() -> ConnectorError:
+    """Create the safe error used for invalid public model metadata."""
+    return ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListFormat"))
+
+
+def slug(value: Json) -> str:
+    """Require a model name that is safe to use in documented identifiers."""
+    if not isinstance(value, str) or SLUG.fullmatch(value) is None:
+        raise invalid()
+    return value
+
+
+def rows(value: Json) -> list[dict[str, Json]]:
+    """Require a nonempty list of model records within the catalog size limit."""
+    if not isinstance(value, list) or not 1 <= len(value) <= MAX_MODELS:
+        raise invalid()
+    return [mapping_value(row) for row in value]

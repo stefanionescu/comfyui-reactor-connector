@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck disable=SC2154
 # lint:justify -- reason: scan.sh supplies these values before sourcing and calling this file.
 # Configure and run CodeQL database scans.

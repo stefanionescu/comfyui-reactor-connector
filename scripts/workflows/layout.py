@@ -29,7 +29,7 @@ def model_height(example: Example) -> int:
         (example.model.startswith("visko"), 470),
         (example.model == "ltx2", 410),
         (example.model.startswith("lingbot"), 420),
-        (example.model == "x2" and not example.webcam, 360),
+        (example.model == "x2" and example.mode != "webcam", 360),
     )
     return next((height for applies, height in choices if applies), 330)
 
@@ -61,12 +61,12 @@ def arrange(nodes: list[Json], example: Example) -> dict[str, Json]:
         5: (40, top + 310 + GAP, INPUT_WIDTH, 310),
         7: (output_x, top + 310 + GAP, OUTPUT_WIDTH, 130),
     }
-    if example.storyboard or example.prompt_sequence:
+    if example.plan in {"shots", "prompts"}:
         positions[5] = (40, top, INPUT_WIDTH, 240)
         positions[6] = (40, top + 340, INPUT_WIDTH, 240)
-        if example.image:
+        if "image" in example.sources:
             positions[2] = (model_x, top + model_height(example) + GAP, MODEL_WIDTH, 310)
-    elif example.ending_image and not example.image:
+    elif ("ending_image" in example.sources) and "image" not in example.sources:
         positions[5] = (40, top, INPUT_WIDTH, 310)
     for number, (x, y, width, height) in positions.items():
         if number in by_id:
@@ -79,15 +79,15 @@ def link_routes(example: Example, positions: dict[int, tuple[int, int, int, int]
     model_x, top = positions[3][:2]
     output_x = positions[4][0]
     extra: dict[str, Json] = {"ds": {"scale": 0.6, "offset": [20, 20]}}
-    if example.storyboard or example.prompt_sequence:
-        link_id = 3 if example.prompt_sequence and example.image else 2
+    if example.plan in {"shots", "prompts"}:
+        link_id = 3 if (example.plan == "prompts") and ("image" in example.sources) else 2
         reroutes: list[Json] = [
             {"id": 1, "pos": [470, top + 40], "linkIds": [link_id]},
             {"id": 2, "parentId": 1, "pos": [470, top + 270], "linkIds": [link_id]},
             {"id": 3, "parentId": 2, "pos": [10, top + 270], "linkIds": [link_id]},
         ]
         extensions: list[Json] = [{"id": link_id, "parentId": 3}]
-        if example.image:
+        if "image" in example.sources:
             image_y = positions[2][1]
             reroutes.extend(
                 [

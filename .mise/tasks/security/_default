@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Scan public source, history, and dependencies for security issues."
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 bash quality/security/gitleaks/run.sh all
 bash quality/security/bearer/run.sh

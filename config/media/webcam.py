@@ -1,4 +1,4 @@
-"""Static media webcam values used by the connector."""
+"""Webcam frame dimensions and upload limits."""
 
 MAX_CAMERA_JPEG_BYTES = 300_000
 
@@ -9,3 +9,11 @@ MAX_CAMERA_HEIGHT = 480
 CAMERA_READY_SECONDS = 2
 
 CAMERA_TIMEOUT_SECONDS = 3
+
+__all__ = [
+    "CAMERA_READY_SECONDS",
+    "CAMERA_TIMEOUT_SECONDS",
+    "MAX_CAMERA_HEIGHT",
+    "MAX_CAMERA_JPEG_BYTES",
+    "MAX_CAMERA_WIDTH",
+]

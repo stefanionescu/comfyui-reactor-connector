@@ -1,5 +1,5 @@
-const BLANK_LINE_PATTERN = /\n\s*\n/u;
-const WHITESPACE_ONLY_PATTERN = /^\s*$/u;
+const blankLinePattern = /\n\s*\n/u;
+const whitespaceOnlyPattern = /^\s*$/u;
 
 /**
  * Returns true if the node is a bare `require('...')` call with no assignment.
@@ -88,7 +88,7 @@ const getStatementEndComments = (sourceCode, node) => {
 
   for (const comment of sourceCode.getCommentsAfter(node)) {
     const between = fullText.slice(end, comment.range[0]);
-    if (!WHITESPACE_ONLY_PATTERN.test(between) || comment.loc.start.line !== node.loc.end.line) {
+    if (!whitespaceOnlyPattern.test(between) || comment.loc.start.line !== node.loc.end.line) {
       break;
     }
     end = comment.range[1];
@@ -170,7 +170,7 @@ export const newlineAfterImports = {
         );
         const leadingWhitespace = sourceText.slice(importEnd, firstContentOffset);
 
-        if (BLANK_LINE_PATTERN.test(leadingWhitespace)) {
+        if (blankLinePattern.test(leadingWhitespace)) {
           return;
         }
 

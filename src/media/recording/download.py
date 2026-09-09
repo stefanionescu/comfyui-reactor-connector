@@ -7,9 +7,9 @@ import asyncio
 from yarl import URL
 from pathlib import Path
 from http import HTTPStatus
-from ...codes import ErrorCode
 from ..output import FileOutput
-from ...errors import ConnectorError
+from ...language import translate
+from ...errors import ErrorCode, ConnectorError
 from ...execution.authentication import SessionToken
 from ....config.media.recording import MAX_MANIFEST_BYTES, MAX_DOWNLOAD_SECONDS, STORAGE_ERROR_PATTERN
 from .manifest import recording_url, coordinator_url, recording_error, RecordingManifest, parse_recording_manifest
@@ -109,6 +109,6 @@ async def download_recording(
                             raise recording_error()
             return output.written
     except TimeoutError:
-        raise ConnectorError(ErrorCode.TIMEOUT, "The recording was not ready within the capture time limit.") from None
+        raise ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.recordingNotReady")) from None
     except (aiohttp.ClientError, UnicodeError, OSError):
         raise recording_error() from None

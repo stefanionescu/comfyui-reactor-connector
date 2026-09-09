@@ -2,9 +2,9 @@
 
 import os
 from pathlib import Path
-from .codes import ErrorCode
-from .errors import ConnectorError
+from .language import translate
 from dataclasses import field, dataclass
+from .errors import ErrorCode, ConnectorError
 from .storage import atomic_write, read_private
 from ..config.security import MAX_CREDENTIAL_CHARACTERS
 
@@ -18,9 +18,9 @@ class Credential:
     def __post_init__(self) -> None:
         """Reject empty, oversized, or whitespace-containing API keys."""
         if not self._value or self._value != self._value.strip() or len(self._value) > MAX_CREDENTIAL_CHARACTERS:
-            raise ConnectorError(ErrorCode.CONFIGURATION, "Enter a nonempty API key without spaces.")
+            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.keyEmpty"))
         if any(character.isspace() for character in self._value):
-            raise ConnectorError(ErrorCode.CONFIGURATION, "The API key cannot contain whitespace.")
+            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.keyWhitespace"))
 
     def __repr__(self) -> str:
         """Identify the credential type without revealing its value."""
@@ -46,11 +46,11 @@ def read_credential(directory: Path) -> Credential:
         except (OSError, UnicodeError):
             raise ConnectorError(
                 ErrorCode.CONFIGURATION,
-                "Cannot read the saved Reactor key. Check its private file.",
+                translate("main", "errors.keyUnreadable"),
             ) from None
     raise ConnectorError(
         ErrorCode.AUTHENTICATION,
-        "Set your Reactor API key in Reactor settings or the server environment before running.",
+        translate("main", "errors.keyRequired"),
     )
 
 

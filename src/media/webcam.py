@@ -7,10 +7,10 @@ import time
 import asyncio
 import threading
 import numpy as np
-from ..codes import ErrorCode
+from ..language import translate
 from typing import TYPE_CHECKING
-from ..errors import ConnectorError
 from PIL import Image, UnidentifiedImageError
+from ..errors import ErrorCode, ConnectorError
 from ...config.media.webcam import (
     MAX_CAMERA_WIDTH,
     MAX_CAMERA_HEIGHT,
@@ -41,8 +41,8 @@ class WebcamFrames:
     def receive(self, content: bytes, sequence: int) -> None:
         """Decode a size-limited JPEG and accept only a newer frame for an open session."""
         if not content or len(content) > MAX_CAMERA_JPEG_BYTES:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Send a camera JPEG smaller than 300 KB.")
-        invalid = ConnectorError(ErrorCode.INVALID_INPUT, "Send a JPEG no larger than 640 by 480 pixels.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraFrameSize"))
+        invalid = ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraDimensions"))
         try:
             with Image.open(io.BytesIO(content)) as image:
                 if (
@@ -56,7 +56,7 @@ class WebcamFrames:
             raise invalid from None
         with self.lock:
             if self.closed or sequence <= self.sequence:
-                raise ConnectorError(ErrorCode.UNAVAILABLE, "The camera frame is out of order or the session ended.")
+                raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.cameraFrameOrder"))
             self.sequence = sequence
             self.pixels = pixels
             self.received_at = time.monotonic()
@@ -79,7 +79,7 @@ class WebcamFrames:
         with self.lock:
             pixels, age, closed = self.pixels, time.monotonic() - self.received_at, self.closed
         if closed or pixels is None or age > CAMERA_TIMEOUT_SECONDS:
-            raise ConnectorError(ErrorCode.TRANSPORT, "Camera input stopped. The session is ending.")
+            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.cameraInputStopped"))
         return pixels
 
     async def _publish(self, track: Track, fail: Callable[[object], None]) -> None:

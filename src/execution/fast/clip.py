@@ -6,31 +6,14 @@ import json
 import math
 import asyncio
 from uuid import UUID
-from ...codes import ErrorCode
+from ...language import translate
 from dataclasses import dataclass
-from ...errors import ConnectorError
 from typing import cast, TYPE_CHECKING
+from ...errors import ErrorCode, ConnectorError
 from ....config.generation.fast import MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
 
 if TYPE_CHECKING:
     from ..events import SessionEvents
-
-
-def message_payload(message: object, kind: str) -> dict[str, object]:
-    """Require a matching message type and an object payload."""
-    if isinstance(message, dict):
-        envelope = cast("dict[str, object]", message)
-        payload = envelope.get("data")
-        if envelope.get("type") == kind and isinstance(payload, dict):
-            return cast("dict[str, object]", payload)
-    raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an unexpected reply.")
-
-
-def seconds(value: object) -> float:
-    """Validate a provider media time before using it to select a recording interval."""
-    if type(value) not in (int, float) or not 0 <= cast("float", value) <= MAX_MEDIA_SECONDS:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an invalid media time.")
-    return float(cast("float", value))
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,18 +30,18 @@ class FastClip:
         """Validate the clip identity, readiness, and agreement between duration and frame count."""
         raw = payload.get("clip")
         if not isinstance(raw, dict):
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 did not return a clip.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipMissing"))
         clip = cast("dict[str, object]", raw)
         identity, frames, ready = clip.get("clip_id"), clip.get("frames"), clip.get("ready")
         duration = seconds(clip.get("seconds"))
         if not isinstance(identity, str):
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an invalid clip ID.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier"))
         try:
             canonical = str(UUID(identity))
         except ValueError:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an invalid clip ID.") from None
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier")) from None
         if canonical != identity:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an invalid clip ID.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier"))
         if (
             type(frames) not in (int, float)
             or not 1 <= cast("float", frames) <= MAX_CLIP_FRAMES
@@ -68,7 +51,7 @@ class FastClip:
         ):
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
-                "Fast H3 returned an invalid clip length.",
+                translate("main", "errors.clipLength"),
                 diagnostic_detail=json.dumps(
                     {
                         "frames_type": type(frames).__name__,
@@ -115,10 +98,10 @@ class FastClipEvents:
     def _record_clip(self, envelope: dict[str, object], kind: str) -> None:
         """Validate a clip update and advance generation or playback signals."""
         if kind in ("clip_failed", "clip_stopped"):
-            raise ConnectorError(ErrorCode.CAPTURE, "Fast H3 did not finish the queued clip.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.clipUnfinished"))
         clip = FastClip.read(message_payload(envelope, str(kind)))
         if len(self.clips) >= self.limit and clip.clip_id not in self.clips:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned unexpected clips.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipsUnexpected"))
         self.clips[clip.clip_id] = clip
         if kind == "clip_generated":
             self.generated.set()
@@ -144,7 +127,7 @@ class FastClipEvents:
             if clip.frames != expected.frames or clip.seconds != expected.seconds:
                 raise ConnectorError(
                     ErrorCode.UNAVAILABLE,
-                    "Fast H3 changed the accepted clip length before playback.",
+                    translate("main", "errors.clipLengthChanged"),
                 )
 
     async def wait_finished(self, clip: FastClip) -> float:
@@ -154,5 +137,22 @@ class FastClipEvents:
             await self.playback_changed.wait()
         reported = self.clips.get(clip.clip_id)
         if reported is None or reported.frames != clip.frames:
-            raise ConnectorError(ErrorCode.CAPTURE, "Fast H3 changed a clip's accepted length.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.acceptedClipChanged"))
         return self.finished_at[clip.clip_id]
+
+
+def message_payload(message: object, kind: str) -> dict[str, object]:
+    """Require a matching message type and an object payload."""
+    if isinstance(message, dict):
+        envelope = cast("dict[str, object]", message)
+        payload = envelope.get("data")
+        if envelope.get("type") == kind and isinstance(payload, dict):
+            return cast("dict[str, object]", payload)
+    raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipReply"))
+
+
+def seconds(value: object) -> float:
+    """Validate a provider media time before using it to select a recording interval."""
+    if type(value) not in (int, float) or not 0 <= cast("float", value) <= MAX_MEDIA_SECONDS:
+        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipMediaTime"))
+    return float(cast("float", value))

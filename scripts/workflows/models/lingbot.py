@@ -1,0 +1,74 @@
+"""Describe Lingbot workflow inputs and controls."""
+
+from ..example import Example
+
+EXAMPLES = (
+    Example(
+        "lingbot-02-live-camera",
+        "ReactorIncLingBotExplore",
+        inputs={
+            "duration_seconds": 10.0,
+            "variation": 0,
+            "seed": 42,
+            "control_after_generate": "fixed",
+            "movement": "idle",
+            "look_horizontal": "idle",
+            "look_vertical": "idle",
+            "rotation_speed_deg": 5.0,
+            "interactive": True,
+        },
+        sources=("image",),
+        mode="world",
+    ),
+    Example(
+        "lingbot-world-2-02-live-camera",
+        "ReactorIncLingBotWorld2Explore",
+        inputs={
+            "duration_seconds": 10.0,
+            "variation": 0,
+            "seed": 42,
+            "control_after_generate": "fixed",
+            "movement": "idle",
+            "lateral": "idle",
+            "look_horizontal": "idle",
+            "look_vertical": "idle",
+            "rotation_speed_deg": 5.0,
+            "interactive": True,
+        },
+        sources=("image",),
+        mode="world",
+    ),
+    Example(
+        "lingbot-01-explore-image",
+        "ReactorIncLingBotExplore",
+        inputs={
+            "duration_seconds": 5.0,
+            "variation": 0,
+            "seed": 42,
+            "control_after_generate": "fixed",
+            "movement": "forward",
+            "look_horizontal": "idle",
+            "look_vertical": "idle",
+            "rotation_speed_deg": 5.0,
+            "interactive": False,
+        },
+        sources=("image",),
+    ),
+    Example(
+        "lingbot-world-2-01-explore-image",
+        "ReactorIncLingBotWorld2Explore",
+        inputs={
+            "duration_seconds": 5.0,
+            "variation": 0,
+            "seed": 42,
+            "control_after_generate": "fixed",
+            "movement": "forward",
+            "lateral": "idle",
+            "look_horizontal": "idle",
+            "look_vertical": "idle",
+            "rotation_speed_deg": 5.0,
+            "interactive": False,
+        },
+        sources=("image",),
+    ),
+)

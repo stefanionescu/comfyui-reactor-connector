@@ -1,12 +1,12 @@
 /**
  * Convert held keys to the model's supported movement axes.
  * @param keys - The keys currently held or briefly pressed.
- * @param independentAxes - Whether the model accepts independent movement axes.
+ * @param hasIndependentAxes - Whether the model accepts independent movement axes.
  * @returns Movement and look directions for the model.
  */
 export function cameraAxes(
   keys: ReadonlySet<string>,
-  independentAxes: boolean,
+  hasIndependentAxes: boolean,
 ): Record<string, string> {
   /**
    * Resolve an opposing pair of keys.
@@ -23,7 +23,7 @@ export function cameraAxes(
   const forward = direction('w', 's', 'forward', 'back');
   const lateral = direction('a', 'd', 'strafe_left', 'strafe_right');
   return {
-    ...(independentAxes
+    ...(hasIndependentAxes
       ? { move_longitudinal: forward, move_lateral: lateral }
       : { movement: forward !== 'idle' ? forward : lateral }),
     look_horizontal: direction('ArrowLeft', 'ArrowRight', 'left', 'right'),

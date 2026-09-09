@@ -3,12 +3,12 @@
 import time
 import secrets
 import threading
-from ..codes import ErrorCode
 from collections import deque
+from .state import BrowserInput
+from ..language import translate
 from ..serialization import Json
-from dataclasses import dataclass
-from ..errors import ConnectorError
 from collections.abc import Callable
+from ..errors import ErrorCode, ConnectorError
 from ...config.live import (
     MAX_PENDING_INPUTS,
     STALE_INPUT_SECONDS,
@@ -16,22 +16,6 @@ from ...config.live import (
     CLIENT_TIMEOUT_SECONDS,
     MAX_PREVIEW_CHARACTERS,
 )
-
-
-def unavailable() -> ConnectorError:
-    """Return a public error without revealing whether a private session exists."""
-    return ConnectorError(ErrorCode.UNAVAILABLE, "This live session is no longer available.")
-
-
-@dataclass(frozen=True, slots=True)
-class BrowserInput:
-    """Camera directions and their sequence number."""
-
-    sequence: int
-    axes: tuple[tuple[str, str], ...]
-    end: bool
-    received_at: float = 0.0
-    release: bool = False
 
 
 class BrowserLease:
@@ -58,7 +42,7 @@ class BrowserLease:
         self.controls_ready = False
         self.finishing = False
         self.closed = False
-        self.termination_confirmed = False
+        self.is_termination_confirmed = False
         self.failed = False
         self.preview: str = ""
         self.preview_sequence = 0
@@ -115,14 +99,14 @@ class BrowserLease:
             or any(value not in self.choices[axis] for axis, value in axes.items())
             or (release and any(value != "idle" for value in axes.values()))
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Send a complete listed camera state.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraStateRequired"))
         with self.lock:
             now = self.clock()
             if not self.closed and now - self.last_seen > CLIENT_TIMEOUT_SECONDS:
                 self.end = True
                 raise unavailable()
             if sequence <= self.sequence:
-                raise ConnectorError(ErrorCode.INVALID_INPUT, "The live input is out of order.")
+                raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.liveInputOrder"))
             self.sequence = sequence
             self.last_seen = now
             if not self.closed:
@@ -133,7 +117,7 @@ class BrowserLease:
                     self._accept_axes(sequence, axes, now, release=release)
             return {
                 "closed": self.closed,
-                "termination_confirmed": self.termination_confirmed,
+                "termination_confirmed": self.is_termination_confirmed,
                 "failed": self.failed,
                 "controls_ready": self.controls_ready and not self.closed,
                 "finishing": self.finishing,
@@ -223,12 +207,17 @@ class BrowserLease:
                 self.preview = encoded
                 self.preview_sequence += 1
 
-    def close(self, *, termination_confirmed: bool, failed: bool = False) -> None:
+    def close(self, *, is_termination_confirmed: bool, failed: bool = False) -> None:
         """Clear private media and input, then publish the final termination status."""
         with self.lock:
             self.closed = True
             self.end = True
             self.preview = ""
             self.pending.clear()
-            self.termination_confirmed = termination_confirmed
+            self.is_termination_confirmed = is_termination_confirmed
             self.failed = failed
+
+
+def unavailable() -> ConnectorError:
+    """Return a public error without revealing whether a private session exists."""
+    return ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveSessionUnavailable"))

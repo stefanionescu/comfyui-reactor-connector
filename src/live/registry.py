@@ -1,10 +1,10 @@
 """Share browser controls between threads and limit queued input."""
 
 import threading
-from ..codes import ErrorCode
+from ..language import translate
 from ..serialization import Json
-from ..errors import ConnectorError
 from .lease import unavailable, BrowserLease
+from ..errors import ErrorCode, ConnectorError
 from ...config.live import MAX_STORED_SESSIONS, CLOSED_SESSION_RETENTION_SECONDS
 
 
@@ -25,7 +25,7 @@ class BrowserRegistry:
                 if not value.closed or value.clock() - value.last_seen < CLOSED_SESSION_RETENTION_SECONDS
             }
             if len(self.leases) >= MAX_STORED_SESSIONS:
-                raise ConnectorError(ErrorCode.UNAVAILABLE, "Too many live panels are still open.")
+                raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.livePanelLimit"))
             self.leases[lease.identifier] = lease
 
     def exchange(self, document: dict[str, Json]) -> dict[str, Json]:

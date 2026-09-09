@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #
 # Run license-checker for one project.
 set -euo pipefail
 
-SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)" || exit 1
 readonly SCRIPT_DIR
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)}"
 readonly REPO_ROOT
@@ -15,7 +16,7 @@ readonly CONFIG_FILE
 CONFIG_SCRIPT="${REPO_ROOT}/${LICENSE_CHECKER_POLICY_SCRIPT}"
 readonly CONFIG_SCRIPT
 
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 # main - Loads license policy and runs license-checker.
 main() {

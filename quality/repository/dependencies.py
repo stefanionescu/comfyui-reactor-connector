@@ -139,7 +139,9 @@ def collect_export_workflow_violations(root: Path) -> list[str]:
     """Require the ComfyUI runtime export task and reject an unrelated lock export."""
     violations: list[str] = []
     export = root / EXPORT_TASK
-    if not export.is_file() or "python -m scripts.dependencies" not in export.read_text(encoding="utf-8"):
+    if not export.is_file() or 'python -m "${REPO_ROOT##*/}.scripts.dependencies"' not in export.read_text(
+        encoding="utf-8"
+    ):
         violations.append(f"{EXPORT_TASK} must generate ComfyUI runtime requirements")
     for path in iter_policy_files([root / scan_root for scan_root in EXPORT_SCAN_ROOTS]):
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):

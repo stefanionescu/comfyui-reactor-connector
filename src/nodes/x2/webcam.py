@@ -2,15 +2,16 @@
 
 import asyncio
 from functools import partial
+from ...language import translate
 from ...media.output import owned_io
 from ..controls import video_outputs
-from ...execution.x2 import X2Request
+from ...live.state import LiveOptions
 from ...media.images import image_png
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...media.webcam import WebcamFrames
-from ...live.control.lease import LiveOptions
-from ....config.prompts import DEFAULT_WEBCAM_PROMPT
-from ..host import execute_video, wait_for_execution, operation_fingerprint
+from ...execution.x2.request import X2Request
+from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
     MAX_WEBCAM_SECONDS,
@@ -31,43 +32,35 @@ class X2Webcam(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncX2Webcam",
-            display_name="Reactor X2: Edit a webcam",
-            category="Reactor/Live",
-            inputs=[
-                io.String.Input(
-                    "prompt",
-                    display_name="Scene prompt",
-                    placeholder="Scene prompt",
-                    multiline=True,
-                    default=DEFAULT_WEBCAM_PROMPT,
-                ),
-                io.Float.Input(
-                    "duration_seconds",
-                    display_name="Video length (seconds)",
-                    default=DEFAULT_WEBCAM_SECONDS,
-                    min=MIN_WEBCAM_SECONDS,
-                    max=MAX_WEBCAM_SECONDS,
-                    step=STEP_WEBCAM_SECONDS,
-                ),
-                io.Int.Input(
-                    "variation",
-                    display_name="Variation",
-                    default=0,
-                    min=0,
-                    max=MAX_VARIATION,
-                    tooltip="Change this value to request another paid run.",
-                ),
-                io.Image.Input(
-                    "reference_image",
-                    display_name="Reference image",
-                    optional=True,
-                    tooltip="Optional picture of a subject to insert or replace.",
-                ),
-            ],
-            outputs=video_outputs(),
-            description="Edit webcam video and drag on the output to steer the subject.",
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncX2Webcam",
+                inputs=[
+                    io.String.Input(
+                        "prompt",
+                        multiline=True,
+                        default=translate("prompts", "webcam"),
+                    ),
+                    io.Float.Input(
+                        "duration_seconds",
+                        default=DEFAULT_WEBCAM_SECONDS,
+                        min=MIN_WEBCAM_SECONDS,
+                        max=MAX_WEBCAM_SECONDS,
+                        step=STEP_WEBCAM_SECONDS,
+                    ),
+                    io.Int.Input(
+                        "variation",
+                        default=0,
+                        min=0,
+                        max=MAX_VARIATION,
+                    ),
+                    io.Image.Input(
+                        "reference_image",
+                        optional=True,
+                    ),
+                ],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

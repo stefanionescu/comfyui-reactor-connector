@@ -1,4 +1,4 @@
-"""Static generation fast values used by the connector."""
+"""Fast H3 clip lengths, continuation limits, and aspect ratios."""
 
 MAX_MEDIA_SECONDS = 3600
 
@@ -25,3 +25,19 @@ OPTIONS_ASPECT = ["16:9", "1:1", "9:16", "4:3"]
 DEFAULT_ASPECT = "16:9"
 
 DEFAULT_CLIP_COUNT = 3
+
+__all__ = [
+    "DEFAULT_ASPECT",
+    "DEFAULT_CLIP_COUNT",
+    "DEFAULT_CLIP_SECONDS",
+    "MAX_CLIP_COUNT",
+    "MAX_CLIP_FRAMES",
+    "MAX_CLIP_SECONDS",
+    "MAX_MEDIA_SECONDS",
+    "MAX_PROMPT_CHARACTERS",
+    "MAX_QUEUED_CLIPS",
+    "MIN_CLIP_COUNT",
+    "MIN_CLIP_SECONDS",
+    "OPTIONS_ASPECT",
+    "STEP_CLIP_SECONDS",
+]

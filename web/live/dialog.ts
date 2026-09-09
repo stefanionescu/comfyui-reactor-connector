@@ -1,9 +1,17 @@
+import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { action } from '#web/live/commands.ts';
 import { CameraStates } from '#web/live/state.ts';
+import { browserLimits } from '#config/browser.ts';
 import type { Fetcher } from '#web/settings/api.ts';
 import { CameraInput, cameraKeys } from '#web/live/input.ts';
-import { type CameraInvitation, exchange, invitation, type LiveStatus } from '#web/live/api.ts';
+
+import {
+  type CameraInvitation,
+  exchange,
+  parseInvitation,
+  type LiveStatus,
+} from '#web/live/api.ts';
 
 const panels = new Set<string>();
 
@@ -15,18 +23,15 @@ class CameraPanel {
 
   private readonly dialog = element('dialog');
 
-  private readonly status = element('p', 'Connecting the live panel…');
+  private readonly status = element('p', translate('live.connectingPanel'));
 
   private readonly elapsed = element('p');
 
   private readonly prompt = element('textarea');
 
-  private readonly apply = button('Apply prompt');
+  private readonly apply = button(translate('live.applyPrompt'));
 
-  private readonly promptStatus = element(
-    'p',
-    'Prompt changes affect later frames. The starting image stays fixed.',
-  );
+  private readonly promptStatus = element('p', translate('live.promptNotice'));
 
   private readonly surface = element('div');
 
@@ -34,7 +39,7 @@ class CameraPanel {
 
   private readonly controls = element('div');
 
-  private readonly end = button('End session');
+  private readonly end = button(translate('live.endSession'));
 
   private readonly states: CameraStates;
 
@@ -64,7 +69,7 @@ class CameraPanel {
     private readonly fetcher: Fetcher,
   ) {
     this.dialog.className = 'reactor-settings reactor-live';
-    this.dialog.setAttribute('aria-label', 'Reactor live camera');
+    this.dialog.setAttribute('aria-label', translate('live.cameraTitle'));
     this.status.setAttribute('role', 'status');
     this.promptStatus.setAttribute('role', 'status');
     this.prompt.value = owner.prompt;
@@ -73,23 +78,20 @@ class CameraPanel {
     this.prompt.disabled = this.apply.disabled = true;
     this.surface.className = 'reactor-preview';
     this.surface.tabIndex = 0;
-    this.surface.setAttribute(
-      'aria-label',
-      'Live view. W A S D moves. Arrow keys turn. Escape stops camera movement.',
-    );
-    this.image.alt = 'Live model output';
+    this.surface.setAttribute('aria-label', translate('live.movementLabel'));
+    this.image.alt = translate('live.output');
     this.image.hidden = true;
     this.surface.append(this.image);
     this.controls.className = 'reactor-actions';
     const labels = [
-      'Forward',
-      'Back',
-      'Move left',
-      'Move right',
-      'Look left',
-      'Look right',
-      'Look up',
-      'Look down',
+      translate('live.forward'),
+      translate('live.back'),
+      translate('live.moveLeft'),
+      translate('live.moveRight'),
+      translate('live.lookLeft'),
+      translate('live.lookRight'),
+      translate('live.lookUp'),
+      translate('live.lookDown'),
     ];
     for (const [index, key] of cameraKeys.entries()) {
       const control = button(labels[index] ?? key);
@@ -112,16 +114,19 @@ class CameraPanel {
   /** Build the session header, movement controls, and prompt input. */
   private appendContent(): void {
     const header = element('header');
-    header.append(element('h2', 'Reactor live camera'), this.end);
-    const promptLabel = element('label', 'Scene prompt ');
+    header.append(element('h2', translate('live.cameraTitle')), this.end);
+    const promptLabel = element('label', translate('live.scenePrompt'));
     promptLabel.append(this.prompt);
     this.dialog.append(
       header,
-      element('p', `${this.owner.modelTitle} · ${this.owner.duration_seconds} seconds of video`),
       element(
         'p',
-        'Click the picture, then use W A S D to move and arrow keys to turn. Click a button for a brief movement, or hold it to keep moving. Escape stops camera movement.',
+        translate('live.duration', {
+          model: this.owner.modelTitle,
+          seconds: this.owner.duration_seconds,
+        }),
       ),
+      element('p', translate('live.movementInstructions')),
       this.surface,
       this.controls,
       promptLabel,
@@ -129,10 +134,7 @@ class CameraPanel {
       this.promptStatus,
       this.status,
       this.elapsed,
-      element(
-        'p',
-        'The preview has fewer frames per second than the saved video and has no sound. Save Video saves the finished recording. Setup and recording use credits. Ending early discards the unfinished video.',
-      ),
+      element('p', translate('live.recordingNotice')),
     );
   }
 
@@ -140,7 +142,7 @@ class CameraPanel {
   private bindActions(): void {
     this.apply.addEventListener('click', () => {
       if (!this.prompt.value.trim()) {
-        this.promptStatus.textContent = 'Enter a scene prompt before applying it.';
+        this.promptStatus.textContent = translate('live.emptyScenePrompt');
         return;
       }
       this.pendingPrompt = this.prompt.value;
@@ -177,7 +179,7 @@ class CameraPanel {
     this.release();
     this.end.disabled = true;
     this.apply.disabled = this.prompt.disabled = true;
-    this.status.textContent = 'Ending the session…';
+    this.status.textContent = translate('live.ending');
   }
 
   /**
@@ -190,7 +192,9 @@ class CameraPanel {
       control.disabled = !result.controls_ready || this.ending;
     this.prompt.disabled = !result.controls_ready || this.ending;
     this.apply.disabled = this.prompt.disabled || this.pendingPrompt !== undefined;
-    this.elapsed.textContent = `Time spent on setup and recording: ${result.elapsed_seconds.toFixed(1)} seconds.`;
+    this.elapsed.textContent = translate('live.elapsed', {
+      seconds: result.elapsed_seconds.toFixed(1),
+    });
     if (result.preview) {
       this.image.src = `data:image/jpeg;base64,${result.preview}`;
       this.image.hidden = false;
@@ -207,12 +211,12 @@ class CameraPanel {
       this.release();
       this.surface.blur();
       this.end.disabled = true;
-      this.status.textContent = 'Ending the session…';
+      this.status.textContent = translate('live.ending');
     } else if (!this.ending) {
       this.status.textContent =
         result.controls_ready && result.preview_sequence > 0
-          ? 'Live preview. Controls are active.'
-          : 'Waiting for model video…';
+          ? translate('live.previewReady')
+          : translate('live.waitingVideo');
     }
   }
 
@@ -222,13 +226,11 @@ class CameraPanel {
    */
   private finish(result: LiveStatus): void {
     this.finished = true;
-    if (!result.termination_confirmed)
-      this.status.textContent =
-        'Reactor has not confirmed that the session ended. Wait for its time limit before another run.';
+    if (!result.termination_confirmed) this.status.textContent = translate('live.unconfirmedEnd');
     else
       this.status.textContent = result.failed
-        ? 'The session ended without saving a video. Close this panel to view the workflow result.'
-        : 'Session ended. Close this panel to view the workflow result.';
+        ? translate('live.discarded')
+        : translate('live.ended');
   }
 
   /**
@@ -248,7 +250,7 @@ class CameraPanel {
       prompt: this.pendingPrompt,
     });
     this.pendingPrompt = undefined;
-    this.promptStatus.textContent = 'Prompt sent. Watch the video for the change.';
+    this.promptStatus.textContent = translate('live.promptSent');
   }
 
   /**
@@ -274,18 +276,19 @@ class CameraPanel {
         if (result.closed) this.finish(result);
         else {
           await this.sendPrompt(result);
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise((resolve) =>
+            setTimeout(resolve, browserLimits.pollIntervalMilliseconds),
+          );
         }
       }
     } catch {
       this.finished = true;
-      this.status.textContent =
-        'The live connection was lost. The connector will ask Reactor to stop after five seconds without a browser connection. Check Reactor Usage to confirm the session has ended before another run.';
+      this.status.textContent = translate('live.connectionLost');
     } finally {
       this.release();
       this.controller.abort();
       this.end.disabled = false;
-      this.end.textContent = 'Close';
+      this.end.textContent = translate('close');
       this.prompt.disabled = this.apply.disabled = true;
       for (const control of this.controls.querySelectorAll('button')) control.disabled = true;
       if (this.disposed) panels.delete(this.owner.lease);
@@ -307,7 +310,7 @@ class CameraPanel {
  * @param fetcher - ComfyUI's local API client.
  */
 export function openLive(value: unknown, fetcher: Fetcher): void {
-  const owner = invitation(value);
+  const owner = parseInvitation(value);
   if (!owner || panels.has(owner.lease)) return;
   panels.add(owner.lease);
   const panel = new CameraPanel(owner, fetcher);

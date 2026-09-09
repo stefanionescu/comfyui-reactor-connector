@@ -2,14 +2,14 @@
 
 import time
 import asyncio
-from ..codes import ErrorCode
 from .lease import BrowserLease
+from ..language import translate
 from ..serialization import Json
 from .preview import PreviewFrames
-from ..errors import ConnectorError
 from ..media.output import owned_io
 from .commands import CameraCommands
 from ..execution.events import SessionEvents
+from ..errors import ErrorCode, ConnectorError
 from ..execution.transport import Track, Transport
 
 
@@ -56,7 +56,7 @@ class CameraInteraction:
             events.on_error(
                 ConnectorError(
                     ErrorCode.CAPTURE,
-                    "The live preview could not be encoded. The session is ending.",
+                    translate("main", "errors.livePreviewEncoding"),
                 )
             )
 
@@ -66,10 +66,10 @@ class CameraInteraction:
             state = self.lease.read()
             if state.end:
                 if self.lease.was_ended_by_user():
-                    raise ConnectorError(ErrorCode.INTERRUPTED, "The live capture was cancelled.")
+                    raise ConnectorError(ErrorCode.INTERRUPTED, translate("main", "errors.liveCaptureCancelled"))
                 raise ConnectorError(
                     ErrorCode.TRANSPORT,
-                    "The live panel ended or disconnected. The capture has been stopped.",
+                    translate("main", "errors.livePanelEnded"),
                 )
             if self.active and self.commands is not None:
                 self.commands.submit(state)
@@ -96,9 +96,9 @@ class CameraInteraction:
         if self.commands is not None:
             await self.commands.stop()
 
-    def closed(self, *, termination_confirmed: bool, failed: bool) -> None:
+    def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
         """Publish the final failure and termination status to the owning client."""
-        self.lease.close(termination_confirmed=termination_confirmed, failed=failed)
+        self.lease.close(is_termination_confirmed=is_termination_confirmed, failed=failed)
 
     def summary(self) -> dict[str, Json]:
         """Report acknowledged controls, not an inference about visible model motion."""

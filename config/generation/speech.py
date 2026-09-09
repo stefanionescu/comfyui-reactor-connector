@@ -1,4 +1,4 @@
-"""Static generation speech values used by the connector."""
+"""Speech pace and transcript limits."""
 
 MIN_SPEECH_SECONDS = 4
 
@@ -13,3 +13,13 @@ RECORDING_TAIL_SECONDS = 20
 DEFAULT_SCRIPT = "Hello. Welcome to this short video."
 
 DEFAULT_WORDS_PER_MINUTE = 140
+
+__all__ = [
+    "DEFAULT_SCRIPT",
+    "DEFAULT_WORDS_PER_MINUTE",
+    "MAX_SCENE_CHARACTERS",
+    "MAX_SCRIPT_CHARACTERS",
+    "MAX_WORDS_PER_MINUTE",
+    "MIN_SPEECH_SECONDS",
+    "RECORDING_TAIL_SECONDS",
+]

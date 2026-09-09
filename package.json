@@ -3,13 +3,6 @@
     "private": true,
     "type": "module",
     "packageManager": "bun@1.3.11",
-    "scripts": {
-        "build": "bun scripts/frontend.mjs",
-        "check:build": "bun scripts/frontend.mjs --check",
-        "typecheck": "tsc --noEmit",
-        "lint": "eslint --config quality/web/eslint/index.js web scripts/frontend.mjs quality",
-        "format": "mise run format"
-    },
     "devDependencies": {
         "@commitlint/cli": "20.4.3",
         "@commitlint/config-conventional": "20.4.3",
@@ -41,6 +34,8 @@
         "typescript": "6.0.3"
     },
     "imports": {
-        "#web/*": "./web/*"
+        "#web/*": "./web/*",
+        "#config/*": "./config/*",
+        "#locales/*": "./locales/*"
     }
 }

@@ -1,12 +1,12 @@
 """Apply scene, sound, and pointer changes while a video session is running."""
 
 import asyncio
-from ...codes import ErrorCode
 from .lease import ControlLease
+from ...language import translate
 from ...serialization import Json
-from ...errors import ConnectorError
 from ..interaction import CameraInteraction
 from ...execution.events import SessionEvents
+from ...errors import ErrorCode, ConnectorError
 from ...execution.transport import Track, Transport
 from ....config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
 
@@ -50,7 +50,7 @@ class ControlInteraction(CameraInteraction):
             events.on_error(
                 error
                 if isinstance(error, ConnectorError)
-                else ConnectorError(ErrorCode.TIMEOUT, "A live command did not finish. The session is ending.")
+                else ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.liveCommandUnfinished"))
             )
 
     async def _send_action(self, events: SessionEvents, name: str, payload: dict[str, Json]) -> None:

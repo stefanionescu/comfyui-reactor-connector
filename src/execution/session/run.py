@@ -5,19 +5,20 @@ import json
 import asyncio
 from pathlib import Path
 from functools import partial
-from ...codes import ErrorCode
+from ...language import translate
 from ..failures import safe_error
+from .state import SessionOutcome
 from ..events import SessionEvents
-from ...errors import ConnectorError
+from .state import SessionResources
 from ...media.output import owned_io
 from ..cleanup import finish_session
-from ..outcome import SessionOutcome
 from ..operation import VideoOperation
 from ..diagnostics import FailureReport
-from .resources import SessionResources
+from ...media.state import CaptureResult
+from ...media.capture import VideoCapture
 from ..interaction import SessionInteraction
-from ...media.capture import VideoCapture, CaptureResult
-from ...settings.execution import ExecutionConfiguration
+from ...errors import ErrorCode, ConnectorError
+from ...settings.state import ExecutionConfiguration
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
 
@@ -30,7 +31,7 @@ def _video_track(transport: Transport) -> Track:
         if track.name == "main_video" and track.kind == "video" and track.direction == "recvonly"
     ]
     if len(tracks) != 1:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, "The model did not declare its expected video track.")
+        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.videoTrackMissing"))
     return tracks[0]
 
 
@@ -40,7 +41,7 @@ async def _generate(session: SessionResources) -> CaptureResult:
     if session.worker.done():
         return await session.worker
     async with asyncio.timeout(session.settings.connect_timeout_seconds):
-        session.outcome.connection_attempted = True
+        session.outcome.is_connection_attempted = True
         await session.events.call("connect", session.transport.connect())
     session.events.check()
     track = _video_track(session.transport)
@@ -107,7 +108,7 @@ def session_failure(events: SessionEvents, error: BaseException | None) -> Failu
             "timeout",
             json.dumps(
                 {
-                    "reason": "The session deadline expired during this operation.",
+                    "reason": translate("main", "errors.sessionDeadline"),
                     "state_received": events.state_ready.is_set(),
                     "message_types": sorted(events.message_types),
                     "capture_frames": events.capture_frames,

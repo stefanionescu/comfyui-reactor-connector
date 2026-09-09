@@ -2,7 +2,14 @@
 
 PYTHON_PREFIX_COLLISION_ALLOWLIST: tuple[str, ...] = ()
 
-SINGLE_FILE_PACKAGE_ALLOWLIST: tuple[str, ...] = ()
+# Keep model folders consistent while each implementation remains a cohesive module.
+SINGLE_FILE_PACKAGE_ALLOWLIST = (
+    "src/execution/lingbot",
+    "src/execution/ltx",
+    "src/execution/visko",
+    "src/execution/x2",
+    "src/nodes/ltx",
+)
 
 DISALLOWED_AMBIGUOUS_FOLDER_NAMES = (
     "bash",

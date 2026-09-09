@@ -1,0 +1,28 @@
+"""Read JSON request bodies within local size and time limits."""
+
+import asyncio
+from aiohttp import web
+from ..language import translate
+from ..serialization import Json, parse_json, mapping_value
+from ...config.settings import MAX_SETTINGS_BYTES, SETTINGS_TIMEOUT_SECONDS
+
+
+async def read_document(request: web.Request, *, max_bytes: int = MAX_SETTINGS_BYTES) -> dict[str, Json]:
+    """Read a size-limited JSON body, including without Content-Length."""
+    if request.content_type != "application/json":
+        raise web.HTTPUnsupportedMediaType(text=translate("main", "errors.requestJsonRequired"))
+    if request.content_length is not None and request.content_length > max_bytes:
+        raise web.HTTPRequestEntityTooLarge(max_size=max_bytes, actual_size=request.content_length)
+    content = bytearray()
+    try:
+        async with asyncio.timeout(SETTINGS_TIMEOUT_SECONDS):
+            async for chunk in request.content.iter_chunked(1024):
+                content.extend(chunk)
+                if len(content) > max_bytes:
+                    raise web.HTTPRequestEntityTooLarge(max_size=max_bytes, actual_size=len(content))
+    except TimeoutError:
+        raise web.HTTPRequestTimeout(text=translate("main", "errors.requestTimeout")) from None
+    try:
+        return mapping_value(parse_json(content.decode("utf-8"), max_bytes=max_bytes))
+    except UnicodeError:
+        raise web.HTTPBadRequest(text=translate("main", "errors.requestEncoding")) from None

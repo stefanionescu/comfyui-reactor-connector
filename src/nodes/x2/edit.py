@@ -4,16 +4,17 @@ import asyncio
 import folder_paths
 from pathlib import Path
 from dataclasses import replace
+from ...language import translate
 from ...runtime import get_runtime
 from ...media.output import owned_io
-from ...execution.x2 import X2Request
 from ...media.images import image_png
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...settings.store import read_settings
+from ...execution.x2.request import X2Request
 from ...media.video.input import prepared_video
-from ....config.prompts import DEFAULT_EDIT_PROMPT
 from ..controls import live_control, video_outputs
-from ..host import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
     MAX_DURATION_SECONDS,
@@ -23,34 +24,6 @@ from ....config.nodes import (
     DEFAULT_DURATION_SECONDS,
     DEFAULT_POINTER_POSITION,
 )
-
-
-def pointer_controls() -> list[io.Input]:
-    """Choose whether to hold the pointer and where to place it."""
-    return [
-        io.Boolean.Input(
-            "pointer_active",
-            display_name="Hold pointer",
-            default=False,
-            tooltip="Hold the pointer at the chosen position while recording.",
-        ),
-        io.Float.Input(
-            "pointer_x",
-            display_name="Pointer X",
-            default=DEFAULT_POINTER_POSITION,
-            min=0.0,
-            max=1.0,
-            step=STEP_POINTER_POSITION,
-        ),
-        io.Float.Input(
-            "pointer_y",
-            display_name="Pointer Y",
-            default=DEFAULT_POINTER_POSITION,
-            min=0.0,
-            max=1.0,
-            step=STEP_POINTER_POSITION,
-        ),
-    ]
 
 
 class X2EditVideo(io.ComfyNode):
@@ -64,58 +37,44 @@ class X2EditVideo(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncX2EditVideo",
-            display_name="Reactor X2: Edit video",
-            category="Reactor/Edit",
-            inputs=[
-                io.Video.Input(
-                    "source",
-                    display_name="Source video",
-                    tooltip="Connect one local SDR clip of at least 33 frames.",
-                ),
-                io.String.Input(
-                    "prompt",
-                    display_name="Scene prompt",
-                    placeholder="Scene prompt",
-                    multiline=True,
-                    default=DEFAULT_EDIT_PROMPT,
-                    tooltip="Describe the edit in 1 to 1,000 characters.",
-                ),
-                io.Float.Input(
-                    "duration_seconds",
-                    display_name="Video length (seconds)",
-                    default=DEFAULT_DURATION_SECONDS,
-                    min=MIN_DURATION_SECONDS,
-                    max=MAX_DURATION_SECONDS,
-                    step=STEP_DURATION_SECONDS,
-                ),
-                io.Int.Input(
-                    "variation",
-                    display_name="Variation",
-                    default=0,
-                    min=0,
-                    max=MAX_VARIATION,
-                    tooltip="Change this value to request another paid run.",
-                ),
-                io.Boolean.Input(
-                    "keep_backlog",
-                    display_name="Keep queued frames",
-                    default=False,
-                    tooltip="Keep source frames in order. This can increase output delay.",
-                ),
-                *pointer_controls(),
-                io.Image.Input(
-                    "reference_image",
-                    display_name="Reference image",
-                    optional=True,
-                    tooltip="Optional single RGB image of the subject to insert or replace.",
-                ),
-                live_control(),
-            ],
-            outputs=video_outputs(),
-            description="Edit a local clip. Help explains X2 references and pointer controls.",
-            search_aliases=["Reactor", "X2", "video to video", "reference"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncX2EditVideo",
+                inputs=[
+                    io.Video.Input(
+                        "source",
+                    ),
+                    io.String.Input(
+                        "prompt",
+                        multiline=True,
+                        default=translate("prompts", "edit"),
+                    ),
+                    io.Float.Input(
+                        "duration_seconds",
+                        default=DEFAULT_DURATION_SECONDS,
+                        min=MIN_DURATION_SECONDS,
+                        max=MAX_DURATION_SECONDS,
+                        step=STEP_DURATION_SECONDS,
+                    ),
+                    io.Int.Input(
+                        "variation",
+                        default=0,
+                        min=0,
+                        max=MAX_VARIATION,
+                    ),
+                    io.Boolean.Input(
+                        "keep_backlog",
+                        default=False,
+                    ),
+                    *pointer_controls(),
+                    io.Image.Input(
+                        "reference_image",
+                        optional=True,
+                    ),
+                    live_control(),
+                ],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod
@@ -154,6 +113,30 @@ class X2EditVideo(io.ComfyNode):
             ),
         )
         return await wait_for_execution(task)
+
+
+def pointer_controls() -> list[io.Input]:
+    """Choose whether to hold the pointer and where to place it."""
+    return [
+        io.Boolean.Input(
+            "pointer_active",
+            default=False,
+        ),
+        io.Float.Input(
+            "pointer_x",
+            default=DEFAULT_POINTER_POSITION,
+            min=0.0,
+            max=1.0,
+            step=STEP_POINTER_POSITION,
+        ),
+        io.Float.Input(
+            "pointer_y",
+            default=DEFAULT_POINTER_POSITION,
+            min=0.0,
+            max=1.0,
+            step=STEP_POINTER_POSITION,
+        ),
+    ]
 
 
 async def _edit(

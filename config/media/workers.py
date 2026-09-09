@@ -1,4 +1,4 @@
-"""Static media workers values used by the connector."""
+"""Media worker timeouts and response limits."""
 
 MAX_REPORT_BYTES = 4096
 
@@ -9,3 +9,11 @@ RECORDING_TIMEOUT_SECONDS = 60
 INPUT_TIMEOUT_SECONDS = 60
 
 SHUTDOWN_TIMEOUT_SECONDS = 2
+
+__all__ = [
+    "INPUT_TIMEOUT_SECONDS",
+    "MAX_REPORT_BYTES",
+    "METADATA_TIMEOUT_SECONDS",
+    "RECORDING_TIMEOUT_SECONDS",
+    "SHUTDOWN_TIMEOUT_SECONDS",
+]

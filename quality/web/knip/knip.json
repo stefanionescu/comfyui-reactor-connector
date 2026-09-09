@@ -2,8 +2,8 @@
     "$schema": "https://unpkg.com/knip@6/schema.json",
     "workspaces": {
         ".": {
-            "entry": ["web/extension.ts"],
-            "project": ["web/**/*.ts", "!web/dist/**"],
+            "entry": ["web/extension.ts", "scripts/frontend.mjs"],
+            "project": ["config/**/*.ts", "web/**/*.ts", "!web/dist/**"],
             "ignoreDependencies": [
                 "@commitlint/cli",
                 "html-validate",
@@ -20,10 +20,9 @@
         },
         "quality": {
             "entry": [
-                "repository/naming/index.js",
+                "repository/naming/check.js",
                 "repository/package-json/json.js",
                 "repository/package-json/dependencies.js",
-                "repository/package-json/scripts.js",
                 "repository/integrity/config.js",
                 "security/codeql/frontend/integrity/paths.js",
                 "security/codeql/frontend/integrity/false-positives.js",
@@ -38,7 +37,6 @@
             "project": ["**/*.js", "**/*.mjs", "**/*.cjs"]
         }
     },
-    "ignoreBinaries": ["mise"],
     "ignoreIssues": {
         "quality/config/limits.js": ["duplicates"],
         "quality/config/paths.js": ["duplicates"]

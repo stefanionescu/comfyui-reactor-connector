@@ -1,4 +1,4 @@
-"""Static generation world values used by the connector."""
+"""World navigation controls, prompt limits, and camera defaults."""
 
 MAX_WORLD_PROMPT_CHARACTERS = 1000
 
@@ -21,3 +21,32 @@ DEFAULT_LOOK_VERTICAL = "idle"
 DEFAULT_ROTATION_DEGREES = 5.0
 
 STEP_ROTATION_DEGREES = 0.1
+
+CAMERA_AXES = {
+    "movement": ("idle", "forward", "back", "strafe_left", "strafe_right"),
+    "move_longitudinal": ("idle", "forward", "back"),
+    "move_lateral": OPTIONS_LATERAL,
+    "look_horizontal": OPTIONS_LOOK_HORIZONTAL,
+    "look_vertical": OPTIONS_LOOK_VERTICAL,
+}
+
+WORLD_AXES = {
+    "lingbot": ("movement", "look_horizontal", "look_vertical"),
+    "lingbot-world-2": ("move_longitudinal", "move_lateral", "look_horizontal", "look_vertical"),
+}
+
+__all__ = [
+    "CAMERA_AXES",
+    "DEFAULT_LATERAL",
+    "DEFAULT_LOOK_HORIZONTAL",
+    "DEFAULT_LOOK_VERTICAL",
+    "DEFAULT_MOVEMENT",
+    "DEFAULT_ROTATION_DEGREES",
+    "MAX_ROTATION_SPEED",
+    "MAX_WORLD_PROMPT_CHARACTERS",
+    "OPTIONS_LATERAL",
+    "OPTIONS_LOOK_HORIZONTAL",
+    "OPTIONS_LOOK_VERTICAL",
+    "STEP_ROTATION_DEGREES",
+    "WORLD_AXES",
+]

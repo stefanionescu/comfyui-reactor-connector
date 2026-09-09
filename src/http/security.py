@@ -3,12 +3,13 @@
 import ipaddress
 from aiohttp import web
 from typing import cast
+from ..language import translate
 from urllib.parse import urlsplit
 
 
 def require_local_request(request: web.Request, *, mutation: bool, multi_user: bool) -> None:
     """Reject remote peers, rebinding hosts, cross-origin requests, and unsafe writes."""
-    forbidden = web.HTTPForbidden(text="Reactor configuration requires a local, same-origin ComfyUI connection.")
+    forbidden = web.HTTPForbidden(text=translate("main", "errors.localConnectionRequired"))
     try:
         if any(
             name.lower() in {"forwarded", "x-real-ip"} or name.lower().startswith("x-forwarded-")
@@ -17,7 +18,7 @@ def require_local_request(request: web.Request, *, mutation: bool, multi_user: b
             raise forbidden
         peer = ipaddress.ip_address(request.remote or "")
         target = urlsplit(f"{request.scheme}://{request.host}")
-        valid_host = (
+        is_host_valid = (
             target.hostname in {"localhost", "127.0.0.1", "::1"}
             and target.username is None
             and target.password is None
@@ -29,7 +30,7 @@ def require_local_request(request: web.Request, *, mutation: bool, multi_user: b
         socket = request.transport.get_extra_info("sockname") if request.transport else None
         address = cast("tuple[object, ...]", socket) if isinstance(socket, tuple) else ()
         socket_port = address[1] if len(address) > 1 else None
-        if not peer.is_loopback or not valid_host or port != socket_port:
+        if not peer.is_loopback or not is_host_valid or port != socket_port:
             raise forbidden
         origin = request.headers.get("Origin")
         if origin is not None:

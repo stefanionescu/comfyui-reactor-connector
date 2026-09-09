@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Install the complete package into the supplied ComfyUI directory."
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 mise run check
 mise run security
 mise run licenses
-exec uv run --no-sync python -m scripts.release.package --install "$@"
+exec uv run --directory "${REPO_ROOT}/.." --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.release" --install "$@"

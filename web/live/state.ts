@@ -1,4 +1,5 @@
 import { cameraAxes } from '#web/live/input.ts';
+import { browserLimits } from '#config/browser.ts';
 
 type CameraState = { axes: Record<string, string>; release: boolean };
 
@@ -7,16 +8,16 @@ export class CameraStates {
 
   private pending: CameraState[] = [];
 
-  private independentAxes: boolean;
+  private hasIndependentAxes: boolean;
 
   /**
    * Initialize idle camera movement for the selected model.
-   * @param independentAxes - Whether independent movement axes are supported.
+   * @param hasIndependentAxes - Whether independent movement axes are supported.
    */
   // eslint-disable-next-line local/no-trivial-functions -- Construction records the model and initializes its supported idle axes.
-  constructor(independentAxes: boolean) {
-    this.independentAxes = independentAxes;
-    this.current = cameraAxes(new Set(), independentAxes);
+  constructor(hasIndependentAxes: boolean) {
+    this.hasIndependentAxes = hasIndependentAxes;
+    this.current = cameraAxes(new Set(), hasIndependentAxes);
   }
 
   /**
@@ -25,12 +26,12 @@ export class CameraStates {
    * @param release - Whether to clear queued movement before this update.
    */
   update(keys: ReadonlySet<string>, release = false): void {
-    const axes = cameraAxes(keys, this.independentAxes);
+    const axes = cameraAxes(keys, this.hasIndependentAxes);
     if (release) this.pending = [];
     if (release || JSON.stringify(axes) !== JSON.stringify(this.current)) {
-      if (this.pending.length >= 8) {
+      if (this.pending.length >= browserLimits.maxPendingInputs) {
         // Stop old movement before applying the latest input.
-        this.pending = [{ axes: cameraAxes(new Set(), this.independentAxes), release: true }];
+        this.pending = [{ axes: cameraAxes(new Set(), this.hasIndependentAxes), release: true }];
         if (Object.values(axes).some((value) => value !== 'idle'))
           this.pending.push({ axes, release: false });
       } else this.pending.push({ axes, release });

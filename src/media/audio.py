@@ -5,8 +5,8 @@ from __future__ import annotations
 import wave
 import torch
 import numpy as np
-from ..codes import ErrorCode
-from ..errors import ConnectorError
+from ..language import translate
+from ..errors import ErrorCode, ConnectorError
 from typing import cast, TypedDict, TYPE_CHECKING
 from ...config.media.audio import SAMPLE_RATE, PCM_SAMPLE_BYTES
 
@@ -35,11 +35,11 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
             or count < 1
             or count * channels * 4 > maximum_bytes // 2
         ):
-            raise ConnectorError(ErrorCode.CAPTURE, "The recording audio exceeds its native limits.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioLimit"))
         content = reader.readframes(count)
         if len(content) != count * channels * 2:
-            raise ConnectorError(ErrorCode.CAPTURE, "The recording audio is incomplete.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioIncomplete"))
     values = np.frombuffer(content, dtype="<i2").reshape(count, channels).T.astype(np.float32)
     values /= 32768
     from_numpy = cast("Callable[[NDArray[np.float32]], Tensor]", torch.from_numpy)
-    return {"waveform": from_numpy(values).unsqueeze(0), "sample_rate": 48_000}
+    return {"waveform": from_numpy(values).unsqueeze(0), "sample_rate": SAMPLE_RATE}

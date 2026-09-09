@@ -1,14 +1,7 @@
+import { translate } from '#web/language.ts';
 import type { Invitation } from '#web/live/api.ts';
 import type { Fetcher } from '#web/settings/api.ts';
-
-const modelTitles = new Map<string, string>([
-  ['reactor/helios', 'Helios'],
-  ['reactor/longlive-v2', 'LongLive'],
-  ['reactor/sana-streaming', 'SANA'],
-  ['xmax/x2', 'X2'],
-  ['reactor/visko-orbis-stable', 'Visko Stable'],
-  ['reactor/visko-orbis-dynamic', 'Visko Dynamic'],
-]);
+import { browserLimits, browserPatterns } from '#config/browser.ts';
 
 export type Controls = Invitation & {
   prompt: string;
@@ -17,6 +10,7 @@ export type Controls = Invitation & {
   pointer: boolean;
   sound: boolean;
   audio_prompt: string;
+  audioPromptLimit: number;
 };
 
 /**
@@ -27,34 +21,38 @@ export type Controls = Invitation & {
 export function controls(value: unknown): Controls | undefined {
   if (typeof value !== 'object' || value === null) return;
   const v = value as Record<string, unknown>;
-  const modelTitle = typeof v.model === 'string' ? modelTitles.get(v.model) : undefined;
   if (
     typeof v.lease !== 'string' ||
-    !/^[a-f0-9]{32}$/.test(v.lease) ||
+    !browserPatterns.lease.test(v.lease) ||
     typeof v.capability !== 'string' ||
-    !/^[A-Za-z0-9_-]{43}$/.test(v.capability) ||
+    !browserPatterns.capability.test(v.capability) ||
     typeof v.model !== 'string' ||
-    modelTitle === undefined ||
+    typeof v.model_title !== 'string' ||
+    v.model_title.length < 1 ||
+    v.model_title.length > 200 ||
     typeof v.prompt !== 'string' ||
     typeof v.prompt_limit !== 'number' ||
     v.prompt_limit < 1 ||
-    v.prompt_limit > 20_000 ||
+    !Number.isSafeInteger(v.prompt_limit) ||
+    v.prompt.length > v.prompt_limit ||
     typeof v.webcam !== 'boolean' ||
     typeof v.pointer !== 'boolean' ||
     typeof v.sound !== 'boolean' ||
     typeof v.audio_prompt !== 'string' ||
-    v.audio_prompt.length > 2000 ||
+    typeof v.audio_prompt_limit !== 'number' ||
+    !Number.isSafeInteger(v.audio_prompt_limit) ||
+    v.audio_prompt_limit < 1 ||
+    v.audio_prompt.length > v.audio_prompt_limit ||
     typeof v.duration_seconds !== 'number' ||
     !Number.isFinite(v.duration_seconds) ||
-    v.duration_seconds <= 0 ||
-    v.duration_seconds > 3600
+    v.duration_seconds <= 0
   )
     return;
   return {
     lease: v.lease,
     capability: v.capability,
     model: v.model,
-    modelTitle,
+    modelTitle: v.model_title,
     duration_seconds: v.duration_seconds,
     axes: {},
     prompt: v.prompt,
@@ -63,6 +61,7 @@ export function controls(value: unknown): Controls | undefined {
     pointer: v.pointer,
     sound: v.sound,
     audio_prompt: v.audio_prompt,
+    audioPromptLimit: v.audio_prompt_limit,
   };
 }
 
@@ -85,7 +84,7 @@ export async function action(
   const response = await fetcher('/reactor-inc/v1/live/action', {
     method: 'POST',
     cache: 'no-store',
-    signal: AbortSignal.timeout(2000),
+    signal: AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
     headers: { 'Content-Type': 'application/json', 'X-Reactor-Comfy': '1' },
     body: JSON.stringify({
       lease: owner.lease,
@@ -95,5 +94,5 @@ export async function action(
       data,
     }),
   });
-  if (!response.ok) throw new Error('The live action was not accepted. The session is ending.');
+  if (!response.ok) throw new Error(translate('live.actionRejected'));
 }

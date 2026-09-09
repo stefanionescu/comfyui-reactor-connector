@@ -1,5 +1,7 @@
 import { element } from '#web/dom.ts';
+import { translate } from '#web/language.ts';
 import type { Model } from '#web/discovery/api.ts';
+import { formatCreditSummary } from '#web/discovery/pricing.ts';
 
 /**
  * Show a model, its support, and its public rate.
@@ -11,28 +13,19 @@ export function modelRow(model: Model, seconds: number | undefined): HTMLElement
   const row = element('li');
   row.append(element('h3', model.title), element('code', model.name));
   const support =
-    model.support === 'available' ? 'Nodes available.' : 'No connector node available.';
+    model.support === 'available'
+      ? translate('models.nodesAvailable')
+      : translate('models.nodeUnavailable');
   row.append(element('p', support));
-  if (model.connect_name) row.append(element('p', `Connect name: ${model.connect_name}`));
-  const rate =
-    model.credits_per_second === null
-      ? 'Rate not listed.'
-      : `${model.credits_per_second} credits per session second.`;
-  row.append(
-    element('p', model.observed ? rate : `${rate} Not observed in the latest source check.`),
-  );
-  if (model.observed && model.credits_per_second !== null && seconds !== undefined) {
-    const credits = (model.credits_per_second * seconds).toLocaleString(undefined, {
-      maximumFractionDigits: 2,
-    });
-    row.append(element('p', `${seconds} session seconds × listed rate = ${credits} credits.`));
-  }
+  if (model.connect_name)
+    row.append(element('p', translate('models.connectName', { name: model.connect_name })));
+  for (const detail of formatCreditSummary(model, seconds)) row.append(element('p', detail));
   if (model.documentation_url) {
-    const link = element('a', 'Reactor model guide');
+    const link = element('a', translate('models.openGuide'));
     link.href = model.documentation_url;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     row.append(link);
-  } else row.append(element('p', 'No matching public guide was found.'));
+  } else row.append(element('p', translate('models.guideUnavailable')));
   return row;
 }

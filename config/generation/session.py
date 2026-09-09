@@ -1,4 +1,4 @@
-"""Static generation session values used by the connector."""
+"""Generation session timing and startup limits."""
 
 MAX_SESSION_CAPACITY = 4
 
@@ -8,10 +8,12 @@ MIN_CAPTURE_SECONDS = 0.1
 
 MAX_PROMPT_CHARACTERS = 20_000
 
-MAX_PROJECT_FILE_BYTES = 65_536
-
-MAX_VERSION_CHARACTERS = 80
-
 DEFAULT_SESSION_CAPACITY = 1
 
-PACKAGE_IDENTITY_PATTERN = "[a-f0-9]{64}"
+__all__ = [
+    "DEFAULT_SESSION_CAPACITY",
+    "MAX_MESSAGE_TYPES",
+    "MAX_PROMPT_CHARACTERS",
+    "MAX_SESSION_CAPACITY",
+    "MIN_CAPTURE_SECONDS",
+]

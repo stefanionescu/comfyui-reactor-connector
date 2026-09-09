@@ -6,8 +6,7 @@ import math
 import asyncio
 from pathlib import Path
 from typing import BinaryIO
-from ...codes import ErrorCode
-from ...errors import ConnectorError
+from ...language import translate
 from tempfile import TemporaryDirectory
 from ...settings.settings import Settings
 from ..output import owned_io, FileOutput
@@ -15,6 +14,7 @@ from .components import prepare_components
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from comfy_api.latest import Input, InputImpl
+from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, EncoderProcess
 from ....config.media.video import MIN_SOURCE_FRAMES
 from ....config.media.workers import INPUT_TIMEOUT_SECONDS
@@ -24,7 +24,7 @@ def input_error() -> ConnectorError:
     """Describe the accepted local video input without exposing a source path."""
     return ConnectorError(
         ErrorCode.INVALID_INPUT,
-        "Connect one local SDR clip from Load Video or Create Video within the input limits.",
+        translate("main", "errors.localSourceRequired"),
     )
 
 

@@ -1,8 +1,9 @@
 """Task-specific Helios nodes with native ComfyUI media sockets."""
 
 from comfy_api.latest import io
-from ...execution.helios import HeliosRequest
-from ..host import execute_video, operation_fingerprint
+from ..schema import translate_schema
+from ...execution.helios.request import HeliosRequest
+from ...comfy.execution import execute_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
 
@@ -17,14 +18,12 @@ class HeliosGenerate(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncHeliosGenerate",
-            display_name="Reactor Helios: Generate video",
-            category="Reactor/Generate",
-            inputs=[*generation_controls(), live_control()],
-            outputs=video_outputs(),
-            description="Generate a video with your Reactor account. Help includes usage limits.",
-            search_aliases=["Reactor", "Helios", "text to video"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncHeliosGenerate",
+                inputs=[*generation_controls(), live_control()],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

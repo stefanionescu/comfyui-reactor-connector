@@ -1,8 +1,8 @@
 import { isIndexFile } from '#shared/eslint/plugin/path-policy/index-file.js';
 import { normalizeFilename } from '#shared/eslint/plugin/path-policy/normalization.js';
 
-const IGNORED_TYPES = new Set(['ImportDeclaration', 'TSImportEqualsDeclaration', 'EmptyStatement']);
-const DECLARATION_TYPES = new Set(['ExportDefaultDeclaration']);
+const ignoredTypes = new Set(['ImportDeclaration', 'TSImportEqualsDeclaration', 'EmptyStatement']);
+const declarationTypes = new Set(['ExportDefaultDeclaration']);
 
 /**
  * Classifies a top-level statement as 'skip' (imports), 'reexport', or 'declaration'.
@@ -10,11 +10,11 @@ const DECLARATION_TYPES = new Set(['ExportDefaultDeclaration']);
  * @returns The statement category: skip, reexport, or declaration.
  */
 const classifyStatement = (statement) => {
-  if (IGNORED_TYPES.has(statement.type)) {
+  if (ignoredTypes.has(statement.type)) {
     return 'skip';
   }
 
-  if (DECLARATION_TYPES.has(statement.type)) {
+  if (declarationTypes.has(statement.type)) {
     return 'declaration';
   }
 

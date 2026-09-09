@@ -1,4 +1,4 @@
-"""Static discovery values used by the connector."""
+"""Public model sources, snapshot limits, and refresh validation."""
 
 UUID_TEXT_LENGTH = 36
 
@@ -33,3 +33,29 @@ MAX_SOURCE_BYTES = 1_048_576
 GUIDE_LINE_PATTERN_TEXT = "^- \\[([^\\]\\n]+)\\]\\(https://docs\\.reactor\\.inc/model-api-reference/([a-z0-9._-]+)/overview(?:\\.md)?\\)(?::.*)?$"
 
 CHECK_TIMEOUT_SECONDS = 25
+
+MAX_STORED_METADATA_BYTES = 2_097_152
+MAX_ADDED_MODELS = 20
+SOURCE_RETENTION_DIVISOR = 2
+
+__all__ = [
+    "CHECK_TIMEOUT_SECONDS",
+    "FIRST_PRINTABLE_CHARACTER",
+    "FORMAT_VERSION",
+    "GUIDE_LINE_PATTERN_TEXT",
+    "GUIDE_PATH_PATTERN_TEXT",
+    "INDEX_URL",
+    "MAX_ADDED_MODELS",
+    "MAX_GUIDE_TITLE_CHARACTERS",
+    "MAX_MODELS",
+    "MAX_MODEL_GUIDES",
+    "MAX_PRICE_AMOUNT",
+    "MAX_RETRIEVAL_TIME_CHARACTERS",
+    "MAX_SOURCE_BYTES",
+    "MAX_STORED_METADATA_BYTES",
+    "NAVIGATION_URL",
+    "PRICING_URL",
+    "SLUG_PATTERN_TEXT",
+    "SOURCE_RETENTION_DIVISOR",
+    "UUID_TEXT_LENGTH",
+]

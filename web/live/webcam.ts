@@ -1,3 +1,4 @@
+import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import type { Fetcher } from '#web/settings/api.ts';
 import type { Controls } from '#web/live/commands.ts';
@@ -7,7 +8,7 @@ export class Webcam {
 
   readonly video = element('video');
 
-  readonly enable = button('Enable camera');
+  readonly enable = button(translate('camera.enable'));
 
   readonly select = element('select');
 
@@ -37,14 +38,14 @@ export class Webcam {
     private fail: (message: string) => void,
   ) {
     this.view.className = 'reactor-webcam';
-    const label = element('label', 'Camera ');
+    const label = element('label', translate('camera.label'));
     label.append(this.select);
-    this.select.append(new Option('Default camera', ''));
+    this.select.append(new Option(translate('camera.default'), ''));
     this.video.muted = true;
     this.video.autoplay = true;
     this.video.playsInline = true;
     this.video.hidden = true;
-    this.video.setAttribute('aria-label', 'Your camera input');
+    this.video.setAttribute('aria-label', translate('camera.preview'));
     const controls = element('div');
     controls.append(label, this.enable);
     this.view.append(controls, this.video, this.status);
@@ -57,15 +58,13 @@ export class Webcam {
       if (!(await this.openCamera())) return;
       await this.listCameras();
       if (this.closed) return;
-      this.enable.textContent = 'Use selected camera';
-      this.status.textContent = 'Camera on. Microphone audio is off.';
+      this.enable.textContent = translate('camera.select');
+      this.status.textContent = translate('camera.enabled');
     } catch (error) {
       this.stopCamera();
       if (this.closed) return;
       this.status.textContent =
-        error instanceof Error
-          ? error.message
-          : 'Camera access failed. Choose a camera and try again.';
+        error instanceof Error ? error.message : translate('camera.accessFailed');
     } finally {
       if (!this.closed) this.enable.disabled = false;
     }
@@ -76,8 +75,9 @@ export class Webcam {
    * @returns Whether the camera is ready and the panel is still open.
    */
   private async openCamera(): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- DOM types omit browsers and insecure contexts where camera access is unavailable.
     if (!navigator.mediaDevices?.getUserMedia)
-      throw new Error('Camera access needs localhost or HTTPS and a supported browser.');
+      throw new Error(translate('camera.browserRequirements'));
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
@@ -97,6 +97,7 @@ export class Webcam {
     this.stream = stream;
     this.video.srcObject = stream;
     await this.video.play();
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- The panel can close while video.play() is awaiting playback.
     if (this.closed) return false;
     this.video.hidden = false;
     return true;
@@ -116,7 +117,7 @@ export class Webcam {
         .map(
           (device, index) =>
             new Option(
-              device.label || `Camera ${index + 1}`,
+              device.label || translate('camera.number', { number: index + 1 }),
               device.deviceId,
               false,
               device.deviceId === selected,
@@ -132,7 +133,7 @@ export class Webcam {
   async frame(): Promise<boolean> {
     if (this.closed || !this.stream || this.video.readyState < 2) return false;
     if (this.stream.getVideoTracks().some((track) => track.readyState !== 'live')) {
-      this.fail('The camera disconnected. The session is ending.');
+      this.fail(translate('camera.disconnected'));
       return false;
     }
     if (this.upload) {
@@ -143,7 +144,7 @@ export class Webcam {
     this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
     this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
     const context = this.canvas.getContext('2d');
-    if (!context) throw new Error('Camera frames could not be read.');
+    if (!context) throw new Error(translate('camera.readFailed'));
     context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
     this.upload = this.send();
     try {
@@ -172,7 +173,7 @@ export class Webcam {
         'X-Reactor-Sequence': String(this.sequence++),
       },
     });
-    if (!response.ok) throw new Error('Camera frames could not reach the session.');
+    if (!response.ok) throw new Error(translate('camera.uploadFailed'));
   }
 
   /**
@@ -183,7 +184,7 @@ export class Webcam {
     this.controller.abort();
     this.stopCamera();
     this.select.disabled = this.enable.disabled = true;
-    this.status.textContent = 'Camera off.';
+    this.status.textContent = translate('camera.disabled');
     this.canvas.width = this.canvas.height = 0;
   }
 

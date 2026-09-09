@@ -1,6 +1,23 @@
 """Errors that can be shown without exposing provider data."""
 
-from .codes import ErrorCode
+from enum import StrEnum
+from ..config.diagnostics import MAX_MESSAGE_CHARACTERS
+
+
+class ErrorCode(StrEnum):
+    """Stable categories for UI messages and sanitized diagnostics."""
+
+    CONFIGURATION = "configuration"
+    INTERRUPTED = "interrupted"
+    INVALID_INPUT = "invalid_input"
+    AUTHENTICATION = "authentication"
+    UNAVAILABLE = "unavailable"
+    TRANSPORT = "transport"
+    TIMEOUT = "timeout"
+    CAPTURE = "capture"
+    CLEANUP = "cleanup"
+    BUDGET = "budget"
+    DISCOVERY = "catalog"
 
 
 class ConnectorError(RuntimeError):
@@ -10,4 +27,4 @@ class ConnectorError(RuntimeError):
         """Store the safe message and error category separately from private diagnostic text."""
         super().__init__(message)
         self.code = code
-        self.diagnostic_detail = diagnostic_detail[:4096]
+        self.diagnostic_detail = diagnostic_detail[:MAX_MESSAGE_CHARACTERS]

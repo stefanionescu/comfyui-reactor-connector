@@ -2,47 +2,13 @@
 
 import os
 import asyncio
-from ..codes import ErrorCode
 from contextlib import suppress
-from ..errors import ConnectorError
+from ..language import translate
+from ..errors import ErrorCode, ConnectorError
 from ...config.media.capture import ENCODER_ERRORS
 from collections.abc import Callable, Sequence, Coroutine
 from ..serialization import Json, parse_json, mapping_value
 from ...config.media.workers import MAX_REPORT_BYTES, SHUTDOWN_TIMEOUT_SECONDS
-
-
-async def close_input(writer: asyncio.StreamWriter) -> None:
-    """Signal EOF when a worker reads its input from files instead of stdin."""
-    writer.write_eof()
-
-
-async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
-    """Validate a size-limited worker report and translate fixed error codes into public errors."""
-    line = await reader.readline()
-    if not line or len(line) > MAX_REPORT_BYTES:
-        raise ConnectorError(ErrorCode.CAPTURE, "The video encoder returned no valid result.")
-    try:
-        value = mapping_value(parse_json(line.decode("utf-8"), max_bytes=4096))
-    except (ValueError, UnicodeError, ConnectorError):
-        raise ConnectorError(ErrorCode.CAPTURE, "The video encoder returned no valid result.") from None
-    if "error" in value:
-        code = value["error"]
-        message = (
-            ENCODER_ERRORS.get(code, ENCODER_ERRORS["encoder_failed"])
-            if isinstance(code, str)
-            else ENCODER_ERRORS["encoder_failed"]
-        )
-        raise ConnectorError(ErrorCode.CAPTURE, message)
-    return value
-
-
-async def _read_result(reader: asyncio.StreamReader, ready: asyncio.Event) -> dict[str, Json]:
-    """Require the worker readiness message before accepting its final report."""
-    initial = await _report(reader)
-    if initial.keys() != {"ready"} or initial["ready"] is not True:
-        raise ConnectorError(ErrorCode.CAPTURE, "The video encoder did not become ready.")
-    ready.set()
-    return await _report(reader)
 
 
 class EncoderProcess:
@@ -73,7 +39,7 @@ class EncoderProcess:
             except TimeoutError:
                 raise ConnectorError(
                     ErrorCode.CLEANUP,
-                    "The encoder process did not stop. Restart ComfyUI before another run.",
+                    translate("main", "errors.encoderStopFailed"),
                 ) from None
 
     async def _dispose(self, tasks: Sequence[asyncio.Task[object]]) -> None:
@@ -107,7 +73,7 @@ class EncoderProcess:
         tasks: list[asyncio.Task[object]] = []
         try:
             if self.process.stdin is None or self.process.stdout is None:
-                raise ConnectorError(ErrorCode.CAPTURE, "The video encoder pipes are unavailable.")
+                raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderPipes"))
             feeder = asyncio.create_task(feed(self.process.stdin))
             reader = asyncio.create_task(_read_result(self.process.stdout, ready))
             interrupted = asyncio.create_task(stopped.wait())
@@ -118,7 +84,7 @@ class EncoderProcess:
                 await feeder
                 await asyncio.wait({reader, interrupted}, return_when=asyncio.FIRST_COMPLETED)
             if interrupted.done():
-                raise ConnectorError(ErrorCode.CAPTURE, "Video capture was stopped.")
+                raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.captureStopped"))
             result = await reader
             async with asyncio.timeout(self.shutdown_seconds):
                 returncode = await self.process.wait()
@@ -144,3 +110,37 @@ class EncoderProcess:
                 cleanup.exception()
             raise asyncio.CancelledError
         cleanup.result()
+
+
+async def close_input(writer: asyncio.StreamWriter) -> None:
+    """Signal EOF when a worker reads its input from files instead of stdin."""
+    writer.write_eof()
+
+
+async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
+    """Validate a size-limited worker report and translate fixed error codes into public errors."""
+    line = await reader.readline()
+    if not line or len(line) > MAX_REPORT_BYTES:
+        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderResult"))
+    try:
+        value = mapping_value(parse_json(line.decode("utf-8"), max_bytes=4096))
+    except (ValueError, UnicodeError, ConnectorError):
+        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderResult")) from None
+    if "error" in value:
+        code = value["error"]
+        message = (
+            ENCODER_ERRORS.get(code, ENCODER_ERRORS["encoder_failed"])
+            if isinstance(code, str)
+            else ENCODER_ERRORS["encoder_failed"]
+        )
+        raise ConnectorError(ErrorCode.CAPTURE, message)
+    return value
+
+
+async def _read_result(reader: asyncio.StreamReader, ready: asyncio.Event) -> dict[str, Json]:
+    """Require the worker readiness message before accepting its final report."""
+    initial = await _report(reader)
+    if initial.keys() != {"ready"} or initial["ready"] is not True:
+        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderNotReady"))
+    ready.set()
+    return await _report(reader)

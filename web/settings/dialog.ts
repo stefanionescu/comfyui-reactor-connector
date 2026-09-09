@@ -1,12 +1,6 @@
 import { button, element } from '#web/dom.ts';
-
-import {
-  type Configuration,
-  type Fetcher,
-  type FieldName,
-  fields,
-  requestConfiguration,
-} from '#web/settings/api.ts';
+import { translate, type MessageKey } from '#web/language.ts';
+import { type Configuration, type Fetcher, requestConfiguration } from '#web/settings/api.ts';
 
 let current: SettingsDialog | undefined;
 
@@ -18,11 +12,11 @@ class SettingsDialog {
 
   private readonly controller = new AbortController();
 
-  private readonly status = element('p', 'Loading local settings…');
+  private readonly status = element('p', translate('settings.loading'));
 
   private readonly source = element('p');
 
-  private readonly reload = button('Reload settings');
+  private readonly reload = button(translate('settings.reload'));
 
   private readonly key = element('input');
 
@@ -36,7 +30,7 @@ class SettingsDialog {
 
   private readonly interval = element('input');
 
-  private readonly inputs = new Map<FieldName, HTMLInputElement>();
+  private readonly inputs = new Map<string, HTMLInputElement>();
 
   private configuration: Configuration | undefined;
 
@@ -47,33 +41,27 @@ class SettingsDialog {
   constructor(private readonly fetcher: Fetcher) {
     this.dialog.className = 'reactor-settings';
     this.dialog.setAttribute('aria-labelledby', 'reactor-settings-title');
-    const heading = element('h2', 'Reactor settings');
+    const heading = element('h2', translate('settings.title'));
     heading.id = 'reactor-settings-title';
-    const close = button('Close');
-    close.setAttribute('aria-label', 'Close Reactor settings');
+    const close = button(translate('close'));
+    close.setAttribute('aria-label', translate('settings.close'));
     close.addEventListener('click', () => this.dialog.close());
     const header = element('header');
     header.append(heading, close);
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
-    this.reload.addEventListener('click', () => void this.perform('Local settings loaded.'));
+    this.reload.addEventListener(
+      'click',
+      () => void this.updateSettings(translate('settings.loaded')),
+    );
     this.dialog.append(
       header,
-      element(
-        'p',
-        'Reactor uses its own account and credits. Opening settings and saving a key do not start generation.',
-      ),
+      element('p', translate('settings.accountNotice')),
       this.source,
       this.credentials(),
-      element(
-        'p',
-        'The saved key stays on the ComfyUI server. An environment key takes precedence. Keys are not checked with Reactor here.',
-      ),
+      element('p', translate('settings.keyNotice')),
       this.limits(),
-      element(
-        'p',
-        'Session time includes setup and generation. These limits do not buy credits or change account billing.',
-      ),
+      element('p', translate('settings.timeNotice')),
       this.modelUpdates(),
       this.status,
       this.reload,
@@ -88,39 +76,31 @@ class SettingsDialog {
   private credentials(): HTMLFormElement {
     const form = element('form');
     this.keyFields.disabled = true;
-    const label = element('label', 'Reactor API key');
+    const label = element('label', translate('settings.credentialLabel'));
     this.key.type = 'password';
     this.key.autocomplete = 'off';
     this.key.spellcheck = false;
-    this.key.maxLength = 1024;
     this.key.required = true;
     label.append(this.key);
-    const clear = button('Clear saved key');
+    const clear = button(translate('settings.clearKey'));
     // eslint-disable-next-line local/no-trivial-functions -- Clearing the key field must happen before this user-triggered request.
     clear.addEventListener('click', () => {
       this.key.value = '';
-      void this.perform(
-        'Saved key cleared. Any environment key remains active.',
-        '/credential',
-        'DELETE',
-      );
+      void this.updateSettings(translate('settings.keyCleared'), '/credential', 'DELETE');
     });
     const actions = element('div');
     actions.className = 'reactor-actions';
-    actions.append(button('Save key', 'submit'), clear);
-    this.keyFields.append(element('legend', 'Credentials'), label, actions);
+    actions.append(button(translate('settings.saveKey'), 'submit'), clear);
+    this.keyFields.append(element('legend', translate('settings.credentials')), label, actions);
     form.append(this.keyFields);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const value = this.key.value;
       this.key.value = '';
-      void this.perform(
-        'Key saved on this server. Reactor checks it when you start a session.',
-        '/credential',
-        'PUT',
-        { api_key: value },
-      );
+      void this.updateSettings(translate('settings.keySaved'), '/credential', 'PUT', {
+        api_key: value,
+      });
     });
     return form;
   }
@@ -132,22 +112,8 @@ class SettingsDialog {
   private limits(): HTMLFormElement {
     const form = element('form');
     this.limitFields.disabled = true;
-    this.limitFields.append(element('legend', 'Execution limits'));
-    const advanced = element('details');
-    advanced.append(element('summary', 'Advanced limits'));
-    for (const [index, [name, title]] of fields.entries()) {
-      const label = element('label', title);
-      const input = element('input');
-      input.type = 'number';
-      input.min = '1';
-      input.max = '3600';
-      input.step = '1';
-      input.required = true;
-      this.inputs.set(name, input);
-      label.append(input);
-      (index < 2 ? this.limitFields : advanced).append(label);
-    }
-    this.limitFields.append(advanced, button('Save limits', 'submit'));
+    this.limitFields.append(element('legend', translate('settings.limits')));
+    this.limitFields.append(button(translate('settings.saveLimits'), 'submit'));
     form.append(this.limitFields);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -157,19 +123,47 @@ class SettingsDialog {
   }
 
   /**
+   * Build fields from the backend's setting definitions.
+   * @param configuration - The validated limits and labels.
+   */
+  private populateLimits(configuration: Configuration): void {
+    this.limitFields.replaceChildren(element('legend', translate('settings.limits')));
+    const advanced = element('details');
+    advanced.append(element('summary', translate('settings.advancedLimits')));
+    for (const [index, [name, definition]] of Object.entries(configuration.definitions)
+      .filter(([name]) => name !== 'catalog_interval_hours')
+      .entries()) {
+      const label = element(
+        'label',
+        translate(`settings.limit.${name}` as MessageKey, {}, definition.label),
+      );
+      const input = element('input');
+      input.type = 'number';
+      input.min = String(definition.minimum);
+      input.max = String(definition.maximum);
+      input.step = '1';
+      input.required = true;
+      this.inputs.set(name, input);
+      label.append(input);
+      (index < 2 ? this.limitFields : advanced).append(label);
+    }
+    this.limitFields.append(advanced, button(translate('settings.saveLimits'), 'submit'));
+  }
+
+  /**
    * Save only limits changed since the last successful read.
    * @param configuration - The settings and revision currently shown.
    */
   private saveLimits(configuration: Configuration): void {
-    const changes: Partial<Record<FieldName, number>> = {};
+    const changes: Record<string, number> = {};
     for (const [name, input] of this.inputs) {
       if (input.valueAsNumber !== configuration.settings[name]) changes[name] = input.valueAsNumber;
     }
     if (Object.keys(changes).length === 0) {
-      this.status.textContent = 'No limit changes to save.';
+      this.status.textContent = translate('settings.noLimitChanges');
       return;
     }
-    void this.perform('Limits saved. They apply to new executions.', '/settings', 'PATCH', {
+    void this.updateSettings(translate('settings.limitsSaved'), '/settings', 'PATCH', {
       revision: configuration.revision,
       settings: changes,
     });
@@ -182,25 +176,20 @@ class SettingsDialog {
   private modelUpdates(): HTMLFormElement {
     const form = element('form');
     this.catalogFields.disabled = true;
-    const automaticLabel = element('label', 'Check for model updates automatically');
+    const automaticLabel = element('label', translate('settings.automaticChecks'));
     this.automatic.type = 'checkbox';
     automaticLabel.prepend(this.automatic);
-    const intervalLabel = element('label', 'Check interval (hours)');
+    const intervalLabel = element('label', translate('settings.checkInterval'));
     this.interval.type = 'number';
-    this.interval.min = '1';
-    this.interval.max = '3600';
     this.interval.step = '1';
     this.interval.required = true;
     intervalLabel.append(this.interval);
     this.catalogFields.append(
-      element('legend', 'Model updates'),
+      element('legend', translate('settings.modelUpdates')),
       automaticLabel,
       intervalLabel,
-      element(
-        'p',
-        'Checks read public prices and model guides. They do not use your key or spend credits. Open Reactor models to see changes and refresh your list.',
-      ),
-      button('Save model check settings', 'submit'),
+      element('p', translate('settings.checkNotice')),
+      button(translate('settings.saveChecks'), 'submit'),
     );
     form.append(this.catalogFields);
     form.addEventListener('submit', (event) => {
@@ -223,15 +212,13 @@ class SettingsDialog {
       settings.catalog_auto_check === configuration.settings.catalog_auto_check &&
       settings.catalog_interval_hours === configuration.settings.catalog_interval_hours
     ) {
-      this.status.textContent = 'No model check changes to save.';
+      this.status.textContent = translate('settings.noCheckChanges');
       return;
     }
-    void this.perform(
-      'Model check settings saved. The scheduler reads changes within one minute.',
-      '/settings',
-      'PATCH',
-      { revision: configuration.revision, settings },
-    );
+    void this.updateSettings(translate('settings.checksSaved'), '/settings', 'PATCH', {
+      revision: configuration.revision,
+      settings,
+    });
   }
 
   /**
@@ -240,16 +227,26 @@ class SettingsDialog {
    */
   private display(configuration: Configuration): void {
     this.configuration = configuration;
+    if (this.inputs.size === 0) this.populateLimits(configuration);
+    this.key.maxLength = configuration.credentialLimit;
+    const interval = configuration.definitions.catalog_interval_hours;
+    this.interval.min = String(interval.minimum);
+    this.interval.max = String(interval.maximum);
     this.source.textContent = {
-      missing: 'No Reactor key is configured.',
-      saved: 'A saved key is configured on this server.',
-      environment: "The server's REACTOR_API_KEY environment variable is active.",
+      missing: translate('settings.missingKey'),
+      saved: translate('settings.savedKey'),
+      environment: translate('settings.environmentKey'),
     }[configuration.credentialSource];
     this.automatic.checked = configuration.settings.catalog_auto_check;
     this.interval.value = String(configuration.settings.catalog_interval_hours);
-    for (const [name, input] of this.inputs) input.value = String(configuration.settings[name]);
-    if (!configuration.mutationAllowed)
-      this.status.textContent = "Changes are disabled in this host's multi-user mode.";
+    for (const [name, definition] of Object.entries(configuration.definitions)) {
+      const input = this.inputs.get(name);
+      if (!input) continue;
+      input.min = String(definition.minimum);
+      input.max = String(definition.maximum);
+      input.value = String(configuration.settings[name]);
+    }
+    if (!configuration.mutationAllowed) this.status.textContent = translate('settings.readOnly');
   }
 
   /**
@@ -260,7 +257,7 @@ class SettingsDialog {
    * @param body - The settings change, if any.
    * @returns When the response or error is displayed.
    */
-  private async perform(
+  private async updateSettings(
     message: string,
     route?: string,
     method?: string,
@@ -268,7 +265,7 @@ class SettingsDialog {
   ): Promise<void> {
     this.keyFields.disabled = this.limitFields.disabled = this.catalogFields.disabled = true;
     this.reload.disabled = true;
-    this.status.textContent = 'Working…';
+    this.status.textContent = translate('working');
     try {
       const value = await requestConfiguration(
         this.fetcher,
@@ -283,7 +280,7 @@ class SettingsDialog {
     } catch (error) {
       if (!this.controller.signal.aborted)
         this.status.textContent =
-          error instanceof Error ? error.message : 'Reactor settings could not be saved.';
+          error instanceof Error ? error.message : translate('settings.updateFailed');
     } finally {
       if (!this.controller.signal.aborted) {
         this.keyFields.disabled =
@@ -299,7 +296,7 @@ class SettingsDialog {
   show(): void {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    void this.perform('Local settings loaded.');
+    void this.updateSettings(translate('settings.loaded'));
   }
 
   /** Clear the key input, stop requests, and return focus to the caller. */

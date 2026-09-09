@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #
 # Create and analyze a Python CodeQL database.
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
 readonly REPO_ROOT
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 # shellcheck source=../../../config/security/codeql/python/environment.sh
 source "${REPO_ROOT}/quality/config/security/codeql/python/environment.sh"

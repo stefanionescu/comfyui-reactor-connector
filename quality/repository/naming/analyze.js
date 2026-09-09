@@ -10,7 +10,7 @@ import {
   languageForPath,
 } from '#repository/naming/extractors/files.js';
 import {
-  REPO_ROOT,
+  repoRoot,
   isPathExcluded,
   nameRulesForEntry,
   pathHasScope,
@@ -42,7 +42,7 @@ function compareViolations(left, right) {
 function readTrackedFile(relativePath) {
   // reason: The caller supplies only Git-listed regular files after symbolic-link checks.
   // bearer:disable javascript_lang_path_traversal
-  const absolutePath = path.join(REPO_ROOT, relativePath);
+  const absolutePath = path.join(repoRoot, relativePath);
   if (!fs.existsSync(absolutePath)) {
     throw new Error(`tracked file is missing: ${relativePath}`);
   }
@@ -122,7 +122,7 @@ function addNamingEntryViolations(policy, relativePath, entry, violations, seen)
 function analyzeNaming(scope, policy) {
   const violations = [];
   const seen = new Set();
-  const trackedFiles = visibleFiles(REPO_ROOT);
+  const trackedFiles = visibleFiles(repoRoot);
 
   for (const relativePath of trackedFiles) {
     if (!pathHasScope(relativePath, scope)) {

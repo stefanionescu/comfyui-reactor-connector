@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #
 # Run pip-audit against the locked Python environment.
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 # Audit locked dependencies without looking up the local connector on PyPI.
 requirements_file="$(mktemp)"

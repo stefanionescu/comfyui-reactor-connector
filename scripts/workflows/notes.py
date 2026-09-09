@@ -1,110 +1,70 @@
-"""Write the steps needed to use each example on the canvas."""
+"""Choose the instructions shown beside each workflow's nodes."""
 
 from .example import Example
+from ...src.language import translate
 
 
 def setup_steps(example: Example) -> list[str]:
     """Write numbered setup actions using the node titles visible in this example."""
-    steps = ["Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**."]
-    subject = "a portrait" if example.model == "ltx2" else "an image"
+    steps = [translate("workflows", "setup.key")]
+    image_key = "setup.portrait" if example.model == "ltx2" else "setup.image"
     sources = (
-        (example.video, "Upload a video in **Upload your source video** (at least 33 frames)."),
-        (example.image, f"Upload {subject} in **Upload your starting image**."),
-        (example.reference, "Upload the subject to insert in **Upload your reference subject**."),
-        (example.ending_image, "Upload the ending image in **Choose the final frame**."),
+        ("source", "setup.video"),
+        ("image", image_key),
+        ("reference_image", "setup.reference"),
+        ("ending_image", "setup.endingImage"),
     )
-    steps.extend(instruction for needed, instruction in sources if needed)
-    if example.storyboard:
-        steps.append("Edit the opening prompt, **1. Soft transition**, and **2. Hard cut**.")
-    elif example.prompt_sequence:
-        steps.append("Edit the opening prompt, **1. Let sunlight through**, and **2. Enter a clearing**.")
-    elif example.image and example.model.startswith("visko-"):
-        steps.append(
-            "Edit **Scene prompt** to name what is in your image and describe its motion. "
-            "The example prompt describes a forest path."
-        )
+    steps.extend(translate("workflows", key) for source, key in sources if source in example.sources)
+    if example.plan == "shots":
+        prompt_key = "setup.shots"
+    elif example.plan == "prompts":
+        prompt_key = "setup.sequence"
+    elif "image" in example.sources and example.model.startswith("visko-"):
+        prompt_key = "setup.viskoImage"
     elif example.model == "ltx2":
-        steps.append("Edit **Spoken words**. Keep the speech short enough for five seconds.")
+        prompt_key = "setup.speech"
     else:
-        steps.append("Edit **Scene prompt** to describe the scene or change you want.")
-    if example.interactive:
-        steps.append("Select **Run** to open the live panel.")
-    else:
-        steps.append("Select **Run** to create and save the video.")
+        prompt_key = "setup.prompt"
+    steps.append(translate("workflows", prompt_key))
+    steps.append(translate("workflows", "setup.record" if example.mode == "record" else "setup.live"))
     return [f"{number}. {step}" for number, step in enumerate(steps, 1)]
 
 
 def live_notes(example: Example) -> list[str]:
     """Explain the example's live start, input, and stop controls."""
-    notes: list[str] = []
-    if example.panel:
-        if example.webcam:
-            notes.append(
-                "Select **Enable camera**, allow access, then **Start session**. "
-                "Reactor receives camera video without microphone audio."
-            )
-        else:
-            notes.append("In the live panel, select **Start session** within 60 seconds.")
-        notes.append("Edit **Scene prompt**, then select **Apply prompt** to change later frames.")
+    keys: list[str] = []
+    if example.mode in {"live", "webcam"}:
+        keys.append("live.camera" if example.mode == "webcam" else "live.start")
+        keys.append("live.prompt")
         if example.slug == "helios-05-live-prompt":
-            notes.append("Try: The forest leaves turn orange and red as autumn arrives.")
+            keys.append("live.autumn")
         if example.model.startswith("visko-"):
-            notes.append("**Apply sound prompt** changes later sound. The live preview is silent.")
+            keys.append("live.sound")
         if example.model == "x2":
-            notes.append(
-                "Drag on the output to steer the subject. Escape releases the pointer. "
-                "**Help** also explains keyboard controls."
-            )
-    elif example.interactive:
-        notes.append(
-            "In the live panel, click the picture. W A S D moves; arrow keys turn. "
-            "Escape stops movement. **Apply prompt** changes later frames."
-        )
-    if example.interactive:
-        notes.append("Let recording finish to save the video. **End session** stops early and discards it.")
-    return notes
+            keys.append("live.drag")
+    elif example.mode != "record":
+        keys.append("live.move")
+    if example.mode != "record":
+        keys.append("live.finish")
+    return [translate("workflows", key) for key in keys]
 
 
 def model_notes(example: Example) -> list[str]:
     """Explain the model-specific recording, control, and credit limits for this example."""
     notes = live_notes(example)
     if example.clip_count > 1:
-        notes.append(
-            f"The {example.clip_count} clips continue from each previous final frame. "
-            "Put one prompt per line in **Later prompts**, starting with clip 2. "
-            "Leave it empty to repeat the opening prompt."
-        )
-        notes.append(
-            f"This example requests {example.duration_seconds:g} seconds "
-            "in total. In Reactor settings, **Maximum video duration (seconds)** must allow "
-            "the combined length. The model may round each clip up."
-        )
+        notes.append(translate("workflows", "limits.continuation", clips=example.clip_count))
+        notes.append(translate("workflows", "limits.totalDuration", seconds=example.duration_seconds))
     if example.model == "fast-h3":
-        notes.append(
-            "Fast H3 rounds each clip to a supported length. It also generates up to "
-            "14.375 extra seconds for recording to finish. Those extra seconds use "
-            "credits but are not saved."
-        )
+        notes.append(translate("workflows", "limits.fast"))
     if example.model == "ltx2":
-        notes.append(
-            "Use a clear portrait with the whole head visible. LTX may generate up to "
-            "20 extra seconds while recording starts; those seconds can use credits "
-            "but are not saved."
-        )
-    if example.video:
-        notes.append("Use standard dynamic range (SDR) video. The edited output has no sound.")
-    if example.prompt_sequence:
-        notes.append(
-            "Each Helios chunk contains 33 frames. Connect prompts in order and use "
-            "increasing **Start chunk** values. The opening prompt starts at chunk 0. "
-            "Later prompts do not extend the recording."
-        )
-    if example.storyboard:
-        notes.append(
-            "Each LongLive chunk is about 1.2 seconds at 24 fps. The soft transition "
-            "starts near 1.2 seconds; the hard cut near 2.4 seconds. Increase "
-            "**Video length (seconds)** if you schedule later shots."
-        )
+        notes.append(translate("workflows", "limits.ltx"))
+    if "source" in example.sources:
+        notes.append(translate("workflows", "limits.sourceVideo"))
+    if example.plan == "prompts":
+        notes.append(translate("workflows", "limits.helios"))
+    if example.plan == "shots":
+        notes.append(translate("workflows", "limits.longlive"))
     return notes
 
 
@@ -112,7 +72,7 @@ def sections(example: Example) -> tuple[str, str]:
     """Separate the short setup note from additional model instructions."""
     setup = "\n".join(setup_steps(example))
     notes = model_notes(example)
-    if example.video and not example.interactive:
+    if "source" in example.sources and example.mode == "record":
         setup += "\n\n" + notes.pop()
-    setup += "\n\nRun uses Reactor credits. Select a Reactor node, then choose **Help** for costs and limits."
+    setup += translate("workflows", "setup.credits")
     return setup, "\n\n".join(notes)

@@ -1,8 +1,8 @@
 import { MAX_TRIVIAL_FUNCTION_STATEMENTS } from '#config/limits.js';
 
-const DEFAULT_MAX_STATEMENTS = MAX_TRIVIAL_FUNCTION_STATEMENTS;
-const MESSAGE = 'Inline functions whose block body only wraps trivial delegation.';
-const TRIVIAL_STATEMENT_TYPES = new Set([
+const defaultMaxStatements = MAX_TRIVIAL_FUNCTION_STATEMENTS;
+const message = 'Inline functions whose block body only wraps trivial delegation.';
+const trivialStatementTypes = new Set([
   'ExpressionStatement',
   'ReturnStatement',
   'VariableDeclaration',
@@ -38,9 +38,9 @@ function functionName(node) {
 
 function maxStatements(context) {
   const [options = {}] = context.options;
-  const configured = Number(options.maxStatements ?? DEFAULT_MAX_STATEMENTS);
+  const configured = Number(options.maxStatements ?? defaultMaxStatements);
   if (!Number.isInteger(configured) || configured < 1) {
-    return DEFAULT_MAX_STATEMENTS;
+    return defaultMaxStatements;
   }
 
   return configured;
@@ -56,13 +56,13 @@ function reportIfTrivial(context, node) {
   if (statements.length === 0 || statements.length > maxStatements(context)) {
     return;
   }
-  if (statements.some((statement) => !TRIVIAL_STATEMENT_TYPES.has(statement.type))) {
+  if (statements.some((statement) => !trivialStatementTypes.has(statement.type))) {
     return;
   }
 
   context.report({
     node,
-    message: `${MESSAGE} Function: ${functionName(node)}.`,
+    message: `${message} Function: ${functionName(node)}.`,
   });
 }
 
@@ -78,7 +78,7 @@ function reportIfExpressionArrow(context, node) {
 
   context.report({
     node,
-    message: `${MESSAGE} Function: ${name}.`,
+    message: `${message} Function: ${name}.`,
   });
 }
 

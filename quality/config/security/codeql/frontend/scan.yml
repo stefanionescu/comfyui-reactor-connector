@@ -1,6 +1,7 @@
 name: Reactor connector JavaScript and TypeScript
 
 paths:
+    - config
     - web
     - scripts/frontend.mjs
     - quality

@@ -2,11 +2,11 @@
 
 import asyncio
 from typing import cast
-from ..codes import ErrorCode
+from ..language import translate
 from .transport import Transport
 from .failures import phase_error
-from ..errors import ConnectorError
 from .diagnostics import FailureReport
+from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Coroutine
 from ...config.generation.session import MAX_MESSAGE_TYPES
 
@@ -76,7 +76,7 @@ class SessionEvents:
             self._fail(
                 ConnectorError(
                     ErrorCode.INVALID_INPUT,
-                    "Reactor rejected a model command. Check this node's inputs and model guide.",
+                    translate("main", "errors.commandRejected"),
                 )
             )
 
@@ -88,7 +88,7 @@ class SessionEvents:
             self._fail(
                 ConnectorError(
                     ErrorCode.TRANSPORT,
-                    "The Reactor connection ended before capture finished.",
+                    translate("main", "errors.captureDisconnected"),
                 )
             )
 

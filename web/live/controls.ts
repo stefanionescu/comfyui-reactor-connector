@@ -1,6 +1,8 @@
 import { Webcam } from '#web/live/webcam.ts';
+import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { SoundControls } from '#web/live/sound.ts';
+import { browserLimits } from '#config/browser.ts';
 import type { Fetcher } from '#web/settings/api.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
 import { DragInput, type Pointer } from '#web/live/drag.ts';
@@ -19,15 +21,15 @@ class ControlPanel {
 
   private readonly image = element('img');
 
-  private readonly status = element('p', 'Choose your input, then start within 60 seconds.');
+  private readonly status = element('p', translate('controls.chooseInput'));
 
   private readonly prompt = element('textarea');
 
-  private readonly start = button('Start session');
+  private readonly start = button(translate('controls.start'));
 
-  private readonly update = button('Apply prompt');
+  private readonly update = button(translate('live.applyPrompt'));
 
-  private readonly end = button('Cancel');
+  private readonly end = button(translate('cancel'));
 
   private readonly pointerPreview: PointerPreview | undefined;
 
@@ -65,8 +67,8 @@ class ControlPanel {
     private readonly fetcher: Fetcher,
   ) {
     this.dialog.className = 'reactor-settings reactor-controls';
-    this.dialog.setAttribute('aria-label', 'Reactor live controls');
-    this.image.alt = 'Live model output';
+    this.dialog.setAttribute('aria-label', translate('controls.title'));
+    this.image.alt = translate('live.output');
     this.image.hidden = true;
     this.pointerPreview = owner.pointer
       ? new PointerPreview(this.image, this.abort.signal)
@@ -76,7 +78,9 @@ class ControlPanel {
     this.prompt.maxLength = owner.prompt_limit;
     this.prompt.rows = 2;
     this.prompt.disabled = this.update.disabled = true;
-    this.sound = owner.sound ? new SoundControls(owner.audio_prompt) : undefined;
+    this.sound = owner.sound
+      ? new SoundControls(owner.audio_prompt, owner.audioPromptLimit)
+      : undefined;
     this.camera = owner.webcam
       ? new Webcam(owner, fetcher, (message) => this.stop(message))
       : undefined;
@@ -89,24 +93,22 @@ class ControlPanel {
   /** Build the preview, supported inputs, and session actions. */
   private appendContent(): void {
     this.dialog.append(
-      element('h2', 'Reactor live controls'),
-      element('p', `${this.owner.modelTitle} · ${this.owner.duration_seconds} seconds of video`),
+      element('h2', translate('controls.title')),
       element(
         'p',
-        'Starting uses Reactor credits. Recording stops at the chosen duration. Ending early discards the unfinished video. The preview has no sound.',
+        translate('live.duration', {
+          model: this.owner.modelTitle,
+          seconds: this.owner.duration_seconds,
+        }),
       ),
+      element('p', translate('controls.recordingNotice')),
     );
     if (this.camera) this.dialog.append(this.camera.view);
     this.dialog.append(this.pointerPreview?.view ?? this.image);
     if (this.owner.pointer)
-      this.dialog.append(
-        element(
-          'p',
-          'Drag on the output to steer the subject. Release to stop. With the picture focused, arrow keys position the pointer, Space holds it, and Escape releases it.',
-        ),
-      );
+      this.dialog.append(element('p', translate('controls.dragInstructions')));
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
-    const label = element('label', 'Scene prompt ');
+    const label = element('label', translate('live.scenePrompt'));
     label.append(this.prompt);
     this.dialog.append(label, this.update);
     if (this.sound) this.dialog.append(this.sound.view);
@@ -127,7 +129,7 @@ class ControlPanel {
     });
     this.update.addEventListener('click', () => {
       if (!this.prompt.value.trim() && this.owner.model !== 'reactor/sana-streaming') {
-        this.status.textContent = 'Enter a prompt before applying it.';
+        this.status.textContent = translate('controls.emptyPrompt');
         return;
       }
       this.pendingPrompt = this.prompt.value;
@@ -165,8 +167,8 @@ class ControlPanel {
     this.pointerPreview?.move(next);
     const previous = this.pointers.at(-1);
     if (previous?.active && next.active) this.pointers.pop();
-    if (this.pointers.length >= 8) {
-      this.stop('Pointer input arrived too quickly. The session is ending.');
+    if (this.pointers.length >= browserLimits.maxPendingInputs) {
+      this.stop(translate('controls.pointerRateExceeded'));
       return;
     }
     this.pointers.push(next);
@@ -176,7 +178,7 @@ class ControlPanel {
    * Stop sending input while waiting for the server to end the session.
    * @param message - The reason shown in the panel.
    */
-  private stop(message = 'Ending the session…'): void {
+  private stop(message = translate('live.ending')): void {
     this.ending = true;
     this.ready = false;
     this.start.disabled = this.update.disabled = true;
@@ -195,7 +197,7 @@ class ControlPanel {
     this.ready = reply.controls_ready && !reply.finishing && !this.ending;
     this.prompt.disabled = !this.ready;
     this.sound?.setReady(this.ready);
-    if (this.ready && !wasReady) this.status.textContent = 'Recording. Live controls are ready.';
+    if (this.ready && !wasReady) this.status.textContent = translate('controls.recording');
     this.update.disabled = !this.ready || this.pendingPrompt !== undefined;
     if (reply.preview) {
       this.image.src = `data:image/jpeg;base64,${reply.preview}`;
@@ -215,16 +217,14 @@ class ControlPanel {
     this.sound?.setReady(false);
     this.pointerPreview?.stop();
     if (!reply.termination_confirmed)
-      this.status.textContent =
-        'Connection closed. Check Reactor session status before starting again.';
+      this.status.textContent = translate('controls.connectionClosed');
     else if (!this.startAttempted)
-      this.status.textContent =
-        'Recording did not start. Close this panel to view the workflow result.';
+      this.status.textContent = translate('controls.recordingNotStarted');
     else
       this.status.textContent = reply.failed
-        ? 'The session ended without saving a video. Close this panel to view the workflow result.'
-        : 'Session ended. Close this panel to view the workflow result.';
-    this.end.textContent = 'Close';
+        ? translate('live.discarded')
+        : translate('live.ended');
+    this.end.textContent = translate('close');
   }
 
   /**
@@ -237,10 +237,10 @@ class ControlPanel {
     if (hasFrame) {
       this.startAttempted = true;
       await action(this.fetcher, this.owner, this.actionSequence++, 'start', {});
-      this.end.textContent = 'End session';
-      this.status.textContent = 'Connecting to Reactor…';
+      this.end.textContent = translate('live.endSession');
+      this.status.textContent = translate('controls.connecting');
     } else {
-      this.status.textContent = 'Enable a camera before starting.';
+      this.status.textContent = translate('controls.cameraRequired');
       this.start.disabled = false;
     }
     this.startRequested = false;
@@ -257,7 +257,7 @@ class ControlPanel {
         prompt: this.pendingPrompt,
       });
       this.pendingPrompt = undefined;
-      this.status.textContent = 'Prompt sent. The model applies changes to later frames.';
+      this.status.textContent = translate('controls.promptSent');
     }
     const next = this.pointers.shift();
     if (next) {
@@ -269,7 +269,7 @@ class ControlPanel {
       await action(this.fetcher, this.owner, this.actionSequence++, 'audio_prompt', {
         prompt: audioPrompt,
       });
-      this.status.textContent = 'Sound prompt sent. The model applies changes to later audio.';
+      this.status.textContent = translate('controls.soundSent');
     }
   }
 
@@ -311,16 +311,17 @@ class ControlPanel {
 
   /**
    * Exchange status, apply pending input, and handle session completion.
-   * @returns When one status and input cycle finishes.
+   * @returns Whether the session needs another status update.
    */
-  private async cycle(): Promise<void> {
+  private async cycle(): Promise<boolean> {
     let reply = await this.refresh();
     if (!this.ending && !reply.closed && !reply.finishing) reply = await this.sendInput(reply);
     if (reply.closed) this.finish(reply);
     else if (reply.finishing) {
       this.camera?.close();
-      this.status.textContent = 'Ending the session…';
+      this.status.textContent = translate('live.ending');
     }
+    return !this.finished;
   }
 
   /**
@@ -330,14 +331,13 @@ class ControlPanel {
   private async poll(): Promise<void> {
     try {
       while (!this.finished && !this.abort.signal.aborted) {
-        await this.cycle();
-        if (this.finished) break;
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (!(await this.cycle())) break;
+        await new Promise((resolve) => setTimeout(resolve, browserLimits.pollIntervalMilliseconds));
       }
     } catch (error) {
-      this.stop(error instanceof Error ? error.message : 'The live connection ended.');
+      this.stop(error instanceof Error ? error.message : translate('controls.connectionEnded'));
       this.finished = true;
-      this.end.textContent = 'Close';
+      this.end.textContent = translate('close');
     }
   }
 

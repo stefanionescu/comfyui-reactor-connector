@@ -1,4 +1,4 @@
-"""Static generation video values used by the connector."""
+"""Video model defaults and output options."""
 
 MAX_ANCHOR_INTERVAL = 1000
 
@@ -7,3 +7,10 @@ MAX_AUDIO_PROMPT_CHARACTERS = 1000
 MAX_FORMAT_NAME_CHARACTERS = 64
 
 MAX_EDIT_PROMPT_CHARACTERS = 1000
+
+__all__ = [
+    "MAX_ANCHOR_INTERVAL",
+    "MAX_AUDIO_PROMPT_CHARACTERS",
+    "MAX_EDIT_PROMPT_CHARACTERS",
+    "MAX_FORMAT_NAME_CHARACTERS",
+]

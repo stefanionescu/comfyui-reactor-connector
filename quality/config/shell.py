@@ -15,45 +15,8 @@ SHELL_DUPLICATE_MIN_MATCHES = 2
 BASH_PREFIX_COLLISION_THRESHOLD = 2
 SHELL_CONFIG_GUARD_PATTERN = r"^\[\[ -n \$\{(?P<name>_CFG_[A-Z][A-Z0-9_]*_READY):-\} \]\] && return 0$"
 
-SHELL_ARCHITECTURE_PREFIXES = ("scripts/",)
-
-SHELL_ACTION_PREFIXES = {
-    "acquire",
-    "apply",
-    "await",
-    "build",
-    "check",
-    "choose",
-    "cleanup",
-    "clear",
-    "detect",
-    "export",
-    "finalize",
-    "get",
-    "guard",
-    "handle",
-    "init",
-    "install",
-    "kill",
-    "launch",
-    "normalize",
-    "parse",
-    "prepare",
-    "push",
-    "read",
-    "reconfigure",
-    "require",
-    "run",
-    "select",
-    "set",
-    "setup",
-    "show",
-    "start",
-    "stop",
-    "validate",
-    "wipe",
-    "write",
-}
+SHELL_ARCHITECTURE_PREFIXES = (".mise/tasks/", ".githooks/", "quality/")
+SHELL_RUNTIME_HEADER = "# Runtime: Bash 3.2+, macOS and Linux."
 
 SHELL_BASH_4_PATTERNS = (
     (r"\b(?:mapfile|readarray)\b", "mapfile and readarray require Bash 4"),

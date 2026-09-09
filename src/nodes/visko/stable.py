@@ -4,18 +4,17 @@ import asyncio
 from typing import ClassVar
 from ...media.output import owned_io
 from ...media.images import image_png
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
-from ...execution.visko import ViskoStableRequest
-from ....config.prompts import VISKO_STABLE_PROMPT
 from ..controls import live_control, generation_controls
-from ..host import execute_video, wait_for_execution, operation_fingerprint
+from ...execution.visko.request import ViskoStableRequest
+from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 
 
 class ViskoStableGenerate(io.ComfyNode):
     """Generate video and sound from a prompt and an optional starting image."""
 
     node_id: ClassVar[str] = "ReactorIncViskoStableGenerate"
-    display_name: ClassVar[str] = "Reactor Visko Stable: Generate video"
     request_type: ClassVar[type[ViskoStableRequest]] = ViskoStableRequest
 
     @classmethod
@@ -26,53 +25,40 @@ class ViskoStableGenerate(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id=cls.node_id,
-            display_name=cls.display_name,
-            category="Reactor/Generate",
-            inputs=[
-                *generation_controls(VISKO_STABLE_PROMPT),
-                io.String.Input(
-                    "audio_prompt",
-                    display_name="Sound prompt",
-                    placeholder="Sound prompt",
-                    default="",
-                    multiline=True,
-                    tooltip="Describe the sound briefly, or leave blank to use the picture.",
-                ),
-                io.String.Input(
-                    "resolution",
-                    display_name="Resolution",
-                    default="",
-                    tooltip="Leave blank for the model default, or use an offered resolution name.",
-                ),
-                io.Boolean.Input(
-                    "audio_enabled",
-                    display_name="Include sound",
-                    default=True,
-                    tooltip="Generate sound. When false, the model's audio track is silent.",
-                ),
-                io.Boolean.Input(
-                    "prompt_passthrough",
-                    display_name="Use prompt unchanged",
-                    default=False,
-                    tooltip="Use your exact prompt without Reactor preparing it first.",
-                ),
-                io.Image.Input(
-                    "image",
-                    display_name="Starting image",
-                    optional=True,
-                    tooltip="Optional single RGB starting image.",
-                ),
-                live_control(),
-            ],
-            outputs=[
-                io.Video.Output(display_name="video"),
-                io.Audio.Output(display_name="audio"),
-                io.String.Output(display_name="metadata"),
-            ],
-            description="Generate video with sound from text or a starting image.",
-            search_aliases=["Reactor", "Visko", "audio", "image to video"],
+        return translate_schema(
+            io.Schema(
+                node_id=cls.node_id,
+                inputs=[
+                    *generation_controls("visko"),
+                    io.String.Input(
+                        "audio_prompt",
+                        default="",
+                        multiline=True,
+                    ),
+                    io.String.Input(
+                        "resolution",
+                        default="",
+                    ),
+                    io.Boolean.Input(
+                        "audio_enabled",
+                        default=True,
+                    ),
+                    io.Boolean.Input(
+                        "prompt_passthrough",
+                        default=False,
+                    ),
+                    io.Image.Input(
+                        "image",
+                        optional=True,
+                    ),
+                    live_control(),
+                ],
+                outputs=[
+                    io.Video.Output(),
+                    io.Audio.Output(),
+                    io.String.Output(),
+                ],
+            )
         )
 
     @classmethod

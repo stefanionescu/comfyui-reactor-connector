@@ -4,31 +4,19 @@ import json
 import hashlib
 import threading
 from pathlib import Path
-from ..codes import ErrorCode
-from ..errors import ConnectorError
+from ..language import translate
+from .state import ExecutionConfiguration
 from .conflict import SettingsConflictError
+from ..errors import ErrorCode, ConnectorError
+from .execution import ConfigurationGeneration
 from .settings import Settings, parse_settings
-from ...config.settings import MAX_SETTINGS_FILE_BYTES
+from ...config.security import MAX_CREDENTIAL_CHARACTERS
 from ..serialization import Json, parse_json, mapping_value
 from ..storage import atomic_write, read_private, private_directory
-from .execution import ExecutionConfiguration, ConfigurationGeneration
+from ...config.settings import MAX_SETTINGS_FILE_BYTES, INTEGER_SETTINGS
 from ..credentials import Credential, read_credential, save_credential, credential_source
 
 EDITABLE_SETTINGS = frozenset(Settings().to_json())
-
-
-def read_settings(directory: Path) -> Settings:
-    """Read settings without creating files or directories."""
-    path = directory / "settings.json"
-    if not path.exists():
-        return Settings()
-    return parse_settings(mapping_value(parse_json(read_private(path, max_bytes=MAX_SETTINGS_FILE_BYTES).decode())))
-
-
-def settings_revision(settings: Settings) -> str:
-    """Identify non-secret settings so stale tabs cannot overwrite newer changes."""
-    encoded = json.dumps(settings.to_json(), sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(encoded).hexdigest()
 
 
 class ConfigurationStore:
@@ -53,7 +41,7 @@ class ConfigurationStore:
                 self._generation.invalidate()
                 raise ConnectorError(
                     ErrorCode.CONFIGURATION,
-                    "Cannot load Reactor execution settings. Check the limits and private key.",
+                    translate("main", "errors.settingsUnreadable"),
                 ) from None
             return self._generation.snapshot(settings, credential)
 
@@ -69,6 +57,15 @@ class ConfigurationStore:
         editable = list[Json](sorted(EDITABLE_SETTINGS))
         return {
             "settings": settings.to_json(),
+            "integer_settings": {
+                name: {
+                    "label": translate("main", "settings.limit." + name),
+                    "minimum": definition["minimum"],
+                    "maximum": definition["maximum"],
+                }
+                for name, definition in INTEGER_SETTINGS.items()
+            },
+            "credential_limit": MAX_CREDENTIAL_CHARACTERS,
             "revision": settings_revision(settings),
             "credential": {"source": source, "configured": source != "missing", "verified": False},
             "editable_settings": editable,
@@ -78,7 +75,7 @@ class ConfigurationStore:
     def update_settings(self, changes: dict[str, Json], revision: str) -> dict[str, Json]:
         """Apply a validated patch only to the version the editor actually read."""
         if changes.keys() - EDITABLE_SETTINGS:
-            raise ConnectorError(ErrorCode.CONFIGURATION, "This setting cannot be changed here.")
+            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.settingReadOnly"))
         with self.lock:
             current = read_settings(self.directory)
             if revision != settings_revision(current):
@@ -90,7 +87,7 @@ class ConfigurationStore:
             )
             return self._status()
 
-    def set_credential(self, value: str) -> dict[str, Json]:
+    def save_credential(self, value: str) -> dict[str, Json]:
         """Save a validated secret and return only the effective source."""
         credential = Credential(value)
         with self.lock:
@@ -104,10 +101,24 @@ class ConfigurationStore:
         with self.lock:
             path = self.directory / "credential"
             if path.is_symlink():
-                raise ConnectorError(ErrorCode.CONFIGURATION, "A saved key cannot be a symbolic link.")
+                raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.savedKeyLink"))
             if path.exists():
                 private_directory(self.directory)
                 path.unlink()
             if credential_source(self.directory) != "environment":
                 self._generation.invalidate()
             return self._status()
+
+
+def read_settings(directory: Path) -> Settings:
+    """Read settings without creating files or directories."""
+    path = directory / "settings.json"
+    if not path.exists():
+        return Settings()
+    return parse_settings(mapping_value(parse_json(read_private(path, max_bytes=MAX_SETTINGS_FILE_BYTES).decode())))
+
+
+def settings_revision(settings: Settings) -> str:
+    """Identify non-secret settings so stale tabs cannot overwrite newer changes."""
+    encoded = json.dumps(settings.to_json(), sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()

@@ -1,5 +1,5 @@
-const BLANK_LINE_PATTERN = /\n\s*\n/u;
-const WHITESPACE_ONLY_PATTERN = /^\s*$/u;
+const blankLinePattern = /\n\s*\n/u;
+const whitespaceOnlyPattern = /^\s*$/u;
 
 /**
  * Returns true if the node is a bare `require('...')` call with no assignment.
@@ -90,13 +90,13 @@ const getLeadingSegmentStart = (sourceCode, node) => {
   for (let index = commentsBefore.length - 1; index >= 0; index -= 1) {
     const comment = commentsBefore[index];
     const betweenCommentNode = fullText.slice(comment.range[1], start);
-    if (!WHITESPACE_ONLY_PATTERN.test(betweenCommentNode)) {
+    if (!whitespaceOnlyPattern.test(betweenCommentNode)) {
       break;
     }
 
     const previousLineBreak = fullText.lastIndexOf('\n', comment.range[0] - 1);
     const linePrefix = fullText.slice(previousLineBreak + 1, comment.range[0]);
-    if (!WHITESPACE_ONLY_PATTERN.test(linePrefix)) {
+    if (!whitespaceOnlyPattern.test(linePrefix)) {
       break;
     }
 
@@ -118,7 +118,7 @@ const getImportEndComments = (sourceCode, node) => {
 
   for (const comment of sourceCode.getCommentsAfter(node)) {
     const between = fullText.slice(end, comment.range[0]);
-    if (!WHITESPACE_ONLY_PATTERN.test(between) || comment.loc.start.line !== node.loc.end.line) {
+    if (!whitespaceOnlyPattern.test(between) || comment.loc.start.line !== node.loc.end.line) {
       break;
     }
     end = comment.range[1];
@@ -128,7 +128,7 @@ const getImportEndComments = (sourceCode, node) => {
 };
 
 /** Collapses whitespace for stable import statement sort comparison. */
-const IMPORT_SORT_WHITESPACE_PATTERN = /\s+/gu;
+const importSortWhitespacePattern = /\s+/gu;
 
 /**
  * Builds entry objects for each import in a contiguous import-like block.
@@ -145,7 +145,7 @@ const buildEntries = (importNodes, segmentStarts, blockEnd, sourceCode) => {
     const end = index < importNodes.length - 1 ? segmentStarts[index + 1] : blockEnd;
     const text = sourceCode.getText().slice(start, end).trim();
     const importText = sourceCode.getText(importNode);
-    const sortText = importText.replaceAll(IMPORT_SORT_WHITESPACE_PATTERN, ' ').trim();
+    const sortText = importText.replaceAll(importSortWhitespacePattern, ' ').trim();
 
     entries.push({
       importNode,
@@ -330,7 +330,7 @@ export const importLayout = {
             .slice(entries[0].start, entries.at(-1).end)
             .trim();
           const hasBlankLineMismatch =
-            BLANK_LINE_PATTERN.test(currentText) !== BLANK_LINE_PATTERN.test(replacementText);
+            blankLinePattern.test(currentText) !== blankLinePattern.test(replacementText);
 
           if (currentText === replacementText && !hasBlankLineMismatch) {
             continue;

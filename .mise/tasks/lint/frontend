@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check TypeScript, styles, naming, unused code, imports, and duplication."
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
-bun --bun node_modules/eslint/bin/eslint.js --config quality/web/eslint/index.js web scripts/frontend.mjs
-bun quality/repository/naming/index.js --scope frontend
-bun --bun node_modules/stylelint/bin/stylelint.mjs web/styles.css
+bun --bun node_modules/eslint/bin/eslint.js --config quality/web/eslint/index.js config web scripts/frontend.mjs
+bun quality/repository/naming/check.js --scope frontend
+bun --bun node_modules/stylelint/bin/stylelint.mjs 'web/**/*.css'
 bun --bun node_modules/knip/bin/knip.js --config quality/web/knip/knip.json
 bun --bun node_modules/madge/bin/cli.js --circular --extensions ts --webpack-config quality/web/madge.config.cjs --exclude '^dist/' web
-bun --bun node_modules/jscpd/bin/jscpd --config quality/web/jscpd/js.json web scripts/frontend.mjs
-bun --bun node_modules/jscpd/bin/jscpd --config quality/web/jscpd/css.json web/styles.css
+bun --bun node_modules/jscpd/bin/jscpd --config quality/web/jscpd/js.json config web scripts/frontend.mjs
+bun --bun node_modules/jscpd/bin/jscpd --config quality/web/jscpd/css.json web

@@ -2,6 +2,8 @@
 
 from .example import Example
 from .definitions import EXAMPLES
+from .serialize import output_types
+from ...src.serialization import Json
 
 GUIDES = {
     "fast-h3": ("Fast H3", "fast-h3"),
@@ -17,43 +19,55 @@ GUIDES = {
 }
 
 
-def input_summary(example: Example) -> str:
+def input_summary(example: Example, schema: Json) -> str:
     """Describe the inputs and controls needed by one workflow."""
     choices = (
-        (example.webcam, "Webcam and live edit prompt"),
+        ((example.mode == "webcam"), "Webcam and live edit prompt"),
         (
             example.clip_count > 1,
-            "Starting image and continued clips" if example.image else "Prompts for continued clips",
+            "Starting image and continued clips" if ("image" in example.sources) else "Prompts for continued clips",
         ),
         (
-            example.panel,
+            (example.mode in {"live", "webcam"}),
             "Source video and live controls"
-            if example.video
+            if ("source" in example.sources)
             else "Image and live prompt"
-            if example.image
+            if ("image" in example.sources)
             else "Live prompt",
         ),
         (example.model == "ltx2", "Portrait and speech script"),
-        (example.storyboard, "Opening prompt and two scheduled shots"),
-        (example.prompt_sequence, "Starting image and scheduled prompts" if example.image else "Scheduled prompts"),
-        (example.video, "Video, edit prompt, and reference image" if example.reference else "Video and edit prompt"),
-        (example.image and example.ending_image, "First image, final image, and prompt"),
-        (example.ending_image, "Final image and prompt"),
-        (example.image, "Image and prompt; live keys or buttons" if example.interactive else "Image and prompt"),
+        ((example.plan == "shots"), "Opening prompt and two scheduled shots"),
+        (
+            (example.plan == "prompts"),
+            "Starting image and scheduled prompts" if ("image" in example.sources) else "Scheduled prompts",
+        ),
+        (
+            ("source" in example.sources),
+            "Video, edit prompt, and reference image"
+            if ("reference_image" in example.sources)
+            else "Video and edit prompt",
+        ),
+        (("image" in example.sources) and ("ending_image" in example.sources), "First image, final image, and prompt"),
+        (("ending_image" in example.sources), "Final image and prompt"),
+        (
+            ("image" in example.sources),
+            "Image and prompt; live keys or buttons" if (example.mode != "record") else "Image and prompt",
+        ),
     )
     return next(
-        (text for applies, text in choices if applies), "Scene and sound prompt" if example.audio else "Scene prompt"
+        (text for applies, text in choices if applies),
+        "Scene and sound prompt" if ("AUDIO" in output_types(schema)) else "Scene prompt",
     )
 
 
-def workflow_rows() -> list[str]:
+def workflow_rows(schemas: dict[str, Json]) -> list[str]:
     """List each graph with the node guide for its operation."""
     lines: list[str] = []
     for example in sorted(EXAMPLES, key=lambda item: item.slug):
         name, _ = GUIDES[example.model]
         lines.append(
             f"| {name} | [{example.title.split(': ', 1)[-1]}]({example.path}) | "
-            f"{input_summary(example)} | [Node guide](../web/docs/{example.node_id}.md) |"
+            f"{input_summary(example, schemas[example.node_id])} | [Node guide](../web/docs/{example.node_id}.md) |"
         )
     return lines
 
@@ -94,7 +108,7 @@ USAGE_NOTES = [
 ]
 
 
-def workflow_index() -> str:
+def workflow_index(schemas: dict[str, Json]) -> str:
     """Render the workflow index with setup, saving, limits, and sample inputs."""
     lines = [
         "# Reactor Workflows",
@@ -134,7 +148,7 @@ def workflow_index() -> str:
         "| Model | Workflow JSON | Input | Guide |",
         "| --- | --- | --- | --- |",
     ]
-    lines.extend(workflow_rows())
+    lines.extend(workflow_rows(schemas))
     lines.extend(USAGE_NOTES)
     return "\n".join(lines) + "\n" + SAMPLE_INPUTS
 

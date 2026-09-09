@@ -2,9 +2,10 @@
 
 import asyncio
 from ...media.images import image_png
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
-from ...execution.helios import HeliosRequest
-from ..host import execute_video, operation_fingerprint
+from ...execution.helios.request import HeliosRequest
+from ...comfy.execution import execute_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
 
@@ -19,18 +20,18 @@ class HeliosAnimate(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncHeliosAnimate",
-            display_name="Reactor Helios: Animate an image",
-            category="Reactor/Generate",
-            inputs=[
-                io.Image.Input("image", display_name="Starting image", tooltip="Connect one RGB image."),
-                *generation_controls(),
-                live_control(),
-            ],
-            outputs=video_outputs(),
-            search_aliases=["Reactor", "Helios", "image to video"],
-            description="Animate one image through Reactor. Prompt and image are applied together.",
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncHeliosAnimate",
+                inputs=[
+                    io.Image.Input(
+                        "image",
+                    ),
+                    *generation_controls(),
+                    live_control(),
+                ],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

@@ -5,10 +5,10 @@ import math
 import time
 import aiohttp
 from http import HTTPStatus
-from ..codes import ErrorCode
-from ..errors import ConnectorError
+from ..language import translate
 from ..credentials import Credential
 from dataclasses import field, dataclass
+from ..errors import ErrorCode, ConnectorError
 from ..serialization import parse_json, mapping_value
 from ...config.security import (
     JWT_PATTERN_TEXT,
@@ -22,14 +22,6 @@ from ...config.security import (
 
 MODEL_NAME = re.compile(MODEL_NAME_PATTERN_TEXT)
 TOKEN_TEXT = re.compile(JWT_PATTERN_TEXT)
-
-
-def authentication_error() -> ConnectorError:
-    """Create the public authorization error without including provider credentials."""
-    return ConnectorError(
-        ErrorCode.AUTHENTICATION,
-        "Reactor could not authorize this model. Check your key and model access before retrying.",
-    )
 
 
 @dataclass(frozen=True, slots=True, repr=False)
@@ -46,6 +38,14 @@ class SessionToken:
     def __str__(self) -> str:
         """Hide the token from formatted text."""
         return "<redacted>"
+
+
+def authentication_error() -> ConnectorError:
+    """Create the public authorization error without including provider credentials."""
+    return ConnectorError(
+        ErrorCode.AUTHENTICATION,
+        translate("main", "errors.modelAuthorization"),
+    )
 
 
 async def mint_session_token(model: str, credential: Credential, session_seconds: int) -> SessionToken:

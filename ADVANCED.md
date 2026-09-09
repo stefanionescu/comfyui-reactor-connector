@@ -89,16 +89,19 @@ Open **ComfyUI menu → Extensions → Reactor → Reactor models** to search th
 included list or your last saved list. Opening the dialog reads local information.
 Each entry shows its last checked rate, any available guide, and node support.
 
+Installed models appear before the first refresh. Refresh the list to load public
+prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.
+
 **Refresh models** reads Reactor's public prices and model guides. It uses no key,
 starts no generation, spends no credits, and installs no code. Entries come from
 published prices or guides; your account determines which models you can run.
 HappyOyster is excluded, including when an older list is restored.
 
-| Status                                  | Meaning                                                                                                            |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Nodes available                         | This connector includes nodes for the model.                                                                       |
-| No connector node available             | The model cannot run through this connector.                                                                       |
-| Not observed in the latest source check | The earlier entry was retained. Its old rate is not a current quote. Absence does not prove the model was removed. |
+| Status                                              | Meaning                                                                                                            |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Nodes available                                     | This connector includes nodes for the model.                                                                       |
+| No connector node available                         | The model cannot run through this connector.                                                                       |
+| This rate was not found in the latest source check. | The earlier entry was retained. Its old rate is not a current quote. Absence does not prove the model was removed. |
 
 Refreshing does not add nodes, change their connections, or change active
 workflows. New models need support in the connector before they can run.
@@ -310,14 +313,14 @@ Deleting a saved key does not revoke it in Reactor.
 
 ## Development commands
 
-Python runtime code lives in `src/`. Static defaults, limits, model metadata, and
-patterns live in root `config/`. Settings validation and private storage live in
-`src/settings/`. Development-check configuration stays in `quality/config/`.
-The interface and node help live in `web/`.
-
 Run `mise run setup` to install the pinned tools and dependencies and enable local
 Git hooks. Bun manages frontend dependencies; uv manages Python dependencies.
 Development tools use the repository environment, separate from ComfyUI.
+
+Development scripts run as modules of the checkout package through mise.
+Quality tools run from the repository root. ComfyUI starts media workers through
+the root launcher in isolated Python processes; those workers use only the media
+modules and static configuration.
 
 Python checks read types from your actual ComfyUI installation. Set its source
 directory in `.mise.local.toml`, which Git ignores:
@@ -343,9 +346,8 @@ are local settings; they do not enter the connector package.
 | `mise run workflows:build` | Build the example graphs and workflow index.                                                      |
 | `mise run docs:build`      | Build native node help and local HTML guides.                                                     |
 | `mise run deps:export`     | Generate runtime requirements from project metadata.                                              |
-| `mise run models:check`    | Check public prices and guides without changing the bundled list.                                 |
-| `mise run models:refresh`  | Update the bundled public model list.                                                             |
-| `mise run models:validate` | Validate the bundled list offline.                                                                |
+| `mise run models:check`    | Read public prices and guides without saving them.                                                |
+| `mise run models:validate` | Check model associations against registered node schemas.                                         |
 | `mise run audit:python`    | Check Python dependencies against advisory services.                                              |
 | `mise run audit:frontend`  | Check frontend dependencies against advisory services.                                            |
 | `mise run release:package` | Check and build a ComfyUI archive without publishing it.                                          |

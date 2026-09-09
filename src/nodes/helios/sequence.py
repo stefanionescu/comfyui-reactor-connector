@@ -2,11 +2,12 @@
 
 import asyncio
 from ...media.images import image_png
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
-from ...execution.helios import HeliosRequest
-from ...execution.prompts import parse_sequence
-from ..host import execute_video, operation_fingerprint
+from ...execution.helios.request import HeliosRequest
+from ...execution.helios.prompts import parse_sequence
 from ..controls import video_outputs, generation_controls
+from ...comfy.execution import execute_video, operation_fingerprint
 
 
 class HeliosSequence(io.ComfyNode):
@@ -15,30 +16,24 @@ class HeliosSequence(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncHeliosSequence",
-            display_name="Reactor Helios: Generate a prompt sequence",
-            category="Reactor/Generate",
-            inputs=[
-                *generation_controls(),
-                io.String.Input(
-                    "sequence",
-                    display_name="Prompt sequence (JSON)",
-                    default="[]",
-                    multiline=False,
-                    advanced=True,
-                    tooltip="Connect Reactor Helios: Add a prompt. [] keeps the opening prompt.",
-                ),
-                io.Image.Input(
-                    "image",
-                    display_name="Starting image",
-                    optional=True,
-                    tooltip="Optionally connect one starting RGB image.",
-                ),
-            ],
-            outputs=video_outputs(),
-            description="Generate a Helios video with later prompts scheduled by chunk number.",
-            search_aliases=["Reactor", "Helios", "schedule", "prompt sequence"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncHeliosSequence",
+                inputs=[
+                    *generation_controls(),
+                    io.String.Input(
+                        "sequence",
+                        default="[]",
+                        multiline=False,
+                        advanced=True,
+                    ),
+                    io.Image.Input(
+                        "image",
+                        optional=True,
+                    ),
+                ],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

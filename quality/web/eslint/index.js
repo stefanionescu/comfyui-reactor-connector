@@ -36,7 +36,7 @@ const ignores = [
 ];
 
 const nodeScriptFiles = ['scripts/**/*.mjs'];
-const browserFiles = ['web/**/*.ts'];
+const browserFiles = ['config/**/*.ts', 'web/**/*.ts'];
 const qualityModuleFiles = ['quality/**/*.mjs', 'quality/**/*.js'];
 const qualityCommonjsFiles = ['quality/**/*.cjs'];
 
@@ -346,6 +346,10 @@ export default [
     plugins: { ...plugins, '@typescript-eslint': tsPlugin },
     languageOptions: {
       parser: tsParser,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: process.cwd(),
+      },
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: ESLINT_BROWSER_GLOBALS,
@@ -353,7 +357,9 @@ export default [
     rules: {
       ...sourceRules,
       ...tsPlugin.configs['eslint-recommended'].overrides[0].rules,
-      ...tsPlugin.configs.recommended.rules,
+      ...tsPlugin.configs['strict-type-checked'].rules,
+      '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': eslintPracticalUnusedVarsRule,
       'local/import-path-style': ['error', { style: 'ts' }],
@@ -372,7 +378,7 @@ export default [
   qualityToolingOverrides,
   ...boundaryOverrides,
   {
-    files: ['web/extension.ts', 'web/help/command.ts'],
+    files: ['web/extension.ts', 'web/help/command.ts', 'web/language.ts'],
     rules: {
       // ComfyUI serves these modules outside the connector's bundled directory.
       'local/import-path-style': [

@@ -9,14 +9,14 @@ import {
   PACKAGE_JSON_RANGE_PATTERN,
 } from '#config/package-json/manifest.js';
 
-const REPO_ROOT = process.cwd();
-const DEFAULT_FILES = PACKAGE_JSON_DEFAULT_FILES.map((relativeFile) =>
-  path.join(REPO_ROOT, relativeFile),
+const repoRoot = process.cwd();
+const defaultFiles = PACKAGE_JSON_DEFAULT_FILES.map((relativeFile) =>
+  path.join(repoRoot, relativeFile),
 );
 
 const fix = process.argv.includes(PACKAGE_JSON_FIX_FLAG);
 const explicitFiles = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-const files = explicitFiles.length ? explicitFiles.map((f) => path.resolve(f)) : DEFAULT_FILES;
+const files = explicitFiles.length ? explicitFiles.map((f) => path.resolve(f)) : defaultFiles;
 
 /**
  * Checks that dependency versions do not use range prefixes (^, ~, >=, etc.).
@@ -36,7 +36,7 @@ const checkExactVersions = (lines, file) => {
       if (PACKAGE_JSON_RANGE_PATTERN.test(version)) {
         const lineNum = lines.findIndex((l) => l.includes(`"${pkg}"`));
         errors.push({
-          file: path.relative(REPO_ROOT, file),
+          file: path.relative(repoRoot, file),
           line: lineNum + 1,
           message: `${PACKAGE_JSON_LINT_MESSAGES.rangePrefixIntro} ${key}: "${pkg}": "${version}" ${PACKAGE_JSON_LINT_MESSAGES.rangePrefixReplacement} "${version.replace(PACKAGE_JSON_RANGE_PATTERN, '')}"`,
         });
@@ -79,7 +79,7 @@ for (const file of files) {
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       console.error(
-        `${PACKAGE_JSON_LINT_MESSAGES.fileNotFoundPrefix} ${path.relative(REPO_ROOT, file)}`,
+        `${PACKAGE_JSON_LINT_MESSAGES.fileNotFoundPrefix} ${path.relative(repoRoot, file)}`,
       );
       process.exitCode = 1;
       continue;
@@ -92,7 +92,7 @@ for (const file of files) {
   if (fix) {
     lines = fixExactVersions(lines);
     fs.writeFileSync(file, lines.join('\n'), 'utf8');
-    console.log(`${PACKAGE_JSON_LINT_MESSAGES.fixedPrefix} ${path.relative(REPO_ROOT, file)}`);
+    console.log(`${PACKAGE_JSON_LINT_MESSAGES.fixedPrefix} ${path.relative(repoRoot, file)}`);
   } else {
     const versionErrors = checkExactVersions(lines, file);
     allErrors.push(...versionErrors);

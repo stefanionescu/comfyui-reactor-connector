@@ -1,4 +1,4 @@
-"""Static media video values used by the connector."""
+"""Video input dimensions, formats, and frame limits."""
 
 MAX_FRAME_RATE = 120
 
@@ -13,3 +13,13 @@ MIN_SOURCE_FRAMES = 33
 MAX_COMPONENT_BITS = 8
 
 MAX_START_SECONDS = 3600
+
+__all__ = [
+    "COMPONENT_BITS",
+    "MAX_COMPONENT_BITS",
+    "MAX_FRAME_DIMENSION",
+    "MAX_FRAME_RATE",
+    "MAX_START_SECONDS",
+    "MIN_FRAME_DIMENSION",
+    "MIN_SOURCE_FRAMES",
+]

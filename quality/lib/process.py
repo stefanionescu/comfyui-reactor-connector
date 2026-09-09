@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,13 +32,14 @@ def executable(name: str) -> str:
     return str(Path(found).absolute())
 
 
-def run_command(
+def run_command(  # noqa: PLR0913 -- reason: Process options cover capture, failure, directory, timeout, and environment.
     arguments: Sequence[str],
     *,
     is_output_captured: bool = False,
     is_failure_raised: bool = False,
     working_directory: Path | None = None,
     timeout_seconds: float | None = None,
+    environment: Mapping[str, str] | None = None,
 ) -> ProcessResult:
     """Run a fixed argument list without a shell."""
     if not arguments:
@@ -52,22 +53,25 @@ def run_command(
             is_failure_raised=is_failure_raised,
             working_directory=working_directory,
             timeout_seconds=timeout_seconds,
+            environment=environment,
         ),
     )
 
 
-async def _run_subprocess(
+async def _run_subprocess(  # noqa: PLR0913 -- reason: Forward the public subprocess options without an extra container.
     command: list[str],
     *,
     is_output_captured: bool,
     is_failure_raised: bool,
     working_directory: Path | None,
     timeout_seconds: float | None,
+    environment: Mapping[str, str] | None,
 ) -> ProcessResult:
     """Run one resolved executable and collect its result."""
     process = await asyncio.create_subprocess_exec(
         *command,
         cwd=working_directory,
+        env=environment,
         stdout=asyncio.subprocess.PIPE if is_output_captured else None,
         stderr=asyncio.subprocess.PIPE if is_output_captured else None,
     )

@@ -1,3 +1,4 @@
+import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 
 let current: HTMLDialogElement | undefined;
@@ -14,15 +15,15 @@ export function openHelpDialog(nodeId: string): void {
   current = dialog;
   dialog.className = 'reactor-settings reactor-node-help';
   dialog.setAttribute('aria-labelledby', 'reactor-node-help-title');
-  const heading = element('h2', 'Node help');
+  const heading = element('h2', translate('help.title'));
   heading.id = 'reactor-node-help-title';
-  const close = button('Close');
-  close.setAttribute('aria-label', 'Close node help');
+  const close = button(translate('close'));
+  close.setAttribute('aria-label', translate('help.close'));
   close.addEventListener('click', () => dialog.close());
   const header = element('header');
   header.append(heading, close);
   const frame = element('iframe');
-  frame.title = 'Reactor node guide';
+  frame.title = translate('help.guide');
   frame.sandbox.add(
     'allow-same-origin',
     'allow-popups',
@@ -64,6 +65,7 @@ function prepareGuide(
     if (new URL(link.href).origin !== location.origin) {
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
+      link.append(translate('help.newTab'));
     }
   }
   for (const block of guide.querySelectorAll('pre')) {

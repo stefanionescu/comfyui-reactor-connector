@@ -1,7 +1,7 @@
-const DIRECTIVE_COMMENT_PATTERN =
+const directiveCommentPattern =
   /^(?:eslint(?:\s|$|-)|global\s|globals\s|exported\s|jshint\s|jslint\s|istanbul\s|c8\s|@?ts-(?:ignore|expect-error|nocheck|check)\b)/u;
-const BLANK_LINE_PATTERN = /\n\s*\n/u;
-const WHITESPACE_ONLY_PATTERN = /^\s*$/u;
+const blankLinePattern = /\n\s*\n/u;
+const whitespaceOnlyPattern = /^\s*$/u;
 
 /**
  * Returns true if the node is a bare `require('...')` call with no assignment.
@@ -108,7 +108,7 @@ const isTrailingCommentNode = (sourceText, comment, node) => {
     return false;
   }
 
-  return WHITESPACE_ONLY_PATTERN.test(sourceText.slice(node.range[1], comment.range[0]));
+  return whitespaceOnlyPattern.test(sourceText.slice(node.range[1], comment.range[0]));
 };
 
 /**
@@ -126,7 +126,7 @@ const isLeadingCommentNode = (sourceText, comment, node, { allowSingleBlankLine 
   }
 
   const between = sourceText.slice(comment.range[1], node.range[0]);
-  if (!WHITESPACE_ONLY_PATTERN.test(between)) {
+  if (!whitespaceOnlyPattern.test(between)) {
     return false;
   }
 
@@ -139,12 +139,12 @@ const isLeadingCommentNode = (sourceText, comment, node, { allowSingleBlankLine 
     return false;
   }
 
-  if (!allowSingleBlankLine && BLANK_LINE_PATTERN.test(between)) {
+  if (!allowSingleBlankLine && blankLinePattern.test(between)) {
     return false;
   }
 
   const lineStart = sourceText.lastIndexOf('\n', comment.range[0] - 1) + 1;
-  return WHITESPACE_ONLY_PATTERN.test(sourceText.slice(lineStart, comment.range[0]));
+  return whitespaceOnlyPattern.test(sourceText.slice(lineStart, comment.range[0]));
 };
 
 /**
@@ -222,7 +222,7 @@ export const headerCommentsBeforeImports = {
             return false;
           }
           const normalizedComment = comment.value.replace(/^\s*\*?/u, '').trim();
-          if (DIRECTIVE_COMMENT_PATTERN.test(normalizedComment)) {
+          if (directiveCommentPattern.test(normalizedComment)) {
             return false;
           }
 

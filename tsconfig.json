@@ -13,9 +13,12 @@
         "noEmit": true,
         "types": [],
         "paths": {
-            "#web/*": ["./web/*"]
-        }
+            "#web/*": ["./web/*"],
+            "#config/*": ["./config/*"],
+            "#locales/*": ["./locales/*"]
+        },
+        "resolveJsonModule": true
     },
-    "include": ["web/**/*.ts"],
+    "include": ["web/**/*.ts", "config/**/*.ts"],
     "exclude": ["web/dist"]
 }

@@ -5,10 +5,10 @@ import { GENERATED_SOURCE_FILES } from '#config/files.js';
 import { buildTermEntries } from '#shared/naming/identifier-parts.js';
 import { SCOPE_PREFIXES, VALID_SCOPES, VALID_SCOPE_USAGE } from '#config/repository.js';
 
-const REPO_ROOT = process.cwd();
-const POLICY_PATH = path.join(REPO_ROOT, NAMING_POLICY_PATH);
-const USAGE = `Usage: node quality/repository/naming/index.js [--scope ${VALID_SCOPE_USAGE}]`;
-const GENERATED_FILES = new Set(GENERATED_SOURCE_FILES);
+const repoRoot = process.cwd();
+const policyPath = path.join(repoRoot, NAMING_POLICY_PATH);
+const usage = `Usage: node quality/repository/naming/check.js [--scope ${VALID_SCOPE_USAGE}]`;
+const generatedFiles = new Set(GENERATED_SOURCE_FILES);
 
 function toPosix(value) {
   if (typeof value !== 'string') {
@@ -47,7 +47,9 @@ function pathHasScope(relativePath, scope) {
     return true;
   }
 
-  return parts.some((part) => toPosix(relativePath).startsWith(SCOPE_PREFIXES[part]));
+  return parts.some((part) =>
+    SCOPE_PREFIXES[part].some((prefix) => toPosix(relativePath).startsWith(prefix)),
+  );
 }
 
 function assertPlainRecord(value, key) {
@@ -170,7 +172,7 @@ function buildLocalTerms(localTerms) {
  */
 function readPolicy() {
   const parsed = assertPlainRecord(
-    JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8')),
+    JSON.parse(fs.readFileSync(policyPath, 'utf8')),
     'naming policy',
   );
   const global = assertPlainRecord(parsed.global, 'global');
@@ -275,7 +277,7 @@ function isPathExcluded(relativePath, policy) {
   const normalized = `/${toPosix(relativePath)}`;
   const basename = path.basename(relativePath);
 
-  if (GENERATED_FILES.has(toPosix(relativePath))) {
+  if (generatedFiles.has(toPosix(relativePath))) {
     return true;
   }
 
@@ -286,8 +288,8 @@ function isPathExcluded(relativePath, policy) {
 }
 
 export {
-  REPO_ROOT,
-  USAGE,
+  repoRoot,
+  usage,
   isPathExcluded,
   nameRulesForEntry,
   pathHasScope,

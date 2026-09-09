@@ -25,7 +25,7 @@
                 "reason": "Multiple model adapters send commands without consuming the reply while retaining the shared error checks."
             },
             {
-                "path": "src/execution/prompts.py",
+                "path": "src/execution/helios/prompts.py",
                 "names": ["ScheduledPrompt.to_dict"],
                 "reason": "Owns the saved Helios command payload independently of the dataclass representation."
             },
@@ -116,7 +116,7 @@
                 "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
             },
             {
-                "path": "src/nodes/ltx.py",
+                "path": "src/nodes/ltx/speak.py",
                 "names": ["LtxSpeak.fingerprint_inputs"],
                 "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
             },
@@ -144,6 +144,11 @@
                 "path": "src/nodes/x2/webcam.py",
                 "names": ["X2Webcam.fingerprint_inputs"],
                 "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
+            },
+            {
+                "path": "src/extension.py",
+                "names": ["ReactorExtension.get_node_list"],
+                "reason": "ComfyUI calls this required extension hook to obtain the registered node classes."
             }
         ]
     },

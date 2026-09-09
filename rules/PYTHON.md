@@ -175,10 +175,11 @@ Current local tooling constraints include:
 - Runtime modules must not use lazy singleton patterns.
 - Runtime modules must not create import cycles.
 - Packages with `__init__.py` and exactly one non-init module should be flattened
-  to a single module.
+  to a single module, except for the explicit model-folder exceptions in the
+  repository folder policy.
 - Directories should not contain multiple `.py` files with the same
   underscore-delimited prefix.
-- `__all__` must appear at the bottom of each module.
+- When present, `__all__` must appear at the bottom of the module.
 - Python logic must live in Python modules. Shell scripts must call it with
   `python -m`; do not embed inline Python in shell scripts.
 
@@ -314,8 +315,8 @@ Rules:
   long computations at import time.
 - Do not mutate global runtime state at import time except for declared
   constants and deliberate local configuration.
-- Keep `__all__` explicit for modules with a public API.
-- Use `__all__ = []` when a module intentionally exports no public names.
+- Use `__all__` for deliberate public re-exports, configuration exports, and the
+  root host entrypoint. Internal runtime modules do not need export inventories.
 
 Good:
 
@@ -453,7 +454,8 @@ Rules:
 - Do not use double-leading underscores unless avoiding subclass collisions in a
   class designed for inheritance.
 - Do not invent double-leading and double-trailing dunder names.
-- Use `__all__` for deliberate public re-exports and the root host entrypoint.
+- Use `__all__` for deliberate public re-exports, configuration exports, and the
+  root host entrypoint.
   Internal runtime modules do not need duplicate export inventories.
 - Imported names are implementation details unless explicitly exported through
   `__all__` or documented as module API.
@@ -2797,93 +2799,31 @@ Rules:
 
 Rules:
 
-- Keep importable connector runtime code under `src/`.
-- Keep the root ComfyUI entrypoint and the existing `scripts` and `quality` tooling
-  packages outside it. Runtime code must not import these development packages.
-- Treat the repository root as project configuration and tooling space, not as
-  the import package root.
-- Run Python entrypoints through the configured environment, editable install,
-  project scripts, or `python -m` with the intended import path.
-- Do not mutate `sys.path` in package code to make imports work.
-- Do not rely on the current working directory being first on Python's import
-  path.
-- Do not make root-level modules importable only in development. Code that works
-  only because the process starts from the repository root is not packaged
-  correctly.
-- Keep helper scripts that are not meant to be imported outside the package
-  import path.
+- Keep connector runtime behavior under `src/` and runtime settings under
+  `src/settings/`.
+- Keep static defaults, limits, patterns, and configurable values in root
+  `config/`, grouped by purpose. Include that package in the distribution.
+- Keep development-check configuration in `quality/config/`.
+- Keep the root ComfyUI entrypoint and the `scripts` and `quality` tooling
+  packages outside `src/`. Runtime code must not import development packages.
+- ComfyUI imports the repository as a custom-node package. Use explicit relative
+  imports between its runtime and root configuration packages.
+- Run Python entrypoints through the configured environment or `python -m`
+  with the intended package context.
+- Do not mutate `sys.path` or depend on the current working directory to make
+  imports work.
+- Isolated media workers use the selected host interpreter and an explicit
+  import path supplied by their launcher.
 
-Good layout:
+Import-linter keeps runtime code independent of development tools, discovery
+independent of execution and media, and settings independent of execution and
+ComfyUI integration. The exact contracts live in `pyproject.toml`.
 
-```text
-.
-  pyproject.toml
-  README.md
-  src/
-    config/
-      __init__.py
-      runtime/
-        __init__.py
-        engine.py
-    runtime/
-      __init__.py
-      settings.py
-```
-
-Bad layout:
-
-```text
-.
-  pyproject.toml
-  config/
-    __init__.py
-  runtime/
-    __init__.py
-```
-
-Bad import-path patch:
-
-```python
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parents[1]))
-```
-
-Current import-linter contracts keep runtime code independent of development
-tools, discovery independent of execution and media, and configuration independent
-of nodes and execution. The exact contracts live in `pyproject.toml`.
-
-Good package shape:
-
-```text
-src/
-  config/
-    __init__.py
-    runtime/
-      __init__.py
-      engine.py
-  runtime/
-    __init__.py
-    settings.py
-    server_start.py
-```
-
-Bad single-file package:
-
-```text
-src/
-  metrics/
-    __init__.py
-    accuracy.py
-```
-
-Use a module instead:
-
-```text
-src/
-  metrics.py
-```
+Keep cohesive modules together. A folder with only one implementation file is
+allowed only where the repository folder policy names an explicit exception.
+The model folders for LingBot, LTX, Visko, and X2 execution, and the LTX node,
+use those exceptions to keep model ownership consistent. Do not add empty files
+or split cohesive code merely to satisfy the folder count.
 
 ## Power features
 

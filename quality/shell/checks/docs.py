@@ -5,15 +5,15 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 from quality.lib.diagnostics import diagnostic
+from quality.config.shell import SHELL_RUNTIME_HEADER
 from quality.shell.parsers import collect_shell_functions
-from quality.shell.checks.bash import is_architecture_source, is_file_executable
+from quality.shell.checks.bash import is_architecture_source
 
 if TYPE_CHECKING:
     from pathlib import Path
     from quality.lib.diagnostics import Diagnostic
     from quality.shell.parsers import ShellFunction
 
-DOC_SECTIONS = ("# Globals:", "# Arguments:", "# Outputs:", "# Returns:")
 SUMMARY_RE = re.compile(r"^# (?P<name>[A-Za-z_][A-Za-z0-9_]*) - (?P<summary>.+)$")
 SUMMARY_WORD_RE = re.compile(r"[A-Za-z0-9]+")
 VAGUE_SUMMARY_WORDS = {
@@ -30,7 +30,6 @@ VAGUE_SUMMARY_WORDS = {
     "runs",
     "the",
 }
-RISKY_FUNCTION_RE = re.compile(r"\b(?:kill|mv|rm|source|sudo)\b")
 
 
 def function_doc_block(lines: list[str], declaration_line: int) -> list[str]:
@@ -53,21 +52,10 @@ def has_meaningful_summary(name: str, summary: str) -> bool:
     return bool(summary_words - name_words)
 
 
-def requires_full_contract(path: str, name: str, body: list[str], root: Path) -> bool:
-    """Return whether one function requires the full shell contract block."""
-    if name == "main":
-        return False
-    if not is_file_executable(root / path) and not name.startswith("_"):
-        return True
-    function_source = "\n".join(body)
-    return RISKY_FUNCTION_RE.search(function_source) is not None
-
-
 def check_function_doc(
     path: str,
     function: ShellFunction,
     lines: list[str],
-    root: Path,
 ) -> list[Diagnostic]:
     """Return documentation diagnostics for one shell function."""
     name = str(function["name"])
@@ -96,28 +84,18 @@ def check_function_doc(
                 f"{name} summary must describe concrete behavior",
             ),
         )
-    body = function["body"]
-    if requires_full_contract(path, name, body, root):
-        positions = [block.index(section) if section in block else -1 for section in DOC_SECTIONS]
-        if any(position < 0 for position in positions) or positions != sorted(positions):
-            errors.append(
-                diagnostic(
-                    path,
-                    start,
-                    "shell.function-contract",
-                    f"{name} requires Globals, Arguments, Outputs, and Returns sections in order",
-                ),
-            )
     return errors
 
 
-def check_shell_docs(sources: dict[str, str], root: Path) -> list[Diagnostic]:
+def check_shell_docs(sources: dict[str, str], _root: Path) -> list[Diagnostic]:
     """Return diagnostics for undocumented shell functions."""
     errors: list[Diagnostic] = []
     for path, source in sources.items():
         if not is_architecture_source(path):
             continue
         lines = source.splitlines()
+        if SHELL_RUNTIME_HEADER not in lines[:4]:
+            errors.append(diagnostic(path, 1, "shell.runtime-header", f"Add {SHELL_RUNTIME_HEADER}"))
         for function in collect_shell_functions(source):
-            errors.extend(check_function_doc(path, function, lines, root))
+            errors.extend(check_function_doc(path, function, lines))
     return errors

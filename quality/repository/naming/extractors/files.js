@@ -2,8 +2,8 @@ import path from 'node:path';
 import { JAVASCRIPT_DIRECTORY_PREFIXES, SHELL_DIRECTORY_PREFIXES } from '#config/naming.js';
 import { JAVASCRIPT_EXTENSIONS, SHELL_EXTENSIONS, SHELL_SHEBANG_REGEX } from '#config/files.js';
 
-const JAVASCRIPT_EXTENSION_SET = new Set(JAVASCRIPT_EXTENSIONS);
-const SHELL_EXTENSION_SET = new Set(SHELL_EXTENSIONS);
+const javascriptExtensionSet = new Set(JAVASCRIPT_EXTENSIONS);
+const shellExtensionSet = new Set(SHELL_EXTENSIONS);
 
 /**
  * Identify JavaScript, TypeScript, or shell files from their suffix or shebang.
@@ -16,12 +16,12 @@ function languageForPath(relativePath, sourceText = '') {
   const firstLine = sourceText.split(/\r?\n/u, 1)[0] ?? '';
 
   if (
-    SHELL_EXTENSION_SET.has(extension) ||
+    shellExtensionSet.has(extension) ||
     (extension === '' && SHELL_SHEBANG_REGEX.test(firstLine))
   ) {
     return 'shell';
   }
-  if (JAVASCRIPT_EXTENSION_SET.has(extension)) {
+  if (javascriptExtensionSet.has(extension)) {
     return 'javascript';
   }
 

@@ -4,21 +4,13 @@ import math
 import time
 import asyncio
 import threading
-from ..codes import ErrorCode
 from collections import deque
-from dataclasses import dataclass
-from ..errors import ConnectorError
+from ..language import translate
+from .state import AdmissionTicket
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from ..errors import ErrorCode, ConnectorError
 from ...config.generation.session import MAX_SESSION_CAPACITY, DEFAULT_SESSION_CAPACITY
-
-
-@dataclass(eq=False, slots=True)
-class AdmissionTicket:
-    """A wake-up event owned only by the loop that requested admission."""
-
-    loop: asyncio.AbstractEventLoop
-    changed: asyncio.Event
 
 
 class SessionAdmission:
@@ -27,7 +19,7 @@ class SessionAdmission:
     def __init__(self, capacity: int = DEFAULT_SESSION_CAPACITY) -> None:
         """Create the shared queue with a validated concurrent-session limit."""
         if type(capacity) is not int or not 1 <= capacity <= MAX_SESSION_CAPACITY:
-            msg = "Choose a session capacity from 1 to 4."
+            msg = translate("main", "errors.sessionCapacity")
             raise ValueError(msg)
         self.capacity = capacity
         self._lock = threading.Lock()
@@ -59,8 +51,7 @@ class SessionAdmission:
             if remaining > 0:
                 raise ConnectorError(
                     ErrorCode.CLEANUP,
-                    "An earlier Reactor session has unconfirmed termination. "
-                    f"Wait {math.ceil(remaining)} seconds before starting another run.",
+                    translate("main", "errors.terminationWait", seconds=math.ceil(remaining)),
                 )
             if self._waiting[0] is ticket and len(self._active) < self.capacity:
                 self._waiting.popleft()
@@ -84,7 +75,7 @@ class SessionAdmission:
             except TimeoutError:
                 raise ConnectorError(
                     ErrorCode.TIMEOUT,
-                    "Timed out waiting for another Reactor run to finish. This waiting run did not open a session.",
+                    translate("main", "errors.queueTimeout"),
                 ) from None
             yield
         finally:

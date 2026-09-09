@@ -1,3 +1,4 @@
+import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 
 export class SoundControls {
@@ -5,25 +6,26 @@ export class SoundControls {
 
   private readonly prompt = element('textarea');
 
-  private readonly apply = button('Apply sound prompt');
+  private readonly apply = button(translate('sound.applyPrompt'));
 
   private pending: string | undefined;
 
   /**
    * Build the sound prompt controls in their disabled state.
    * @param initialPrompt - The workflow's starting sound prompt.
+   * @param promptLimit - The model's maximum sound prompt length.
    */
-  constructor(initialPrompt: string) {
+  constructor(initialPrompt: string, promptLimit: number) {
     this.prompt.value = initialPrompt;
-    this.prompt.maxLength = 1000;
+    this.prompt.maxLength = promptLimit;
     this.prompt.rows = 2;
-    const label = element('label', 'Sound prompt ');
+    const label = element('label', translate('sound.prompt'));
     label.append(this.prompt);
     this.view.append(
-      element('legend', 'Sound'),
+      element('legend', translate('sound.title')),
       label,
       this.apply,
-      element('p', 'Describe the sound briefly. Leave blank to use the picture alone.'),
+      element('p', translate('sound.promptNotice')),
     );
     // eslint-disable-next-line local/no-trivial-functions -- Applying sound queues the prompt and prevents duplicate submission.
     this.apply.addEventListener('click', () => {

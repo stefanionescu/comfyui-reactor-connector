@@ -1,7 +1,3 @@
-[build-system]
-build-backend = "hatchling.build"
-requires = [ "hatchling>=1.27,<2" ]
-
 [project]
 name = "reactor-inc"
 version = "0.1.0"
@@ -19,7 +15,6 @@ dev = [
   "av>=16,<19",
   "bandit[toml]",
   "basedpyright>=1.31,<2",
-  "build>=1.3,<2",
   "deptry",
   "import-linter",
   "interrogate",
@@ -36,9 +31,6 @@ dev = [
   "validate-pyproject",
   "vulture",
 ]
-
-[tool.hatch]
-build.targets.wheel.packages = [ "config", "src" ]
 
 [tool.ruff]
 target-version = "py312"
@@ -193,13 +185,13 @@ forbidden_modules = [ "scripts", "quality" ]
 name = "Settings and discovery must not import execution or host nodes"
 type = "forbidden"
 source_modules = [ "src.settings", "src.discovery" ]
-forbidden_modules = [ "src.execution", "src.nodes" ]
+forbidden_modules = [ "src.execution", "src.nodes", "src.comfy" ]
 
 [[tool.importlinter.contracts]]
 name = "Execution must not import host nodes"
 type = "forbidden"
 source_modules = [ "src.execution" ]
-forbidden_modules = [ "src.nodes" ]
+forbidden_modules = [ "src.nodes", "src.comfy" ]
 
 [[tool.importlinter.contracts]]
 name = "Static configuration must not import runtime or development code"

@@ -9,17 +9,6 @@ if TYPE_CHECKING:
     from quality.repository.naming.types import NameCandidate
 
 
-def extract_python_names(relative_path: str, source_text: str) -> list[NameCandidate]:
-    """Return Python naming candidates."""
-    try:
-        tree = ast.parse(source_text, filename=relative_path)
-    except SyntaxError:
-        return []
-    extractor = PythonNameExtractor(relative_path)
-    extractor.visit(tree)
-    return extractor.names
-
-
 class PythonNameExtractor(ast.NodeVisitor):
     """Collect Python names by category."""
 
@@ -28,6 +17,16 @@ class PythonNameExtractor(ast.NodeVisitor):
         self.relative_path = relative_path
         self.class_depth = 0
         self.names: list[NameCandidate] = []
+
+    def generic_visit(self, node: ast.AST) -> None:
+        """Collect loop, comprehension, and expression bindings before traversing children."""
+        if isinstance(node, ast.For | ast.AsyncFor | ast.comprehension | ast.NamedExpr):
+            self.visit_target(node.target, node.target.lineno, None)
+        elif isinstance(node, ast.With | ast.AsyncWith):
+            for item in node.items:
+                if item.optional_vars is not None:
+                    self.visit_target(item.optional_vars, item.optional_vars.lineno, None)
+        super().generic_visit(node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Collect class or exception names."""
@@ -143,6 +142,17 @@ class PythonNameExtractor(ast.NodeVisitor):
         elif isinstance(target, ast.Tuple | ast.List):
             for element in target.elts:
                 self.visit_target(element, line, value)
+
+
+def extract_python_names(relative_path: str, source_text: str) -> list[NameCandidate]:
+    """Return Python naming candidates."""
+    try:
+        tree = ast.parse(source_text, filename=relative_path)
+    except SyntaxError:
+        return []
+    extractor = PythonNameExtractor(relative_path)
+    extractor.visit(tree)
+    return extractor.names
 
 
 def is_type_alias(name: str, value: ast.AST | None) -> bool:

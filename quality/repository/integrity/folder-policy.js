@@ -3,7 +3,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { PREFIX_COLLISION_ALLOWLIST, SINGLE_FILE_FOLDER_ALLOWLIST } from '#config/folders.js';
 
-const REPO_ROOT = process.cwd();
+const repoRoot = process.cwd();
 
 /**
  * Check that each configured folder exception still has an existing owner.
@@ -16,7 +16,7 @@ function validateFolderPolicy() {
     ['prefix-collision allowlist', PREFIX_COLLISION_ALLOWLIST],
   ]) {
     for (const relativePath of entries) {
-      const absolutePath = path.join(REPO_ROOT, relativePath);
+      const absolutePath = path.join(repoRoot, relativePath);
       if (!fs.existsSync(absolutePath)) {
         errors.push(
           `stale ${name} entry in quality/config/folders.js: "${relativePath}" does not exist`,

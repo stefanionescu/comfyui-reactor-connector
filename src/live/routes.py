@@ -4,12 +4,13 @@ import asyncio
 from aiohttp import web
 from functools import partial
 from .lease import unavailable
+from ..language import translate
 from ..serialization import Json
 from ..media.output import owned_io
 from ..http.guard import local_route
 from .registry import BrowserRegistry
-from ..http.routes import read_document
 from .control.lease import ControlLease
+from ..http.request import read_document
 from ...config.routes import SETTINGS_PREFIX
 from ...config.media.webcam import MAX_CAMERA_JPEG_BYTES
 from ...config.live import MAX_SEQUENCE_DIGITS, UPLOAD_TIMEOUT_SECONDS
@@ -55,9 +56,9 @@ class LiveRoutes:
         if camera is None or not sequence.isascii() or not sequence.isdecimal() or len(sequence) > MAX_SEQUENCE_DIGITS:
             raise unavailable()
         if request.content_type != "image/jpeg":
-            raise web.HTTPUnsupportedMediaType(text="Send a camera JPEG.")
+            raise web.HTTPUnsupportedMediaType(text=translate("main", "errors.cameraJpegRequired"))
         if not camera.upload_lock.acquire(blocking=False):
-            raise web.HTTPTooManyRequests(text="Wait for the previous camera frame.")
+            raise web.HTTPTooManyRequests(text=translate("main", "errors.cameraFrameWait"))
         try:
             payload = bytearray()
             async with asyncio.timeout(UPLOAD_TIMEOUT_SECONDS):

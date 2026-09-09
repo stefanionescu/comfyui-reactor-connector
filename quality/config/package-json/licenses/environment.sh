@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
 # lint:justify -- reason: root package policy is sourced by license scripts -- ticket: quality-config
 # shellcheck disable=SC2034
+
+[[ -n ${_CFG_LICENSES_READY:-} ]] && return 0
+readonly _CFG_LICENSES_READY=1
 
 LICENSE_CHECKER_CONFIG_FILE='.license-checker.json'
 readonly LICENSE_CHECKER_CONFIG_FILE

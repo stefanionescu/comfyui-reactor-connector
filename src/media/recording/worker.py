@@ -40,6 +40,62 @@ class RecordingAudio:
     layout: str
 
 
+@dataclass(frozen=True, slots=True)
+class RecordingVideo:
+    """The recording origin, frame rate, and dimensions used for conversion."""
+
+    origin: Fraction
+    rate: Fraction
+    width: int
+    height: int
+
+
+class AudioEncoder:
+    """Interleave timestamped audio while video advances, then finish its exact interval."""
+
+    def __init__(self, writer: MediaWriter, audio: RecordingAudio) -> None:
+        """Configure an AAC stream on the shared recording sample clock."""
+        self.writer = writer
+        self.audio = audio
+        self.position = 0
+        self.stream = writer.add_stream("aac", rate=SAMPLE_RATE)
+        self.stream.layout = audio.layout
+        self.stream.time_base = Fraction(1, SAMPLE_RATE)
+
+    def through(self, samples: int) -> None:
+        """Encode audio up to the requested sample position in small consecutive blocks."""
+        end = min(samples, self.audio.samples.shape[1])
+        while self.position < end:
+            stop = min(end, self.position + 1024)
+            values = np.ascontiguousarray(self.audio.samples[:, self.position : stop])
+            frame = av.AudioFrame.from_ndarray(values, format="fltp", layout=self.audio.layout)
+            frame.sample_rate = SAMPLE_RATE
+            frame.time_base = Fraction(1, SAMPLE_RATE)
+            frame.pts = self.position
+            for packet in self.stream.encode(frame):
+                self.writer.mux(packet)
+            self.position = stop
+
+    def finish(self, samples: int) -> None:
+        """Encode the remaining selected samples and flush all audio packets into the recording."""
+        self.through(samples)
+        for packet in self.stream.encode(None):
+            self.writer.mux(packet)
+
+
+@dataclass(frozen=True, slots=True)
+class RecordingSettings:
+    """Local recording paths, selected interval, and output and memory limits."""
+
+    source: Path
+    destination: Path
+    wav: Path
+    duration: float
+    size_limit: int
+    memory_limit: int
+    start_seconds: float
+
+
 def copy_audio_frame(
     frame: av.AudioFrame,
     samples: NDArray[np.float32],
@@ -104,16 +160,6 @@ def read_audio(source: Path, origin: Fraction, duration_seconds: float, maximum_
         return RecordingAudio(samples, layout)
 
 
-@dataclass(frozen=True, slots=True)
-class RecordingVideo:
-    """The recording origin, frame rate, and dimensions used for conversion."""
-
-    origin: Fraction
-    rate: Fraction
-    width: int
-    height: int
-
-
 def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> RecordingVideo:
     """Find the first selected frame and validate recording rate, color, dimensions, and memory."""
     with (
@@ -151,39 +197,6 @@ def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> R
         return RecordingVideo(frame.pts * frame.time_base, rate, frame.width, frame.height)
 
 
-class AudioEncoder:
-    """Interleave timestamped audio while video advances, then finish its exact interval."""
-
-    def __init__(self, writer: MediaWriter, audio: RecordingAudio) -> None:
-        """Configure an AAC stream on the shared recording sample clock."""
-        self.writer = writer
-        self.audio = audio
-        self.position = 0
-        self.stream = writer.add_stream("aac", rate=SAMPLE_RATE)
-        self.stream.layout = audio.layout
-        self.stream.time_base = Fraction(1, SAMPLE_RATE)
-
-    def through(self, samples: int) -> None:
-        """Encode audio up to the requested sample position in small consecutive blocks."""
-        end = min(samples, self.audio.samples.shape[1])
-        while self.position < end:
-            stop = min(end, self.position + 1024)
-            values = np.ascontiguousarray(self.audio.samples[:, self.position : stop])
-            frame = av.AudioFrame.from_ndarray(values, format="fltp", layout=self.audio.layout)
-            frame.sample_rate = SAMPLE_RATE
-            frame.time_base = Fraction(1, SAMPLE_RATE)
-            frame.pts = self.position
-            for packet in self.stream.encode(frame):
-                self.writer.mux(packet)
-            self.position = stop
-
-    def finish(self, samples: int) -> None:
-        """Encode the remaining selected samples and flush all audio packets into the recording."""
-        self.through(samples)
-        for packet in self.stream.encode(None):
-            self.writer.mux(packet)
-
-
 def recording_frames(
     reader: InputContainer, timing: RecordingVideo, duration_seconds: float
 ) -> Iterator[tuple[av.VideoFrame, Fraction]]:
@@ -211,19 +224,6 @@ def recording_frames(
         frame.pts, frame.time_base = current_us, Fraction(1, 1_000_000)
         previous = current
         yield frame, current
-
-
-@dataclass(frozen=True, slots=True)
-class RecordingSettings:
-    """Local recording paths, selected interval, and output and memory limits."""
-
-    source: Path
-    destination: Path
-    wav: Path
-    duration: float
-    size_limit: int
-    memory_limit: int
-    start_seconds: float
 
 
 def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: RecordingVideo) -> tuple[int, int]:

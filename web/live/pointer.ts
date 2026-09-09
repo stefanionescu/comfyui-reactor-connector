@@ -1,4 +1,5 @@
 import { element } from '#web/dom.ts';
+import { translate } from '#web/language.ts';
 import type { Pointer } from '#web/live/drag.ts';
 
 export class PointerPreview {
@@ -45,7 +46,10 @@ export class PointerPreview {
   move(pointer: Pointer): void {
     this.#pointer = pointer;
     this.status.hidden = false;
-    this.#position.textContent = ` ${Math.round(pointer.x * 100)}% across, ${Math.round(pointer.y * 100)}% down.`;
+    this.#position.textContent = translate('pointer.position', {
+      x: Math.round(pointer.x * 100),
+      y: Math.round(pointer.y * 100),
+    });
     this.#place();
   }
 
@@ -54,7 +58,7 @@ export class PointerPreview {
    * @param pointer - The pointer update accepted by the server.
    */
   confirm(pointer: Pointer): void {
-    const message = pointer.active ? 'Pointer held.' : 'Pointer released.';
+    const message = pointer.active ? translate('pointer.held') : translate('pointer.released');
     if (this.#state.textContent !== message) this.#state.textContent = message;
   }
 
@@ -64,7 +68,7 @@ export class PointerPreview {
   stop(): void {
     this.#pointer = undefined;
     this.#marker.hidden = true;
-    if (!this.status.hidden) this.#state.textContent = 'Pointer controls stopped.';
+    if (!this.status.hidden) this.#state.textContent = translate('pointer.stopped');
   }
 
   #place(): void {

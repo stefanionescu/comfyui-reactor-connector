@@ -23,7 +23,7 @@ class SessionInteraction(Protocol):
         # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
         ...
 
-    def closed(self, *, termination_confirmed: bool, failed: bool) -> None:
+    def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
         """Record whether remote termination was confirmed and whether execution failed."""
         # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
         ...

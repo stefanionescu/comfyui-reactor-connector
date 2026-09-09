@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from quality.lib.process import run_command
-from quality.config.repository.paths import PYTHON_SOURCE_DIRS, SHELL_SOURCE_DIRS
+from .process import run_command
+from ..config.repository.paths import PYTHON_SOURCE_DIRS, SHELL_SOURCE_DIRS
 
 
 def read_utf8(path: Path) -> str:

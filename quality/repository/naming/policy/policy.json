@@ -122,6 +122,13 @@
             "names": ["madge.config"],
             "structuralPrefixRegexes": ["\\.config$"],
             "reason": "The graph tool configuration uses the documented .config.cjs suffix."
+        },
+        {
+            "pathRegexes": ["^web/host\\.d\\.ts$"],
+            "categories": ["functions"],
+            "names": ["getCustomNodesI18n"],
+            "exclude": true,
+            "reason": "ComfyUI exposes its translation loader with this exact method name."
         }
     ],
     "excludedPaths": [

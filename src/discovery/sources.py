@@ -4,10 +4,10 @@ import re
 import aiohttp
 import asyncio
 from http import HTTPStatus
-from ..codes import ErrorCode
+from ..language import translate
 from datetime import UTC, datetime
-from ..errors import ConnectorError
 from .navigation import navigation_guides
+from ..errors import ErrorCode, ConnectorError
 from ..serialization import Json, parse_json, mapping_value
 from .contracts import rows, Guide, Price, invalid, Snapshot
 from ...config.discovery import INDEX_URL, PRICING_URL, NAVIGATION_URL, MAX_SOURCE_BYTES, GUIDE_LINE_PATTERN_TEXT
@@ -68,7 +68,7 @@ async def _read(session: aiohttp.ClientSession, url: str) -> str:
         if response.status != HTTPStatus.OK:
             raise ConnectorError(
                 ErrorCode.DISCOVERY,
-                f"Reactor's catalog source returned HTTP {response.status}. Try again later.",
+                translate("main", "errors.modelsHttp", status=response.status),
             )
         content = bytearray()
         async for chunk in response.content.iter_chunked(16_384):
@@ -104,5 +104,5 @@ async def read_public_models() -> Snapshot:
     except (aiohttp.ClientError, TimeoutError, UnicodeError):
         raise ConnectorError(
             ErrorCode.DISCOVERY,
-            "Cannot read Reactor's public catalog. The previous list is unchanged.",
+            translate("main", "errors.modelsUnreadable"),
         ) from None

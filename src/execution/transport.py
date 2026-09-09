@@ -3,11 +3,11 @@
 import math
 import time
 from pathlib import Path
-from ..codes import ErrorCode
+from ..language import translate
 from typing import cast, Protocol
-from ..errors import ConnectorError
 from ..credentials import Credential
 from reactor_sdk import Clip, Reactor
+from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Sequence
 from ..media.recording.download import download_recording
 from .authentication import SessionToken, mint_session_token
@@ -160,7 +160,7 @@ class SessionTransport:
     def _client(self) -> Transport:
         """Require an open client before forwarding a transport operation."""
         if self.client is None or self.closed:
-            raise ConnectorError(ErrorCode.TRANSPORT, "The Reactor session is not connected.")
+            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.sessionDisconnected"))
         return self.client
 
     def on(self, event: str, callback: Callable[..., None]) -> None:
@@ -179,7 +179,7 @@ class SessionTransport:
     async def connect(self) -> None:
         """Mint one lifetime-limited token and connect the SDK without retaining the API key."""
         if self.attempted or self.closed or self.credential is None:
-            raise ConnectorError(ErrorCode.TRANSPORT, "This Reactor session cannot be connected again.")
+            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.sessionAlreadyConnected"))
         self.attempted = True
         self.token = await mint_session_token(self.model, self.credential, self.session_seconds)
         self.credential = None
@@ -245,15 +245,15 @@ class SessionTransport:
     ) -> None:
         """Use the private session token without handing it to a node or workflow."""
         if self.token is None:
-            raise ConnectorError(ErrorCode.TRANSPORT, "The recording session is not connected.")
+            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.recordingDisconnected"))
         clip = await self.request_recording()
         markers = (clip.start_marker, clip.end_marker, clip.now_marker)
         if not all(math.isfinite(value) and value >= 0 for value in markers):
-            raise ConnectorError(ErrorCode.CAPTURE, "The recording returned invalid timing markers.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingTiming"))
         if on_window:
             predicted_wait = clip.predicted_ready_at_ms / 1000 - time.time()
             if not math.isfinite(predicted_wait):
-                raise ConnectorError(ErrorCode.CAPTURE, "The recording returned invalid readiness timing.")
+                raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingReadiness"))
             on_window(*markers, predicted_wait)
         await download_recording(
             clip.playlist_url,

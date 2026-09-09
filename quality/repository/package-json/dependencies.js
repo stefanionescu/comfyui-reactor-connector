@@ -8,11 +8,11 @@ import {
   MISE_TOOL_FILE,
 } from '#config/package-json/dependencies.js';
 
-const REPO_ROOT = process.cwd();
+const repoRoot = process.cwd();
 const errors = [];
 
 function readMiseBunVersion() {
-  const source = fs.readFileSync(path.join(REPO_ROOT, MISE_TOOL_FILE), 'utf8');
+  const source = fs.readFileSync(path.join(repoRoot, MISE_TOOL_FILE), 'utf8');
   const match = source.match(BUN_TOOL_REGEX);
   if (!match) {
     errors.push(`${MISE_TOOL_FILE}: missing ${BUN_TOOL_NAME} tool version`);
@@ -24,7 +24,7 @@ function readMiseBunVersion() {
 const expectedPackageSpec = `${BUN_TOOL_NAME}@${readMiseBunVersion()}`;
 
 for (const packageFile of PACKAGE_JSON_DEFAULT_FILES) {
-  const parsed = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, packageFile), 'utf8'));
+  const parsed = JSON.parse(fs.readFileSync(path.join(repoRoot, packageFile), 'utf8'));
   if (parsed.packageManager !== expectedPackageSpec) {
     errors.push(`${packageFile}: packageManager must be ${expectedPackageSpec}`);
   }

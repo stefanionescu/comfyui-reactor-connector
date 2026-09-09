@@ -1,15 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ComfyUI Reactor Connector: Advanced Guide</title><style>
-:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
-body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
-a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
-h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
-table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
-th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
-pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
-code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
-nav { display: flex; flex-wrap: wrap; gap: 1rem; }
-</style></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="comfyui-reactor-connector-advanced-guide">ComfyUI Reactor Connector: Advanced Guide</h1>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ComfyUI Reactor Connector: Advanced Guide</title><link rel="stylesheet" href="/extensions/reactor-inc/guides/docs.css"></head><body><nav aria-label="Reactor guides"><a href="/extensions/reactor-inc/guides/README.html">ComfyUI Reactor Connector</a><a href="/extensions/reactor-inc/guides/workflows/README.html">Workflows</a><a href="/extensions/reactor-inc/guides/ADVANCED.html#live-controls">Live controls</a></nav><main><h1 id="comfyui-reactor-connector-advanced-guide">ComfyUI Reactor Connector: Advanced Guide</h1>
 <p>Use this guide for settings, live controls, model updates, and recovery. For
 installation and your first run, see <a href="/extensions/reactor-inc/guides/README.html">the setup guide</a>. Each node's <strong>Help</strong>
 action explains its inputs and model-specific limits.</p>
@@ -97,6 +87,8 @@ The local <strong>Add a prompt</strong> and <strong>Add a shot</strong> nodes us
 <p>Open <strong>ComfyUI menu → Extensions → Reactor → Reactor models</strong> to search the
 included list or your last saved list. Opening the dialog reads local information.
 Each entry shows its last checked rate, any available guide, and node support.</p>
+<p>Installed models appear before the first refresh. Refresh the list to load public
+prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.</p>
 <p><strong>Refresh models</strong> reads Reactor's public prices and model guides. It uses no key,
 starts no generation, spends no credits, and installs no code. Entries come from
 published prices or guides; your account determines which models you can run.
@@ -118,7 +110,7 @@ HappyOyster is excluded, including when an older list is restored.</p>
 <td>The model cannot run through this connector.</td>
 </tr>
 <tr>
-<td>Not observed in the latest source check</td>
+<td>This rate was not found in the latest source check.</td>
 <td>The earlier entry was retained. Its old rate is not a current quote. Absence does not prove the model was removed.</td>
 </tr>
 </tbody>
@@ -392,13 +384,13 @@ the package preserves private state, media, and saved workflows. To remove state
 too, confirm all sessions ended and delete only its <a href="#keys-and-access">state directory</a>.
 Deleting a saved key does not revoke it in Reactor.</p>
 <h2 id="development-commands">Development commands</h2>
-<p>Python runtime code lives in <code>src/</code>. Static defaults, limits, model metadata, and
-patterns live in root <code>config/</code>. Settings validation and private storage live in
-<code>src/settings/</code>. Development-check configuration stays in <code>quality/config/</code>.
-The interface and node help live in <code>web/</code>.</p>
 <p>Run <code>mise run setup</code> to install the pinned tools and dependencies and enable local
 Git hooks. Bun manages frontend dependencies; uv manages Python dependencies.
 Development tools use the repository environment, separate from ComfyUI.</p>
+<p>Development scripts run as modules of the checkout package through mise.
+Quality tools run from the repository root. ComfyUI starts media workers through
+the root launcher in isolated Python processes; those workers use only the media
+modules and static configuration.</p>
 <p>Python checks read types from your actual ComfyUI installation. Set its source
 directory in <code>.mise.local.toml</code>, which Git ignores:</p>
 <pre><code class="language-toml">[env]
@@ -454,15 +446,11 @@ are local settings; they do not enter the connector package.</p>
 </tr>
 <tr>
 <td><code>mise run models:check</code></td>
-<td>Check public prices and guides without changing the bundled list.</td>
-</tr>
-<tr>
-<td><code>mise run models:refresh</code></td>
-<td>Update the bundled public model list.</td>
+<td>Read public prices and guides without saving them.</td>
 </tr>
 <tr>
 <td><code>mise run models:validate</code></td>
-<td>Validate the bundled list offline.</td>
+<td>Check model associations against registered node schemas.</td>
 </tr>
 <tr>
 <td><code>mise run audit:python</code></td>

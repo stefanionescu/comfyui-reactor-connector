@@ -1,4 +1,6 @@
+import { translate } from '#web/language.ts';
 import type { Fetcher } from '#web/settings/api.ts';
+import { browserPatterns } from '#config/browser.ts';
 
 export type Model = {
   key: string;
@@ -13,7 +15,7 @@ export type Model = {
 };
 export type ModelList = {
   revision: string;
-  retrieved_at: string;
+  retrieved_at: string | null;
   models: Model[];
   can_rollback: boolean;
   mutation_allowed: boolean;
@@ -27,7 +29,7 @@ export type ModelList = {
   };
 };
 
-const INVALID_MODEL_LIST = 'ComfyUI returned an invalid Reactor model list.';
+const INVALID_MODEL_LIST = translate('models.invalidResponse');
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -79,9 +81,11 @@ function parseCatalog(value: unknown): ModelList {
   const document = record(value);
   if (
     typeof document.revision !== 'string' ||
-    !/^[a-f0-9]{64}$/.test(document.revision) ||
-    !shortText(document.retrieved_at, 40) ||
-    !Number.isFinite(Date.parse(document.retrieved_at)) ||
+    !browserPatterns.revision.test(document.revision) ||
+    !(
+      document.retrieved_at === null ||
+      (shortText(document.retrieved_at, 40) && Number.isFinite(Date.parse(document.retrieved_at)))
+    ) ||
     typeof document.can_rollback !== 'boolean' ||
     typeof document.mutation_allowed !== 'boolean' ||
     !Array.isArray(document.models) ||
@@ -96,9 +100,8 @@ function parseCatalog(value: unknown): ModelList {
       typeof check.enabled !== 'boolean' ||
       typeof check.running !== 'boolean' ||
       typeof check.interval_hours !== 'number' ||
-      !Number.isInteger(check.interval_hours) ||
+      !Number.isSafeInteger(check.interval_hours) ||
       check.interval_hours < 1 ||
-      check.interval_hours > 3600 ||
       !(
         check.checked_at === null ||
         (shortText(check.checked_at, 40) && Number.isFinite(Date.parse(check.checked_at)))
@@ -111,6 +114,18 @@ function parseCatalog(value: unknown): ModelList {
   if (new Set(models.map((row) => row.key)).size !== models.length)
     throw new Error(INVALID_MODEL_LIST);
   return { ...document, models } as ModelList;
+}
+
+/**
+ * Describe whether the saved public metadata has a retrieval date.
+ * @param retrievedAt - The saved retrieval time, or null before the first refresh.
+ * @returns A readable date or the action needed to load metadata.
+ */
+// eslint-disable-next-line local/no-trivial-functions -- Share first-refresh guidance and date formatting between model and rate dialogs.
+export function metadataStatus(retrievedAt: string | null): string {
+  return retrievedAt === null
+    ? translate('models.installedList')
+    : translate('models.lastRefresh', { date: new Date(retrievedAt).toLocaleString() });
 }
 
 /**
@@ -140,7 +155,7 @@ export async function requestModels(
   try {
     response = await fetcher(`/reactor-inc/v1/catalog${suffix}`, options);
   } catch {
-    throw new Error('Cannot reach the Reactor model list. Check ComfyUI and try again.');
+    throw new Error(translate('models.unreachable'));
   }
   let body: unknown;
   try {
@@ -150,7 +165,7 @@ export async function requestModels(
   }
   if (!response.ok) {
     const error = record(body).error;
-    throw new Error(shortText(error, 1024) ? error : 'The catalog request failed.');
+    throw new Error(shortText(error, 1024) ? error : translate('models.requestFailed'));
   }
   return parseCatalog(body);
 }

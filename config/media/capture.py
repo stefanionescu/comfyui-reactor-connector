@@ -1,4 +1,4 @@
-"""Static media capture values used by the connector."""
+"""Video frame dimensions, queue limits, and encoding parameters."""
 
 MIN_FRAME_DIMENSION = 2
 
@@ -30,3 +30,12 @@ ENCODER_ERRORS = {
 MAX_DURATION_MICROSECONDS = 3_601_000_000
 
 MAX_QUEUED_FRAMES = 16
+
+__all__ = [
+    "ENCODER_ERRORS",
+    "FRAME_HEADER_FORMAT",
+    "MAX_DURATION_MICROSECONDS",
+    "MAX_FRAME_DIMENSION",
+    "MAX_QUEUED_FRAMES",
+    "MIN_FRAME_DIMENSION",
+]

@@ -7,7 +7,7 @@ import posixpath
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 from quality.lib.diagnostics import diagnostic
-from quality.config.shell import SHELL_ACTION_PREFIXES, SHELL_CONFIG_PREFIXES
+from quality.config.shell import SHELL_CONFIG_PREFIXES
 from quality.shell.checks.bash import is_architecture_source, is_file_executable
 from quality.shell.parsers import collect_shell_functions, shell_identifier_references
 
@@ -52,7 +52,7 @@ def source_annotation_path(owner_path: str, annotation: str) -> str | None:
         return None
     if annotation.startswith("/"):
         return annotation.removeprefix("/")
-    if annotation.startswith(("scripts/", "docker/", "quality/", ".mise/", ".githooks/")):
+    if annotation.startswith(("scripts/", "quality/", ".mise/", ".githooks/")):
         return posixpath.normpath(annotation)
     owner_dir = Path(owner_path).parent.as_posix()
     return posixpath.normpath(posixpath.join(owner_dir, annotation))
@@ -137,16 +137,6 @@ def check_function_visibility(
         )
     if is_executable or name == "main" or is_private:
         return errors
-    first_word = name.split("_", maxsplit=1)[0]
-    if "_" not in name or first_word in SHELL_ACTION_PREFIXES:
-        errors.append(
-            diagnostic(
-                path,
-                int(function["start"]),
-                "shell.public-namespace",
-                f"{name} must begin with its family or domain namespace",
-            ),
-        )
     if not external_paths and internal_count > 0:
         errors.append(
             diagnostic(

@@ -1,3 +1,5 @@
+import { translate } from '#web/language.ts';
+
 export type Pointer = { x: number; y: number; active: boolean };
 
 /** Track one mouse, touch, or keyboard drag on a model preview. */
@@ -20,10 +22,7 @@ export class DragInput {
     image.tabIndex = 0;
     image.draggable = false;
     image.style.touchAction = 'none';
-    image.setAttribute(
-      'aria-label',
-      'Drag on the output to move the subject. Use arrow keys to position the pointer, Space to hold it, and Escape to release it.',
-    );
+    image.setAttribute('aria-label', translate('pointer.instructions'));
     image.addEventListener(
       'pointerdown',
       (event) => {

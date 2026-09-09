@@ -9,17 +9,17 @@ import {
   STALE_SECURITY_PATHS,
 } from '#config/folders.js';
 
-const REPO_ROOT = process.cwd();
-const TEXT_EXEMPT_FILES = new Set(STALE_TEXT_EXEMPTS);
+const repoRoot = process.cwd();
+const textExemptFiles = new Set(STALE_TEXT_EXEMPTS);
 const errors = [];
 
-const publicFiles = visibleFiles(REPO_ROOT);
+const publicFiles = visibleFiles(repoRoot);
 
 for (const entryPath of STALE_PATH_TEXT_ROOTS) {
   for (const relativePath of publicFiles) {
     if (relativePath !== entryPath && !relativePath.startsWith(`${entryPath}/`)) continue;
-    const absolutePath = path.join(REPO_ROOT, relativePath);
-    if (TEXT_EXEMPT_FILES.has(relativePath)) {
+    const absolutePath = path.join(repoRoot, relativePath);
+    if (textExemptFiles.has(relativePath)) {
       continue;
     }
     if (
@@ -41,7 +41,7 @@ for (const entryPath of STALE_PATH_TEXT_ROOTS) {
 }
 
 for (const staleToolingPath of STALE_TOOLING_PATHS) {
-  if (fs.existsSync(path.join(REPO_ROOT, staleToolingPath))) {
+  if (fs.existsSync(path.join(repoRoot, staleToolingPath))) {
     errors.push(`legacy tooling path still exists: ${staleToolingPath}`);
   }
 }

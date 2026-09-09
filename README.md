@@ -126,6 +126,9 @@ and use no credits. HappyOyster is not supported.
 
 ## Find and refresh models
 
+Installed models appear before the first refresh. Refresh the list to load public
+prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.
+
 Open **Extensions → Reactor → Reactor models** to search the list and select
 **Refresh models** for the latest public prices and guides. Refresh uses no key,
 starts no generation, and spends no credits. HappyOyster is excluded.

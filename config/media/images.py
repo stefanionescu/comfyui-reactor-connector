@@ -1,4 +1,4 @@
-"""Static media images values used by the connector."""
+"""Image dimensions, color channels, and upload limits."""
 
 BATCH_IMAGE_DIMENSIONS = 4
 
@@ -9,3 +9,11 @@ MAX_IMAGE_DIMENSION = 8192
 RGB_ARRAY_DIMENSIONS = 3
 
 MAX_FRAME_DIMENSION = 8192
+
+__all__ = [
+    "BATCH_IMAGE_DIMENSIONS",
+    "MAX_FRAME_DIMENSION",
+    "MAX_IMAGE_DIMENSION",
+    "RGB_ARRAY_DIMENSIONS",
+    "RGB_CHANNELS",
+]

@@ -2,12 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CODEQL_PROJECT_SCANS } from '#config/security/codeql/frontend/projects.js';
 
-const REPO_ROOT = process.cwd();
+const repoRoot = process.cwd();
 const errors = [];
 
 for (const { file, sourceRoot = '.' } of CODEQL_PROJECT_SCANS) {
-  const scanPolicyPath = path.join(REPO_ROOT, file);
-  const sourceRootPath = path.join(REPO_ROOT, sourceRoot);
+  const scanPolicyPath = path.join(repoRoot, file);
+  const sourceRootPath = path.join(repoRoot, sourceRoot);
   const lines = fs.readFileSync(scanPolicyPath, 'utf8').split('\n');
   let inPathsSection = false;
 

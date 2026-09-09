@@ -2,24 +2,17 @@
 
 import json
 from typing import ClassVar
-from ...codes import ErrorCode
 from ..inputs import VideoInputs
+from .state import FastRecording
+from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
-from ...errors import ConnectorError
 from dataclasses import field, dataclass
 from ...settings.settings import Settings
+from ...errors import ErrorCode, ConnectorError
+from ....config.models.identities import IDENTITIES
 from .clip import seconds, FastClip, FastClipEvents, message_payload
 from ....config.generation.fast import MAX_CLIP_SECONDS, MIN_CLIP_SECONDS, MAX_PROMPT_CHARACTERS
-
-
-@dataclass(slots=True)
-class FastRecording:
-    """The selected recording interval and its permitted extension for Fast H3 clips."""
-
-    start_seconds: float = 0
-    duration_seconds: float = 0
-    maximum_seconds: float = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,7 +21,7 @@ class FastGenerateRequest(VideoInputs):
 
     aspect: str = "16:9"
     ending_image: bytes | None = None
-    model_name: ClassVar[str] = "reactor/fast-h3"
+    model_name: ClassVar[str] = IDENTITIES["fast-h3"][1]
     requires_audio: ClassVar[bool] = True
     recording: FastRecording = field(default_factory=FastRecording, repr=False, compare=False)
 
@@ -46,17 +39,17 @@ class FastGenerateRequest(VideoInputs):
         """Check Fast H3 prompt, duration, aspect ratio, and ending-image limits."""
         super(FastGenerateRequest, self).validate(settings)
         if len(self.prompt) > MAX_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Use at most 800 prompt characters.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastPromptLength"))
         if not MIN_CLIP_SECONDS <= self.duration_seconds <= MAX_CLIP_SECONDS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose 5.167 to 14.375 seconds for Fast H3.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastDuration"))
         if self.aspect not in ("16:9", "1:1", "9:16", "4:3"):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose an offered Fast H3 aspect ratio.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastAspectRatio"))
         if self.ending_image is not None and (
             type(self.ending_image) is not bytes
             or not self.ending_image
             or len(self.ending_image) > settings.max_upload_megabytes * 1_048_576
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Provide an ending image within the upload limit.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.endingImageUploadLimit"))
         self.recording.maximum_seconds = settings.max_capture_seconds
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:
@@ -65,7 +58,7 @@ class FastGenerateRequest(VideoInputs):
             t for t in transport.tracks if t.name == "main_audio" and t.kind == "audio" and t.direction == "recvonly"
         ]
         if len(audio) != 1:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "This Fast H3 deployment has no audio track.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
         clips = FastClipEvents(events)
         await events.command("set_autoplay", {"enabled": False})
         await events.command("set_flush_on_clip_end", {"enabled": False})
@@ -78,7 +71,7 @@ class FastGenerateRequest(VideoInputs):
         if not minimum <= self.duration_seconds <= maximum:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                "The requested length is outside this deployment's clip limits.",
+                translate("main", "errors.clipDurationRange"),
             )
         clip = await self._queue_clip(transport, events)
         self.recording.duration_seconds = clip.seconds
@@ -101,7 +94,7 @@ class FastGenerateRequest(VideoInputs):
         events.check()
         tail = FastClip.read(message_payload(reply, "clip_queued"))
         if tail.seconds > maximum:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 returned an invalid continuation length.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.continuationLength"))
         await events.call("recording_tail_build", clips.wait_ready(tail))
         await events.command("play", {"clip_id": tail.clip_id})
 
@@ -124,7 +117,7 @@ class FastGenerateRequest(VideoInputs):
         if clip.seconds > self.recording.maximum_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                "The accepted clip length exceeds the host capture limit. Choose a shorter clip.",
+                translate("main", "errors.clipCaptureLimit"),
             )
         return clip
 
@@ -135,14 +128,14 @@ class FastGenerateRequest(VideoInputs):
         before = await self._state(transport, events)
         start = seconds(before.get("seconds_sent"))
         if before.get("playing") is not False:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 started playback before the clip was selected.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipPlaybackOrder"))
         await events.command("play", {"clip_id": clip.clip_id})
         await events.call("clip_playback", clips.finished.wait())
         end = seconds(clips.end_seconds)
         if abs(end - start - clip.seconds) > 1 / 24:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
-                "Fast H3 did not report a precise clip window. No partial clip will be saved.",
+                translate("main", "errors.clipWindowMissing"),
                 diagnostic_detail=json.dumps(
                     {"start_seconds": start, "end_seconds": end, "clip_seconds": clip.seconds}
                 ),

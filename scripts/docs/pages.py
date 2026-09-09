@@ -5,22 +5,12 @@ import html
 from pathlib import Path
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
-from ...config.models import NODE_MODELS
+from ...src.language import translate
 from urllib.parse import unquote, urlsplit
-from scripts.release.files import visible_files
+from ...config.models.nodes import NODE_MODELS
+from ...quality.lib.files import git_visible_files
 
 PREFIX = "/extensions/reactor-inc/guides/"
-STYLE = """
-:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
-body { margin: 0 auto; max-width: 76ch; padding: 2rem 1.25rem 4rem; }
-a { color: light-dark(#174b99, #9fc6ff); text-underline-offset: .15em; }
-h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; }
-table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
-th, td { text-align: left; vertical-align: top; padding: .6rem; border: 1px solid GrayText; }
-pre { overflow-x: auto; padding: 1rem; background: light-dark(#f1f3f5, #20242a); }
-code { overflow-wrap: anywhere; } li { margin-block: .4rem; }
-nav { display: flex; flex-wrap: wrap; gap: 1rem; }
-"""
 
 
 class HelpPages:
@@ -29,7 +19,7 @@ class HelpPages:
     def __init__(self, root: Path) -> None:
         """Select canonical guide sources and the public files they may reference."""
         self.root = root.resolve()
-        self.public_files = set(visible_files(self.root))
+        self.public_files = {self.root / name for name in git_visible_files(root=self.root, is_existing_required=True)}
         self.files: dict[Path, bytes] = {}
         self.visited: set[Path] = set()
         self.parser = MarkdownIt("js-default")
@@ -111,11 +101,12 @@ class HelpPages:
         page = (
             f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
-            f"<title>{title}</title><style>{STYLE}</style></head><body>"
-            '<nav aria-label="Reactor guides">'
-            f'<a href="{PREFIX}README.html">ComfyUI Reactor Connector</a>'
-            f'<a href="{PREFIX}workflows/README.html">Workflows</a>'
-            f'<a href="{PREFIX}ADVANCED.html#live-controls">Live controls</a></nav>'
+            f'<title>{title}</title><link rel="stylesheet" href="{PREFIX}docs.css"></head><body>'
+            f'<nav aria-label="{html.escape(translate("main", "help.navigation"))}">'
+            f'<a href="{PREFIX}README.html">{html.escape(translate("main", "help.project"))}</a>'
+            f'<a href="{PREFIX}workflows/README.html">{html.escape(translate("main", "help.workflows"))}</a>'
+            f'<a href="{PREFIX}ADVANCED.html#live-controls">'
+            f"{html.escape(translate('main', 'help.liveControls'))}</a></nav>"
             f"<main>{body}</main></body></html>\n"
         )
         self.files[self.output / self.sources[source]] = page.encode()
@@ -136,4 +127,5 @@ class HelpPages:
         """Render every canonical guide and return the complete output file mapping."""
         for source in self.sources:
             self.page(source)
+        self.files[self.output / "docs.css"] = (self.root / "web/docs.css").read_bytes()
         return self.files

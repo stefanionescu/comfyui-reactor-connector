@@ -4,8 +4,8 @@ import asyncio
 from .schema import lingbot_schema
 from ...media.images import image_png
 from comfy_api.latest import io, Input
-from ...execution.worlds import LingBotWorld2Request
-from ..host import execute_video, operation_fingerprint
+from ...execution.lingbot.request import LingBotWorld2Request
+from ...comfy.execution import execute_video, operation_fingerprint
 
 
 class LingBotWorld2Explore(io.ComfyNode):

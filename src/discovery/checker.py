@@ -5,10 +5,12 @@ import asyncio
 from aiohttp import web
 from .store import ModelStore
 from .contracts import Snapshot
+from ..language import translate
 from ..serialization import Json
 from datetime import UTC, datetime
 from .sources import read_public_models
 from ..settings.settings import Settings
+from ...config.settings import INTEGER_SETTINGS
 from ...config.discovery import CHECK_TIMEOUT_SECONDS
 from collections.abc import Callable, Awaitable, AsyncIterator
 
@@ -36,7 +38,7 @@ class ModelChecker:
         self.error: str | None = None
         self.running = False
         self.enabled = False
-        self.interval_hours = 24
+        self.interval_hours = INTEGER_SETTINGS["catalog_interval_hours"]["default"]
 
     def status(self, revision: str) -> dict[str, Json]:
         """Describe the last check relative to the model revision shown by the caller."""
@@ -75,7 +77,7 @@ class ModelChecker:
         except Exception:  # noqa: BLE001 -- reason: Keep background failures recoverable without exposing provider URLs or response bodies.
             # Provider exceptions can contain URLs or response bodies. The settings
             # and model dialogs need a recovery action, not those private details.
-            self.error = "Automatic model check failed. Use Refresh models to retry."
+            self.error = translate("main", "errors.automaticCheckFailed")
         finally:
             self.running = False
 

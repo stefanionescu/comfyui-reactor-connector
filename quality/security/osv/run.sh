@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 # Audit one declared dependency lock using public OSV advisories.
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 # shellcheck source=../../config/security/osv/environment.sh
 source "${REPO_ROOT}/quality/config/security/osv/environment.sh"

@@ -2,44 +2,14 @@
 
 from typing import cast
 from collections import deque
-from ...codes import ErrorCode
+from ..state import LiveOptions
+from ...language import translate
 from ...serialization import Json
-from dataclasses import dataclass
-from ...errors import ConnectorError
-from ...media.webcam import WebcamFrames
 from ..lease import unavailable, BrowserLease
+from ...errors import ErrorCode, ConnectorError
+from ....config.models.identities import IDENTITIES, MODEL_TITLES
 from ....config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
 from ....config.live import MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
-
-
-@dataclass(frozen=True, slots=True)
-class LiveOptions:
-    """Model-specific prompts, sound options, and optional webcam input for a live session."""
-
-    model: str
-    prompt: str
-    webcam: WebcamFrames | None = None
-    passthrough: bool = False
-    audio_prompt: str = ""
-    audio_enabled: bool = True
-
-    @property
-    def prompt_limit(self) -> int:
-        """Return the prompt character limit for the selected model."""
-        if self.model == "reactor/fast-h3":
-            return 800
-        return (
-            1000
-            if self.model
-            in (
-                "xmax/x2",
-                "reactor/lingbot",
-                "reactor/lingbot-world-2",
-                "reactor/visko-orbis-stable",
-                "reactor/visko-orbis-dynamic",
-            )
-            else 20_000
-        )
 
 
 class ControlLease(BrowserLease):
@@ -62,7 +32,10 @@ class ControlLease(BrowserLease):
     def invitation(self) -> dict[str, Json]:
         """Add supported live controls to the invitation sent to the owning client."""
         result = super().invitation()
+        key = next(key for key, identity in IDENTITIES.items() if identity[1] == self.options.model)
         result.update(
+            model_title=MODEL_TITLES[key],
+            audio_prompt_limit=MAX_AUDIO_PROMPT_CHARACTERS,
             prompt=self.options.prompt,
             prompt_limit=self.options.prompt_limit,
             webcam=self.options.webcam is not None,
@@ -100,7 +73,7 @@ class ControlLease(BrowserLease):
                 ):
                     self.actions.pop()
                 if len(self.actions) >= MAX_PENDING_INPUTS:
-                    raise ConnectorError(ErrorCode.UNAVAILABLE, "Wait for the previous live action.")
+                    raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveActionWait"))
                 self.actions.append((name, payload, self.clock()))
             self.action_sequence = sequence
         return {"accepted": True}
@@ -137,7 +110,7 @@ class ControlLease(BrowserLease):
                 )
             )
         if not valid:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose a supported live action and valid values.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.liveActionValues"))
 
     def is_ready(self) -> bool:
         """Require an active client, a start request, and any required webcam frames."""
@@ -163,9 +136,9 @@ class ControlLease(BrowserLease):
         with self.lock:
             self.actions.clear()
 
-    def close(self, *, termination_confirmed: bool, failed: bool = False) -> None:
+    def close(self, *, is_termination_confirmed: bool, failed: bool = False) -> None:
         """Record termination, discard actions, and clear retained webcam frames."""
-        super().close(termination_confirmed=termination_confirmed, failed=failed)
+        super().close(is_termination_confirmed=is_termination_confirmed, failed=failed)
         with self.lock:
             self.actions.clear()
         if self.options.webcam is not None:

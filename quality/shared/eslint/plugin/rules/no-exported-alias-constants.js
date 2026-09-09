@@ -1,4 +1,4 @@
-const ALIAS_MESSAGE = 'Export the source value directly instead of adding an exported const alias.';
+const aliasMessage = 'Export the source value directly instead of adding an exported const alias.';
 
 function unwrapExpression(node) {
   let current = node;
@@ -50,7 +50,7 @@ export const noExportedAliasConstants = {
 
           ruleContext.report({
             node: declarator,
-            message: ALIAS_MESSAGE,
+            message: aliasMessage,
           });
         }
       },

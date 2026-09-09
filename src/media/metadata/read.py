@@ -3,10 +3,10 @@
 import sys
 import asyncio
 from pathlib import Path
-from ...codes import ErrorCode
+from ...language import translate
 from ...serialization import Json
-from ..capture import CaptureResult
-from ...errors import ConnectorError
+from ..state import CaptureResult
+from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, EncoderProcess
 from ....config.media.workers import METADATA_TIMEOUT_SECONDS
 from ....config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
@@ -28,7 +28,7 @@ async def read_recording(result: CaptureResult, maximum_bytes: int) -> dict[str,
         async with asyncio.timeout(METADATA_TIMEOUT_SECONDS):
             payload = await worker.run(close_input, asyncio.Event(), asyncio.Event())
     except TimeoutError:
-        raise ConnectorError(ErrorCode.CAPTURE, "Reading the saved video's details took too long.") from None
+        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.savedVideoTimeout")) from None
     width, height, duration, size, audio = (
         payload.get("width"),
         payload.get("height"),
@@ -47,7 +47,7 @@ async def read_recording(result: CaptureResult, maximum_bytes: int) -> dict[str,
         or not 0 < size <= maximum_bytes
         or type(audio) is not bool
     ):
-        raise ConnectorError(ErrorCode.CAPTURE, "The saved video returned invalid details.")
+        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.savedVideoDetails"))
     return {
         "frames": result.frames,
         "timestamp_mode": result.timestamp_mode,

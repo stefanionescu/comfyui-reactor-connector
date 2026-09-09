@@ -1,39 +1,26 @@
 """Validate non-secret host limits before opening a remote session."""
 
-from ..codes import ErrorCode
+from ..language import translate
 from ..serialization import Json
-from ..errors import ConnectorError
+from ..errors import ErrorCode, ConnectorError
 from dataclasses import asdict, fields, dataclass
-from ...config.settings import (
-    MAX_TIMEOUT_SECONDS,
-    DEFAULT_MAX_CAPTURE_SECONDS,
-    DEFAULT_MAX_QUEUE_MEGABYTES,
-    DEFAULT_MAX_SESSION_SECONDS,
-    DEFAULT_DISCOVERY_AUTO_CHECK,
-    DEFAULT_MAX_UPLOAD_MEGABYTES,
-    DEFAULT_FRAME_TIMEOUT_SECONDS,
-    DEFAULT_MAX_CAPTURE_MEGABYTES,
-    DEFAULT_QUEUE_TIMEOUT_SECONDS,
-    DEFAULT_CLEANUP_TIMEOUT_SECONDS,
-    DEFAULT_CONNECT_TIMEOUT_SECONDS,
-    DEFAULT_DISCOVERY_INTERVAL_HOURS,
-)
+from ...config.settings import INTEGER_SETTINGS, DEFAULT_DISCOVERY_AUTO_CHECK
 
 
 @dataclass(frozen=True, slots=True)
 class Settings:
     """Host limits that a workflow cannot increase."""
 
-    max_capture_seconds: int = DEFAULT_MAX_CAPTURE_SECONDS
-    max_session_seconds: int = DEFAULT_MAX_SESSION_SECONDS
-    connect_timeout_seconds: int = DEFAULT_CONNECT_TIMEOUT_SECONDS
-    first_frame_timeout_seconds: int = DEFAULT_FRAME_TIMEOUT_SECONDS
-    cleanup_timeout_seconds: int = DEFAULT_CLEANUP_TIMEOUT_SECONDS
-    queue_timeout_seconds: int = DEFAULT_QUEUE_TIMEOUT_SECONDS
-    max_upload_megabytes: int = DEFAULT_MAX_UPLOAD_MEGABYTES
-    max_capture_megabytes: int = DEFAULT_MAX_CAPTURE_MEGABYTES
-    max_queue_megabytes: int = DEFAULT_MAX_QUEUE_MEGABYTES
-    catalog_interval_hours: int = DEFAULT_DISCOVERY_INTERVAL_HOURS
+    max_capture_seconds: int = INTEGER_SETTINGS["max_capture_seconds"]["default"]
+    max_session_seconds: int = INTEGER_SETTINGS["max_session_seconds"]["default"]
+    connect_timeout_seconds: int = INTEGER_SETTINGS["connect_timeout_seconds"]["default"]
+    first_frame_timeout_seconds: int = INTEGER_SETTINGS["first_frame_timeout_seconds"]["default"]
+    cleanup_timeout_seconds: int = INTEGER_SETTINGS["cleanup_timeout_seconds"]["default"]
+    queue_timeout_seconds: int = INTEGER_SETTINGS["queue_timeout_seconds"]["default"]
+    max_upload_megabytes: int = INTEGER_SETTINGS["max_upload_megabytes"]["default"]
+    max_capture_megabytes: int = INTEGER_SETTINGS["max_capture_megabytes"]["default"]
+    max_queue_megabytes: int = INTEGER_SETTINGS["max_queue_megabytes"]["default"]
+    catalog_interval_hours: int = INTEGER_SETTINGS["catalog_interval_hours"]["default"]
     catalog_auto_check: bool = DEFAULT_DISCOVERY_AUTO_CHECK
 
     def __post_init__(self) -> None:
@@ -43,13 +30,14 @@ class Settings:
             if item.name == "catalog_auto_check":
                 valid = isinstance(value, bool)
             else:
-                valid = type(value) is int and 1 <= value <= MAX_TIMEOUT_SECONDS
+                definition = INTEGER_SETTINGS[item.name]
+                valid = type(value) is int and definition["minimum"] <= value <= definition["maximum"]
             if not valid:
-                raise ConnectorError(ErrorCode.CONFIGURATION, f"Choose a valid {item.name} setting.")
+                raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.settingsRange"))
         if self.max_capture_seconds >= self.max_session_seconds:
             raise ConnectorError(
                 ErrorCode.CONFIGURATION,
-                "The session limit must exceed the capture limit to allow setup and cleanup.",
+                translate("main", "errors.sessionLimitTooShort"),
             )
 
     def to_json(self) -> dict[str, Json]:
@@ -61,15 +49,15 @@ def parse_settings(document: dict[str, Json]) -> Settings:
     """Reject unknown settings instead of silently accepting misspelled limits."""
     expected = {item.name for item in fields(Settings)}
     if document.keys() - expected:
-        raise ConnectorError(ErrorCode.CONFIGURATION, "The settings contain an unknown option.")
+        raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.settingUnknown"))
     defaults = Settings()
     integers: dict[str, int] = {}
     for name in expected - {"catalog_auto_check"}:
         value = document.get(name, getattr(defaults, name))
         if type(value) is not int:
-            raise ConnectorError(ErrorCode.CONFIGURATION, f"Use an integer for {name}.")
+            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.settingsWholeNumbers"))
         integers[name] = value
     automatic = document.get("catalog_auto_check", defaults.catalog_auto_check)
     if not isinstance(automatic, bool):
-        raise ConnectorError(ErrorCode.CONFIGURATION, "Use true or false for automatic catalog checks.")
+        raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.automaticChecksType"))
     return Settings(**integers, catalog_auto_check=automatic)

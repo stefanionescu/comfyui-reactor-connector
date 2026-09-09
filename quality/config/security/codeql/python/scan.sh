@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
 # lint:justify -- reason: CodeQL scan policy is sourced by scanner scripts -- ticket: quality-security
 # shellcheck disable=SC2034
+
+[[ -n ${_CFG_QLPYSCAN_READY:-} ]] && return 0
+readonly _CFG_QLPYSCAN_READY=1
 
 CODEQL_LANGUAGE="python"
 CODEQL_CONFIG_FILE="quality/config/security/codeql/python/scan.yml"

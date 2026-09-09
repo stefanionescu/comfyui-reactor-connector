@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 # Create and analyze the connector's JavaScript and TypeScript database.
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
 readonly REPO_ROOT
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 SCRIPT_DIR="${REPO_ROOT}/quality/security/codeql/frontend"
 readonly SCRIPT_DIR
 FILTER_SARIF_SCRIPT="${SCRIPT_DIR}/sarif/filter.js"

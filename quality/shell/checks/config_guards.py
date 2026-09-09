@@ -5,13 +5,12 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 from quality.lib.diagnostics import diagnostic
-from quality.config.shell import SHELL_CONFIG_GUARD_PATTERN
+from quality.config.shell import SHELL_CONFIG_GUARD_PATTERN, SHELL_CONFIG_PREFIXES
 
 if TYPE_CHECKING:
     from quality.lib.diagnostics import Diagnostic
 
 GUARD_RE = re.compile(SHELL_CONFIG_GUARD_PATTERN)
-CONFIG_PREFIX = "scripts/config/"
 GUARD_STATEMENT_COUNT = 2
 
 
@@ -29,7 +28,7 @@ def check_config_guards(sources: dict[str, str]) -> list[Diagnostic]:
     errors: list[Diagnostic] = []
     owners: dict[str, str] = {}
     for path, source in sources.items():
-        if not path.startswith(CONFIG_PREFIX):
+        if not path.startswith(SHELL_CONFIG_PREFIXES):
             continue
         lines = _code_lines(source)
         if not lines:

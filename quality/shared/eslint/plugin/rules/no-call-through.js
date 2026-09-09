@@ -1,6 +1,6 @@
-const MESSAGE =
+const message =
   'Inline trivial call-through functions unless they own policy, validation, telemetry, caching, or error handling.';
-const UNWRAP_NODE_TYPES = new Set([
+const unwrapNodeTypes = new Set([
   'AwaitExpression',
   'ChainExpression',
   'TSAsExpression',
@@ -11,7 +11,7 @@ const UNWRAP_NODE_TYPES = new Set([
 
 function unwrapExpression(node) {
   let current = node;
-  while (current && UNWRAP_NODE_TYPES.has(current.type)) {
+  while (current && unwrapNodeTypes.has(current.type)) {
     current = current.expression;
   }
   return current;
@@ -95,7 +95,7 @@ function reportCallThrough(context, node, allow) {
 
   const call = getOnlyCall(node.body);
   if (call && isDirectCallThrough(node, call)) {
-    context.report({ node, message: MESSAGE });
+    context.report({ node, message: message });
   }
 }
 

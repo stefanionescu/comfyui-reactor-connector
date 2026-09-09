@@ -1,7 +1,7 @@
 """Own private settings and credential changes outside ComfyUI's public storage."""
 
-from ..codes import ErrorCode
-from ..errors import ConnectorError
+from ..language import translate
+from ..errors import ErrorCode, ConnectorError
 
 
 class SettingsConflictError(ConnectorError):
@@ -9,4 +9,4 @@ class SettingsConflictError(ConnectorError):
 
     def __init__(self) -> None:
         """Tell a stale settings editor to reload before saving."""
-        super().__init__(ErrorCode.CONFIGURATION, "Settings changed. Reload them before saving.")
+        super().__init__(ErrorCode.CONFIGURATION, translate("main", "errors.settingsChanged"))

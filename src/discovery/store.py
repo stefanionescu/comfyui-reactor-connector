@@ -4,79 +4,36 @@ import json
 import asyncio
 import threading
 from pathlib import Path
-from ..codes import ErrorCode
+from .state import ModelState
 from .views import model_views
-from ..errors import ConnectorError
+from dataclasses import replace
+from ..language import translate
 from .sources import read_public_models
 from .contracts import invalid, Snapshot
-from dataclasses import replace, dataclass
+from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Awaitable
 from ..storage import atomic_write, read_private
 from ..serialization import Json, parse_json, mapping_value
-
-BUNDLED = Path(__file__).resolve().parents[2] / "config" / "bundled.json"
-
-
-def read_snapshot(path: Path) -> Snapshot:
-    """Read the packaged public snapshot; never fetch while importing or indexing nodes."""
-    return Snapshot.parse(mapping_value(parse_json(path.read_text(), max_bytes=1_048_576)))
-
-
-def merge_observations(previous: Snapshot, candidate: Snapshot) -> Snapshot:
-    """Keep missing entries visible without claiming they remain available or current."""
-    previous_ids = {price.id for price in previous.prices}
-    new_ids = {price.id for price in candidate.prices}
-    if len(new_ids - previous_ids) > max(20, len(previous_ids)):
-        raise ConnectorError(ErrorCode.DISCOVERY, "The catalog grew unexpectedly. Review the source before updating.")
-    if len(new_ids) < max(1, len([p for p in previous.prices if p.observed]) // 2):
-        raise ConnectorError(ErrorCode.DISCOVERY, "The pricing list may be incomplete. The previous list is unchanged.")
-    guide_slugs = {guide.slug for guide in candidate.guides}
-    if len(guide_slugs) < max(1, len([g for g in previous.guides if g.observed]) // 2):
-        raise ConnectorError(ErrorCode.DISCOVERY, "The guide list may be incomplete. The previous list is unchanged.")
-    merged = replace(
-        candidate,
-        prices=candidate.prices
-        + tuple(replace(price, observed=False) for price in previous.prices if price.id not in new_ids),
-        guides=candidate.guides
-        + tuple(replace(guide, observed=False) for guide in previous.guides if guide.slug not in guide_slugs),
-    )
-    return Snapshot.parse(merged.to_json())
-
-
-@dataclass(frozen=True, slots=True)
-class ModelState:
-    """The current public snapshot and one optional rollback snapshot."""
-
-    current: Snapshot
-    previous: Snapshot | None = None
-
-    def to_json(self) -> dict[str, Json]:
-        """Serialize both snapshots in the versioned local storage format."""
-        return {
-            "version": 1,
-            "current": self.current.to_json(),
-            "previous": self.previous.to_json() if self.previous else None,
-        }
+from ...config.discovery import MAX_ADDED_MODELS, SOURCE_RETENTION_DIVISOR, MAX_STORED_METADATA_BYTES
 
 
 class ModelStore:
     """Own local catalog reads, refresh admission, promotion, and rollback."""
 
-    def __init__(self, directory: Path, *, bundled: Path = BUNDLED) -> None:
+    def __init__(self, directory: Path) -> None:
         """Select private storage and initialize separate state and refresh locks."""
         self.path = directory / "catalog.json"
-        self.bundled = bundled
         self._lock = threading.Lock()
         self._admission_lock = threading.Lock()
         self._refreshing = False
 
     def _read(self) -> ModelState:
-        """Load validated local state, or the bundled snapshot on first use."""
+        """Load cached public metadata, or start without prices before the first refresh."""
         try:
-            payload = read_private(self.path, max_bytes=2_097_152)
+            payload = read_private(self.path, max_bytes=MAX_STORED_METADATA_BYTES)
         except FileNotFoundError:
-            return ModelState(read_snapshot(self.bundled))
-        value = mapping_value(parse_json(payload.decode(), max_bytes=2_097_152))
+            return ModelState()
+        value = mapping_value(parse_json(payload.decode(), max_bytes=MAX_STORED_METADATA_BYTES))
         if value.keys() != {"version", "current", "previous"} or type(value["version"]) is not int:
             raise invalid()
         if value["version"] != 1:
@@ -96,13 +53,13 @@ class ModelStore:
         """Describe model support, source freshness, and available list actions."""
         models: list[Json] = list(model_views(state.current))
         return {
-            "revision": state.current.revision,
-            "retrieved_at": state.current.retrieved_at,
-            "credits_per_dollar": state.current.credits_per_dollar,
+            "revision": state.revision,
+            "retrieved_at": state.current.retrieved_at if state.current else None,
+            "credits_per_dollar": state.current.credits_per_dollar if state.current else None,
             "models": models,
             "can_rollback": state.previous is not None,
             "refreshing": self._is_refreshing(),
-            "source": "local" if self.path.exists() else "bundled",
+            "source": "local" if state.current else "registered",
             "scope": "public_pricing_and_documentation",
         }
 
@@ -110,19 +67,19 @@ class ModelStore:
         """Admit one metadata refresh and reject overlapping refresh requests."""
         with self._admission_lock:
             if self._refreshing:
-                raise ConnectorError(ErrorCode.DISCOVERY, "A catalog refresh is already running.")
+                raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelRefreshRunning"))
             self._refreshing = True
 
     def _revision(self) -> str:
         """Read the current revision while holding the state lock."""
         with self._lock:
-            return self._read().current.revision
+            return self._read().revision
 
     def preview(self, candidate: Snapshot) -> tuple[str, str]:
         """Validate a candidate against the current snapshot without writing it."""
         with self._lock:
-            current = self._read().current
-            return current.revision, merge_observations(current, candidate).revision
+            state = self._read()
+            return state.revision, merge_observations(state.current, candidate).revision
 
     def _finish(self) -> None:
         """Release refresh admission after the fetch and any state write finish."""
@@ -174,18 +131,41 @@ class ModelStore:
     @staticmethod
     def _require_revision(state: ModelState, revision: str) -> None:
         """Reject a write based on an outdated model-list revision."""
-        if state.current.revision != revision:
-            raise ConnectorError(ErrorCode.DISCOVERY, "The catalog changed. Reload the list and retry.")
+        if state.revision != revision:
+            raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListChanged"))
 
     def rollback(self, revision: str) -> dict[str, Json]:
         """Swap current and prior snapshots atomically when no refresh is running."""
         with self._lock:
             if self._is_refreshing():
-                raise ConnectorError(ErrorCode.DISCOVERY, "Wait for the catalog refresh to finish.")
+                raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelRefreshWait"))
             state = self._read()
             self._require_revision(state, revision)
             if state.previous is None:
-                raise ConnectorError(ErrorCode.DISCOVERY, "There is no earlier catalog to restore.")
+                raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListHistoryEmpty"))
             restored = ModelState(state.previous, state.current)
             atomic_write(self.path, (json.dumps(restored.to_json(), indent=2) + "\n").encode())
             return self._view(restored)
+
+
+def merge_observations(previous: Snapshot | None, candidate: Snapshot) -> Snapshot:
+    """Keep missing entries visible without claiming they remain available or current."""
+    if previous is None:
+        return candidate
+    previous_ids = {price.id for price in previous.prices}
+    new_ids = {price.id for price in candidate.prices}
+    if len(new_ids - previous_ids) > max(MAX_ADDED_MODELS, len(previous_ids)):
+        raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListGrowth"))
+    if len(new_ids) < max(1, len([p for p in previous.prices if p.observed]) // SOURCE_RETENTION_DIVISOR):
+        raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.priceListIncomplete"))
+    guide_slugs = {guide.slug for guide in candidate.guides}
+    if len(guide_slugs) < max(1, len([g for g in previous.guides if g.observed]) // SOURCE_RETENTION_DIVISOR):
+        raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.guideListIncomplete"))
+    merged = replace(
+        candidate,
+        prices=candidate.prices
+        + tuple(replace(price, observed=False) for price in previous.prices if price.id not in new_ids),
+        guides=candidate.guides
+        + tuple(replace(guide, observed=False) for guide in previous.guides if guide.slug not in guide_slugs),
+    )
+    return Snapshot.parse(merged.to_json())

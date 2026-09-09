@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check the quality tools and their configuration."
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 bun --bun node_modules/eslint/bin/eslint.js --config quality/web/eslint/index.js quality
-bun quality/repository/naming/index.js --scope quality
+bun quality/repository/naming/check.js --scope quality
 bun quality/repository/integrity/config.js
 bun quality/repository/integrity/folder-policy.js
 bun quality/repository/integrity/stale-paths.js

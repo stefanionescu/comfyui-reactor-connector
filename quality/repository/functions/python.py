@@ -59,46 +59,6 @@ class FunctionContext:
     class_context: ClassContext | None
 
 
-def collect_python_function_violations(
-    source: PythonSource,
-    policy: PythonFunctionPolicy,
-    repository: RepositoryFunctions,
-) -> list[NamedDiagnostic]:
-    """Return Python function policy violations for one valid source."""
-    tree = source.tree
-    if tree is None:
-        return []
-    record = repository.modules.get(module_name_for_source(source))
-    if record is None:
-        return []
-
-    violations: list[NamedDiagnostic] = []
-    module_docstring = ast.get_docstring(tree, clean=False)
-    if (
-        source.relative_path.startswith(DOCSTRING_SOURCE_PREFIXES)
-        and module_docstring is not None
-        and module_docstring.startswith(PLACEHOLDER_DOCSTRING_PREFIXES)
-    ):
-        violations.append(
-            {
-                "path": source.relative_path,
-                "line": 1,
-                "code": "python.placeholder-docstring",
-                "message": "module docstring uses placeholder wording",
-            },
-        )
-    visitor = FunctionVisitor(source, policy, repository, record, ast_visitor_classes(tree, record))
-    visitor.visit(tree)
-    violations.extend(visitor.violations)
-    return violations
-
-
-def module_name_for_source(source: PythonSource) -> str:
-    """Return the module name used by the repository reference index."""
-    relative = source.relative_path.removesuffix(".py").replace("/", ".")
-    return relative.removesuffix(".__init__")
-
-
 class FunctionVisitor(ast.NodeVisitor):
     """Collect Python function policy diagnostics."""
 
@@ -225,6 +185,46 @@ class FunctionVisitor(ast.NodeVisitor):
                     f"single-use function has {len(statements)} executable statement(s); inline it",
                 ),
             )
+
+
+def collect_python_function_violations(
+    source: PythonSource,
+    policy: PythonFunctionPolicy,
+    repository: RepositoryFunctions,
+) -> list[NamedDiagnostic]:
+    """Return Python function policy violations for one valid source."""
+    tree = source.tree
+    if tree is None:
+        return []
+    record = repository.modules.get(module_name_for_source(source))
+    if record is None:
+        return []
+
+    violations: list[NamedDiagnostic] = []
+    module_docstring = ast.get_docstring(tree, clean=False)
+    if (
+        source.relative_path.startswith(DOCSTRING_SOURCE_PREFIXES)
+        and module_docstring is not None
+        and module_docstring.startswith(PLACEHOLDER_DOCSTRING_PREFIXES)
+    ):
+        violations.append(
+            {
+                "path": source.relative_path,
+                "line": 1,
+                "code": "python.placeholder-docstring",
+                "message": "module docstring uses placeholder wording",
+            },
+        )
+    visitor = FunctionVisitor(source, policy, repository, record, ast_visitor_classes(tree, record))
+    visitor.visit(tree)
+    violations.extend(visitor.violations)
+    return violations
+
+
+def module_name_for_source(source: PythonSource) -> str:
+    """Return the module name used by the repository reference index."""
+    relative = source.relative_path.removesuffix(".py").replace("/", ".")
+    return relative.removesuffix(".__init__")
 
 
 def function_diagnostic(

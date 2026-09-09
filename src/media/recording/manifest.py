@@ -1,10 +1,10 @@
 """Validate the finite fragmented-MP4 playlist used by Reactor recordings."""
 
 import re
-from ...codes import ErrorCode
+from ...language import translate
 from dataclasses import dataclass
-from ...errors import ConnectorError
 from urllib.parse import urljoin, urlsplit
+from ...errors import ErrorCode, ConnectorError
 from ....config.media.recording import (
     COORDINATOR,
     MAX_SEGMENTS,
@@ -19,11 +19,19 @@ from ....config.media.recording import (
 INIT_URI = re.compile(INIT_URI_PATTERN_TEXT)
 
 
+@dataclass(frozen=True, slots=True)
+class RecordingManifest:
+    """Validated local filenames for an initialization fragment and recording segments."""
+
+    initialization: str
+    segments: tuple[str, ...]
+
+
 def recording_error(reason: str = "Unsupported recording response.") -> ConnectorError:
     """Separate the public recording error from its private diagnostic reason."""
     return ConnectorError(
         ErrorCode.CAPTURE,
-        "Reactor returned an unsupported recording. No partial video was saved.",
+        translate("main", "errors.recordingUnsupported"),
         diagnostic_detail=reason,
     )
 
@@ -56,14 +64,6 @@ def coordinator_url(value: str) -> bool:
     """Decide whether a validated request may carry the private session token."""
     parts = urlsplit(recording_url(value))
     return f"{parts.scheme}://{parts.netloc}" == COORDINATOR
-
-
-@dataclass(frozen=True, slots=True)
-class RecordingManifest:
-    """Validated local filenames for an initialization fragment and recording segments."""
-
-    initialization: str
-    segments: tuple[str, ...]
 
 
 def manifest_lines(text: str) -> list[str]:

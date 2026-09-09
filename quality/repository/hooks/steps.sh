@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 set -euo pipefail
 
 # run_step - Runs a hook step unless its skip variable is set.

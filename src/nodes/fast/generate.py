@@ -4,11 +4,11 @@ import asyncio
 from functools import partial
 from ...media.output import owned_io
 from ...media.images import image_png
+from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
-from ....config.prompts import FAST_GENERATE_PROMPT
 from ...execution.fast.generate import FastGenerateRequest
-from ..host import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.generation.fast import (
     DEFAULT_ASPECT,
     OPTIONS_ASPECT,
@@ -30,51 +30,39 @@ class FastGenerate(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        controls = generation_controls(FAST_GENERATE_PROMPT)
+        controls = generation_controls("fast")
         controls[1] = io.Float.Input(
             "duration_seconds",
-            display_name="Video length (seconds)",
             default=DEFAULT_CLIP_SECONDS,
             min=MIN_CLIP_SECONDS,
             max=MAX_CLIP_SECONDS,
             step=STEP_CLIP_SECONDS,
-            tooltip=(
-                "Fast H3 chooses a supported clip length near this value. "
-                "The clip must fit the video duration limit in Reactor settings."
-            ),
         )
-        return io.Schema(
-            node_id="ReactorIncFastGenerate",
-            display_name="Reactor Fast H3: Generate video",
-            category="Reactor/Generate",
-            inputs=[
-                *controls,
-                io.Combo.Input(
-                    "aspect",
-                    display_name="Aspect ratio",
-                    options=OPTIONS_ASPECT,
-                    default=DEFAULT_ASPECT,
-                ),
-                io.Image.Input(
-                    "image",
-                    display_name="Starting image",
-                    optional=True,
-                    tooltip="Optional first frame. Connect Load Image.",
-                ),
-                io.Image.Input(
-                    "ending_image",
-                    display_name="Final image",
-                    optional=True,
-                    tooltip="Optional last frame. Can be used with or without a first frame.",
-                ),
-            ],
-            outputs=[
-                io.Video.Output(display_name="video"),
-                io.Audio.Output(display_name="audio"),
-                io.String.Output(display_name="metadata"),
-            ],
-            description=("Generate a video clip with sound. Help explains clip lengths, images, and saving."),
-            search_aliases=["Reactor", "Fast H3", "FastH3", "audio"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncFastGenerate",
+                inputs=[
+                    *controls,
+                    io.Combo.Input(
+                        "aspect",
+                        options=OPTIONS_ASPECT,
+                        default=DEFAULT_ASPECT,
+                    ),
+                    io.Image.Input(
+                        "image",
+                        optional=True,
+                    ),
+                    io.Image.Input(
+                        "ending_image",
+                        optional=True,
+                    ),
+                ],
+                outputs=[
+                    io.Video.Output(),
+                    io.Audio.Output(),
+                    io.String.Output(),
+                ],
+            )
         )
 
     @classmethod

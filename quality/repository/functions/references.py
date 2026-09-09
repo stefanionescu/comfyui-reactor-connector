@@ -38,6 +38,74 @@ class RepositoryFunctions:
     reference_counts: Counter[str]
 
 
+class ReferenceVisitor(ast.NodeVisitor):
+    """Count unambiguous references to repository-owned functions."""
+
+    def __init__(self, repository: RepositoryFunctions, record: ModuleFunctions) -> None:
+        """Create a reference visitor for one module."""
+        self.repository = repository
+        self.record = record
+        self.scope: list[str] = []
+        self.class_scope: list[Scope] = []
+        self.counts: Counter[str] = Counter()
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        """Visit one class scope."""
+        self.scope.append(node.name)
+        self.class_scope.append(tuple(self.scope))
+        self.generic_visit(node)
+        self.class_scope.pop()
+        self.scope.pop()
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        """Visit one synchronous function scope."""
+        self.visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        """Visit one asynchronous function scope."""
+        self.visit_function(node)
+
+    def visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+        """Visit one function body."""
+        self.scope.append(node.name)
+        self.generic_visit(node)
+        self.scope.pop()
+
+    def visit_Name(self, node: ast.Name) -> None:
+        """Count one loaded function name."""
+        if isinstance(node.ctx, ast.Load):
+            identity = self.name_identity(node.id)
+            if identity is not None:
+                self.counts[identity] += 1
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        """Count one loaded class or module function attribute."""
+        if isinstance(node.ctx, ast.Load):
+            identity = self.attribute_identity(node)
+            if identity is not None:
+                self.counts[identity] += 1
+        self.generic_visit(node)
+
+    def name_identity(self, name: str) -> str | None:
+        """Resolve a local or imported function name."""
+        for size in range(len(self.scope), -1, -1):
+            identity = self.record.functions.get((tuple(self.scope[:size]), name))
+            if identity is not None:
+                return identity
+        imported = self.record.bindings.get(name)
+        if imported is not None:
+            return self.repository.function_by_dotted_name.get(imported)
+        return None
+
+    def attribute_identity(self, node: ast.Attribute) -> str | None:
+        """Resolve a qualified method or module-function attribute."""
+        if isinstance(node.value, ast.Name) and node.value.id in {"self", "cls"} and self.class_scope:
+            class_scope = self.class_scope[-1]
+            return self.record.functions.get((class_scope, node.attr))
+        dotted = resolved_dotted_name(node, self.record)
+        return self.repository.function_by_dotted_name.get(dotted)
+
+
 def build_repository_functions(sources: Sequence[PythonSource]) -> RepositoryFunctions:
     """Build function identities and qualified reference counts."""
     modules = {
@@ -203,71 +271,3 @@ def resolved_dotted_name(node: ast.AST, record: ModuleFunctions) -> str:
     if bound_root is None:
         bound_root = root
     return f"{bound_root}.{tail}" if separator else bound_root
-
-
-class ReferenceVisitor(ast.NodeVisitor):
-    """Count unambiguous references to repository-owned functions."""
-
-    def __init__(self, repository: RepositoryFunctions, record: ModuleFunctions) -> None:
-        """Create a reference visitor for one module."""
-        self.repository = repository
-        self.record = record
-        self.scope: list[str] = []
-        self.class_scope: list[Scope] = []
-        self.counts: Counter[str] = Counter()
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        """Visit one class scope."""
-        self.scope.append(node.name)
-        self.class_scope.append(tuple(self.scope))
-        self.generic_visit(node)
-        self.class_scope.pop()
-        self.scope.pop()
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        """Visit one synchronous function scope."""
-        self.visit_function(node)
-
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        """Visit one asynchronous function scope."""
-        self.visit_function(node)
-
-    def visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        """Visit one function body."""
-        self.scope.append(node.name)
-        self.generic_visit(node)
-        self.scope.pop()
-
-    def visit_Name(self, node: ast.Name) -> None:
-        """Count one loaded function name."""
-        if isinstance(node.ctx, ast.Load):
-            identity = self.name_identity(node.id)
-            if identity is not None:
-                self.counts[identity] += 1
-
-    def visit_Attribute(self, node: ast.Attribute) -> None:
-        """Count one loaded class or module function attribute."""
-        if isinstance(node.ctx, ast.Load):
-            identity = self.attribute_identity(node)
-            if identity is not None:
-                self.counts[identity] += 1
-        self.generic_visit(node)
-
-    def name_identity(self, name: str) -> str | None:
-        """Resolve a local or imported function name."""
-        for size in range(len(self.scope), -1, -1):
-            identity = self.record.functions.get((tuple(self.scope[:size]), name))
-            if identity is not None:
-                return identity
-        imported = self.record.bindings.get(name)
-        if imported is not None:
-            return self.repository.function_by_dotted_name.get(imported)
-        return None
-
-    def attribute_identity(self, node: ast.Attribute) -> str | None:
-        """Resolve a qualified method or module-function attribute."""
-        if isinstance(node.value, ast.Name) and node.value.id in {"self", "cls"} and self.class_scope:
-            class_scope = self.class_scope[-1]
-            return self.record.functions.get((class_scope, node.attr))
-        dotted = resolved_dotted_name(node, self.record)
-        return self.repository.function_by_dotted_name.get(dotted)

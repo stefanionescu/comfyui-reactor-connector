@@ -11,11 +11,5 @@ export const CASE_PATTERNS = {
   'upper-snake': /^[A-Z]+(?:_[A-Z]+)*$/,
 };
 
-export const CONSTANT_PROPERTY_REGEX = /^[A-Z][A-Z0-9_]*$/u;
-// eslint-disable-next-line security/detect-unsafe-regex -- Underscores cannot match the repeated letter and digit groups.
-export const SNAKE_PROPERTY_REGEX = /^[a-z][a-z0-9]*(_[a-z0-9]+)+$/u;
-
-export const GENERATED_PROPERTY_KEYS = ['data'];
-export const SOCKET_STATE_KEYS = [];
 export const JAVASCRIPT_DIRECTORY_PREFIXES = ['web/', 'scripts/', 'quality/'];
 export const SHELL_DIRECTORY_PREFIXES = ['.mise/', '.githooks/', 'quality/'];

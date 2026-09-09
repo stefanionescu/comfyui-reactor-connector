@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Validate the supplied commit message with commitlint."
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 if [[ ${SKIP_HOOKS:-0} == "1" || ${SKIP_COMMITLINT:-0} == "1" ]]; then
   printf '%s\n' '[hook] skipped commit message check (SKIP_HOOKS or SKIP_COMMITLINT)'

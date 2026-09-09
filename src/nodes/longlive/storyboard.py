@@ -1,9 +1,11 @@
 """Build and execute LongLive shots without making users write model commands."""
 
 from comfy_api.latest import io
-from ..host import execute_video, operation_fingerprint
+from ..schema import translate_schema
+from ...execution.longlive.request import LongLiveRequest
 from ..controls import video_outputs, generation_controls
-from ...execution.storyboard import LongLiveRequest, parse_storyboard
+from ...execution.longlive.storyboard import parse_storyboard
+from ...comfy.execution import execute_video, operation_fingerprint
 
 
 class LongLiveStoryboard(io.ComfyNode):
@@ -12,24 +14,20 @@ class LongLiveStoryboard(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Declare the saved input names, controls, and output sockets for this node."""
-        return io.Schema(
-            node_id="ReactorIncLongLiveStoryboard",
-            display_name="Reactor LongLive: Create a storyboard",
-            category="Reactor/Generate",
-            inputs=[
-                *generation_controls(),
-                io.String.Input(
-                    "storyboard",
-                    display_name="Shots (JSON)",
-                    default="[]",
-                    multiline=False,
-                    advanced=True,
-                    tooltip="Connect Reactor LongLive: Add a shot, or enter a validated shot list.",
-                ),
-            ],
-            outputs=video_outputs(),
-            description="Generate an opening shot and schedule later shots by chunk number.",
-            search_aliases=["Reactor", "LongLive", "shots", "cuts"],
+        return translate_schema(
+            io.Schema(
+                node_id="ReactorIncLongLiveStoryboard",
+                inputs=[
+                    *generation_controls(),
+                    io.String.Input(
+                        "storyboard",
+                        default="[]",
+                        multiline=False,
+                        advanced=True,
+                    ),
+                ],
+                outputs=video_outputs(),
+            )
         )
 
     @classmethod

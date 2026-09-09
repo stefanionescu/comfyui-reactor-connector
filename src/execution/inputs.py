@@ -1,23 +1,12 @@
 """Check shared video inputs and recording limits before starting a session."""
 
 from typing import ClassVar
-from ..codes import ErrorCode
+from ..language import translate
 from .transport import Transport
 from dataclasses import dataclass
-from ..errors import ConnectorError
 from ..settings.settings import Settings
+from ..errors import ErrorCode, ConnectorError
 from ...config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
-
-
-def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settings) -> None:
-    """Validate capture length and seed without imposing a model's prompt policy."""
-    if (
-        type(duration_seconds) not in (int, float)
-        or not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds
-    ):
-        raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose a capture within the host limit.")
-    if type(seed) is not int or not 0 <= seed <= 2**32 - 1:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose a seed from 0 to 4,294,967,295.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,11 +36,22 @@ class VideoInputs:
     def validate(self, settings: Settings) -> None:
         """Check prompt, capture, and image limits before a paid connection."""
         if type(self.prompt) is not str or not self.prompt.strip() or len(self.prompt) > MAX_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Enter a prompt of 1 to 20,000 characters.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptLength"))
         validate_capture_inputs(self.duration_seconds, self.seed, settings)
         if self.image is not None and (
             type(self.image) is not bytes
             or not self.image
             or len(self.image) > settings.max_upload_megabytes * 1_048_576
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Provide image bytes within the upload limit.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.imageUploadLimit"))
+
+
+def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settings) -> None:
+    """Validate capture length and seed without imposing a model's prompt policy."""
+    if (
+        type(duration_seconds) not in (int, float)
+        or not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds
+    ):
+        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.captureLimit"))
+    if type(seed) is not int or not 0 <= seed <= 2**32 - 1:
+        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.seedRange"))

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { PACKAGE_JSON_DEFAULT_FILES } from '#config/package-json/manifest.js';
 import { SEMVER_PREFIX_REGEX, SEMVER_SUFFIX_REGEX, UNICORN_ESLINT_MIN } from '#config/eslint.js';
 
-const REPO_ROOT = process.cwd();
+const repoRoot = process.cwd();
 const errors = [];
 const eslintVersions = [];
 
@@ -32,7 +32,7 @@ function compareSemver(left, right) {
 }
 
 for (const packageFile of PACKAGE_JSON_DEFAULT_FILES) {
-  const absolutePath = path.join(REPO_ROOT, packageFile);
+  const absolutePath = path.join(repoRoot, packageFile);
   const pkg = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
   const deps = {
     ...pkg.dependencies,

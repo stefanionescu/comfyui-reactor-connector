@@ -1,4 +1,4 @@
-"""Static media recording values used by the connector."""
+"""Recording download, manifest, and stream limits."""
 
 MAX_DOWNLOAD_SECONDS = 3600
 
@@ -20,3 +20,15 @@ MAX_SEGMENTS = 512
 INIT_URI_PATTERN_TEXT = '#EXT-X-MAP:URI="([^"\\r\\n]+)"'
 
 STORAGE_ERROR_PATTERN = b"<Code>([A-Za-z]{1,64})</Code>"
+
+__all__ = [
+    "COORDINATOR",
+    "FIRST_URL_CHARACTER",
+    "INIT_URI_PATTERN_TEXT",
+    "MAX_DOWNLOAD_SECONDS",
+    "MAX_MANIFEST_BYTES",
+    "MAX_RECORDING_URL_CHARACTERS",
+    "MAX_SEGMENTS",
+    "RECORDING_STORAGE",
+    "STORAGE_ERROR_PATTERN",
+]

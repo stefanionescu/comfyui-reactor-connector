@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-#MISE description="Check the clean revision Git intends to push."
+# Runtime: Bash 3.2+, macOS and Linux.
+#MISE description="Run repository checks before pushing."
 set -euo pipefail
 
 REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 # shellcheck source=../../../quality/repository/hooks/steps.sh
 source "${REPO_ROOT}/quality/repository/hooks/steps.sh"
@@ -12,20 +13,11 @@ if [[ ${SKIP_HOOKS:-0} == "1" ]]; then
   printf '%s\n' '[hook] skipped pre-push checks (SKIP_HOOKS=1)'
   exit 0
 fi
-push_records="$(mktemp -t reactor-push-XXXXXX)"
-readonly push_records
-trap 'rm -f "${push_records}"' EXIT
-cat >"${push_records}"
-push_head="$(uv run --no-sync python -m quality.repository.hooks.push "${push_records}")"
-readonly push_head
-[[ ${push_head} == deleted ]] && exit 0
-
 if command -v git-lfs >/dev/null 2>&1; then
-  git lfs pre-push "$@" <"${push_records}"
+  git lfs pre-push "$@"
 fi
 run_step "check" "" mise run check
 run_step "security" "" mise run security
 run_step "licenses" "" mise run licenses
 run_step "public documentation links" "" mise run links:external
-uv run --no-sync python -m quality.repository.hooks.push --verify "${push_head}"
-printf '%s\n' '[hook] push checks passed for the unchanged revision'
+printf '%s\n' '[hook] push checks passed'

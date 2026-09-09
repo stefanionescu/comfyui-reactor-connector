@@ -1,7 +1,9 @@
+import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { modelRow } from '#web/discovery/row.ts';
+import { browserLimits } from '#config/browser.ts';
 import type { Fetcher } from '#web/settings/api.ts';
-import { type ModelList, requestModels } from '#web/discovery/api.ts';
+import { type ModelList, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
 let current: ModelDialog | undefined;
 
@@ -12,15 +14,16 @@ let current: ModelDialog | undefined;
  */
 function automaticStatus(check: ModelList['automatic_check']): string {
   if (!check) return '';
-  if (!check.enabled) return 'Automatic model checks are off. Change this in Reactor settings.';
-  if (check.running)
-    return 'An automatic model check is running. Reopen this list to see its result.';
+  if (!check.enabled) return translate('models.checksOff');
+  if (check.running) return translate('models.checkRunning');
   if (check.error) return check.error;
-  if (check.update_available === true)
-    return 'The model list has changed. Select Refresh models to update your list.';
+  if (check.update_available === true) return translate('models.listChanged');
   if (check.checked_at)
-    return `Automatic check: ${new Date(check.checked_at).toLocaleString()}. Checks run every ${check.interval_hours} hours.`;
-  return 'An automatic model check is due. Checks do not change this list.';
+    return translate('models.checkSchedule', {
+      date: new Date(check.checked_at).toLocaleString(),
+      hours: check.interval_hours,
+    });
+  return translate('models.checkDue');
 }
 
 /** Browse public model information without opening an account session. */
@@ -35,11 +38,11 @@ class ModelDialog {
 
   private readonly duration = element('input');
 
-  private readonly refresh = button('Refresh models');
+  private readonly refresh = button(translate('models.refresh'));
 
-  private readonly rollback = button('Restore previous list');
+  private readonly rollback = button(translate('models.restore'));
 
-  private readonly status = element('p', 'Loading the local model list…');
+  private readonly status = element('p', translate('models.loadingLocal'));
 
   private readonly checked = element('p');
 
@@ -62,32 +65,25 @@ class ModelDialog {
   ) {
     this.dialog.className = 'reactor-settings reactor-catalog';
     this.dialog.setAttribute('aria-labelledby', 'reactor-catalog-title');
-    const heading = element('h2', 'Reactor models');
+    const heading = element('h2', translate('models.title'));
     heading.id = 'reactor-catalog-title';
-    const close = button('Close');
-    close.setAttribute('aria-label', 'Close Reactor models');
+    const close = button(translate('close'));
+    close.setAttribute('aria-label', translate('models.close'));
     close.addEventListener('click', () => this.dialog.close());
     const header = element('header');
     header.append(heading, close);
-    const searchLabel = element('label', 'Search models');
+    const searchLabel = element('label', translate('models.search'));
     this.search.type = 'search';
-    this.search.placeholder = 'Name or connect name';
+    this.search.placeholder = translate('models.searchPlaceholder');
     searchLabel.append(this.search);
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
-    this.list.setAttribute('aria-label', 'Reactor models');
+    this.list.setAttribute('aria-label', translate('models.title'));
     const sources = element('details');
-    sources.append(
-      element('summary', 'Model sources and automatic checks'),
-      this.checked,
-      this.automatic,
-    );
+    sources.append(element('summary', translate('models.sources')), this.checked, this.automatic);
     this.dialog.append(
       header,
-      element(
-        'p',
-        "Refresh checks Reactor's public model list and prices. It sends no API key and uses no credits. New models need a compatible connector node.",
-      ),
+      element('p', translate('models.refreshNotice')),
       this.actions(),
       this.status,
       searchLabel,
@@ -106,7 +102,7 @@ class ModelDialog {
    * @returns The model browser actions.
    */
   private actions(): HTMLElement {
-    const showAll = button('Show all models');
+    const showAll = button(translate('models.showAll'));
     showAll.hidden = !this.nodeId;
     showAll.addEventListener('click', () => {
       this.nodeId = undefined;
@@ -114,8 +110,8 @@ class ModelDialog {
       this.render();
     });
     this.refresh.disabled = this.rollback.disabled = true;
-    this.refresh.addEventListener('click', () => void this.perform('refresh'));
-    this.rollback.addEventListener('click', () => void this.perform('rollback'));
+    this.refresh.addEventListener('click', () => void this.updateModels('refresh'));
+    this.rollback.addEventListener('click', () => void this.updateModels('rollback'));
     const actions = element('div');
     actions.className = 'reactor-actions';
     actions.append(this.refresh, this.rollback, showAll);
@@ -127,21 +123,18 @@ class ModelDialog {
    * @returns The collapsed calculation controls.
    */
   private calculation(): HTMLElement {
-    const label = element('label', 'Session time to calculate (seconds)');
+    const label = element('label', translate('pricing.sessionTime'));
     this.duration.type = 'number';
     this.duration.min = '0.1';
-    this.duration.max = '3600';
+    this.duration.max = String(browserLimits.maxCalculatorSeconds);
     this.duration.step = 'any';
-    this.duration.placeholder = 'Enter total paid session time';
+    this.duration.placeholder = translate('pricing.enterTime');
     label.append(this.duration);
     const calculation = element('details');
     calculation.append(
-      element('summary', 'Calculate credits for session time'),
+      element('summary', translate('pricing.calculate')),
       label,
-      element(
-        'p',
-        'Use total session time, including setup, pauses, and recording. Saved video length may be shorter. This estimate is not a spending limit or a quote.',
-      ),
+      element('p', translate('pricing.totalTimeNotice')),
     );
     return calculation;
   }
@@ -161,7 +154,10 @@ class ModelDialog {
         ? this.duration.valueAsNumber
         : undefined;
     this.list.replaceChildren(...visible.map((model) => modelRow(model, seconds)));
-    this.count.textContent = `${visible.length} of ${this.catalog?.models.length ?? 0} catalog entries`;
+    this.count.textContent = translate('models.count', {
+      visible: visible.length,
+      total: this.catalog?.models.length ?? 0,
+    });
   }
 
   /**
@@ -169,10 +165,10 @@ class ModelDialog {
    * @param action - Read, refresh from public sources, or restore the previous list.
    * @returns When the model list or error is displayed.
    */
-  private async perform(action: 'read' | 'refresh' | 'rollback'): Promise<void> {
+  private async updateModels(action: 'read' | 'refresh' | 'rollback'): Promise<void> {
     this.refresh.disabled = this.rollback.disabled = true;
     this.status.textContent =
-      action === 'refresh' ? 'Checking public model sources…' : 'Loading model list…';
+      action === 'refresh' ? translate('models.checking') : translate('models.loading');
     try {
       const next = await requestModels(
         this.fetcher,
@@ -182,17 +178,18 @@ class ModelDialog {
       );
       if (this.controller.signal.aborted) return;
       this.catalog = next;
-      this.checked.textContent = `Last source check: ${new Date(next.retrieved_at).toLocaleString()}. Your Reactor account determines which models you can use.`;
+      this.checked.textContent = metadataStatus(next.retrieved_at);
       this.automatic.textContent = automaticStatus(next.automatic_check);
       this.status.textContent = {
-        refresh: 'Model list refreshed. No generation started.',
-        rollback: 'Previous model list restored. This does not change which models Reactor offers.',
-        read: 'Local model list loaded.',
+        refresh: translate('models.refreshed'),
+        rollback: translate('models.restored'),
+        read: translate('models.loaded'),
       }[action];
       this.render();
     } catch (error) {
       if (!this.controller.signal.aborted)
-        this.status.textContent = error instanceof Error ? error.message : 'Cannot load models.';
+        this.status.textContent =
+          error instanceof Error ? error.message : translate('models.loadFailed');
     } finally {
       this.restoreActions();
     }
@@ -209,7 +206,7 @@ class ModelDialog {
   show(): void {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    void this.perform('read');
+    void this.updateModels('read');
   }
 
   /** Stop pending requests and return focus to the caller. */

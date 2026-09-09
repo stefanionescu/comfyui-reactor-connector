@@ -227,14 +227,14 @@
             "is_excluded": true
         },
         {
-            "path_regexes": ["(?:^src/execution/visko\\.py$|^src/nodes/visko/stable\\.py$)"],
+            "path_regexes": ["(?:^src/execution/visko/request\\.py$|^src/nodes/visko/stable\\.py$)"],
             "languages": ["python"],
             "categories": ["variables", "parameters"],
             "names": ["resolution"],
             "is_excluded": true
         },
         {
-            "path_regexes": ["^src/execution/worlds\\.py$"],
+            "path_regexes": ["^src/execution/lingbot/request\\.py$"],
             "languages": ["python"],
             "categories": ["classes"],
             "names": ["LingBotWorld2Request"],
@@ -248,17 +248,24 @@
             "is_excluded": true
         },
         {
-            "path_regexes": ["(?:^src/execution/x2\\.py$|^src/nodes/x2/)"],
+            "path_regexes": ["(?:^src/execution/x2(?:/|$)|^src/nodes/x2/|^scripts/workflows/models/x2\\.py$)"],
             "languages": ["python"],
             "categories": ["files", "directories"],
             "names": ["x2"],
             "are_digits_allowed": true
         },
         {
-            "path_regexes": ["^src/nodes/interaction\\.py$"],
+            "path_regexes": ["^src/comfy/interaction\\.py$"],
             "languages": ["python"],
             "categories": ["methods"],
             "names": ["send_sync"],
+            "is_excluded": true
+        },
+        {
+            "path_regexes": ["^quality/repository/naming/extractors/python\\.py$"],
+            "languages": ["python"],
+            "categories": ["methods"],
+            "names": ["generic_visit"],
             "is_excluded": true
         }
     ],

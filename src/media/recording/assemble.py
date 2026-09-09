@@ -5,11 +5,11 @@ import asyncio
 from pathlib import Path
 from ..output import owned_io
 from functools import partial
-from ...codes import ErrorCode
-from ..capture import CaptureResult
-from ...errors import ConnectorError
+from ...language import translate
+from ..state import CaptureResult
 from ...settings.settings import Settings
 from ....config.media.audio import SAMPLE_RATE
+from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, EncoderProcess
 from ....config.media.workers import RECORDING_TIMEOUT_SECONDS
 
@@ -55,7 +55,7 @@ async def prepare_recording(
             or type(channels) is not int
             or channels not in (1, 2)
         ):
-            raise ConnectorError(ErrorCode.CAPTURE, "The recording returned invalid media metadata.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingMetadata"))
         success = True
         return CaptureResult(destination, frames, str(mode), audio_path=audio)
     finally:

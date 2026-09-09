@@ -10,7 +10,7 @@ import {
   CODEQL_PROJECT_ROOT,
 } from '#config/security/codeql/frontend/false-positives.js';
 
-const REPO_ROOT = process.cwd();
+const repoRoot = process.cwd();
 
 function isInsideProject(projectRoot, targetPath) {
   const relativePath = path.relative(projectRoot, targetPath);
@@ -33,9 +33,9 @@ function validateFalsePositiveFile(project, configPath) {
     const uri = requireString(ignored.uri, `${project}.ignored[${index}].uri`);
     // reason: The next guard rejects paths outside the repository before any file access.
     // bearer:disable javascript_lang_path_traversal
-    const targetPath = path.resolve(REPO_ROOT, uri);
+    const targetPath = path.resolve(repoRoot, uri);
 
-    if (!isInsideProject(REPO_ROOT, targetPath)) {
+    if (!isInsideProject(repoRoot, targetPath)) {
       errors.push(`${project}: ignored URI escapes repository root: ${uri}`);
       continue;
     }
@@ -59,7 +59,7 @@ function validateFalsePositives() {
     // reason: Every path component comes from the fixed local CodeQL policy.
     // bearer:disable javascript_lang_path_traversal
     const configPath = path.join(
-      REPO_ROOT,
+      repoRoot,
       CODEQL_PROJECT_ROOT,
       project,
       CODEQL_FALSE_POSITIVE_FILE,

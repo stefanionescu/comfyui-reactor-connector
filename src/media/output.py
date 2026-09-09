@@ -3,31 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from ..codes import ErrorCode
-from ..errors import ConnectorError
+from ..language import translate
 from typing import BinaryIO, TYPE_CHECKING
+from ..errors import ErrorCode, ConnectorError
 
 if TYPE_CHECKING:
     from pathlib import Path
     from types import TracebackType
     from collections.abc import Callable
-
-
-async def owned_io[T](operation: Callable[[], T]) -> T:
-    """Do not close or remove a file while an already submitted write still owns it."""
-    task = asyncio.create_task(asyncio.to_thread(operation))
-    cancelled = False
-    while not task.done():
-        try:
-            await asyncio.shield(task)
-        except asyncio.CancelledError:
-            cancelled = True
-        except Exception:  # noqa: BLE001 -- reason: Read the task result below after resolving ownership and pending cancellation.
-            break
-    if cancelled:
-        task.exception()
-        raise asyncio.CancelledError
-    return task.result()
 
 
 class FileOutput:
@@ -49,9 +32,9 @@ class FileOutput:
     def _write(self, content: bytes) -> None:
         """Write only while the output is open and the byte limit allows it."""
         if self.stream is None:
-            raise ConnectorError(ErrorCode.CAPTURE, "The recording output is closed.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.outputClosed"))
         if self.written + len(content) > self.maximum_bytes:
-            raise ConnectorError(ErrorCode.CAPTURE, "The recording exceeds the output size limit.")
+            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.outputSize"))
         self.stream.write(content)
         self.written += len(content)
 
@@ -93,3 +76,20 @@ class FileOutput:
         except BaseException:
             await owned_io(lambda: self._close(discard=True))
             raise
+
+
+async def owned_io[T](operation: Callable[[], T]) -> T:
+    """Do not close or remove a file while an already submitted write still owns it."""
+    task = asyncio.create_task(asyncio.to_thread(operation))
+    cancelled = False
+    while not task.done():
+        try:
+            await asyncio.shield(task)
+        except asyncio.CancelledError:
+            cancelled = True
+        except Exception:  # noqa: BLE001 -- reason: Read the task result below after resolving ownership and pending cancellation.
+            break
+    if cancelled:
+        task.exception()
+        raise asyncio.CancelledError
+    return task.result()

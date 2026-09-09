@@ -3,16 +3,7 @@ import { JSX_EXTENSIONS } from '#config/files.js';
 import { getKeys } from '@typescript-eslint/visitor-keys';
 import { parse } from '@typescript-eslint/typescript-estree';
 
-import {
-  CONSTANT_PROPERTY_REGEX,
-  GENERATED_PROPERTY_KEYS,
-  SNAKE_PROPERTY_REGEX,
-  SOCKET_STATE_KEYS,
-} from '#config/naming.js';
-
-const JSX_EXTENSION_SET = new Set(JSX_EXTENSIONS);
-const GENERATED_PROPERTY_KEY_SET = new Set(GENERATED_PROPERTY_KEYS);
-const SOCKET_STATE_KEY_SET = new Set(SOCKET_STATE_KEYS);
+const jsxExtensionSet = new Set(JSX_EXTENSIONS);
 
 function lineFor(node) {
   if (!node?.loc?.start) {
@@ -46,29 +37,6 @@ function keyName(node) {
   return null;
 }
 
-function isExternalContractProperty(name) {
-  if (GENERATED_PROPERTY_KEY_SET.has(name) || SOCKET_STATE_KEY_SET.has(name)) {
-    return true;
-  }
-  if (CONSTANT_PROPERTY_REGEX.test(name)) {
-    return true;
-  }
-  return SNAKE_PROPERTY_REGEX.test(name);
-}
-
-function skipPatternField(field) {
-  if (field?.type !== 'Property') {
-    return false;
-  }
-
-  const key = keyName(field.key);
-  return (
-    isExternalContractProperty(key) &&
-    field.value?.type === 'Identifier' &&
-    field.value.name === key
-  );
-}
-
 function addKeyEntry(entries, file, language, category, kind, node) {
   if (node?.computed) {
     return;
@@ -88,9 +56,9 @@ function patternChildren(node) {
     case 'ArrayPattern':
       return node.elements;
     case 'ObjectPattern':
-      return node.properties
-        .filter((field) => !skipPatternField(field))
-        .map((field) => (field.type === 'RestElement' ? field.argument : field.value));
+      return node.properties.map((field) =>
+        field.type === 'RestElement' ? field.argument : field.value,
+      );
     default:
       return [];
   }
@@ -143,7 +111,7 @@ function parseSource(relativePath, sourceText) {
   const extension = path.extname(relativePath).toLowerCase();
   const options = {
     comment: false,
-    jsx: JSX_EXTENSION_SET.has(extension),
+    jsx: jsxExtensionSet.has(extension),
     loc: true,
     range: false,
     sourceType: 'module',

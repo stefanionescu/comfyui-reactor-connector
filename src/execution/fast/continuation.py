@@ -1,13 +1,13 @@
 """Chain a chosen number of Fast H3 clips in one session and save their sound."""
 
-from ...codes import ErrorCode
 from ..inputs import VideoInputs
+from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
-from ...errors import ConnectorError
 from ...settings.settings import Settings
 from .generate import FastGenerateRequest
+from ...errors import ErrorCode, ConnectorError
 from .clip import seconds, FastClip, FastClipEvents, message_payload
 from ....config.generation.fast import (
     MAX_CLIP_COUNT,
@@ -30,18 +30,18 @@ class FastContinueRequest(FastGenerateRequest):
         """Check sequence length, prompts, and upload limits before starting a session."""
         VideoInputs.validate(self, settings)
         if type(self.clip_count) is not int or not MIN_CLIP_COUNT <= self.clip_count <= MAX_CLIP_COUNT:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose 2 to 8 clips.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.clipCount"))
         if type(self.clip_seconds) not in (int, float) or not MIN_CLIP_SECONDS <= self.clip_seconds <= MAX_CLIP_SECONDS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose 5.167 to 14.375 seconds per clip.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.continuedClipDuration"))
         if self.aspect not in ("16:9", "1:1", "9:16", "4:3"):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose an offered aspect ratio.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.aspectRatio"))
         prompts = (self.prompt, *self.later_prompts)
         if len(self.later_prompts) > self.clip_count - 1 or any(
             type(prompt) is not str or not prompt.strip() or len(prompt) > MAX_PROMPT_CHARACTERS for prompt in prompts
         ):
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                "Use at most 800 characters per prompt and one later prompt per remaining clip.",
+                translate("main", "errors.continuationPrompts"),
             )
         self.recording.maximum_seconds = settings.max_capture_seconds
 
@@ -51,7 +51,7 @@ class FastContinueRequest(FastGenerateRequest):
             track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
             for track in transport.tracks
         ):
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "This Fast H3 deployment has no audio track.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
         clips = FastClipEvents(events, limit=self.clip_count + 1)
         await events.command("set_autoplay", {"enabled": False})
         await events.command("set_flush_on_clip_end", {"enabled": False})
@@ -64,13 +64,13 @@ class FastContinueRequest(FastGenerateRequest):
         if not minimum <= self.clip_seconds <= maximum:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                "This deployment does not support the requested clip length.",
+                translate("main", "errors.clipDurationUnsupported"),
             )
         current = await self._enqueue(events, None, 0)
         await events.call("clip_build", clips.wait_ready(current))
         state = await self._state(transport, events)
         if state.get("playing") is not False:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "Fast H3 started playback before the sequence was ready.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sequencePlaybackOrder"))
         self.recording.start_seconds = seconds(state.get("seconds_sent"))
         await events.command("set_autoplay", {"enabled": True})
         # Queue one continuation ahead. Each clip opens from the previous clip's last frame.
@@ -83,7 +83,7 @@ class FastContinueRequest(FastGenerateRequest):
         if not 0 < duration <= self.recording.maximum_seconds:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
-                ("The sequence exceeded the video duration limit. Choose fewer clips or a longer limit."),
+                (translate("main", "errors.sequenceCaptureLimit")),
             )
         self.recording.duration_seconds = duration
         events.model_timing.update(saved_start_seconds=self.recording.start_seconds, saved_duration_seconds=duration)
@@ -119,6 +119,6 @@ class FastContinueRequest(FastGenerateRequest):
         if duration is None and clip.seconds * self.clip_count > self.recording.maximum_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                "The accepted clip lengths exceed the video duration limit. Choose fewer clips.",
+                translate("main", "errors.acceptedSequenceLimit"),
             )
         return clip

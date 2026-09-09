@@ -88,7 +88,7 @@ def check_config_file(root: Path, path: Path) -> list[str]:
     for node in ast.walk(tree):
         if isinstance(node, CONTROL_FLOW_NODES):
             violations.append(f"{relative_path}:{node.lineno} config contains control flow")
-        elif isinstance(node, EXECUTABLE_NODES):
+        elif isinstance(node, EXECUTABLE_NODES) and not is_typed_dictionary(node):
             violations.append(f"{relative_path}:{node.lineno} config contains executable syntax")
     return sorted(set(violations))
 
@@ -103,6 +103,8 @@ def check_top_level_node(relative_path: str, node: ast.stmt, known_constants: se
             for module in modules
             if not any(module == root or module.startswith(f"{root}.") for root in CONFIG_IMPORT_ROOTS)
         )
+    elif is_typed_dictionary(node):
+        return violations
     elif isinstance(node, ast.Expr):
         if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
             return violations
@@ -114,6 +116,19 @@ def check_top_level_node(relative_path: str, node: ast.stmt, known_constants: se
     else:
         violations.append(f"{relative_path}:{node.lineno} config contains non-assignment statement")
     return violations
+
+
+def is_typed_dictionary(node: ast.AST) -> bool:
+    """Allow field-only TypedDict declarations without decorators, methods, or default expressions."""
+    if not isinstance(node, ast.ClassDef) or node.decorator_list or node.keywords:
+        return False
+    if len(node.bases) != 1 or not isinstance(node.bases[0], ast.Name) or node.bases[0].id != "TypedDict":
+        return False
+    return all(
+        (isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name) and item.value is None)
+        or (isinstance(item, ast.Expr) and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str))
+        for item in node.body
+    )
 
 
 def imported_modules(relative_path: str, node: ast.Import | ast.ImportFrom) -> list[str]:

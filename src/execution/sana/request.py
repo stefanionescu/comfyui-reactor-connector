@@ -2,15 +2,16 @@
 
 import asyncio
 from pathlib import Path
-from ...codes import ErrorCode
+from ...language import translate
 from ..transport import Transport
 from .contract import source_mode
 from typing import cast, ClassVar
 from ..events import SessionEvents
-from ...errors import ConnectorError
 from ...media.webcam import WebcamFrames
 from dataclasses import field, dataclass
 from ...settings.settings import Settings
+from ...errors import ErrorCode, ConnectorError
+from ....config.models.identities import IDENTITIES
 from ...media.video.publish import VideoPublication
 from ..inputs import VideoInputs, validate_capture_inputs
 from ....config.generation.video import MAX_ANCHOR_INTERVAL
@@ -24,27 +25,27 @@ class SanaRequest(VideoInputs):
     video: Path | None = None
     webcam: WebcamFrames | None = None
     anchor_interval: int = 0
-    model_name: ClassVar[str] = "reactor/sana-streaming"
+    model_name: ClassVar[str] = IDENTITIES["sana-streaming"][1]
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
     def validate(self, settings: Settings) -> None:
         """Check capture limits, source availability, prompt size, and anchor interval."""
         validate_capture_inputs(self.duration_seconds, self.seed, settings)
         if type(self.prompt) is not str or len(self.prompt) > MAX_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Use at most 20,000 prompt characters.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sanaPromptLength"))
         if self.video is None and self.webcam is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Connect a prepared source video.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         if type(self.anchor_interval) is not int or not 0 <= self.anchor_interval <= MAX_ANCHOR_INTERVAL:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Choose an anchor interval from 0 to 1,000.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.anchorInterval"))
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:
         """Prepare the source using the declared model contract and start video editing."""
         if self.video is None and self.webcam is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Connect a prepared source video.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         schema = await events.call("schema", transport.request_schema())
         mode = source_mode(schema, transport)
         if self.webcam is not None and mode != "camera":
-            raise ConnectorError(ErrorCode.UNAVAILABLE, "This SANA deployment does not accept webcam input.")
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sanaWebcamUnsupported"))
         if mode == "file":
             await self._accept_file(transport, events)
         await events.command("set_seed", {"seed": self.seed})
@@ -72,7 +73,7 @@ class SanaRequest(VideoInputs):
     async def _accept_file(self, transport: Transport, events: SessionEvents) -> None:
         """Upload the source and wait for model acceptance, then remove the temporary listener."""
         if self.video is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, "Connect a prepared source video.")
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         accepted = asyncio.Event()
 
         def observe(message: object) -> None:

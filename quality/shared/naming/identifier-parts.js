@@ -1,4 +1,4 @@
-const WORD_PATTERN = /[A-Z]+(?=[A-Z][a-z]|$)|[A-Z]?[a-z]+|[0-9]+/g;
+const wordPattern = /[A-Z]+(?=[A-Z][a-z]|$)|[A-Z]?[a-z]+|[0-9]+/g;
 
 /**
  * Split an identifier at word, digit, and punctuation boundaries.
@@ -8,7 +8,7 @@ const WORD_PATTERN = /[A-Z]+(?=[A-Z][a-z]|$)|[A-Z]?[a-z]+|[0-9]+/g;
 function splitIdentifierParts(value) {
   const segments = String(value)
     .split(/[^A-Za-z0-9]+/u)
-    .flatMap((segment) => segment.match(WORD_PATTERN) ?? []);
+    .flatMap((segment) => segment.match(wordPattern) ?? []);
   const parts = segments.map((part) => part.toLowerCase()).filter(Boolean);
   return parts;
 }

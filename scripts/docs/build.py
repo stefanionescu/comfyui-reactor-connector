@@ -4,12 +4,11 @@ import sys
 import argparse
 from pathlib import Path
 from .pages import HelpPages
-from ...config.models import NODE_MODELS
+from ...config.models.nodes import NODE_MODELS
 
 
-def inventory_issues(source: Path, output: Path) -> list[str]:
+def inventory_issues(source: Path, output: Path, expected: set[str]) -> list[str]:
     """Require a guide for every public node and reject orphaned generated help."""
-    expected = set(NODE_MODELS)
     authored = {path.stem for path in source.glob("*.md")}
     generated = {path.stem for path in output.glob("*.md")}
     issues = [f"Write node help for {name}." for name in sorted(expected - authored)]
@@ -46,14 +45,14 @@ def main() -> int:
     root = Path(__file__).resolve().parents[2]
     source = root / "web" / "docs"
     output = root / "web" / "dist" / "docs"
-    issues = inventory_issues(source, output)
+    issues = inventory_issues(source, output, set(NODE_MODELS))
     if not issues:
         pages = HelpPages(root)
         generated = pages.build()
         generated.update({output / guide.name: pages.markdown(guide) for guide in source.glob("*.md")})
         issues.extend(build_help(root, generated, check=args.check))
     for issue in issues:
-        sys.stdout.write(str(issue) + "\n")
+        sys.stdout.write(issue + "\n")
     return int(bool(issues))
 
 

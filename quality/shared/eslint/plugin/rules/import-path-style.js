@@ -1,13 +1,13 @@
 import { INTERNAL_PREFIXES } from '#config/paths.js';
 
-const STYLE_MESSAGES = {
+const styleMessages = {
   js: 'Internal imports must use explicit JavaScript file extensions.',
   ts: 'Internal imports must use explicit .ts extensions.',
   extensionless: 'Internal imports must be extensionless (no .js/.ts suffix).',
 };
-const JAVASCRIPT_EXTENSIONS = ['.js', '.mjs', '.cjs'];
-const TYPESCRIPT_EXTENSIONS = ['.ts', '.mts', '.cts'];
-const SKIPPED_EXTENSIONS = ['.json'];
+const javascriptExtensions = ['.js', '.mjs', '.cjs'];
+const typescriptExtensions = ['.ts', '.mts', '.cts'];
+const skippedExtensions = ['.json'];
 
 /**
  * Returns the file extension from an import source, if the source includes one.
@@ -44,18 +44,18 @@ function isInternalImport(source, internalPrefixes) {
 function isCompliant(source, style) {
   const extension = getSourceExtension(source);
   const hasKnownScriptExtension =
-    JAVASCRIPT_EXTENSIONS.includes(extension) || TYPESCRIPT_EXTENSIONS.includes(extension);
+    javascriptExtensions.includes(extension) || typescriptExtensions.includes(extension);
 
-  if (SKIPPED_EXTENSIONS.includes(extension) || (extension && !hasKnownScriptExtension)) {
+  if (skippedExtensions.includes(extension) || (extension && !hasKnownScriptExtension)) {
     return true;
   }
 
   if (style === 'js') {
-    return JAVASCRIPT_EXTENSIONS.includes(extension);
+    return javascriptExtensions.includes(extension);
   }
 
   if (style === 'ts') {
-    return TYPESCRIPT_EXTENSIONS.includes(extension);
+    return typescriptExtensions.includes(extension);
   }
 
   return !hasKnownScriptExtension;
@@ -131,7 +131,7 @@ export const importPathStyle = {
         ? options.internalPrefixes
         : INTERNAL_PREFIXES;
 
-    if (!STYLE_MESSAGES[style]) {
+    if (!styleMessages[style]) {
       return {};
     }
 
@@ -154,7 +154,7 @@ export const importPathStyle = {
 
       context.report({
         node: sourceNode,
-        message: STYLE_MESSAGES[style],
+        message: styleMessages[style],
         fix(fixer) {
           const preferredSource = getPreferredSource(source, style);
           const quote = getQuote(sourceNode);

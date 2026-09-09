@@ -3,9 +3,9 @@
 import sys
 import asyncio
 import logging
-from ..codes import ErrorCode
-from ..errors import ConnectorError
-from .session.resources import SessionResources
+from ..language import translate
+from .session.state import SessionResources
+from ..errors import ErrorCode, ConnectorError
 
 
 async def _release(session: SessionResources, *, failed: bool) -> None:
@@ -25,13 +25,13 @@ async def _release(session: SessionResources, *, failed: bool) -> None:
                 finally:
                     async with asyncio.timeout(session.settings.cleanup_timeout_seconds):
                         await session.transport.disconnect()
-                        session.outcome.termination_confirmed = True
+                        session.outcome.is_termination_confirmed = True
             finally:
                 session.transport.close()
     finally:
         if session.interaction is not None:
             session.interaction.closed(
-                termination_confirmed=session.outcome.termination_confirmed,
+                is_termination_confirmed=session.outcome.is_termination_confirmed,
                 failed=failed or sys.exception() is not None,
             )
         # The capture owner terminates and reaps its child before this task completes.
@@ -53,9 +53,9 @@ async def finish_session(session: SessionResources, primary_error: BaseException
     error = cleanup.exception()
     if error is not None:
         message = (
-            "Session cleanup failed; termination is unconfirmed. The server lifetime cap applies."
-            if session.outcome.termination_uncertain
-            else "The remote session ended, but local cleanup failed."
+            translate("main", "errors.cleanupUnconfirmed")
+            if session.outcome.is_termination_uncertain
+            else translate("main", "errors.localCleanupFailed")
         )
         logging.getLogger(__name__).error(message)
     if cancelled:
@@ -63,7 +63,7 @@ async def finish_session(session: SessionResources, primary_error: BaseException
     if error is not None and primary_error is None:
         raise ConnectorError(
             ErrorCode.CLEANUP,
-            "Session termination is unconfirmed. Wait for its server limit before retrying."
-            if session.outcome.termination_uncertain
-            else "The remote session ended, but local cleanup failed. Restart ComfyUI.",
+            translate("main", "errors.terminationUnconfirmed")
+            if session.outcome.is_termination_uncertain
+            else translate("main", "errors.cleanupRestartRequired"),
         ) from None

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+# Runtime: Bash 3.2+, macOS and Linux.
 # Check the pushed revision, dependencies, and public documentation links.
 set -euo pipefail
 TASK_ROOT="$(git rev-parse --show-toplevel)"
 readonly TASK_ROOT
-cd "${TASK_ROOT}"
+cd "${TASK_ROOT}" || exit 1
 exec mise run hook:pre-push -- "$@"
