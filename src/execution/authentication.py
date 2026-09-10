@@ -16,7 +16,11 @@ from ...config.security import (
     MAX_RESPONSE_BYTES,
     MAX_SESSION_SECONDS,
     MODEL_NAME_PATTERN_TEXT,
+    MIN_EXPIRY_MARGIN_SECONDS,
+    AUTHENTICATION_CHUNK_BYTES,
     MAX_SESSION_TOKEN_CHARACTERS,
+    SESSION_EXPIRY_BUFFER_SECONDS,
+    AUTHENTICATION_TIMEOUT_SECONDS,
 )
 
 
@@ -53,7 +57,7 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
     if MODEL_NAME.fullmatch(model) is None or not 1 <= session_seconds <= MAX_SESSION_SECONDS:
         raise authentication_error()
     payload = {
-        "expires_after": session_seconds + 120,
+        "expires_after": session_seconds + SESSION_EXPIRY_BUFFER_SECONDS,
         "authorization_details": [
             {
                 "type": "session",
@@ -68,7 +72,7 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
     try:
         async with (
             aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=25),
+                timeout=aiohttp.ClientTimeout(total=AUTHENTICATION_TIMEOUT_SECONDS),
                 trust_env=False,
                 cookie_jar=aiohttp.DummyCookieJar(),
             ) as session,
@@ -82,7 +86,7 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
             if response.status != HTTPStatus.OK:
                 raise authentication_error()
             payload = bytearray()
-            async for chunk in response.content.iter_chunked(8192):
+            async for chunk in response.content.iter_chunked(AUTHENTICATION_CHUNK_BYTES):
                 payload.extend(chunk)
                 if len(payload) > MAX_RESPONSE_BYTES:
                     raise authentication_error()
@@ -95,7 +99,7 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
             or not isinstance(expires, (int, float))
             or isinstance(expires, bool)
             or not math.isfinite(expires)
-            or expires < time.time() + session_seconds + 30
+            or expires < time.time() + session_seconds + MIN_EXPIRY_MARGIN_SECONDS
         ):
             raise authentication_error()
         return SessionToken(token, float(expires))

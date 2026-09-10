@@ -272,7 +272,7 @@ class ScenePanel {
           input.axes,
           this.ending,
           this.previewSequence,
-          AbortSignal.timeout(2000),
+          AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
           input.release,
         );
         this.previewSequence = result.previewSequence;

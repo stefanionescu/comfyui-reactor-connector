@@ -14,8 +14,10 @@ from ....config.generation.speech import (
     MIN_SPEECH_SECONDS,
     MAX_SCENE_CHARACTERS,
     MAX_WORDS_PER_MINUTE,
+    MIN_WORDS_PER_MINUTE,
     MAX_SCRIPT_CHARACTERS,
     RECORDING_TAIL_SECONDS,
+    DEFAULT_WORDS_PER_MINUTE,
 )
 
 
@@ -24,7 +26,7 @@ class LtxSpeakRequest(VideoInputs):
     """Keep take conditions fixed until the session owner ends the run."""
 
     script: str = ""
-    words_per_minute: int = 140
+    words_per_minute: int = DEFAULT_WORDS_PER_MINUTE
     model_name: ClassVar[str] = IDENTITIES["ltx2"][1]
     requires_audio: ClassVar[bool] = True
 
@@ -37,7 +39,10 @@ class LtxSpeakRequest(VideoInputs):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.ltxSceneLength"))
         if type(self.script) is not str or not self.script.strip() or len(self.script) > MAX_SCRIPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.speechLength"))
-        if type(self.words_per_minute) is not int or not 1 <= self.words_per_minute <= MAX_WORDS_PER_MINUTE:
+        if (
+            type(self.words_per_minute) is not int
+            or not MIN_WORDS_PER_MINUTE <= self.words_per_minute <= MAX_WORDS_PER_MINUTE
+        ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.speechPace"))
         if (
             type(self.image) is not bytes

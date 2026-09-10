@@ -1,7 +1,8 @@
 import type { Fetcher } from '#web/http.ts';
-import { browserPatterns } from '#config/web/browser.ts';
+import { browserRoutes } from '#config/web/routes.ts';
 import { translate, formatDate } from '#web/language.ts';
 import { message, type Message } from '#web/localization.ts';
+import { browserLimits, browserPatterns } from '#config/web/browser.ts';
 
 export type Model = {
   entryKey: string;
@@ -30,20 +31,28 @@ export type ModelList = {
   };
 };
 
+type ModelAction = 'read' | 'refresh' | 'rollback';
+
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(translate('models.invalidResponse'));
   return value as Record<string, unknown>;
 }
 
-function isShortText(value: unknown, max = 200): value is string {
+function isShortText(value: unknown, max = browserLimits.maxTextCharacters): value is string {
   if (typeof value !== 'string') return false;
   return value.length > 0 && value.length <= max;
 }
 
 function isNodeId(value: unknown): value is string {
   if (typeof value !== 'string') return false;
-  return /^ReactorInc[A-Za-z0-9]+$/.test(value);
+  return browserPatterns.nodeId.test(value);
+}
+
+function modelRoute(action: ModelAction): string {
+  if (action === 'read') return browserRoutes.models.read;
+  if (action === 'refresh') return browserRoutes.models.refresh;
+  return browserRoutes.models.rollback;
 }
 
 function parseModel(value: unknown): Model {
@@ -56,9 +65,7 @@ function parseModel(value: unknown): Model {
     !(
       row.documentation_url === null ||
       (typeof row.documentation_url === 'string' &&
-        /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/.test(
-          row.documentation_url,
-        ))
+        browserPatterns.documentation.test(row.documentation_url))
     ) ||
     !(
       row.credits_per_second === null ||
@@ -69,7 +76,7 @@ function parseModel(value: unknown): Model {
     typeof row.observed !== 'boolean' ||
     !['available', 'adapter_required'].includes(String(row.support)) ||
     !Array.isArray(row.node_ids) ||
-    row.node_ids.length > 100 ||
+    row.node_ids.length > browserLimits.maxModelNodeIds ||
     !row.node_ids.every(isNodeId)
   )
     throw new Error(translate('models.invalidResponse'));
@@ -98,13 +105,14 @@ function parseModelList(value: unknown): ModelList {
     !browserPatterns.revision.test(document.revision) ||
     !(
       document.retrieved_at === null ||
-      (isShortText(document.retrieved_at, 40) && Number.isFinite(Date.parse(document.retrieved_at)))
+      (isShortText(document.retrieved_at, browserLimits.maxRetrievalTimeCharacters) &&
+        Number.isFinite(Date.parse(document.retrieved_at)))
     ) ||
     typeof document.can_rollback !== 'boolean' ||
     typeof document.mutation_allowed !== 'boolean' ||
     !Array.isArray(document.models) ||
     document.models.length < 1 ||
-    document.models.length > 1024
+    document.models.length > browserLimits.maxModels
   )
     throw new Error(translate('models.invalidResponse'));
   const models = document.models.map(parseModel);
@@ -135,10 +143,11 @@ function parseAutomaticCheck(value: unknown): NonNullable<ModelList['automaticCh
     check.interval_hours < 1 ||
     !(
       check.checked_at === null ||
-      (isShortText(check.checked_at, 40) && Number.isFinite(Date.parse(check.checked_at)))
+      (isShortText(check.checked_at, browserLimits.maxRetrievalTimeCharacters) &&
+        Number.isFinite(Date.parse(check.checked_at)))
     ) ||
     !(check.update_available === null || typeof check.update_available === 'boolean') ||
-    !(check.error === null || isShortText(check.error, 1024))
+    !(check.error === null || isShortText(check.error, browserLimits.maxErrorCharacters))
   )
     throw new Error(translate('models.invalidResponse'));
   return {
@@ -172,21 +181,23 @@ export function metadataStatus(retrievedAt: string | null): Message {
 export async function requestModels(
   fetcher: Fetcher,
   signal: AbortSignal,
-  action: 'read' | 'refresh' | 'rollback',
+  action: ModelAction,
   revision?: string,
 ): Promise<ModelList> {
   const options: RequestInit = {
     method: action === 'read' ? 'GET' : 'POST',
     cache: 'no-store',
     credentials: 'same-origin',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]),
+    signal: AbortSignal.any([
+      signal,
+      AbortSignal.timeout(browserLimits.discoveryTimeoutMilliseconds),
+    ]),
     headers: { 'Content-Type': 'application/json', 'X-Reactor-Comfy': '1' },
   };
   if (action === 'rollback') options.body = JSON.stringify({ revision });
-  const suffix = action === 'read' ? '' : `/${action}`;
   let response: Response;
   try {
-    response = await fetcher(`/reactor-inc/v1/catalog${suffix}`, options);
+    response = await fetcher(modelRoute(action), options);
   } catch {
     throw new Error(translate('models.unreachable'));
   }
@@ -198,7 +209,11 @@ export async function requestModels(
   }
   if (!response.ok) {
     const error = record(body).error;
-    throw new Error(isShortText(error, 1024) ? error : translate('models.requestFailed'));
+    throw new Error(
+      isShortText(error, browserLimits.maxErrorCharacters)
+        ? error
+        : translate('models.requestFailed'),
+    );
   }
   return parseModelList(body);
 }

@@ -10,7 +10,16 @@ from .navigation import navigation_guides
 from ..errors import ErrorCode, ConnectorError
 from ..serialization import Json, parse_json, mapping_value
 from .contracts import rows, Guide, Price, invalid, Snapshot
-from ...config.discovery import INDEX_URL, PRICING_URL, NAVIGATION_URL, MAX_SOURCE_BYTES, GUIDE_LINE_PATTERN_TEXT
+from ...config.discovery import (
+    INDEX_URL,
+    PRICING_URL,
+    NAVIGATION_URL,
+    MAX_SOURCE_BYTES,
+    SOURCE_USER_AGENT,
+    SOURCE_CHUNK_BYTES,
+    SOURCE_TIMEOUT_SECONDS,
+    GUIDE_LINE_PATTERN_TEXT,
+)
 
 
 GUIDE_LINE = re.compile(
@@ -71,7 +80,7 @@ async def _read(session: aiohttp.ClientSession, url: str) -> str:
                 translate("main", "errors.modelsHttp", status=response.status),
             )
         content = bytearray()
-        async for chunk in response.content.iter_chunked(16_384):
+        async for chunk in response.content.iter_chunked(SOURCE_CHUNK_BYTES):
             content.extend(chunk)
             if len(content) > MAX_SOURCE_BYTES:
                 raise invalid()
@@ -82,10 +91,10 @@ async def read_public_models() -> Snapshot:
     """Reconcile pricing, the text index, and navigation before replacing the cache."""
     try:
         async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=20),
+            timeout=aiohttp.ClientTimeout(total=SOURCE_TIMEOUT_SECONDS),
             trust_env=False,
             cookie_jar=aiohttp.DummyCookieJar(),
-            headers={"User-Agent": "reactor-inc/catalog"},
+            headers={"User-Agent": SOURCE_USER_AGENT},
         ) as session:
             # Await all reads even when one fails, so no task outlives the session.
             results = await asyncio.gather(

@@ -4,7 +4,7 @@ import asyncio
 from aiohttp import web
 from ..language import translate
 from ..serialization import Json, parse_json, mapping_value
-from ...config.settings import MAX_SETTINGS_BYTES, SETTINGS_TIMEOUT_SECONDS
+from ...config.settings import MAX_SETTINGS_BYTES, REQUEST_CHUNK_BYTES, SETTINGS_TIMEOUT_SECONDS
 
 
 async def read_document(request: web.Request, *, max_bytes: int = MAX_SETTINGS_BYTES) -> dict[str, Json]:
@@ -16,7 +16,7 @@ async def read_document(request: web.Request, *, max_bytes: int = MAX_SETTINGS_B
     content = bytearray()
     try:
         async with asyncio.timeout(SETTINGS_TIMEOUT_SECONDS):
-            async for chunk in request.content.iter_chunked(1024):
+            async for chunk in request.content.iter_chunked(REQUEST_CHUNK_BYTES):
                 content.extend(chunk)
                 if len(content) > max_bytes:
                     raise web.HTTPRequestEntityTooLarge(max_size=max_bytes, actual_size=len(content))

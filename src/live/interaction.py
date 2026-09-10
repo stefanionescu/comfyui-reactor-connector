@@ -9,6 +9,7 @@ from .preview import PreviewFrames
 from ..media.output import owned_io
 from .commands import CameraCommands
 from ..execution.events import SessionEvents
+from ...config.live import INPUT_POLL_SECONDS
 from ..errors import ErrorCode, ConnectorError
 from ..execution.transport import Track, Transport
 
@@ -77,7 +78,7 @@ class CameraInteraction:
             if encoded:
                 self.lease.frame(encoded)
                 self.preview_frames += 1
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(INPUT_POLL_SECONDS)
 
     async def stop(self) -> None:
         """Disable controls, remove preview listeners, and await all camera workers."""

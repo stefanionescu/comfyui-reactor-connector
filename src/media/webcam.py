@@ -13,6 +13,7 @@ from PIL import Image, UnidentifiedImageError
 from ..errors import ErrorCode, ConnectorError
 from ...config.media.webcam import (
     MAX_CAMERA_WIDTH,
+    CAMERA_FRAME_RATE,
     MAX_CAMERA_HEIGHT,
     CAMERA_READY_SECONDS,
     MAX_CAMERA_JPEG_BYTES,
@@ -87,7 +88,7 @@ class WebcamFrames:
         try:
             while True:
                 track.push_frame(self._current_frame())
-                await asyncio.sleep(1 / 24)
+                await asyncio.sleep(1 / CAMERA_FRAME_RATE)
         except asyncio.CancelledError:
             raise
         except Exception as error:  # noqa: BLE001 -- reason: Forward all publisher failures to the session owner so it terminates the session.

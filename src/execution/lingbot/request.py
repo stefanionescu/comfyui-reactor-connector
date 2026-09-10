@@ -10,25 +10,30 @@ from ..events import SessionEvents
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ....config.models.identities import IDENTITIES
-from ....config.generation.world import MAX_ROTATION_SPEED, MAX_WORLD_PROMPT_CHARACTERS
+from ....config.generation.world import (
+    CAMERA_AXES,
+    DEFAULT_LATERAL,
+    DEFAULT_MOVEMENT,
+    WORLD_FRAME_RATE,
+    MAX_ROTATION_SPEED,
+    MIN_ROTATION_SPEED,
+    DEFAULT_LOOK_VERTICAL,
+    DEFAULT_LOOK_HORIZONTAL,
+    DEFAULT_ROTATION_DEGREES,
+    MAX_WORLD_PROMPT_CHARACTERS,
+)
 
 
 @dataclass(frozen=True, slots=True)
 class LingBotRequest(VideoInputs):
     """Generate from an image while holding the selected camera controls."""
 
-    movement: str = "idle"
-    look_horizontal: str = "idle"
-    look_vertical: str = "idle"
-    rotation_speed_deg: float = 5.0
+    movement: str = DEFAULT_MOVEMENT
+    look_horizontal: str = DEFAULT_LOOK_HORIZONTAL
+    look_vertical: str = DEFAULT_LOOK_VERTICAL
+    rotation_speed_deg: float = DEFAULT_ROTATION_DEGREES
     model_name: ClassVar[str] = IDENTITIES["lingbot"][1]
-    movement_values: ClassVar[tuple[str, ...]] = (
-        "idle",
-        "forward",
-        "back",
-        "strafe_left",
-        "strafe_right",
-    )
+    movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES["movement"]
 
     def axes(self) -> tuple[tuple[str, str], ...]:
         """Map camera directions to the command names used by LingBot."""
@@ -47,13 +52,17 @@ class LingBotRequest(VideoInputs):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.worldPromptLength"))
         allowed = (
             (self.movement, self.movement_values),
-            (self.look_horizontal, ("idle", "left", "right")),
-            (self.look_vertical, ("idle", "up", "down")),
+            (self.look_horizontal, CAMERA_AXES["look_horizontal"]),
+            (self.look_vertical, CAMERA_AXES["look_vertical"]),
         )
         if any(type(value) is not str or value not in choices for value, choices in allowed):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraDirection"))
         speed = self.rotation_speed_deg
-        if type(speed) not in (int, float) or not math.isfinite(speed) or not 0 <= speed <= MAX_ROTATION_SPEED:
+        if (
+            type(speed) not in (int, float)
+            or not math.isfinite(speed)
+            or not MIN_ROTATION_SPEED <= speed <= MAX_ROTATION_SPEED
+        ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.rotationSpeed"))
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:
@@ -80,19 +89,15 @@ class LingBotRequest(VideoInputs):
 class LingBotWorldRequest(LingBotRequest):
     """Keep longitudinal and lateral movement independent for World 2."""
 
-    lateral: str = "idle"
+    lateral: str = DEFAULT_LATERAL
     model_name: ClassVar[str] = IDENTITIES["lingbot-world-2"][1]
-    fallback_fps: ClassVar[int] = 48
-    movement_values: ClassVar[tuple[str, ...]] = ("idle", "forward", "back")
+    fallback_fps: ClassVar[int] = WORLD_FRAME_RATE
+    movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES["move_longitudinal"]
 
     def validate(self, settings: Settings) -> None:
         """Check the shared camera settings and World 2 lateral direction."""
         LingBotRequest.validate(self, settings)
-        if type(self.lateral) is not str or self.lateral not in (
-            "idle",
-            "strafe_left",
-            "strafe_right",
-        ):
+        if type(self.lateral) is not str or self.lateral not in CAMERA_AXES["move_lateral"]:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.lateralDirection"))
 
     def axes(self) -> tuple[tuple[str, str], ...]:

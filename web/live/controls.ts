@@ -285,7 +285,7 @@ class ControlPanel {
       {},
       this.ending,
       this.previewSequence,
-      AbortSignal.timeout(2000),
+      AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
     );
     this.display(reply);
     return reply;

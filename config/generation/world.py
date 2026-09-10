@@ -4,17 +4,27 @@ MAX_WORLD_PROMPT_CHARACTERS = 1000
 
 MAX_ROTATION_SPEED = 30
 
+MIN_ROTATION_SPEED = 0.0
+
+WORLD_FRAME_RATE = 48
+
 DEFAULT_MOVEMENT = "idle"
 
-OPTIONS_LATERAL = ["idle", "strafe_left", "strafe_right"]
+LATERAL_VALUES = ("idle", "strafe_left", "strafe_right")
+
+OPTIONS_LATERAL = [*LATERAL_VALUES]
 
 DEFAULT_LATERAL = "idle"
 
-OPTIONS_LOOK_HORIZONTAL = ["idle", "left", "right"]
+LOOK_HORIZONTAL_VALUES = ("idle", "left", "right")
+
+OPTIONS_LOOK_HORIZONTAL = [*LOOK_HORIZONTAL_VALUES]
 
 DEFAULT_LOOK_HORIZONTAL = "idle"
 
-OPTIONS_LOOK_VERTICAL = ["idle", "up", "down"]
+LOOK_VERTICAL_VALUES = ("idle", "up", "down")
+
+OPTIONS_LOOK_VERTICAL = [*LOOK_VERTICAL_VALUES]
 
 DEFAULT_LOOK_VERTICAL = "idle"
 
@@ -22,17 +32,21 @@ DEFAULT_ROTATION_DEGREES = 5.0
 
 STEP_ROTATION_DEGREES = 0.1
 
+LINGBOT_CAMERA_AXES = ("movement", "look_horizontal", "look_vertical")
+
+LINGBOT_WORLD_CAMERA_AXES = ("move_longitudinal", "move_lateral", "look_horizontal", "look_vertical")
+
 CAMERA_AXES = {
     "movement": ("idle", "forward", "back", "strafe_left", "strafe_right"),
     "move_longitudinal": ("idle", "forward", "back"),
-    "move_lateral": OPTIONS_LATERAL,
-    "look_horizontal": OPTIONS_LOOK_HORIZONTAL,
-    "look_vertical": OPTIONS_LOOK_VERTICAL,
+    "move_lateral": LATERAL_VALUES,
+    "look_horizontal": LOOK_HORIZONTAL_VALUES,
+    "look_vertical": LOOK_VERTICAL_VALUES,
 }
 
 WORLD_AXES = {
-    "lingbot": ("movement", "look_horizontal", "look_vertical"),
-    "lingbot-world-2": ("move_longitudinal", "move_lateral", "look_horizontal", "look_vertical"),
+    "lingbot": LINGBOT_CAMERA_AXES,
+    "lingbot-world-2": LINGBOT_WORLD_CAMERA_AXES,
 }
 
 __all__ = [
@@ -42,11 +56,18 @@ __all__ = [
     "DEFAULT_LOOK_VERTICAL",
     "DEFAULT_MOVEMENT",
     "DEFAULT_ROTATION_DEGREES",
+    "LATERAL_VALUES",
+    "LINGBOT_CAMERA_AXES",
+    "LINGBOT_WORLD_CAMERA_AXES",
+    "LOOK_HORIZONTAL_VALUES",
+    "LOOK_VERTICAL_VALUES",
     "MAX_ROTATION_SPEED",
     "MAX_WORLD_PROMPT_CHARACTERS",
+    "MIN_ROTATION_SPEED",
     "OPTIONS_LATERAL",
     "OPTIONS_LOOK_HORIZONTAL",
     "OPTIONS_LOOK_VERTICAL",
     "STEP_ROTATION_DEGREES",
     "WORLD_AXES",
+    "WORLD_FRAME_RATE",
 ]

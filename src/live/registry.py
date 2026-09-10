@@ -9,7 +9,7 @@ from ...config.live import MAX_STORED_SESSIONS, CLOSED_SESSION_RETENTION_SECONDS
 
 
 class BrowserRegistry:
-    """Limit stored browser sessions and remove closed sessions after 30 seconds."""
+    """Limit stored browser sessions and expire closed sessions after the retention period."""
 
     def __init__(self) -> None:
         """Create a locked collection of active and recently closed client sessions."""

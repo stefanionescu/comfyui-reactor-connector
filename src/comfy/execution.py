@@ -29,6 +29,7 @@ from ..execution.session.state import SessionOutcome
 from contextlib import suppress, asynccontextmanager
 from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
+from ...config.generation.session import CANCELLATION_POLL_SECONDS
 from comfy.model_management import InterruptProcessingException, throw_exception_if_processing_interrupted
 
 
@@ -37,7 +38,7 @@ async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
     try:
         while not task.done():
             throw_exception_if_processing_interrupted()
-            await asyncio.wait({task}, timeout=0.1)
+            await asyncio.wait({task}, timeout=CANCELLATION_POLL_SECONDS)
         return await task
     finally:
         if not task.done():

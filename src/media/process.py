@@ -68,7 +68,7 @@ class EncoderProcess:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
             env=environment,
-            limit=4096,
+            limit=MAX_REPORT_BYTES,
         )
         tasks: list[asyncio.Task[object]] = []
         try:
@@ -122,7 +122,7 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
     if not line or len(line) > MAX_REPORT_BYTES:
         raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderResult"))
     try:
-        value = mapping_value(parse_json(line.decode("utf-8"), max_bytes=4096))
+        value = mapping_value(parse_json(line.decode("utf-8"), max_bytes=MAX_REPORT_BYTES))
     except (ValueError, UnicodeError, ConnectorError):
         raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderResult")) from None
     if "error" in value:

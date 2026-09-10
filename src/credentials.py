@@ -42,7 +42,7 @@ def read_credential(directory: Path) -> Credential:
     path = directory / "credential"
     if path.exists():
         try:
-            return Credential(read_private(path, max_bytes=1024).decode("utf-8"))
+            return Credential(read_private(path, max_bytes=MAX_CREDENTIAL_CHARACTERS).decode("utf-8"))
         except (OSError, UnicodeError):
             raise ConnectorError(
                 ErrorCode.CONFIGURATION,

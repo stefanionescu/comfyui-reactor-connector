@@ -14,6 +14,7 @@ from .process import EncoderProcess
 from typing import cast, TYPE_CHECKING
 from .state import VideoFrame, CaptureResult
 from ..errors import ErrorCode, ConnectorError
+from ...config.media.video import DEFAULT_FRAME_RATE
 from ...config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
 from ...config.media.capture import MAX_QUEUED_FRAMES, FRAME_HEADER_FORMAT
 
@@ -33,7 +34,7 @@ class VideoCapture:
         duration_seconds: float,
         queue_bytes: int,
         output_bytes: int,
-        fallback_fps: int = 24,
+        fallback_fps: int = DEFAULT_FRAME_RATE,
     ) -> None:
         """Create frame buffers, cross-thread signals, and an isolated encoder with capture limits."""
         self.path = path

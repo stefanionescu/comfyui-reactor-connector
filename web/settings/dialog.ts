@@ -2,6 +2,7 @@ import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import { type MessageKey } from '#web/language.ts';
 import type { Message } from '#web/localization.ts';
+import { browserRoutes } from '#config/web/routes.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
 import { type Configuration, requestConfiguration } from '#web/settings/api.ts';
 
@@ -91,7 +92,7 @@ class SettingsDialog {
       this.updateSettings.bind(
         this,
         message('settings.keyCleared'),
-        '/credential',
+        browserRoutes.settings.credential,
         'DELETE',
         undefined,
       ),
@@ -105,7 +106,7 @@ class SettingsDialog {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const value = this.key.value;
-      this.updateSettings(message('settings.keySaved'), '/credential', 'PUT', {
+      this.updateSettings(message('settings.keySaved'), browserRoutes.settings.credential, 'PUT', {
         api_key: value,
       });
     });
@@ -172,7 +173,7 @@ class SettingsDialog {
       setText(this.status, message('settings.noLimitChanges'));
       return;
     }
-    this.updateSettings(message('settings.limitsSaved'), '/settings', 'PATCH', {
+    this.updateSettings(message('settings.limitsSaved'), browserRoutes.settings.values, 'PATCH', {
       revision: configuration.revision,
       settings: Object.fromEntries(changes),
     });
@@ -224,7 +225,7 @@ class SettingsDialog {
       setText(this.status, message('settings.noCheckChanges'));
       return;
     }
-    this.updateSettings(message('settings.checksSaved'), '/settings', 'PATCH', {
+    this.updateSettings(message('settings.checksSaved'), browserRoutes.settings.values, 'PATCH', {
       revision: configuration.revision,
       settings,
     });
@@ -270,7 +271,7 @@ class SettingsDialog {
    * @param body - The settings change, if any.
    */
   private updateSettings(success: Message, route?: string, method?: string, body?: unknown): void {
-    if (route === '/credential') this.key.value = '';
+    if (route === browserRoutes.settings.credential) this.key.value = '';
     this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
     this.reload.disabled = true;
     setText(this.status, message('working'));

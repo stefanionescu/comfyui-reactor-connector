@@ -17,8 +17,12 @@ from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
+    MIN_VARIATION,
+    DEFAULT_VARIATION,
     MAX_DURATION_SECONDS,
+    MAX_POINTER_POSITION,
     MIN_DURATION_SECONDS,
+    MIN_POINTER_POSITION,
     STEP_DURATION_SECONDS,
     STEP_POINTER_POSITION,
     DEFAULT_DURATION_SECONDS,
@@ -58,8 +62,8 @@ class X2EditVideo(io.ComfyNode):
                     ),
                     io.Int.Input(
                         "variation",
-                        default=0,
-                        min=0,
+                        default=DEFAULT_VARIATION,
+                        min=MIN_VARIATION,
                         max=MAX_VARIATION,
                     ),
                     io.Boolean.Input(
@@ -125,15 +129,15 @@ def pointer_controls() -> list[io.Input]:
         io.Float.Input(
             "pointer_x",
             default=DEFAULT_POINTER_POSITION,
-            min=0.0,
-            max=1.0,
+            min=MIN_POINTER_POSITION,
+            max=MAX_POINTER_POSITION,
             step=STEP_POINTER_POSITION,
         ),
         io.Float.Input(
             "pointer_y",
             default=DEFAULT_POINTER_POSITION,
-            min=0.0,
-            max=1.0,
+            min=MIN_POINTER_POSITION,
+            max=MAX_POINTER_POSITION,
             step=STEP_POINTER_POSITION,
         ),
     ]

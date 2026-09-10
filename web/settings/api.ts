@@ -1,5 +1,6 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
+import { browserRoutes } from '#config/web/routes.ts';
 import { browserPatterns, browserLimits } from '#config/web/browser.ts';
 
 type SettingDefinition = { label: string; minimum: number; maximum: number };
@@ -35,10 +36,10 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
   for (const [name, raw] of Object.entries(definitions)) {
     const field = record(raw);
     if (
-      !/^[a-z][a-z_]+$/.test(name) ||
+      !browserPatterns.settingName.test(name) ||
       typeof field.label !== 'string' ||
       field.label.length < 1 ||
-      field.label.length > 200 ||
+      field.label.length > browserLimits.maxTextCharacters ||
       typeof field.minimum !== 'number' ||
       !Number.isSafeInteger(field.minimum) ||
       typeof field.maximum !== 'number' ||
@@ -110,7 +111,7 @@ function parseConfiguration(value: unknown): Configuration {
 export async function requestConfiguration(
   fetcher: Fetcher,
   signal: AbortSignal,
-  route = '/status',
+  route = browserRoutes.settings.status,
   method = 'GET',
   body?: unknown,
 ): Promise<Configuration> {
@@ -127,7 +128,7 @@ export async function requestConfiguration(
   if (body !== undefined) options.body = JSON.stringify(body);
   let response: Response;
   try {
-    response = await fetcher(`/reactor-inc/v1${route}`, options);
+    response = await fetcher(route, options);
   } catch {
     throw new Error(translate('settings.unreachable'));
   }
@@ -140,7 +141,9 @@ export async function requestConfiguration(
   if (!response.ok) {
     const error = record(document).error;
     throw new Error(
-      typeof error === 'string' && error.length <= 1024 ? error : translate('settings.saveFailed'),
+      typeof error === 'string' && error.length <= browserLimits.maxErrorCharacters
+        ? error
+        : translate('settings.saveFailed'),
     );
   }
   return parseConfiguration(document);

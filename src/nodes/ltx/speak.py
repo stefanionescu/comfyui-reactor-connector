@@ -8,7 +8,12 @@ from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...execution.ltx.request import LtxSpeakRequest
 from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
-from ....config.generation.speech import DEFAULT_SCRIPT, MAX_WORDS_PER_MINUTE, DEFAULT_WORDS_PER_MINUTE
+from ....config.generation.speech import (
+    DEFAULT_SCRIPT,
+    MAX_WORDS_PER_MINUTE,
+    MIN_WORDS_PER_MINUTE,
+    DEFAULT_WORDS_PER_MINUTE,
+)
 
 
 class LtxSpeak(io.ComfyNode):
@@ -35,7 +40,7 @@ class LtxSpeak(io.ComfyNode):
                     io.Int.Input(
                         "words_per_minute",
                         default=DEFAULT_WORDS_PER_MINUTE,
-                        min=1,
+                        min=MIN_WORDS_PER_MINUTE,
                         max=MAX_WORDS_PER_MINUTE,
                     ),
                     io.Image.Input(

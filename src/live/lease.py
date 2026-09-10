@@ -7,9 +7,13 @@ from collections import deque
 from .state import BrowserInput
 from ..language import translate
 from ..serialization import Json
+from dataclasses import dataclass
 from collections.abc import Callable
 from ..errors import ErrorCode, ConnectorError
 from ...config.live import (
+    LEASE_BYTES,
+    MAX_SEQUENCE,
+    CAPABILITY_BYTES,
     MAX_PENDING_INPUTS,
     STALE_INPUT_SECONDS,
     CAPABILITY_CHARACTERS,
@@ -18,13 +22,24 @@ from ...config.live import (
 )
 
 
+@dataclass(frozen=True, slots=True)
+class _BrowserExchange:
+    """Validated input for one browser state exchange."""
+
+    sequence: int
+    axes: dict[str, Json]
+    end: bool
+    release: bool
+    preview_sequence: int
+
+
 class BrowserLease:
     """Keep one controlling browser alive without sharing asyncio objects across loops."""
 
     def __init__(self, choices: dict[str, tuple[str, ...]], *, clock: Callable[[], float] = time.monotonic) -> None:
         """Create a private client capability and thread-safe input and preview state."""
-        self.identifier = secrets.token_hex(16)
-        self._capability = secrets.token_urlsafe(32)
+        self.identifier = secrets.token_hex(LEASE_BYTES)
+        self._capability = secrets.token_urlsafe(CAPABILITY_BYTES)
         self.choices = choices.copy()
         self.clock = clock
         self.lock = threading.Lock()
@@ -61,6 +76,13 @@ class BrowserLease:
 
     def authorize(self, capability: Json) -> None:
         """Require the exact private capability and a live, recently connected client."""
+        self._validate_capability(capability)
+        with self.lock:
+            if self.closed or self.end or self.clock() - self.last_seen > CLIENT_TIMEOUT_SECONDS:
+                raise unavailable()
+
+    def _validate_capability(self, capability: Json) -> None:
+        """Compare a size-limited capability without exposing session state."""
         if (
             not isinstance(capability, str)
             or not capability.isascii()
@@ -68,30 +90,21 @@ class BrowserLease:
             or not secrets.compare_digest(capability, self._capability)
         ):
             raise unavailable()
-        with self.lock:
-            if self.closed or self.end or self.clock() - self.last_seen > CLIENT_TIMEOUT_SECONDS:
-                raise unavailable()
 
-    def exchange(self, document: dict[str, Json]) -> dict[str, Json]:
-        """Validate client state, accept ordered input, and return the latest session status."""
+    def _parse_exchange(self, document: dict[str, Json]) -> _BrowserExchange:
+        """Validate untrusted browser state before acquiring the session lock."""
         expected = {"lease", "capability", "sequence", "axes", "end", "release", "preview_sequence"}
-        capability = document.get("capability")
-        if (
-            document.keys() != expected
-            or not isinstance(capability, str)
-            or not capability.isascii()
-            or len(capability) != CAPABILITY_CHARACTERS
-            or not secrets.compare_digest(capability, self._capability)
-        ):
+        if document.keys() != expected:
             raise unavailable()
+        self._validate_capability(document["capability"])
         sequence, axes, end = document["sequence"], document["axes"], document["end"]
         preview_sequence = document["preview_sequence"]
         release = document["release"]
         if (
             type(sequence) is not int
-            or not 0 <= sequence < 2**53
+            or not 0 <= sequence <= MAX_SEQUENCE
             or type(preview_sequence) is not int
-            or not 0 <= preview_sequence < 2**53
+            or not 0 <= preview_sequence <= MAX_SEQUENCE
             or type(end) is not bool
             or type(release) is not bool
             or not isinstance(axes, dict)
@@ -100,31 +113,44 @@ class BrowserLease:
             or (release and any(value != "idle" for value in axes.values()))
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraStateRequired"))
+        return _BrowserExchange(sequence, axes, end, release, preview_sequence)
+
+    def _accept_exchange(self, exchange: _BrowserExchange, now: float) -> None:
+        """Apply ordered browser state while the caller holds the session lock."""
+        if not self.closed and now - self.last_seen > CLIENT_TIMEOUT_SECONDS:
+            self.end = True
+            raise unavailable()
+        if exchange.sequence <= self.sequence:
+            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.liveInputOrder"))
+        self.sequence = exchange.sequence
+        self.last_seen = now
+        if not self.closed:
+            self.ready = True
+            self.end_requested = self.end_requested or exchange.end
+            self.end = self.end or exchange.end
+            if not self.finishing:
+                self._accept_axes(exchange.sequence, exchange.axes, now, release=exchange.release)
+
+    def _status(self, now: float, preview_sequence: int) -> dict[str, Json]:
+        """Serialize session status while the caller holds the session lock."""
+        return {
+            "closed": self.closed,
+            "termination_confirmed": self.is_termination_confirmed,
+            "failed": self.failed,
+            "controls_ready": self.controls_ready and not self.closed,
+            "finishing": self.finishing,
+            "elapsed_seconds": round(now - self.created_at, 1),
+            "preview_sequence": self.preview_sequence,
+            "preview": self.preview if preview_sequence != self.preview_sequence else "",
+        }
+
+    def exchange(self, document: dict[str, Json]) -> dict[str, Json]:
+        """Validate client state, accept ordered input, and return the latest session status."""
+        exchange = self._parse_exchange(document)
         with self.lock:
             now = self.clock()
-            if not self.closed and now - self.last_seen > CLIENT_TIMEOUT_SECONDS:
-                self.end = True
-                raise unavailable()
-            if sequence <= self.sequence:
-                raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.liveInputOrder"))
-            self.sequence = sequence
-            self.last_seen = now
-            if not self.closed:
-                self.ready = True
-                self.end_requested = self.end_requested or end
-                self.end = self.end or end
-                if not self.finishing:
-                    self._accept_axes(sequence, axes, now, release=release)
-            return {
-                "closed": self.closed,
-                "termination_confirmed": self.is_termination_confirmed,
-                "failed": self.failed,
-                "controls_ready": self.controls_ready and not self.closed,
-                "finishing": self.finishing,
-                "elapsed_seconds": round(now - self.created_at, 1),
-                "preview_sequence": self.preview_sequence,
-                "preview": self.preview if preview_sequence != self.preview_sequence else "",
-            }
+            self._accept_exchange(exchange, now)
+            return self._status(now, exchange.preview_sequence)
 
     def read(self) -> BrowserInput:
         """Read queued movement or release controls when input becomes stale."""

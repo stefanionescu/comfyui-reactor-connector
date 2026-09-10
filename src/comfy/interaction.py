@@ -12,12 +12,18 @@ from ..live.control.lease import ControlLease
 from ..errors import ErrorCode, ConnectorError
 from ..execution.operation import VideoOperation
 from ..live.interaction import CameraInteraction
-from ...config.models.identities import IDENTITIES
+from ...config.generation.world import CAMERA_AXES
 from comfy_execution.utils import get_executing_context
 from ..execution.visko.request import ViskoStableRequest
+from ...config.models.identities import MODEL_CAMERA_AXES
 from ..live.control.interaction import ControlInteraction
-from ...config.generation.world import WORLD_AXES, CAMERA_AXES
-from ...config.live import MIN_QUEUE_ITEM_FIELDS, MAX_CLIENT_ID_CHARACTERS
+from ...config.live import (
+    INPUT_POLL_SECONDS,
+    MIN_QUEUE_ITEM_FIELDS,
+    MAX_CLIENT_ID_CHARACTERS,
+    CAMERA_INVITATION_TIMEOUT_SECONDS,
+    CONTROL_INVITATION_TIMEOUT_SECONDS,
+)
 
 
 class BrowserSender(Protocol):
@@ -53,16 +59,16 @@ async def wait_for_controls(lease: ControlLease, timeout_seconds: float) -> None
                 if lease.was_ended_by_user():
                     raise ConnectorError(ErrorCode.INTERRUPTED, translate("main", "errors.liveCancelled"))
                 raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.livePanelClosed"))
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(INPUT_POLL_SECONDS)
 
 
 async def prepare_camera(model: str, prompt: str, duration_seconds: float) -> CameraInteraction:
     """Invite the prompt owner to camera controls and await its connection."""
     client, node = _owner()
-    key = next((key for key in WORLD_AXES if IDENTITIES[key][1] == model), None)
-    if key is None:
+    axes = MODEL_CAMERA_AXES.get(model)
+    if axes is None:
         raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveCameraUnsupported"))
-    choices = {axis: tuple(CAMERA_AXES[axis]) for axis in WORLD_AXES[key]}
+    choices = {axis: tuple(CAMERA_AXES[axis]) for axis in axes}
     # Queuing a camera workflow starts it; the panel does not add another start step.
     lease = ControlLease(LiveOptions(model, prompt), choices=choices, started=True)
     get_runtime().browsers.add(lease)
@@ -70,7 +76,7 @@ async def prepare_camera(model: str, prompt: str, duration_seconds: float) -> Ca
     invitation.update(model=model, node_id=node, duration_seconds=duration_seconds)
     cast("BrowserSender", PromptServer.instance).send_sync("reactor-inc.live", invitation, client)
     try:
-        await wait_for_controls(lease, 5)
+        await wait_for_controls(lease, CAMERA_INVITATION_TIMEOUT_SECONDS)
     except BaseException:
         lease.close(is_termination_confirmed=True, failed=True)
         raise
@@ -86,7 +92,7 @@ async def prepare_controls(options: LiveOptions, duration_seconds: float) -> Con
     invitation.update(model=options.model, node_id=node, duration_seconds=duration_seconds)
     cast("BrowserSender", PromptServer.instance).send_sync("reactor-inc.controls", invitation, client)
     try:
-        await wait_for_controls(lease, 60)
+        await wait_for_controls(lease, CONTROL_INVITATION_TIMEOUT_SECONDS)
     except BaseException:
         lease.close(is_termination_confirmed=True, failed=True)
         raise
@@ -101,7 +107,7 @@ async def prepare_interaction(
     if controls is not None:
         interaction = await prepare_controls(controls, request.duration_seconds)
     elif interactive:
-        if request.model_name in ("reactor/lingbot", "reactor/lingbot-world-2"):
+        if request.model_name in MODEL_CAMERA_AXES:
             interaction = await prepare_camera(request.model_name, request.prompt, request.duration_seconds)
         else:
             options = LiveOptions(

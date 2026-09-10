@@ -8,6 +8,7 @@ from ....config.generation.world import (
     OPTIONS_LATERAL,
     DEFAULT_MOVEMENT,
     MAX_ROTATION_SPEED,
+    MIN_ROTATION_SPEED,
     DEFAULT_LOOK_VERTICAL,
     OPTIONS_LOOK_VERTICAL,
     STEP_ROTATION_DEGREES,
@@ -52,7 +53,7 @@ def _directions(*, world2: bool) -> list[io.Input]:
             io.Float.Input(
                 "rotation_speed_deg",
                 default=DEFAULT_ROTATION_DEGREES,
-                min=0.0,
+                min=MIN_ROTATION_SPEED,
                 max=MAX_ROTATION_SPEED,
                 step=STEP_ROTATION_DEGREES,
             ),

@@ -390,7 +390,7 @@ in the connector package.
 | `mise run docs:build`      | Build native node help and local HTML guides.                                                     |
 | `mise run deps:export`     | Generate runtime requirements from project metadata.                                              |
 | `mise run models:check`    | Read public prices and guides without saving them.                                                |
-| `mise run models:validate` | Check node registrations and translations.                                                       |
+| `mise run models:validate` | Check node registrations and translations.                                                        |
 | `mise run audit:python`    | Check Python dependencies against advisory services.                                              |
 | `mise run audit:frontend`  | Check frontend dependencies against advisory services.                                            |
 | `mise run security:rules`  | Download and verify the pinned Semgrep rule packs.                                                |

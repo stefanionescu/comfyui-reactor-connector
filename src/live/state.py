@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
-from ...config.generation import fast, session, video, world
+from ...config.models.identities import MODEL_PROMPT_LIMITS
 
 if TYPE_CHECKING:
     from ..media.webcam import WebcamFrames
@@ -43,13 +43,7 @@ class LiveOptions:
     @property
     def prompt_limit(self) -> int:
         """Return the prompt character limit for the selected model."""
-        if self.model == "reactor/fast-h3":
-            return fast.MAX_PROMPT_CHARACTERS
-        if self.model in ("reactor/lingbot", "reactor/lingbot-world-2"):
-            return world.MAX_WORLD_PROMPT_CHARACTERS
-        if self.model == "xmax/x2":
-            return video.MAX_EDIT_PROMPT_CHARACTERS
-        return session.MAX_PROMPT_CHARACTERS
+        return MODEL_PROMPT_LIMITS[self.model]
 
 
 __all__ = ["BrowserInput", "CameraChange", "LiveOptions"]

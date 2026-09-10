@@ -1,16 +1,33 @@
-"""Match public model names to documentation and Reactor connection names."""
+"""Match public model names to Reactor identities and live capabilities."""
+
+from ..generation.session import MAX_PROMPT_CHARACTERS
+from ..generation.video import MAX_EDIT_PROMPT_CHARACTERS
+from ..generation.fast import MAX_PROMPT_CHARACTERS as MAX_FAST_PROMPT_CHARACTERS
+from ..generation.world import LINGBOT_CAMERA_AXES, LINGBOT_WORLD_CAMERA_AXES, MAX_WORLD_PROMPT_CHARACTERS
+
+
+FAST_H3_CONNECTION = "reactor/fast-h3"
+VISKO_STABLE_CONNECTION = "reactor/visko-orbis-stable"
+VISKO_DYNAMIC_CONNECTION = "reactor/visko-orbis-dynamic"
+HELIOS_CONNECTION = "reactor/helios"
+LINGBOT_CONNECTION = "reactor/lingbot"
+LINGBOT_WORLD_CONNECTION = "reactor/lingbot-world-2"
+LONGLIVE_CONNECTION = "reactor/longlive-v2"
+SANA_CONNECTION = "reactor/sana-streaming"
+LTX_CONNECTION = "reactor/ltx2"
+X2_CONNECTION = "xmax/x2"
 
 IDENTITIES = {
-    "fast-h3": ("fast-h3", "reactor/fast-h3"),
-    "visko-orbis-stable": ("visko-orbis-stable", "reactor/visko-orbis-stable"),
-    "visko-orbis-dynamic": ("visko-orbis-dynamic", "reactor/visko-orbis-dynamic"),
-    "helios": ("helios", "reactor/helios"),
-    "lingbot": ("lingbot", "reactor/lingbot"),
-    "lingbot-world-2": ("lingbot-world-2", "reactor/lingbot-world-2"),
-    "longlive-v2": ("longlive-v2", "reactor/longlive-v2"),
-    "sana-streaming": ("sana-streaming", "reactor/sana-streaming"),
-    "ltx2": ("ltx", "reactor/ltx2"),
-    "x2": ("x2", "xmax/x2"),
+    "fast-h3": ("fast-h3", FAST_H3_CONNECTION),
+    "visko-orbis-stable": ("visko-orbis-stable", VISKO_STABLE_CONNECTION),
+    "visko-orbis-dynamic": ("visko-orbis-dynamic", VISKO_DYNAMIC_CONNECTION),
+    "helios": ("helios", HELIOS_CONNECTION),
+    "lingbot": ("lingbot", LINGBOT_CONNECTION),
+    "lingbot-world-2": ("lingbot-world-2", LINGBOT_WORLD_CONNECTION),
+    "longlive-v2": ("longlive-v2", LONGLIVE_CONNECTION),
+    "sana-streaming": ("sana-streaming", SANA_CONNECTION),
+    "ltx2": ("ltx", LTX_CONNECTION),
+    "x2": ("x2", X2_CONNECTION),
 }
 
 MODEL_TITLES = {
@@ -26,6 +43,68 @@ MODEL_TITLES = {
     "visko-orbis-dynamic": "Visko Dynamic",
 }
 
-LIVE_MODELS = ("helios", "longlive-v2", "sana-streaming", "x2", "visko-orbis-stable", "visko-orbis-dynamic")
+CONNECTION_TITLES = {
+    FAST_H3_CONNECTION: "Fast H3",
+    VISKO_STABLE_CONNECTION: "Visko Stable",
+    VISKO_DYNAMIC_CONNECTION: "Visko Dynamic",
+    HELIOS_CONNECTION: "Helios",
+    LINGBOT_CONNECTION: "LingBot",
+    LINGBOT_WORLD_CONNECTION: "LingBot World 2",
+    LONGLIVE_CONNECTION: "LongLive",
+    SANA_CONNECTION: "SANA",
+    LTX_CONNECTION: "LTX",
+    X2_CONNECTION: "X2",
+}
 
-__all__ = ["IDENTITIES", "LIVE_MODELS", "MODEL_TITLES"]
+MODEL_PROMPT_LIMITS = {
+    FAST_H3_CONNECTION: MAX_FAST_PROMPT_CHARACTERS,
+    VISKO_STABLE_CONNECTION: MAX_PROMPT_CHARACTERS,
+    VISKO_DYNAMIC_CONNECTION: MAX_PROMPT_CHARACTERS,
+    HELIOS_CONNECTION: MAX_PROMPT_CHARACTERS,
+    LINGBOT_CONNECTION: MAX_WORLD_PROMPT_CHARACTERS,
+    LINGBOT_WORLD_CONNECTION: MAX_WORLD_PROMPT_CHARACTERS,
+    LONGLIVE_CONNECTION: MAX_PROMPT_CHARACTERS,
+    SANA_CONNECTION: MAX_PROMPT_CHARACTERS,
+    LTX_CONNECTION: MAX_PROMPT_CHARACTERS,
+    X2_CONNECTION: MAX_EDIT_PROMPT_CHARACTERS,
+}
+
+MODEL_CAMERA_AXES = {
+    LINGBOT_CONNECTION: LINGBOT_CAMERA_AXES,
+    LINGBOT_WORLD_CONNECTION: LINGBOT_WORLD_CAMERA_AXES,
+}
+
+MODEL_PROMPT_COMMANDS = {
+    LONGLIVE_CONNECTION: "set_shot",
+}
+
+AUDIO_PROMPT_MODELS = (VISKO_STABLE_CONNECTION, VISKO_DYNAMIC_CONNECTION)
+
+POINTER_MODELS = (X2_CONNECTION,)
+
+EMPTY_PROMPT_MODELS = (SANA_CONNECTION,)
+
+PROMPT_PASSTHROUGH_MODELS = (VISKO_STABLE_CONNECTION, VISKO_DYNAMIC_CONNECTION)
+
+__all__ = [
+    "AUDIO_PROMPT_MODELS",
+    "CONNECTION_TITLES",
+    "EMPTY_PROMPT_MODELS",
+    "FAST_H3_CONNECTION",
+    "HELIOS_CONNECTION",
+    "IDENTITIES",
+    "LINGBOT_CONNECTION",
+    "LINGBOT_WORLD_CONNECTION",
+    "LONGLIVE_CONNECTION",
+    "LTX_CONNECTION",
+    "MODEL_CAMERA_AXES",
+    "MODEL_PROMPT_COMMANDS",
+    "MODEL_PROMPT_LIMITS",
+    "MODEL_TITLES",
+    "POINTER_MODELS",
+    "PROMPT_PASSTHROUGH_MODELS",
+    "SANA_CONNECTION",
+    "VISKO_DYNAMIC_CONNECTION",
+    "VISKO_STABLE_CONNECTION",
+    "X2_CONNECTION",
+]

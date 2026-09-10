@@ -4,8 +4,10 @@ from typing import ClassVar
 from ..language import translate
 from .transport import Transport
 from dataclasses import dataclass
+from ...config.nodes import MAX_SEED
 from ..settings.settings import Settings
 from ..errors import ErrorCode, ConnectorError
+from ...config.media.video import DEFAULT_FRAME_RATE
 from ...config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
 
 
@@ -17,7 +19,7 @@ class VideoInputs:
     duration_seconds: float
     seed: int
     image: bytes | None = None
-    fallback_fps: ClassVar[int] = 24
+    fallback_fps: ClassVar[int] = DEFAULT_FRAME_RATE
     requires_audio: ClassVar[bool] = False
 
     @property
@@ -53,5 +55,5 @@ def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settin
         or not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds
     ):
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.captureLimit"))
-    if type(seed) is not int or not 0 <= seed <= 2**32 - 1:
+    if type(seed) is not int or not 0 <= seed <= MAX_SEED:
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.seedRange"))

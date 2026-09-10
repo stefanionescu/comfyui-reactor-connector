@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import cast, BinaryIO, Protocol
 from contextlib import AbstractContextManager
 from config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
+from config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCODER_PIXEL_FORMAT
 
 
 WORKER_ARGUMENT_COUNT = 6
@@ -144,11 +145,11 @@ def encode(source: BinaryIO, settings: EncoderSettings) -> dict[str, str | int]:
     """Write an MP4 within the recording limits and report its size, timing, or errors."""
     output = cast("VideoContainer", av.open(str(settings.path), mode="w", format="mp4"))
     with output as container:
-        stream = container.add_stream("libx264", rate=Fraction(settings.fps))
-        stream.pix_fmt = "yuv420p"
+        stream = container.add_stream(ENCODER_NAME, rate=Fraction(settings.fps))
+        stream.pix_fmt = ENCODER_PIXEL_FORMAT
         stream.time_base = Fraction(1, 1_000_000)
         stream.codec_context.time_base = Fraction(1, 1_000_000)
-        stream.options = {"preset": "veryfast", "crf": "18"}
+        stream.options = {"preset": ENCODER_PRESET, "crf": ENCODER_CRF}
         sys.stdout.write(str(json.dumps({"ready": True})) + "\n")
         sys.stdout.flush()
         frames, mode = _encode_frames(source, container, stream, settings)

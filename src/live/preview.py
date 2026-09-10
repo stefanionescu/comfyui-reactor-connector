@@ -9,6 +9,12 @@ import numpy as np
 from PIL import Image
 from typing import cast, TYPE_CHECKING
 from ...config.media.images import RGB_CHANNELS, MAX_FRAME_DIMENSION, RGB_ARRAY_DIMENSIONS
+from ...config.live import (
+    MAX_PREVIEW_WIDTH,
+    MAX_PREVIEW_HEIGHT,
+    PREVIEW_JPEG_QUALITY,
+    PREVIEW_INTERVAL_SECONDS,
+)
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -38,8 +44,8 @@ class PreviewFrames:
             now = time.monotonic()
             if self.closed or now < self.next_at:
                 return
-            self.next_at = now + 0.1
-            stride = max(1, math.ceil(max(width / 640, height / 360)))
+            self.next_at = now + PREVIEW_INTERVAL_SECONDS
+            stride = max(1, math.ceil(max(width / MAX_PREVIEW_WIDTH, height / MAX_PREVIEW_HEIGHT)))
             self.pending = array[::stride, ::stride].copy()
 
     def encode(self) -> str:
@@ -49,7 +55,7 @@ class PreviewFrames:
         if array is None:
             return ""
         with Image.fromarray(array) as image, io.BytesIO() as stream:
-            image.save(stream, format="JPEG", quality=75)
+            image.save(stream, format="JPEG", quality=PREVIEW_JPEG_QUALITY)
             return base64.b64encode(stream.getvalue()).decode("ascii")
 
     def close(self) -> None:

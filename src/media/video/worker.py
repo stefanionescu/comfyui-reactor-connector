@@ -10,7 +10,18 @@ from dataclasses import dataclass
 from collections.abc import Iterator
 from typing import Self, cast, Protocol
 from av.container.input import InputContainer
-from config.media.video import MAX_FRAME_RATE, MAX_COMPONENT_BITS, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
+from config.media.video import (
+    ENCODER_CRF,
+    ENCODER_NAME,
+    ENCODER_PRESET,
+    MAX_FRAME_RATE,
+    MIN_SOURCE_FRAMES,
+    MAX_COMPONENT_BITS,
+    MAX_FRAME_DIMENSION,
+    MIN_FRAME_DIMENSION,
+    ENCODER_PIXEL_FORMAT,
+    BROWSER_RECORDING_FRAME_RATE,
+)
 
 
 BROWSER_WORKER_ARGUMENT_COUNT = 8
@@ -105,15 +116,15 @@ def prepare(settings: SourceSettings) -> dict[str, int | str]:
         if settings.browser_recording and rate is None:
             # WebM from MediaRecorder may omit a frame rate. This rate initializes
             # the encoder; each source timestamp below still sets when its frame appears.
-            rate = Fraction(30)
+            rate = Fraction(BROWSER_RECORDING_FRAME_RATE)
         if rate is None or not 1 <= rate <= MAX_FRAME_RATE:
             msg = "source_rate"
             raise SourceError(msg)
-        output = writer.add_stream("libx264", rate=rate)
-        output.pix_fmt = "yuv420p"
+        output = writer.add_stream(ENCODER_NAME, rate=rate)
+        output.pix_fmt = ENCODER_PIXEL_FORMAT
         output.time_base = Fraction(1, 1_000_000)
         output.codec_context.time_base = output.time_base
-        output.options = {"preset": "veryfast", "crf": "18"}
+        output.options = {"preset": ENCODER_PRESET, "crf": ENCODER_CRF}
         frames = copy_frames(reader, output, writer, settings)
 
     if settings.destination.stat().st_size > settings.maximum_bytes:
@@ -184,13 +195,13 @@ def copy_frames(
         for packet in output.encode(frame):
             writer.mux(packet)
         frames += 1
-        if frames > 120 * settings.duration_seconds + 1:
+        if frames > MAX_FRAME_RATE * settings.duration_seconds + 1:
             msg = "source_frame_limit"
             raise SourceError(msg)
         if settings.destination.exists() and settings.destination.stat().st_size > settings.maximum_bytes:
             msg = "file_limit"
             raise SourceError(msg)
-    if frames < (1 if settings.browser_recording else 33):
+    if frames < (1 if settings.browser_recording else MIN_SOURCE_FRAMES):
         raise SourceError("no_frames" if settings.browser_recording else "source_frames")
     for packet in output.encode():
         writer.mux(packet)

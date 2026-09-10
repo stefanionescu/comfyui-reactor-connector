@@ -6,8 +6,11 @@ from ...language import translate
 from ...serialization import Json
 from ..interaction import CameraInteraction
 from ...execution.events import SessionEvents
+from ....config.live import INPUT_POLL_SECONDS
 from ...errors import ErrorCode, ConnectorError
 from ...execution.transport import Track, Transport
+from ....config.nodes import DEFAULT_POINTER_POSITION
+from ....config.models.identities import MODEL_PROMPT_COMMANDS, PROMPT_PASSTHROUGH_MODELS
 from ....config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
 
 
@@ -38,12 +41,15 @@ class ControlInteraction(CameraInteraction):
                 with self.control_lease.lock:
                     stale = self.control_lease.clock() - self.control_lease.last_seen > STALE_INPUT_SECONDS
                 if name == "pointer" and self.pointer_active and stale:
-                    await self._pointer(events, {"x": 0.5, "y": 0.5, "active": False})
+                    await self._pointer(
+                        events,
+                        {"x": DEFAULT_POINTER_POSITION, "y": DEFAULT_POINTER_POSITION, "active": False},
+                    )
                 payload = self.control_lease.take_action(name) if self.active else None
                 if payload is not None:
                     await self._send_action(events, name, payload)
                     self.accepted_actions += 1
-                await asyncio.sleep(0.05)
+                await asyncio.sleep(INPUT_POLL_SECONDS)
         except asyncio.CancelledError:
             raise
         except (ConnectorError, TimeoutError) as error:
@@ -61,16 +67,13 @@ class ControlInteraction(CameraInteraction):
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
                 await events.command_reply("set_audio_prompt", dict(payload))
         else:
-            if self.control_lease.options.model.startswith("reactor/visko-"):
+            model = self.control_lease.options.model
+            if model in PROMPT_PASSTHROUGH_MODELS:
                 payload = {**payload, "passthrough": self.control_lease.options.passthrough}
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-                await events.command_reply(
-                    "set_shot" if self.control_lease.options.model == "reactor/longlive-v2" else "set_prompt",
-                    dict(payload),
-                )
+                await events.command_reply(MODEL_PROMPT_COMMANDS.get(model, "set_prompt"), dict(payload))
 
     async def _pointer(self, events: SessionEvents, payload: dict[str, Json]) -> None:
-        # Track a press before sending it so cleanup also covers a missing reply.
         """Track a possible press before sending it so cleanup covers a missing reply."""
         self.pointer_active = self.pointer_active or payload.get("active") is True
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):

@@ -13,7 +13,12 @@ from .control.lease import ControlLease
 from ..http.request import read_document
 from ...config.routes import SETTINGS_PREFIX
 from ...config.media.webcam import MAX_CAMERA_JPEG_BYTES
-from ...config.live import MAX_SEQUENCE_DIGITS, UPLOAD_TIMEOUT_SECONDS
+from ...config.live import (
+    MAX_ACTION_BYTES,
+    MAX_SEQUENCE_DIGITS,
+    UPLOAD_TIMEOUT_SECONDS,
+    CAMERA_UPLOAD_CHUNK_BYTES,
+)
 
 
 class LiveRoutes:
@@ -39,7 +44,7 @@ class LiveRoutes:
 
     async def action(self, request: web.Request) -> dict[str, Json]:
         """Read and authorize a live editing action before queuing it."""
-        document = await read_document(request, max_bytes=90_000)
+        document = await read_document(request, max_bytes=MAX_ACTION_BYTES)
         identifier, capability = document.get("lease"), document.get("capability")
         if not isinstance(identifier, str) or not isinstance(capability, str):
             raise unavailable()
@@ -62,10 +67,10 @@ class LiveRoutes:
         try:
             payload = bytearray()
             async with asyncio.timeout(UPLOAD_TIMEOUT_SECONDS):
-                async for chunk in request.content.iter_chunked(16_384):
+                async for chunk in request.content.iter_chunked(CAMERA_UPLOAD_CHUNK_BYTES):
                     payload.extend(chunk)
                     if len(payload) > MAX_CAMERA_JPEG_BYTES:
-                        raise web.HTTPRequestEntityTooLarge(max_size=300_000, actual_size=len(payload))
+                        raise web.HTTPRequestEntityTooLarge(max_size=MAX_CAMERA_JPEG_BYTES, actual_size=len(payload))
             lease.authorize(request.headers.get("X-Reactor-Capability", ""))
             await owned_io(partial(camera.receive, bytes(payload), int(sequence)))
         finally:

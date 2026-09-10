@@ -5,6 +5,7 @@ from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
+from ....config.nodes import MAX_SEED
 from ...settings.settings import Settings
 from .generate import FastGenerateRequest
 from ...errors import ErrorCode, ConnectorError
@@ -12,8 +13,11 @@ from .clip import seconds, FastClip, FastClipEvents, message_payload
 from ....config.generation.fast import (
     MAX_CLIP_COUNT,
     MIN_CLIP_COUNT,
+    OPTIONS_ASPECT,
     MAX_CLIP_SECONDS,
     MIN_CLIP_SECONDS,
+    DEFAULT_CLIP_COUNT,
+    DEFAULT_CLIP_SECONDS,
     MAX_PROMPT_CHARACTERS,
 )
 
@@ -22,8 +26,8 @@ from ....config.generation.fast import (
 class FastContinueRequest(FastGenerateRequest):
     """A sequence of Fast H3 clips linked by their final frames."""
 
-    clip_seconds: float = 6
-    clip_count: int = 3
+    clip_seconds: float = DEFAULT_CLIP_SECONDS
+    clip_count: int = DEFAULT_CLIP_COUNT
     later_prompts: tuple[str, ...] = ()
 
     def validate(self, settings: Settings) -> None:
@@ -33,7 +37,7 @@ class FastContinueRequest(FastGenerateRequest):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.clipCount"))
         if type(self.clip_seconds) not in (int, float) or not MIN_CLIP_SECONDS <= self.clip_seconds <= MAX_CLIP_SECONDS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.continuedClipDuration"))
-        if self.aspect not in ("16:9", "1:1", "9:16", "4:3"):
+        if self.aspect not in OPTIONS_ASPECT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.aspectRatio"))
         prompts = (self.prompt, *self.later_prompts)
         if len(self.later_prompts) > self.clip_count - 1 or any(
@@ -105,7 +109,7 @@ class FastContinueRequest(FastGenerateRequest):
         payload: dict[str, object] = {
             "prompt": prompt,
             "seconds": duration or self.clip_seconds,
-            "seed": (self.seed + index) % 2**32,
+            "seed": (self.seed + index) % (MAX_SEED + 1),
         }
         if previous is not None:
             payload["continue_from_clip_id"] = previous.clip_id

@@ -7,9 +7,15 @@ from ...language import translate
 from ...serialization import Json
 from ..lease import unavailable, BrowserLease
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES, MODEL_TITLES
 from ....config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
-from ....config.live import MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
+from ....config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
+from ....config.nodes import DEFAULT_POINTER_POSITION, MAX_POINTER_POSITION, MIN_POINTER_POSITION
+from ....config.models.identities import (
+    POINTER_MODELS,
+    CONNECTION_TITLES,
+    AUDIO_PROMPT_MODELS,
+    EMPTY_PROMPT_MODELS,
+)
 
 
 class ControlLease(BrowserLease):
@@ -32,16 +38,15 @@ class ControlLease(BrowserLease):
     def invitation(self) -> dict[str, Json]:
         """Add supported live controls to the invitation sent to the owning client."""
         result = super().invitation()
-        key = next(key for key, identity in IDENTITIES.items() if identity[1] == self.options.model)
         result.update(
-            model_title=MODEL_TITLES[key],
+            model_title=CONNECTION_TITLES[self.options.model],
             audio_prompt_limit=MAX_AUDIO_PROMPT_CHARACTERS,
             prompt=self.options.prompt,
             prompt_limit=self.options.prompt_limit,
             webcam=self.options.webcam is not None,
-            pointer=self.options.model == "xmax/x2",
+            pointer=self.options.model in POINTER_MODELS,
             audio_prompt=self.options.audio_prompt,
-            sound=self.options.model.startswith("reactor/visko-") and self.options.audio_enabled,
+            sound=self.options.model in AUDIO_PROMPT_MODELS and self.options.audio_enabled,
         )
         return result
 
@@ -51,7 +56,7 @@ class ControlLease(BrowserLease):
         if document.keys() != {"lease", "capability", "sequence", "action", "fields"}:
             raise unavailable()
         name, payload, sequence = document["action"], document["fields"], document["sequence"]
-        if type(sequence) is not int or not 0 <= sequence < 2**53 or not isinstance(payload, dict):
+        if type(sequence) is not int or not 0 <= sequence <= MAX_SEQUENCE or not isinstance(payload, dict):
             raise unavailable()
         self._validate(name, payload)
         name = cast("str", name)
@@ -88,24 +93,26 @@ class ControlLease(BrowserLease):
             valid = (
                 payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
-                and (bool(prompt.strip()) or self.options.model == "reactor/sana-streaming")
+                and (bool(prompt.strip()) or self.options.model in EMPTY_PROMPT_MODELS)
                 and len(prompt) <= self.options.prompt_limit
             )
         elif name == "audio_prompt":
             prompt = payload.get("prompt")
             valid = (
-                self.options.model.startswith("reactor/visko-")
+                self.options.model in AUDIO_PROMPT_MODELS
                 and self.options.audio_enabled
                 and payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
                 and len(prompt) <= MAX_AUDIO_PROMPT_CHARACTERS
             )
-        elif name == "pointer" and self.options.model == "xmax/x2":
+        elif name == "pointer" and self.options.model in POINTER_MODELS:
             valid = (
                 payload.keys() == {"x", "y", "active"}
                 and type(payload.get("active")) is bool
                 and all(
-                    isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value <= 1
+                    isinstance(value, (int, float))
+                    and not isinstance(value, bool)
+                    and MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION
                     for value in (payload.get("x"), payload.get("y"))
                 )
             )
@@ -126,7 +133,11 @@ class ControlLease(BrowserLease):
                 if kind == name:
                     self.actions.remove(action)
                     if kind == "pointer" and self.clock() - received_at > STALE_INPUT_SECONDS:
-                        return {"x": 0.5, "y": 0.5, "active": False}
+                        return {
+                            "x": DEFAULT_POINTER_POSITION,
+                            "y": DEFAULT_POINTER_POSITION,
+                            "active": False,
+                        }
                     return payload
             return None
 

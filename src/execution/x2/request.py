@@ -14,6 +14,7 @@ from ....config.models.identities import IDENTITIES
 from ...media.video.publish import VideoPublication
 from ...serialization import mapping_value, validate_json
 from ....config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
+from ....config.nodes import DEFAULT_POINTER_POSITION, MAX_POINTER_POSITION, MIN_POINTER_POSITION
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,8 +25,8 @@ class X2Request(VideoInputs):
     webcam: WebcamFrames | None = None
     keep_backlog: bool = False
     pointer_active: bool = False
-    pointer_x: float = 0.5
-    pointer_y: float = 0.5
+    pointer_x: float = DEFAULT_POINTER_POSITION
+    pointer_y: float = DEFAULT_POINTER_POSITION
     model_name: ClassVar[str] = IDENTITIES["x2"][1]
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
@@ -38,7 +39,10 @@ class X2Request(VideoInputs):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         if type(self.keep_backlog) is not bool or type(self.pointer_active) is not bool:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerOptionType"))
-        if any(type(value) not in (int, float) or not 0 <= value <= 1 for value in (self.pointer_x, self.pointer_y)):
+        if any(
+            type(value) not in (int, float) or not MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION
+            for value in (self.pointer_x, self.pointer_y)
+        ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerCoordinates"))
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:

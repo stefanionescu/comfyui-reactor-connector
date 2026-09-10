@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
 from ....config.generation.session import MAX_PROMPT_CHARACTERS
-from ....config.generation.prompts import MAX_SHOTS, MAX_SHOT_CHUNK, MAX_STORYBOARD_BYTES
+from ....config.generation.prompts import OPTIONS_TRANSITION, MAX_SHOTS, MAX_SHOT_CHUNK, MAX_STORYBOARD_BYTES
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,7 +21,7 @@ class Shot:
         """Check the later chunk, transition choice, and shot prompt."""
         if type(self.at_session_chunk) is not int or not 1 <= self.at_session_chunk <= MAX_SHOT_CHUNK:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotChunk"))
-        if self.transition not in ("soft", "cut"):
+        if self.transition not in OPTIONS_TRANSITION:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotTransition"))
         if type(self.prompt) is not str or not self.prompt.strip() or len(self.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotPrompt"))

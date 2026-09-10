@@ -11,8 +11,8 @@ from datetime import UTC, datetime
 from .sources import read_public_models
 from ..settings.settings import Settings
 from ...config.settings import INTEGER_SETTINGS
-from ...config.discovery import CHECK_TIMEOUT_SECONDS
 from collections.abc import Callable, Awaitable, AsyncIterator
+from ...config.discovery import CHECK_POLL_SECONDS, CHECK_TIMEOUT_SECONDS
 
 
 class ModelChecker:
@@ -85,7 +85,7 @@ class ModelChecker:
         """Poll settings and check for updates only when the configured interval expires."""
         while True:
             await self.tick()
-            await asyncio.sleep(60)
+            await asyncio.sleep(CHECK_POLL_SECONDS)
 
     async def lifecycle(self, _app: web.Application) -> AsyncIterator[None]:
         """Start with aiohttp and await cancellation before the host shuts down."""

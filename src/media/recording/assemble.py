@@ -8,10 +8,11 @@ from functools import partial
 from ...language import translate
 from ..state import CaptureResult
 from ...settings.settings import Settings
-from ....config.media.audio import SAMPLE_RATE
 from ...errors import ErrorCode, ConnectorError
+from ....config.media.video import MAX_FRAME_RATE
 from ..process import close_input, EncoderProcess
 from ....config.media.workers import RECORDING_TIMEOUT_SECONDS
+from ....config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE
 
 
 async def prepare_recording(
@@ -47,13 +48,13 @@ async def prepare_recording(
         samples, channels = result.get("audio_samples"), result.get("channels")
         if (
             type(frames) is not int
-            or not 1 <= frames <= duration_seconds * 120 + 1
+            or not 1 <= frames <= duration_seconds * MAX_FRAME_RATE + 1
             or mode != "recording_pts"
             or result.get("sample_rate") != SAMPLE_RATE
             or type(samples) is not int
-            or not 1 <= samples <= duration_seconds * 48_000 + 1
+            or not 1 <= samples <= duration_seconds * SAMPLE_RATE + 1
             or type(channels) is not int
-            or channels not in (1, 2)
+            or not MIN_CHANNELS <= channels <= MAX_CHANNELS
         ):
             raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingMetadata"))
         success = True

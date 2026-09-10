@@ -1,10 +1,15 @@
+import { browserInput } from '#config/web/browser.ts';
 import { setTextAttribute, message } from '#web/localization.ts';
 
 export type Pointer = { x: number; y: number; active: boolean };
 
 /** Track one mouse, touch, or keyboard drag on a model preview. */
 export class DragInput {
-  private pointer: Pointer = { x: 0.5, y: 0.5, active: false };
+  private pointer: Pointer = {
+    x: browserInput.pointerCenter,
+    y: browserInput.pointerCenter,
+    active: false,
+  };
 
   private captured: number | undefined;
 
@@ -84,8 +89,14 @@ export class DragInput {
   private position(event: PointerEvent): void {
     const rect = this.image.getBoundingClientRect();
     this.pointer = {
-      x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
-      y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)),
+      x: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, (event.clientX - rect.left) / rect.width),
+      ),
+      y: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, (event.clientY - rect.top) / rect.height),
+      ),
       active: true,
     };
     this.send(this.pointer);
@@ -97,10 +108,10 @@ export class DragInput {
    */
   private keydown(event: KeyboardEvent): void {
     const offsets = new Map<string, readonly [number, number]>([
-      ['ArrowLeft', [-0.03, 0]],
-      ['ArrowRight', [0.03, 0]],
-      ['ArrowUp', [0, -0.03]],
-      ['ArrowDown', [0, 0.03]],
+      ['ArrowLeft', [-browserInput.pointerStep, 0]],
+      ['ArrowRight', [browserInput.pointerStep, 0]],
+      ['ArrowUp', [0, -browserInput.pointerStep]],
+      ['ArrowDown', [0, browserInput.pointerStep]],
       [' ', [0, 0]],
       ['Escape', [0, 0]],
     ]);
@@ -114,8 +125,14 @@ export class DragInput {
       return;
     }
     this.pointer = {
-      x: Math.max(0, Math.min(1, this.pointer.x + offset[0])),
-      y: Math.max(0, Math.min(1, this.pointer.y + offset[1])),
+      x: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, this.pointer.x + offset[0]),
+      ),
+      y: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, this.pointer.y + offset[1]),
+      ),
       active: event.key === ' ' || this.pointer.active,
     };
     this.send(this.pointer);

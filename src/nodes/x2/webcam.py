@@ -14,6 +14,8 @@ from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
+    MIN_VARIATION,
+    DEFAULT_VARIATION,
     MAX_WEBCAM_SECONDS,
     MIN_WEBCAM_SECONDS,
     STEP_WEBCAM_SECONDS,
@@ -50,8 +52,8 @@ class X2Webcam(io.ComfyNode):
                     ),
                     io.Int.Input(
                         "variation",
-                        default=0,
-                        min=0,
+                        default=DEFAULT_VARIATION,
+                        min=MIN_VARIATION,
                         max=MAX_VARIATION,
                     ),
                     io.Image.Input(

@@ -6,8 +6,8 @@ from ..schema import translate_schema
 from ...media.webcam import WebcamFrames
 from ...execution.sana.request import SanaRequest
 from ..controls import video_outputs, generation_controls
-from ....config.generation.video import MAX_ANCHOR_INTERVAL
 from ...comfy.execution import execute_video, operation_fingerprint
+from ....config.generation.video import DEFAULT_ANCHOR_INTERVAL, MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
 
 
 class SanaWebcam(io.ComfyNode):
@@ -28,8 +28,8 @@ class SanaWebcam(io.ComfyNode):
                     *generation_controls("webcam"),
                     io.Int.Input(
                         "anchor_interval",
-                        default=0,
-                        min=0,
+                        default=DEFAULT_ANCHOR_INTERVAL,
+                        min=MIN_ANCHOR_INTERVAL,
                         max=MAX_ANCHOR_INTERVAL,
                     ),
                 ],

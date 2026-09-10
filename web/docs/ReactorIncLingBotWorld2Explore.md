@@ -27,7 +27,7 @@ set **Sideways movement** to **Stop**, and record two seconds.
 | Seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                      |
 | Run number              | Change this number to request another run with the same other settings. Default: 0.                                                          |
 | Movement                | Forward, Back, or Stop. Choose Stop to stay in place.                                                                                        |
-| Sideways movement       | Move left, Move right, or Stop. Combine it with Forward or Back to move diagonally.                                   |
+| Sideways movement       | Move left, Move right, or Stop. Combine it with Forward or Back to move diagonally.                                                          |
 | Turn left or right      | Keep looking left or right. Choose Stop to stop turning.                                                                                     |
 | Look up or down         | Keep looking up or down. You can combine it with horizontal look.                                                                            |
 | Turn per step (degrees) | Turn amount per model step, in degrees. Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. This is not degrees per second. |

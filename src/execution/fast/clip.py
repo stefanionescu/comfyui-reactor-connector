@@ -10,7 +10,7 @@ from ...language import translate
 from dataclasses import dataclass
 from typing import cast, TYPE_CHECKING
 from ...errors import ErrorCode, ConnectorError
-from ....config.generation.fast import MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
+from ....config.generation.fast import FRAME_RATE, MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
 
 if TYPE_CHECKING:
     from ..events import SessionEvents
@@ -47,7 +47,7 @@ class FastClip:
             or not 1 <= cast("float", frames) <= MAX_CLIP_FRAMES
             or int(cast("float", frames)) != frames
             or type(ready) is not bool
-            or not math.isclose(duration, cast("float", frames) / 24, abs_tol=0.001)
+            or not math.isclose(duration, cast("float", frames) / FRAME_RATE, abs_tol=0.001)
         ):
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
@@ -62,7 +62,7 @@ class FastClip:
                 ),
             )
         count = int(cast("float", frames))
-        return cls(identity, count / 24, count, ready)
+        return cls(identity, count / FRAME_RATE, count, ready)
 
 
 class FastClipEvents:

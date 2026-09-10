@@ -10,9 +10,9 @@ from comfy_api.latest import io, Input
 from ...settings.store import read_settings
 from ...media.video.input import prepared_video
 from ...execution.sana.request import SanaRequest
-from ....config.generation.video import MAX_ANCHOR_INTERVAL
 from ..controls import live_control, video_outputs, generation_controls
 from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
+from ....config.generation.video import DEFAULT_ANCHOR_INTERVAL, MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
 
 
 class SanaEditVideo(io.ComfyNode):
@@ -36,8 +36,8 @@ class SanaEditVideo(io.ComfyNode):
                     *generation_controls("edit"),
                     io.Int.Input(
                         "anchor_interval",
-                        default=0,
-                        min=0,
+                        default=DEFAULT_ANCHOR_INTERVAL,
+                        min=MIN_ANCHOR_INTERVAL,
                         max=MAX_ANCHOR_INTERVAL,
                     ),
                     live_control(),

@@ -1,6 +1,7 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import type { Invitation } from '#web/live/api.ts';
+import { browserRoutes } from '#config/web/routes.ts';
 import { browserLimits, browserPatterns } from '#config/web/browser.ts';
 
 export type Controls = Invitation & {
@@ -29,7 +30,7 @@ export function parseControlsInvitation(value: unknown): Controls | undefined {
     typeof document.model !== 'string' ||
     typeof document.model_title !== 'string' ||
     document.model_title.length < 1 ||
-    document.model_title.length > 200 ||
+    document.model_title.length > browserLimits.maxTextCharacters ||
     typeof document.prompt !== 'string' ||
     typeof document.prompt_limit !== 'number' ||
     document.prompt_limit < 1 ||
@@ -81,7 +82,7 @@ export async function sendAction(
   name: string,
   fields: Record<string, unknown>,
 ): Promise<void> {
-  const response = await fetcher('/reactor-inc/v1/live/action', {
+  const response = await fetcher(browserRoutes.live.action, {
     method: 'POST',
     cache: 'no-store',
     signal: AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),

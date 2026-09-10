@@ -1,7 +1,9 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import type { Controls } from '#web/live/commands.ts';
+import { browserRoutes } from '#config/web/routes.ts';
 import { translate, type MessageKey } from '#web/language.ts';
+import { browserInput, browserLimits } from '#config/web/browser.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
 
 export class Webcam {
@@ -100,9 +102,12 @@ export class Webcam {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        width: { ideal: 640 },
-        height: { ideal: 480 },
-        frameRate: { ideal: 12, max: 24 },
+        width: { ideal: browserInput.cameraWidth },
+        height: { ideal: browserInput.cameraHeight },
+        frameRate: {
+          ideal: browserInput.cameraIdealFrameRate,
+          max: browserInput.cameraMaxFrameRate,
+        },
         ...(selected ? { deviceId: { exact: selected } } : {}),
       },
     });
@@ -160,7 +165,11 @@ export class Webcam {
       await this.upload;
       return true;
     }
-    const ratio = Math.min(640 / this.video.videoWidth, 480 / this.video.videoHeight, 1);
+    const ratio = Math.min(
+      browserInput.cameraWidth / this.video.videoWidth,
+      browserInput.cameraHeight / this.video.videoHeight,
+      1,
+    );
     this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
     this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
     this.upload = this.send();
@@ -177,14 +186,17 @@ export class Webcam {
       const context = this.canvas.getContext('2d');
       if (!context) throw new Error(translate('camera.readFailed'));
       context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      this.canvas.toBlob(fulfill, 'image/jpeg', 0.8);
+      this.canvas.toBlob(fulfill, 'image/jpeg', browserInput.cameraJpegQuality);
     });
     if (this.closed || !blob) return;
-    const response = await this.fetcher('/reactor-inc/v1/live/camera', {
+    const response = await this.fetcher(browserRoutes.live.camera, {
       method: 'POST',
       cache: 'no-store',
       body: blob,
-      signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(2000)]),
+      signal: AbortSignal.any([
+        this.controller.signal,
+        AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
+      ]),
       headers: {
         'Content-Type': 'image/jpeg',
         'X-Reactor-Comfy': '1',

@@ -1,3 +1,5 @@
+import { browserLimits } from '#config/web/browser.ts';
+
 /**
  * Convert held keys to the model's supported movement axes.
  * @param keys - The keys currently held or briefly pressed.
@@ -176,7 +178,7 @@ export class CameraInput {
         const target = event.target;
         if (!(target instanceof HTMLButtonElement) || !target.dataset.key) return;
         if (event.detail !== 0 && this.lastHold?.key === target.dataset.key) return;
-        this.nudge(target.dataset.key, 250);
+        this.nudge(target.dataset.key, browserLimits.inputNudgeMilliseconds);
         this.publish();
       },
       { signal },
@@ -192,7 +194,8 @@ export class CameraInput {
     const started = this.pointerStarted.get(event.pointerId);
     if (event.type === 'pointerup' && key && started !== undefined) {
       this.lastHold = { key, milliseconds: performance.now() - started };
-      if (this.lastHold.milliseconds < 250) this.nudge(key, 250 - this.lastHold.milliseconds);
+      if (this.lastHold.milliseconds < browserLimits.inputNudgeMilliseconds)
+        this.nudge(key, browserLimits.inputNudgeMilliseconds - this.lastHold.milliseconds);
     }
     this.pointers.delete(event.pointerId);
     this.pointerStarted.delete(event.pointerId);

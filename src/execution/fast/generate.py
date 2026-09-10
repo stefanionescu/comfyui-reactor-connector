@@ -12,14 +12,21 @@ from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ....config.models.identities import IDENTITIES
 from .clip import seconds, FastClip, FastClipEvents, message_payload
-from ....config.generation.fast import MAX_CLIP_SECONDS, MIN_CLIP_SECONDS, MAX_PROMPT_CHARACTERS
+from ....config.generation.fast import (
+    FRAME_RATE,
+    DEFAULT_ASPECT,
+    OPTIONS_ASPECT,
+    MAX_CLIP_SECONDS,
+    MIN_CLIP_SECONDS,
+    MAX_PROMPT_CHARACTERS,
+)
 
 
 @dataclass(frozen=True, slots=True)
 class FastGenerateRequest(VideoInputs):
     """A Fast H3 request with its image endpoints, aspect ratio, and recording interval."""
 
-    aspect: str = "16:9"
+    aspect: str = DEFAULT_ASPECT
     ending_image: bytes | None = None
     model_name: ClassVar[str] = IDENTITIES["fast-h3"][1]
     requires_audio: ClassVar[bool] = True
@@ -42,7 +49,7 @@ class FastGenerateRequest(VideoInputs):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastPromptLength"))
         if not MIN_CLIP_SECONDS <= self.duration_seconds <= MAX_CLIP_SECONDS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastDuration"))
-        if self.aspect not in ("16:9", "1:1", "9:16", "4:3"):
+        if self.aspect not in OPTIONS_ASPECT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastAspectRatio"))
         if self.ending_image is not None and (
             type(self.ending_image) is not bytes
@@ -132,7 +139,7 @@ class FastGenerateRequest(VideoInputs):
         await events.command_reply("play", {"clip_id": clip.clip_id})
         await events.call("clip_playback", clips.finished.wait())
         end = seconds(clips.end_seconds)
-        if abs(end - start - clip.seconds) > 1 / 24:
+        if abs(end - start - clip.seconds) > 1 / FRAME_RATE:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
                 translate("main", "errors.clipWindowMissing"),

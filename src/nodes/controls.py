@@ -6,6 +6,8 @@ from ...config.nodes import (
     MAX_SEED,
     DEFAULT_SEED,
     MAX_VARIATION,
+    MIN_VARIATION,
+    DEFAULT_VARIATION,
     MAX_DURATION_SECONDS,
     MIN_DURATION_SECONDS,
     STEP_DURATION_SECONDS,
@@ -39,8 +41,8 @@ def generation_controls(
         ),
         io.Int.Input(
             "variation",
-            default=0,
-            min=0,
+            default=DEFAULT_VARIATION,
+            min=MIN_VARIATION,
             max=MAX_VARIATION,
         ),
     ]

@@ -14,8 +14,8 @@ from ...errors import ErrorCode, ConnectorError
 from ....config.models.identities import IDENTITIES
 from ...media.video.publish import VideoPublication
 from ..inputs import VideoInputs, validate_capture_inputs
-from ....config.generation.video import MAX_ANCHOR_INTERVAL
 from ....config.generation.session import MAX_PROMPT_CHARACTERS
+from ....config.generation.video import DEFAULT_ANCHOR_INTERVAL, MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,7 +24,7 @@ class SanaRequest(VideoInputs):
 
     video: Path | None = None
     webcam: WebcamFrames | None = None
-    anchor_interval: int = 0
+    anchor_interval: int = DEFAULT_ANCHOR_INTERVAL
     model_name: ClassVar[str] = IDENTITIES["sana-streaming"][1]
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
@@ -35,7 +35,10 @@ class SanaRequest(VideoInputs):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sanaPromptLength"))
         if self.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
-        if type(self.anchor_interval) is not int or not 0 <= self.anchor_interval <= MAX_ANCHOR_INTERVAL:
+        if (
+            type(self.anchor_interval) is not int
+            or not MIN_ANCHOR_INTERVAL <= self.anchor_interval <= MAX_ANCHOR_INTERVAL
+        ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.anchorInterval"))
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:

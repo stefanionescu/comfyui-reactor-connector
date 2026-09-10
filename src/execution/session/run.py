@@ -21,6 +21,7 @@ from ...errors import ErrorCode, ConnectorError
 from ...settings.state import ExecutionConfiguration
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
+from ....config.generation.session import CAPTURE_DRAIN_SECONDS
 
 
 def _video_track(transport: Transport) -> Track:
@@ -85,7 +86,7 @@ async def _capture_until_end(capture: VideoCapture, events: SessionEvents) -> No
             # Model messages and video use separate channels. Allow in-flight
             # frames to arrive, then close without recording a frozen final frame forever.
             try:
-                await asyncio.wait_for(asyncio.shield(captured), 0.5)
+                await asyncio.wait_for(asyncio.shield(captured), CAPTURE_DRAIN_SECONDS)
             except TimeoutError:
                 capture.finish()
             await asyncio.gather(captured)

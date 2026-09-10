@@ -3,6 +3,7 @@
 from .contracts import Snapshot
 from ..serialization import Json
 from ...config.models.nodes import NODE_MODELS
+from ...config.discovery import GUIDE_URL_FORMAT
 from ...config.models.identities import IDENTITIES, MODEL_TITLES
 
 
@@ -53,4 +54,4 @@ def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
 
 def guide_url(slug: str) -> str:
     """Build the public overview URL for a model guide name."""
-    return f"https://docs.reactor.inc/model-api-reference/{slug}/overview"
+    return GUIDE_URL_FORMAT.format(slug=slug)

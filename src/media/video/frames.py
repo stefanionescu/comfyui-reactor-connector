@@ -6,7 +6,7 @@ import av
 from ...language import translate
 from typing import cast, TYPE_CHECKING
 from ...errors import ErrorCode, ConnectorError
-from ....config.media.video import MAX_FRAME_RATE
+from ....config.media.video import DEFAULT_FRAME_RATE, MAX_FRAME_RATE
 
 if TYPE_CHECKING:
     import numpy as np
@@ -24,7 +24,7 @@ class PreparedFrames:
         self.path = path
         self.container: InputContainer | None = None
         self.frames: Iterator[av.VideoFrame] | None = None
-        self.step_seconds = 1 / 24
+        self.step_seconds = 1 / DEFAULT_FRAME_RATE
 
     def open(self) -> tuple[NDArray[np.uint8], float]:
         """Open the prepared video and require a supported frame rate and a first timestamped frame."""

@@ -1,6 +1,7 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { cameraAxes } from '#web/live/input.ts';
+import { browserRoutes } from '#config/web/routes.ts';
 import { browserLimits, browserPatterns } from '#config/web/browser.ts';
 
 export type Invitation = {
@@ -42,7 +43,7 @@ export function parseSceneInvitation(value: unknown): SceneInvitation | undefine
     typeof value.model !== 'string' ||
     typeof value.model_title !== 'string' ||
     value.model_title.length < 1 ||
-    value.model_title.length > 200 ||
+    value.model_title.length > browserLimits.maxTextCharacters ||
     typeof value.prompt !== 'string' ||
     typeof value.prompt_limit !== 'number' ||
     !Number.isSafeInteger(value.prompt_limit) ||
@@ -109,7 +110,7 @@ export async function exchange(
   signal: AbortSignal,
   release = false,
 ): Promise<LiveStatus> {
-  const response = await fetcher('/reactor-inc/v1/live/exchange', {
+  const response = await fetcher(browserRoutes.live.exchange, {
     method: 'POST',
     cache: 'no-store',
     signal,

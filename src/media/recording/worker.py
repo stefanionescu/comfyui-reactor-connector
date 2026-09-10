@@ -13,13 +13,17 @@ from itertools import chain
 from fractions import Fraction
 from dataclasses import dataclass
 from typing import cast, TYPE_CHECKING
-from config.media.audio import SAMPLE_RATE
+from config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE
 from config.media.video import (
+    ENCODER_CRF,
+    ENCODER_NAME,
+    ENCODER_PRESET,
     MAX_FRAME_RATE,
     MAX_START_SECONDS,
     MAX_COMPONENT_BITS,
     MAX_FRAME_DIMENSION,
     MIN_FRAME_DIMENSION,
+    ENCODER_PIXEL_FORMAT,
 )
 
 if TYPE_CHECKING:
@@ -135,7 +139,7 @@ def read_audio(source: Path, origin: Fraction, duration_seconds: float, maximum_
             raise ValueError(msg)
         stream = reader.streams.audio[0]
         channels = len(stream.codec_context.layout.channels)
-        if channels not in (1, 2):
+        if not MIN_CHANNELS <= channels <= MAX_CHANNELS:
             msg = "recording_audio"
             raise ValueError(msg)
         layout = "mono" if channels == 1 else "stereo"
@@ -235,12 +239,12 @@ def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: Rec
         av.open(file, mode="r", format="mp4", options={"protocol_whitelist": "pipe"}) as reader,
         cast("MediaWriter", av.open(str(settings.destination), mode="w", format="mp4")) as writer,
     ):
-        video = writer.add_stream("libx264", rate=timing.rate)
+        video = writer.add_stream(ENCODER_NAME, rate=timing.rate)
         video.width, video.height = timing.width, timing.height
-        video.pix_fmt = "yuv420p"
+        video.pix_fmt = ENCODER_PIXEL_FORMAT
         video.time_base = Fraction(1, 1_000_000)
         video.codec_context.time_base = video.time_base
-        video.options = {"preset": "veryfast", "crf": "18"}
+        video.options = {"preset": ENCODER_PRESET, "crf": ENCODER_CRF}
         sound = AudioEncoder(writer, audio)
         for frame, current in recording_frames(reader, timing, settings.duration):
             for packet in video.encode(frame):
@@ -248,7 +252,7 @@ def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: Rec
             sound.through(round(current * SAMPLE_RATE))
             previous = current
             frames += 1
-            if frames > 120 * settings.duration + 1:
+            if frames > MAX_FRAME_RATE * settings.duration + 1:
                 msg = "recording_video"
                 raise ValueError(msg)
             if settings.destination.exists() and settings.destination.stat().st_size > settings.size_limit:

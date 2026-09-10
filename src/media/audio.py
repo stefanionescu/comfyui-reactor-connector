@@ -8,7 +8,7 @@ import numpy as np
 from ..language import translate
 from ..errors import ErrorCode, ConnectorError
 from typing import cast, TypedDict, TYPE_CHECKING
-from ...config.media.audio import SAMPLE_RATE, PCM_SAMPLE_BYTES
+from ...config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE, PCM_SAMPLE_BYTES
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -31,7 +31,7 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
     with wave.open(str(path), "rb") as reader:
         count, channels = reader.getnframes(), reader.getnchannels()
         if (
-            channels not in (1, 2)
+            not MIN_CHANNELS <= channels <= MAX_CHANNELS
             or reader.getsampwidth() != PCM_SAMPLE_BYTES
             or reader.getframerate() != SAMPLE_RATE
             or count < 1
