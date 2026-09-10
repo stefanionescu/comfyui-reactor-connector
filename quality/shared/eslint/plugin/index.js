@@ -1,6 +1,5 @@
 import { importLayout } from '#shared/eslint/plugin/rules/import-layout.js';
 import { noCallThrough } from '#shared/eslint/plugin/rules/no-call-through.js';
-import { noIndexImports } from '#shared/eslint/plugin/rules/no-index-imports.js';
 import { importPathStyle } from '#shared/eslint/plugin/rules/import-path-style.js';
 import { noExportOnlyFiles } from '#shared/eslint/plugin/rules/no-export-only-files.js';
 import { maxBarrelReexports } from '#shared/eslint/plugin/rules/max-barrel-reexports.js';
@@ -26,7 +25,6 @@ export const rules = {
   'no-duplicate-barrel-exports': noDuplicateBarrelExports,
   'no-export-only-files': noExportOnlyFiles,
   'no-exported-alias-constants': noExportedAliasConstants,
-  'no-index-imports': noIndexImports,
   'no-imports-after-statements': noImportsAfterStatements,
   'no-prefix-collisions': noPrefixCollisions,
   'no-reexports-outside-index': noReexportsOutsideIndex,

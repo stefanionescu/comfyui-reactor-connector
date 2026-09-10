@@ -1,10 +1,10 @@
 import { INTERNAL_PREFIXES } from '#config/paths.js';
 
-const styleMessages = {
-  js: 'Internal imports must use explicit JavaScript file extensions.',
-  ts: 'Internal imports must use explicit .ts extensions.',
-  extensionless: 'Internal imports must be extensionless (no .js/.ts suffix).',
-};
+const styleMessages = new Map([
+  ['js', 'Internal imports must use explicit JavaScript file extensions.'],
+  ['ts', 'Internal imports must use explicit .ts extensions.'],
+  ['extensionless', 'Internal imports must be extensionless (no .js/.ts suffix).'],
+]);
 const javascriptExtensions = ['.js', '.mjs', '.cjs'];
 const typescriptExtensions = ['.ts', '.mts', '.cts'];
 const skippedExtensions = ['.json'];
@@ -131,7 +131,7 @@ export const importPathStyle = {
         ? options.internalPrefixes
         : INTERNAL_PREFIXES;
 
-    if (!styleMessages[style]) {
+    if (!styleMessages.has(style)) {
       return {};
     }
 
@@ -154,7 +154,7 @@ export const importPathStyle = {
 
       context.report({
         node: sourceNode,
-        message: styleMessages[style],
+        message: styleMessages.get(style),
         fix(fixer) {
           const preferredSource = getPreferredSource(source, style);
           const quote = getQuote(sourceNode);
@@ -170,20 +170,18 @@ export const importPathStyle = {
       checkSource(node.arguments?.[0]);
     };
 
+    const checkModuleSource = (node) => {
+      if (node.source) {
+        checkSource(node.source);
+      }
+    };
+
     return {
       CallExpression: checkRequireCall,
-      ImportDeclaration: (node) => checkSource(node.source),
-      ImportExpression: (node) => checkSource(node.source),
-      ExportAllDeclaration(node) {
-        if (node.source) {
-          checkSource(node.source);
-        }
-      },
-      ExportNamedDeclaration(node) {
-        if (node.source) {
-          checkSource(node.source);
-        }
-      },
+      ImportDeclaration: checkModuleSource,
+      ImportExpression: checkModuleSource,
+      ExportAllDeclaration: checkModuleSource,
+      ExportNamedDeclaration: checkModuleSource,
     };
   },
 };

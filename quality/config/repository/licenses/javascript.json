@@ -1,0 +1,235 @@
+{
+    "allowed_licenses": ["Apache-2.0", "ISC", "MIT", "Python-2.0"],
+    "package_exemptions": [
+        {
+            "package": "@csstools/css-syntax-patches-for-csstree",
+            "licenses": ["MIT-0"],
+            "reason": "The package uses the MIT No Attribution license."
+        },
+        {
+            "package": "@csstools/selector-resolve-nested",
+            "licenses": ["MIT-0"],
+            "reason": "The package uses the MIT No Attribution license."
+        },
+        {
+            "package": "@csstools/selector-specificity",
+            "licenses": ["MIT-0"],
+            "reason": "The package uses the MIT No Attribution license."
+        },
+        {
+            "package": "@isaacs/cliui",
+            "licenses": ["BlueOak-1.0.0"],
+            "reason": "The package uses the permissive Blue Oak license."
+        },
+        {
+            "package": "app-module-path",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "caniuse-lite",
+            "licenses": ["CC-BY-4.0"],
+            "reason": "The package supplies browser compatibility data under CC BY 4.0; keep its attribution when distributing that data."
+        },
+        {
+            "package": "domelementtype",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "domhandler",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "domutils",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "entities",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "escodegen",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "eslint-plugin-jsdoc",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "eslint-plugin-sonarjs",
+            "licenses": ["LGPL-3.0-only"],
+            "reason": "The license applies to the development ESLint plugin, which is not bundled in the connector."
+        },
+        {
+            "package": "eslint-scope",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "espree",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "esprima",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "esquery",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "esrecurse",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "estraverse",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "esutils",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "fast-uri",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "glob",
+            "licenses": ["BlueOak-1.0.0", "ISC"],
+            "reason": "Installed versions use the permissive ISC or Blue Oak license."
+        },
+        {
+            "package": "ieee754",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "jackspeak",
+            "licenses": ["BlueOak-1.0.0"],
+            "reason": "The package uses the permissive Blue Oak license."
+        },
+        {
+            "package": "license-checker",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "lru-cache",
+            "licenses": ["BlueOak-1.0.0"],
+            "reason": "The package uses the permissive Blue Oak license."
+        },
+        {
+            "package": "mdn-data",
+            "licenses": ["CC0-1.0"],
+            "reason": "The package dedicates its reference data to the public domain under CC0."
+        },
+        {
+            "package": "minimatch",
+            "licenses": ["BlueOak-1.0.0", "ISC"],
+            "reason": "Installed versions use the permissive ISC or Blue Oak license."
+        },
+        {
+            "package": "minipass",
+            "licenses": ["BlueOak-1.0.0"],
+            "reason": "The package uses the permissive Blue Oak license."
+        },
+        {
+            "package": "normalize-package-data",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "package-json-from-dist",
+            "licenses": ["BlueOak-1.0.0"],
+            "reason": "The package uses the permissive Blue Oak license."
+        },
+        {
+            "package": "path-scurry",
+            "licenses": ["BlueOak-1.0.0"],
+            "reason": "The package uses the permissive Blue Oak license."
+        },
+        {
+            "package": "postcss-values-parser",
+            "licenses": ["MPL-2.0"],
+            "reason": "The license applies to the development parser package, which is not bundled in the connector."
+        },
+        {
+            "package": "rc",
+            "licenses": ["(BSD-2-Clause OR MIT OR Apache-2.0)"],
+            "reason": "The package offers MIT and Apache-2.0 licensing alternatives."
+        },
+        {
+            "package": "regjsparser",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "smol-toml",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "source-map",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "source-map-js",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "spark-md5",
+            "licenses": ["(WTFPL OR MIT)"],
+            "reason": "The package offers the MIT license as an alternative."
+        },
+        {
+            "package": "spdx-exceptions",
+            "licenses": ["CC-BY-3.0"],
+            "reason": "The package supplies SPDX reference data under CC BY 3.0; keep its attribution when distributing that data."
+        },
+        {
+            "package": "spdx-license-ids",
+            "licenses": ["CC0-1.0"],
+            "reason": "The package dedicates its reference data to the public domain under CC0."
+        },
+        {
+            "package": "spdx-ranges",
+            "licenses": ["(MIT AND CC-BY-3.0)"],
+            "reason": "The package combines MIT code and SPDX reference data under CC BY 3.0."
+        },
+        {
+            "package": "stringify-object",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "table",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "ts-declaration-location",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "uri-js",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        }
+    ]
+}

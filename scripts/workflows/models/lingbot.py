@@ -7,6 +7,7 @@ EXAMPLES = (
         "lingbot-02-live-camera",
         "ReactorIncLingBotExplore",
         inputs={
+            "prompt": "A path through a quiet forest.",
             "duration_seconds": 10.0,
             "variation": 0,
             "seed": 42,
@@ -24,6 +25,7 @@ EXAMPLES = (
         "lingbot-world-2-02-live-camera",
         "ReactorIncLingBotWorld2Explore",
         inputs={
+            "prompt": "A path through a quiet forest.",
             "duration_seconds": 10.0,
             "variation": 0,
             "seed": 42,
@@ -42,6 +44,7 @@ EXAMPLES = (
         "lingbot-01-explore-image",
         "ReactorIncLingBotExplore",
         inputs={
+            "prompt": "A quiet garden path. Move forward slowly through the scene.",
             "duration_seconds": 5.0,
             "variation": 0,
             "seed": 42,
@@ -58,6 +61,7 @@ EXAMPLES = (
         "lingbot-world-2-01-explore-image",
         "ReactorIncLingBotWorld2Explore",
         inputs={
+            "prompt": "A quiet garden path. Move forward slowly through the scene.",
             "duration_seconds": 5.0,
             "variation": 0,
             "seed": 42,

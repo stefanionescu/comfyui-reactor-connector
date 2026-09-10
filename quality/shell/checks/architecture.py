@@ -7,7 +7,7 @@ import posixpath
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 from quality.lib.diagnostics import diagnostic
-from quality.config.shell import SHELL_CONFIG_PREFIXES
+from quality.config.shell import SHELL_ACTION_PREFIXES, SHELL_CONFIG_PREFIXES
 from quality.shell.checks.bash import is_architecture_source, is_file_executable
 from quality.shell.parsers import collect_shell_functions, shell_identifier_references
 
@@ -137,6 +137,16 @@ def check_function_visibility(
         )
     if is_executable or name == "main" or is_private:
         return errors
+    first_word = name.split("_", maxsplit=1)[0]
+    if "_" not in name or first_word in SHELL_ACTION_PREFIXES:
+        errors.append(
+            diagnostic(
+                path,
+                int(function["start"]),
+                "shell.public-namespace",
+                f"{name} must begin with its family or domain namespace",
+            ),
+        )
     if not external_paths and internal_count > 0:
         errors.append(
             diagnostic(
@@ -223,6 +233,7 @@ def check_source_barrels(sources: dict[str, str], root: Path) -> list[Diagnostic
 
 
 def check_direct_dependencies(
+    root: Path,
     sources: dict[str, str],
     owners: dict[str, FunctionOwner],
     references: dict[str, dict[str, list[int]]],
@@ -232,6 +243,11 @@ def check_direct_dependencies(
     for path, source in sources.items():
         dependencies, source_errors = direct_source_dependencies(path, source)
         errors.extend(source_errors)
+        errors.extend(
+            diagnostic(dependency, 1, "shell.library-mode", "Sourced libraries must not be executable.")
+            for dependency in dependencies
+            if dependency in sources and is_file_executable(root / dependency)
+        )
         for name, lines in references[path].items():
             owner = owners.get(name)
             if owner is None or owner["path"] == path:
@@ -258,5 +274,5 @@ def check_shell_architecture(sources: dict[str, str], root: Path) -> list[Diagno
     errors.extend(check_visibility(governed, references, root))
     errors.extend(check_single_caller_files(governed, references, root))
     errors.extend(check_source_barrels(governed, root))
-    errors.extend(check_direct_dependencies(governed, owners, references))
+    errors.extend(check_direct_dependencies(root, governed, owners, references))
     return errors

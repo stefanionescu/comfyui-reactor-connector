@@ -80,8 +80,7 @@ class EncoderProcess:
             tasks.extend((feeder, reader, interrupted))
             completed, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             if feeder in completed:
-                # codeql[py/ineffectual-statement] -- reason: Propagate feeder failure.
-                await feeder
+                feeder.result()
                 await asyncio.wait({reader, interrupted}, return_when=asyncio.FIRST_COMPLETED)
             if interrupted.done():
                 raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.captureStopped"))

@@ -1,12 +1,12 @@
 import { cameraAxes } from '#web/live/input.ts';
-import { browserLimits } from '#config/browser.ts';
+import { browserLimits } from '#config/web/browser.ts';
 
 type CameraState = { axes: Record<string, string>; release: boolean };
 
 export class CameraStates {
   private current: Record<string, string>;
 
-  private pending: CameraState[] = [];
+  private pending: CameraState[];
 
   private hasIndependentAxes: boolean;
 
@@ -14,10 +14,10 @@ export class CameraStates {
    * Initialize idle camera movement for the selected model.
    * @param hasIndependentAxes - Whether independent movement axes are supported.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Construction records the model and initializes its supported idle axes.
   constructor(hasIndependentAxes: boolean) {
     this.hasIndependentAxes = hasIndependentAxes;
     this.current = cameraAxes(new Set(), hasIndependentAxes);
+    this.pending = [];
   }
 
   /**
@@ -32,7 +32,7 @@ export class CameraStates {
       if (this.pending.length >= browserLimits.maxPendingInputs) {
         // Stop old movement before applying the latest input.
         this.pending = [{ axes: cameraAxes(new Set(), this.hasIndependentAxes), release: true }];
-        if (Object.values(axes).some((value) => value !== 'idle'))
+        if (!Object.values(axes).every(Object.is.bind(null, 'idle')))
           this.pending.push({ axes, release: false });
       } else this.pending.push({ axes, release });
     }
@@ -43,8 +43,9 @@ export class CameraStates {
    * Consume a queued camera update or keep the current held movement.
    * @returns The axes and release flag for the next exchange.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Reading the next state consumes a queued update, so callers must use this owner.
   take(): CameraState {
-    return this.pending.shift() ?? { axes: this.current, release: false };
+    const queued = this.pending.shift();
+    if (queued) return queued;
+    return { axes: this.current, release: false };
   }
 }

@@ -12,9 +12,10 @@ const textBindings = new WeakMap<Text, Binding>();
  * @param fallback - Server text for an unfamiliar setting.
  * @returns The message description, without rendered markup.
  */
-// eslint-disable-next-line local/no-trivial-functions -- Message identity must survive rendering so existing labels can change language.
 export function message(key: MessageKey, values: MessageValues = {}, fallback?: string): Message {
-  return { key, values, ...(fallback === undefined ? {} : { fallback }) };
+  const content: Message = { key, values };
+  if (fallback !== undefined) content.fallback = fallback;
+  return content;
 }
 
 /**

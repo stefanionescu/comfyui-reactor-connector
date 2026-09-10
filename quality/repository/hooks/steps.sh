@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
+#
+# Run hook commands and report explicitly skipped checks.
 # Runtime: Bash 3.2+, macOS and Linux.
-set -euo pipefail
 
-# run_step - Runs a hook step unless its skip variable is set.
-run_step() {
+# hook_run_step - Runs a hook step unless its skip variable is set.
+# Globals:
+#   Reads the named skip variable.
+# Arguments:
+#   Hook label, skip variable name, then command and arguments.
+# Outputs:
+#   Writes the hook status and command output.
+# Returns:
+#   Returns the command status, or zero when skipped.
+hook_run_step() {
   local name="$1"
   local skip_var="$2"
   local skip_value="0"

@@ -6,6 +6,7 @@ import { isIndexFile } from '#shared/eslint/plugin/path-policy/index-file.js';
 import { analyzeDirectory, getPrefix } from '#repository/integrity/directory-prefixes.js';
 
 import {
+  isInScope,
   normalizeFilename,
   normalizePath,
 } from '#shared/eslint/plugin/path-policy/normalization.js';
@@ -45,8 +46,7 @@ export const noPrefixCollisions = {
         ? options.threshold
         : PREFIXED_FILES_THRESHOLD;
 
-    const inScope = scope.some((segment) => normalized.includes(`/${segment}/`));
-    if (!inScope) {
+    if (!isInScope(normalized, scope)) {
       return {};
     }
 
@@ -71,22 +71,25 @@ export const noPrefixCollisions = {
         });
         const peers = prefixMap.get(prefix) ?? [];
         if (peers.length >= threshold) {
-          const hasFiles = peers.some((p) => p.type === 'file');
-          const hasDirs = peers.some((p) => p.type === 'dir');
-          const names = peers.map((p) => (p.type === 'dir' ? `${p.name}/` : p.name)).join(', ');
-
-          let message;
-          if (hasFiles && hasDirs) {
-            message = `Entries in this folder share the "${prefix}" stem/prefix (${names}). Resolve the collision by renaming or reorganizing.`;
-          } else if (hasDirs) {
-            message = `Directories in this folder share the "${prefix}" prefix (${names}). Resolve the collision by renaming or reorganizing.`;
-          } else {
-            message = `Files in this folder share the "${prefix}" prefix (${peers.length} files). Group them in a subfolder and rename to remove the prefix.`;
-          }
-
-          context.report({ node, message });
+          context.report({ node, message: collisionMessage(prefix, peers) });
         }
       },
     };
   },
 };
+
+function collisionMessage(prefix, peers) {
+  const types = new Set();
+  const names = [];
+  for (const peer of peers) {
+    types.add(peer.type);
+    names.push(peer.type === 'dir' ? `${peer.name}/` : peer.name);
+  }
+  if (types.has('file') && types.has('dir')) {
+    return `Entries in this folder share the "${prefix}" stem/prefix (${names.join(', ')}). Resolve the collision by renaming or reorganizing.`;
+  }
+  if (types.has('dir')) {
+    return `Directories in this folder share the "${prefix}" prefix (${names.join(', ')}). Resolve the collision by renaming or reorganizing.`;
+  }
+  return `Files in this folder share the "${prefix}" prefix (${peers.length} files). Group them in a subfolder and rename to remove the prefix.`;
+}

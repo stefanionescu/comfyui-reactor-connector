@@ -46,7 +46,7 @@ Use these defaults for modules, imports, browser code, and runtime checks.
 | Modules            | Use ES modules. Keep CommonJS only where a tool requires its configuration format.                                                                                     |
 | Browser scripts    | Keep browser TypeScript under `web/`. Do not put executable inline scripts in generated help.                                                                          |
 | Exports            | Prefer named exports for module code. Allow default exports only where ecosystem config files require them.                                                            |
-| Naming             | Use purpose-based names and consistent casing for identifiers, files, and modules.                                                                                                 |
+| Naming             | Use purpose-based names and consistent casing for identifiers, files, and modules.                                                                                     |
 | Runtime boundaries | Treat configuration, Markdown, provider responses, user input, and generated paths as runtime boundaries that require explicit escaping, validation, or normalization. |
 
 Project-specific rules are authoritative when they deliberately choose a stricter or clearer standard.

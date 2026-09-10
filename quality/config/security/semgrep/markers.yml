@@ -6,9 +6,11 @@ rules:
           - generic
       paths:
           include:
+              - /config/**/*.py
               - /src/**/*.py
               - /scripts/**/*.py
               - /__init__.py
+              - /__main__.py
               - /quality/**/*.py
           exclude:
               - /quality/config/security/semgrep/markers.yml

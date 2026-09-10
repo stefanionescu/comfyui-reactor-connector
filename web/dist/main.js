@@ -446,7 +446,7 @@ var main_default = {
 
 // web/language.ts
 var languageEvents = new EventTarget();
-var messages = {};
+var messages = /* @__PURE__ */ new Map();
 function readMessage(source, key) {
   let value = source;
   for (const part of key.split(".")) {
@@ -459,26 +459,23 @@ function readMessage(source, key) {
 async function initializeLanguage() {
   try {
     const languages = await api.getCustomNodesI18n();
-    const available = {};
+    const available = /* @__PURE__ */ new Map();
     for (const [language, document2] of Object.entries(languages)) {
-      available[language.toLowerCase()] = document2;
+      available.set(language.toLowerCase(), document2);
     }
     messages = available;
   } catch {
-    messages = {};
+    messages = /* @__PURE__ */ new Map();
   }
-  app.ui.settings.addEventListener(
-    "Comfy.Locale.change",
-    () => languageEvents.dispatchEvent(new Event("change"))
-  );
 }
 function translate(key, values = {}, fallback) {
-  const languages = localeCandidates(selectedLocale());
-  const message2 = languages.map((language) => readMessage(messages[language], `reactorInc.${key}`)).find((value) => value !== void 0) ?? readMessage(main_default.reactorInc, key) ?? fallback ?? key;
-  return message2.replaceAll(
-    /\{(\w+)\}/g,
-    (placeholder, name) => Object.hasOwn(values, name) ? displayValue(values[name]) : placeholder
-  );
+  let message2;
+  for (const language of localeCandidates(selectedLocale())) {
+    message2 = readMessage(messages.get(language), `reactorInc.${key}`);
+    if (message2 !== void 0) break;
+  }
+  const text = message2 ?? readMessage(main_default.reactorInc, key) ?? fallback ?? key;
+  return text.replaceAll(/\{(\w+)\}/g, substituteValue.bind(null, values));
 }
 function selectedLocale() {
   const value = app.extensionManager.setting.get("Comfy.Locale");
@@ -491,16 +488,28 @@ function selectedLocale() {
 function localeCandidates(locale) {
   const exact = locale.replaceAll("_", "-").toLowerCase();
   const base = exact.split("-")[0] ?? "en";
-  const chinese = ["zh-tw", "zh-hk", "zh-mo", "zh-hant"].some(
-    (tag) => exact === tag || exact.startsWith(tag + "-")
-  );
+  let chinese = false;
+  for (const tag of ["zh-tw", "zh-hk", "zh-mo", "zh-hant"]) {
+    if (exact === tag || exact.startsWith(tag + "-")) {
+      chinese = true;
+      break;
+    }
+  }
   return [.../* @__PURE__ */ new Set([exact, chinese ? "zh-tw" : base, "en"])];
 }
 function formatNumber(value, options) {
-  return new Intl.NumberFormat(selectedLocale(), options).format(value);
+  const locale = selectedLocale();
+  const formatter = new Intl.NumberFormat(locale, options);
+  return formatter.format(value);
 }
 function formatDate(value) {
-  return new Date(value).toLocaleString(selectedLocale());
+  const date = new Date(value);
+  const locale = selectedLocale();
+  return date.toLocaleString(locale);
+}
+function substituteValue(values, placeholder, name) {
+  if (!Object.hasOwn(values, name)) return placeholder;
+  return displayValue(values[name]);
 }
 function displayValue(value) {
   if (typeof value === "function") return value();
@@ -518,7 +527,9 @@ function requestLocal(route, options) {
 var bindings = /* @__PURE__ */ new Set();
 var textBindings = /* @__PURE__ */ new WeakMap();
 function message(key, values = {}, fallback) {
-  return { key, values, ...fallback === void 0 ? {} : { fallback } };
+  const content = { key, values };
+  if (fallback !== void 0) content.fallback = fallback;
+  return content;
 }
 function textNode(content) {
   const node = document.createTextNode(
@@ -617,7 +628,11 @@ var Webcam = class {
     const controls = element("div");
     controls.append(label, this.enable);
     this.view.append(controls, this.video, this.status);
-    this.enable.addEventListener("click", () => void this.start());
+    this.enable.addEventListener("click", () => {
+      this.enable.disabled = true;
+      const selected = this.select.value;
+      void this.start(selected);
+    });
   }
   owner;
   fetcher;
@@ -633,10 +648,9 @@ var Webcam = class {
   canvas = element("canvas");
   upload;
   controller = new AbortController();
-  async start() {
-    this.enable.disabled = true;
+  async start(selected) {
     try {
-      if (!await this.openCamera()) return;
+      if (!await this.openCamera(selected)) return;
       await this.listCameras();
       if (this.closed) return;
       setText(this.enable, message("camera.select"));
@@ -644,17 +658,17 @@ var Webcam = class {
     } catch (error) {
       this.stopCamera();
       if (this.closed) return;
-      const errors = {
-        NotAllowedError: "camera.permissionDenied",
-        SecurityError: "camera.browserRequirements",
-        NotFoundError: "camera.notFound",
-        NotReadableError: "camera.busy",
-        OverconstrainedError: "camera.unavailableSelection"
-      };
+      const errors = /* @__PURE__ */ new Map([
+        ["NotAllowedError", "camera.permissionDenied"],
+        ["SecurityError", "camera.browserRequirements"],
+        ["NotFoundError", "camera.notFound"],
+        ["NotReadableError", "camera.busy"],
+        ["OverconstrainedError", "camera.unavailableSelection"]
+      ]);
       setText(
         this.status,
         message(
-          error instanceof Error ? errors[error.name] ?? "camera.accessFailed" : "camera.accessFailed"
+          error instanceof Error ? errors.get(error.name) ?? "camera.accessFailed" : "camera.accessFailed"
         )
       );
     } finally {
@@ -663,9 +677,10 @@ var Webcam = class {
   }
   /**
    * Open the selected camera and release any previous stream.
+   * @param selected - The selected device ID, or an empty string for the default camera.
    * @returns Whether the camera is ready and the panel is still open.
    */
-  async openCamera() {
+  async openCamera(selected) {
     if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("", "SecurityError");
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
@@ -673,7 +688,7 @@ var Webcam = class {
         width: { ideal: 640 },
         height: { ideal: 480 },
         frameRate: { ideal: 12, max: 24 },
-        ...this.select.value ? { deviceId: { exact: this.select.value } } : {}
+        ...selected ? { deviceId: { exact: selected } } : {}
       }
     });
     if (this.closed) {
@@ -698,17 +713,19 @@ var Webcam = class {
     const devices = await navigator.mediaDevices.enumerateDevices();
     if (this.closed) return;
     const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
-    this.select.replaceChildren(
-      ...devices.filter((device) => device.kind === "videoinput").map((device, index) => {
-        const option = element(
-          "option",
-          device.label || message("camera.number", { number: index + 1 })
-        );
-        option.value = device.deviceId;
-        option.selected = device.deviceId === selected;
-        return option;
-      })
-    );
+    const options = document.createDocumentFragment();
+    for (const device of devices) {
+      if (device.kind !== "videoinput") continue;
+      const option = element(
+        "option",
+        device.label || message("camera.number", { number: options.childElementCount + 1 })
+      );
+      option.value = device.deviceId;
+      option.selected = device.deviceId === selected;
+      options.appendChild(option);
+    }
+    this.select.replaceChildren();
+    this.select.appendChild(options);
   }
   /**
    * Upload a camera frame without overlapping uploads.
@@ -716,7 +733,8 @@ var Webcam = class {
    */
   async frame() {
     if (this.closed || !this.stream || this.video.readyState < 2) return false;
-    if (this.stream.getVideoTracks().some((track) => track.readyState !== "live")) {
+    for (const track of this.stream.getVideoTracks()) {
+      if (track.readyState === "live") continue;
       this.fail(translate("camera.disconnected"));
       return false;
     }
@@ -727,9 +745,6 @@ var Webcam = class {
     const ratio = Math.min(640 / this.video.videoWidth, 480 / this.video.videoHeight, 1);
     this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
     this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-    const context = this.canvas.getContext("2d");
-    if (!context) throw new Error(translate("camera.readFailed"));
-    context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
     this.upload = this.send();
     try {
       await this.upload;
@@ -739,9 +754,12 @@ var Webcam = class {
     }
   }
   async send() {
-    const blob = await new Promise(
-      (fulfill) => this.canvas.toBlob(fulfill, "image/jpeg", 0.8)
-    );
+    const blob = await new Promise((fulfill) => {
+      const context = this.canvas.getContext("2d");
+      if (!context) throw new Error(translate("camera.readFailed"));
+      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      this.canvas.toBlob(fulfill, "image/jpeg", 0.8);
+    });
     if (this.closed || !blob) return;
     const response = await this.fetcher("/reactor-inc/v1/live/camera", {
       method: "POST",
@@ -779,11 +797,25 @@ var Webcam = class {
   }
 };
 
+// web/live/polling.ts
+async function pause(milliseconds, signal) {
+  if (signal?.aborted) return;
+  await new Promise((fulfill) => {
+    const finish = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", finish);
+      fulfill();
+    };
+    const timer = setTimeout(finish, milliseconds);
+    signal?.addEventListener("abort", finish);
+  });
+}
+
 // web/live/sound.ts
 var SoundControls = class {
   view = element("fieldset");
   prompt = element("textarea");
-  apply = button(message("sound.applyPrompt"));
+  apply = button(message("sound.applyPrompt"), "submit");
   pending;
   /**
    * Build the sound prompt controls in their disabled state.
@@ -796,13 +828,11 @@ var SoundControls = class {
     this.prompt.rows = 2;
     const label = element("label", message("sound.prompt"));
     label.append(this.prompt);
-    this.view.append(
-      element("legend", message("sound.title")),
-      label,
-      this.apply,
-      element("p", message("sound.promptNotice"))
-    );
-    this.apply.addEventListener("click", () => {
+    const form = element("form");
+    form.append(label, this.apply, element("p", message("sound.promptNotice")));
+    this.view.append(element("legend", message("sound.title")), form);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
       this.pending = this.prompt.value;
       this.apply.disabled = true;
     });
@@ -812,10 +842,13 @@ var SoundControls = class {
    * Enable sound input only when the session accepts changes.
    * @param ready - Whether the model accepts live controls.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Both controls follow session readiness while a queued prompt keeps Apply disabled.
   setReady(ready) {
     this.prompt.disabled = !ready;
-    this.apply.disabled = !ready || this.pending !== void 0;
+    if (!ready) {
+      this.apply.disabled = true;
+      return;
+    }
+    this.apply.disabled = this.pending !== void 0;
   }
   /**
    * Consume the next sound prompt queued by the user.
@@ -826,22 +859,6 @@ var SoundControls = class {
     this.pending = void 0;
     return value;
   }
-};
-
-// config/browser.ts
-var browserLimits = {
-  requestTimeoutMilliseconds: 1e4,
-  pollIntervalMilliseconds: 100,
-  actionTimeoutMilliseconds: 2e3,
-  maxPendingInputs: 8,
-  maxPreviewCharacters: 35e4,
-  maxCalculatorSeconds: 3600
-};
-var browserPatterns = {
-  lease: /^[a-f0-9]{32}$/,
-  revision: /^[a-f0-9]{64}$/,
-  preview: /^[A-Za-z0-9+/]*={0,2}$/,
-  capability: /^[A-Za-z0-9_-]{43}$/
 };
 
 // web/live/pointer.ts
@@ -868,11 +885,11 @@ var PointerPreview = class {
     this.status.hidden = true;
     this.status.append(this.#state, this.#position);
     this.view.append(image, this.#marker);
-    const resize = new ResizeObserver(() => this.#place());
+    const resize = new ResizeObserver(this.#place.bind(this));
     resize.observe(image);
-    image.addEventListener("blur", () => this.#marker.hidden = true, { signal });
-    image.addEventListener("focus", () => this.#place(), { signal });
-    signal.addEventListener("abort", () => resize.disconnect(), { once: true });
+    image.addEventListener("blur", this.#place.bind(this), { signal });
+    image.addEventListener("focus", this.#place.bind(this), { signal });
+    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
   }
   /**
    * Move the marker to the user's latest pointer position.
@@ -908,11 +925,27 @@ var PointerPreview = class {
   }
   #place() {
     const pointer = this.#pointer;
-    if (!pointer || this.#image.hidden || document.activeElement !== this.#image) return;
-    this.#marker.hidden = false;
+    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
+    if (this.#marker.hidden || !pointer) return;
     this.#marker.style.left = `${this.#image.offsetLeft + pointer.x * this.#image.clientWidth}px`;
     this.#marker.style.top = `${this.#image.offsetTop + pointer.y * this.#image.clientHeight}px`;
   }
+};
+
+// config/web/browser.ts
+var browserLimits = {
+  requestTimeoutMilliseconds: 1e4,
+  pollIntervalMilliseconds: 100,
+  actionTimeoutMilliseconds: 2e3,
+  maxPendingInputs: 8,
+  maxPreviewCharacters: 35e4,
+  maxCalculatorSeconds: 3600
+};
+var browserPatterns = {
+  lease: /^[a-f0-9]{32}$/,
+  revision: /^[a-f0-9]{64}$/,
+  preview: /^[A-Za-z0-9+/]*={0,2}$/,
+  capability: /^[A-Za-z0-9_-]{43}$/
 };
 
 // web/live/drag.ts
@@ -949,8 +982,8 @@ var DragInput = class {
       { signal }
     );
     for (const name of ["pointerup", "pointercancel", "lostpointercapture", "blur"])
-      image.addEventListener(name, () => this.release(), { signal });
-    image.addEventListener("keydown", (event) => this.keydown(event), { signal });
+      image.addEventListener(name, this.release.bind(this), { signal });
+    image.addEventListener("keydown", this.keydown.bind(this), { signal });
     image.addEventListener(
       "keyup",
       (event) => {
@@ -962,7 +995,7 @@ var DragInput = class {
       },
       { signal }
     );
-    window.addEventListener("blur", () => this.release(), { signal });
+    window.addEventListener("blur", this.release.bind(this), { signal });
     document.addEventListener(
       "visibilitychange",
       () => {
@@ -970,7 +1003,7 @@ var DragInput = class {
       },
       { signal }
     );
-    signal.addEventListener("abort", () => this.release(), { once: true });
+    signal.addEventListener("abort", this.release.bind(this), { once: true });
   }
   image;
   send;
@@ -1004,15 +1037,15 @@ var DragInput = class {
    * @param event - A key pressed while the preview has focus.
    */
   keydown(event) {
-    const offsets = {
-      ArrowLeft: [-0.03, 0],
-      ArrowRight: [0.03, 0],
-      ArrowUp: [0, -0.03],
-      ArrowDown: [0, 0.03],
-      " ": [0, 0],
-      Escape: [0, 0]
-    };
-    const offset = Object.hasOwn(offsets, event.key) ? offsets[event.key] : void 0;
+    const offsets = /* @__PURE__ */ new Map([
+      ["ArrowLeft", [-0.03, 0]],
+      ["ArrowRight", [0.03, 0]],
+      ["ArrowUp", [0, -0.03]],
+      ["ArrowDown", [0, 0.03]],
+      [" ", [0, 0]],
+      ["Escape", [0, 0]]
+    ]);
+    const offset = offsets.get(event.key);
     if (!offset) return;
     event.preventDefault();
     event.stopPropagation();
@@ -1086,9 +1119,9 @@ var CameraInput = class {
       },
       { signal }
     );
-    surface.addEventListener("blur", () => this.release(), { signal });
+    surface.addEventListener("blur", this.release.bind(this), { signal });
     this.bindButtons(controls, signal);
-    window.addEventListener("blur", () => this.release(), { signal });
+    window.addEventListener("blur", this.release.bind(this), { signal });
     document.addEventListener(
       "visibilitychange",
       () => {
@@ -1096,7 +1129,7 @@ var CameraInput = class {
       },
       { signal }
     );
-    signal.addEventListener("abort", () => this.release(), { once: true });
+    signal.addEventListener("abort", this.release.bind(this), { once: true });
   }
   update;
   keyboard = /* @__PURE__ */ new Set();
@@ -1108,9 +1141,10 @@ var CameraInput = class {
    * Send combined input after a key, pointer, or timer changes.
    * @param release - Whether the user explicitly released all input.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Each event must publish the same combined keyboard, pointer, and timer state.
   publish(release = false) {
-    const keys = /* @__PURE__ */ new Set([...this.keyboard, ...this.pointers.values(), ...this.nudges.keys()]);
+    const keys = new Set(this.keyboard);
+    for (const key of this.pointers.values()) keys.add(key);
+    for (const key of this.nudges.keys()) keys.add(key);
     this.update(keys, release);
   }
   /**
@@ -1123,10 +1157,10 @@ var CameraInput = class {
     if (previous !== void 0) clearTimeout(previous);
     this.nudges.set(
       key,
-      // eslint-disable-next-line local/no-trivial-functions -- The timer removes its key before publishing the remaining held inputs.
       setTimeout(() => {
         this.nudges.delete(key);
-        this.publish();
+        const keys = /* @__PURE__ */ new Set([...this.keyboard, ...this.pointers.values(), ...this.nudges.keys()]);
+        this.update(keys, false);
       }, milliseconds)
     );
   }
@@ -1162,10 +1196,10 @@ var CameraInput = class {
       { signal }
     );
     for (const kind of ["pointerup", "pointercancel", "lostpointercapture"])
-      controls.addEventListener(kind, (event) => this.releasePointer(event), { signal });
+      controls.addEventListener(kind, this.releasePointer.bind(this), { signal });
     for (const kind of ["keydown", "keyup"])
-      controls.addEventListener(kind, (event) => this.buttonKey(event), { signal });
-    controls.addEventListener("focusout", () => this.release(), { signal });
+      controls.addEventListener(kind, this.buttonKey.bind(this), { signal });
+    controls.addEventListener("focusout", this.release.bind(this), { signal });
     controls.addEventListener(
       "click",
       (event) => {
@@ -1211,22 +1245,30 @@ var CameraInput = class {
 
 // web/live/api.ts
 function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof value !== "object" || value === null) return false;
+  return !Array.isArray(value);
+}
+function axisChoices(value) {
+  if (!Array.isArray(value) || !value.includes("idle")) return;
+  for (const choice of value) {
+    if (typeof choice !== "string") return;
+  }
+  return value;
 }
 function parseSceneInvitation(value) {
   if (!isRecord(value) || !isRecord(value.axes)) return;
   if (typeof value.lease !== "string" || !browserPatterns.lease.test(value.lease) || typeof value.capability !== "string" || !browserPatterns.capability.test(value.capability) || typeof value.model !== "string" || typeof value.model_title !== "string" || value.model_title.length < 1 || value.model_title.length > 200 || typeof value.prompt !== "string" || typeof value.prompt_limit !== "number" || !Number.isSafeInteger(value.prompt_limit) || value.prompt_limit < 1 || value.prompt.length > value.prompt_limit || typeof value.duration_seconds !== "number" || !Number.isFinite(value.duration_seconds) || value.duration_seconds <= 0)
     return;
-  const axes = {};
+  const axes = /* @__PURE__ */ new Map();
+  const offered = new Map(Object.entries(value.axes));
   const expected = Object.keys(
     cameraAxes(/* @__PURE__ */ new Set(), Object.hasOwn(value.axes, "move_longitudinal"))
   );
-  if (Object.keys(value.axes).length !== expected.length) return;
+  if (offered.size !== expected.length) return;
   for (const key of expected) {
-    const choices = value.axes[key];
-    if (!Array.isArray(choices) || !choices.includes("idle") || !choices.every((choice) => typeof choice === "string"))
-      return;
-    axes[key] = choices;
+    const choices = axisChoices(offered.get(key));
+    if (!choices) return;
+    axes.set(key, choices);
   }
   return {
     lease: value.lease,
@@ -1234,7 +1276,7 @@ function parseSceneInvitation(value) {
     model: value.model,
     modelTitle: value.model_title,
     durationSeconds: value.duration_seconds,
-    axes,
+    axes: Object.fromEntries(axes),
     prompt: value.prompt,
     promptCharacterLimit: value.prompt_limit
   };
@@ -1305,7 +1347,7 @@ async function sendAction(fetcher, owner, sequence, name, fields) {
       capability: owner.capability,
       sequence,
       action: name,
-      data: fields
+      fields
     })
   });
   if (!response.ok) throw new Error(translate("live.actionRejected"));
@@ -1333,9 +1375,8 @@ var ControlPanel = class {
     this.prompt.rows = 2;
     this.prompt.disabled = this.update.disabled = true;
     this.sound = owner.sound ? new SoundControls(owner.audioPrompt, owner.audioPromptCharacterLimit) : void 0;
-    this.camera = owner.webcam ? new Webcam(owner, fetcher, (message2) => this.stop(message2)) : void 0;
-    if (owner.pointer)
-      new DragInput(this.image, this.abort.signal, (next) => this.queuePointer(next));
+    this.camera = owner.webcam ? new Webcam(owner, fetcher, this.stop.bind(this)) : void 0;
+    if (owner.pointer) new DragInput(this.image, this.abort.signal, this.queuePointer.bind(this));
     this.bindActions();
     this.appendContent();
   }
@@ -1398,9 +1439,14 @@ var ControlPanel = class {
   }
   /** Bind start, prompt, stop, and dialog cleanup actions. */
   bindActions() {
-    this.start.addEventListener("click", () => {
-      this.startRequested = true;
-      this.start.disabled = true;
+    this.dialog.addEventListener("click", (event) => {
+      if (event.target === this.start) {
+        this.startRequested = true;
+        this.start.disabled = true;
+      } else if (event.target === this.end) {
+        if (this.finished) this.dialog.close();
+        else this.stop();
+      }
     });
     this.update.addEventListener("click", () => {
       if (!this.prompt.value.trim() && this.owner.model !== "reactor/sana-streaming") {
@@ -1409,10 +1455,6 @@ var ControlPanel = class {
       }
       this.pendingPrompt = this.prompt.value;
       this.update.disabled = true;
-    });
-    this.end.addEventListener("click", () => {
-      if (this.finished) this.dialog.close();
-      else this.stop();
     });
     this.dialog.addEventListener("cancel", (event) => {
       event.preventDefault();
@@ -1591,7 +1633,7 @@ var ControlPanel = class {
     try {
       while (!this.finished && !this.abort.signal.aborted) {
         if (!await this.cycle()) break;
-        await new Promise((fulfill) => setTimeout(fulfill, browserLimits.pollIntervalMilliseconds));
+        await pause(browserLimits.pollIntervalMilliseconds, this.abort.signal);
       }
     } catch (error) {
       this.stop(error instanceof Error ? error.message : translate("controls.connectionEnded"));
@@ -1663,13 +1705,18 @@ function record(value) {
   return value;
 }
 function isShortText(value, max = 200) {
-  return typeof value === "string" && value.length > 0 && value.length <= max;
+  if (typeof value !== "string") return false;
+  return value.length > 0 && value.length <= max;
+}
+function isNodeId(value) {
+  if (typeof value !== "string") return false;
+  return /^ReactorInc[A-Za-z0-9]+$/.test(value);
 }
 function parseModel(value) {
   const row = record(value);
   if (!isShortText(row.key) || !isShortText(row.name) || !isShortText(row.title) || !(row.connect_name === null || isShortText(row.connect_name)) || !(row.documentation_url === null || typeof row.documentation_url === "string" && /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/.test(
     row.documentation_url
-  )) || !(row.credits_per_second === null || typeof row.credits_per_second === "number" && Number.isFinite(row.credits_per_second) && row.credits_per_second >= 0) || typeof row.observed !== "boolean" || !["available", "adapter_required"].includes(String(row.support)) || !Array.isArray(row.node_ids) || row.node_ids.length > 100 || !row.node_ids.every((id) => typeof id === "string" && /^ReactorInc[A-Za-z0-9]+$/.test(id)))
+  )) || !(row.credits_per_second === null || typeof row.credits_per_second === "number" && Number.isFinite(row.credits_per_second) && row.credits_per_second >= 0) || typeof row.observed !== "boolean" || !["available", "adapter_required"].includes(String(row.support)) || !Array.isArray(row.node_ids) || row.node_ids.length > 100 || !row.node_ids.every(isNodeId))
     throw new Error(translate("models.invalidResponse"));
   return {
     entryKey: row.key,
@@ -1688,8 +1735,11 @@ function parseModelList(value) {
   if (typeof document2.revision !== "string" || !browserPatterns.revision.test(document2.revision) || !(document2.retrieved_at === null || isShortText(document2.retrieved_at, 40) && Number.isFinite(Date.parse(document2.retrieved_at))) || typeof document2.can_rollback !== "boolean" || typeof document2.mutation_allowed !== "boolean" || !Array.isArray(document2.models) || document2.models.length < 1 || document2.models.length > 1024)
     throw new Error(translate("models.invalidResponse"));
   const models = document2.models.map(parseModel);
-  if (new Set(models.map((row) => row.entryKey)).size !== models.length)
-    throw new Error(translate("models.invalidResponse"));
+  const keys = /* @__PURE__ */ new Set();
+  for (const model of models) {
+    if (keys.has(model.entryKey)) throw new Error(translate("models.invalidResponse"));
+    keys.add(model.entryKey);
+  }
   return {
     revision: document2.revision,
     retrievedAt: document2.retrieved_at,
@@ -1713,7 +1763,8 @@ function parseAutomaticCheck(value) {
   };
 }
 function metadataStatus(retrievedAt) {
-  return retrievedAt === null ? message("models.installedList") : message("models.lastRefresh", { date: () => formatDate(retrievedAt) });
+  if (retrievedAt === null) return message("models.installedList");
+  return message("models.lastRefresh", { date: formatDate.bind(null, retrievedAt) });
 }
 async function requestModels(fetcher, signal, action, revision) {
   const options = {
@@ -1754,7 +1805,7 @@ function automaticStatus(check) {
   if (check.updateAvailable === true) return message("models.listChanged");
   if (check.checkedAt)
     return message("models.checkSchedule", {
-      date: () => formatDate(check.checkedAt ?? ""),
+      date: formatDate.bind(null, check.checkedAt),
       hours: check.intervalHours
     });
   return message("models.checkDue");
@@ -1774,7 +1825,7 @@ var ModelDialog = class {
     heading.id = "reactor-models-title";
     const close = button(message("close"));
     setTextAttribute(close, "aria-label", message("models.close"));
-    close.addEventListener("click", () => this.dialog.close());
+    close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
     const header = element("header");
     header.append(heading, close);
     const searchLabel = element("label", message("models.search"));
@@ -1797,9 +1848,9 @@ var ModelDialog = class {
       this.count,
       this.list
     );
-    this.search.addEventListener("input", () => this.updateView());
-    this.duration.addEventListener("input", () => this.updateView());
-    this.dialog.addEventListener("close", () => this.dispose(), { once: true });
+    this.search.addEventListener("input", this.updateView.bind(this));
+    this.duration.addEventListener("input", this.updateView.bind(this));
+    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   fetcher;
   nodeId;
@@ -1829,8 +1880,8 @@ var ModelDialog = class {
       this.updateView();
     });
     this.refresh.disabled = this.rollback.disabled = true;
-    this.refresh.addEventListener("click", () => void this.updateModels("refresh"));
-    this.rollback.addEventListener("click", () => void this.updateModels("rollback"));
+    this.refresh.addEventListener("click", this.updateModels.bind(this, "refresh"));
+    this.rollback.addEventListener("click", this.updateModels.bind(this, "rollback"));
     const actions = element("div");
     actions.className = "reactor-actions";
     actions.append(this.refresh, this.rollback, showAll);
@@ -1860,15 +1911,20 @@ var ModelDialog = class {
   updateView() {
     const query = this.search.value.trim().toLowerCase();
     const nodeId2 = this.nodeId;
-    const visible = this.modelList?.models.filter(
-      (model) => (!nodeId2 || model.nodeIds.includes(nodeId2)) && `${model.modelSlug} ${model.title} ${model.connectionName ?? ""}`.toLowerCase().includes(query)
-    ) ?? [];
     const seconds = this.duration.validity.valid && this.duration.value !== "" ? this.duration.valueAsNumber : void 0;
-    this.list.replaceChildren(...visible.map((model) => modelRow(model, seconds)));
+    const rows = document.createDocumentFragment();
+    for (const model of this.modelList?.models ?? []) {
+      if (nodeId2 && !model.nodeIds.includes(nodeId2)) continue;
+      const label = `${model.modelSlug} ${model.title} ${model.connectionName ?? ""}`;
+      if (label.toLowerCase().includes(query)) rows.appendChild(modelRow(model, seconds));
+    }
+    const visible = rows.childElementCount;
+    this.list.replaceChildren();
+    this.list.appendChild(rows);
     setText(
       this.count,
       message("models.count", {
-        visible: visible.length,
+        visible,
         total: this.modelList?.models.length ?? 0
       })
     );
@@ -1876,14 +1932,21 @@ var ModelDialog = class {
   /**
    * Read or update the locally stored model list.
    * @param action - Read, refresh from public sources, or restore the previous list.
-   * @returns When the model list or error is displayed.
    */
-  async updateModels(action) {
+  updateModels(action) {
     this.refresh.disabled = this.rollback.disabled = true;
     setText(
       this.status,
       action === "refresh" ? message("models.checking") : message("models.loading")
     );
+    void this.requestModels(action);
+  }
+  /**
+   * Apply a model-list response while the dialog is open.
+   * @param action - The requested list operation.
+   * @returns When the request and action cleanup finish.
+   */
+  async requestModels(action) {
     try {
       const next = await requestModels(
         this.fetcher,
@@ -1892,24 +1955,28 @@ var ModelDialog = class {
         this.modelList?.revision
       );
       if (this.controller.signal.aborted) return;
-      this.modelList = next;
-      setText(this.checked, metadataStatus(next.retrievedAt));
-      setText(this.automatic, automaticStatus(next.automaticCheck));
-      setText(
-        this.status,
-        {
-          refresh: message("models.refreshed"),
-          rollback: message("models.restored"),
-          read: message("models.loaded")
-        }[action]
-      );
-      this.updateView();
+      this.displayModels(next, action);
     } catch (error) {
       if (!this.controller.signal.aborted)
         setText(this.status, error instanceof Error ? error.message : message("models.loadFailed"));
     } finally {
       this.restoreActions();
     }
+  }
+  /**
+   * Display a model list and the outcome of its requested operation.
+   * @param next - The validated local model list.
+   * @param action - The completed list operation.
+   */
+  displayModels(next, action) {
+    this.modelList = next;
+    setText(this.checked, metadataStatus(next.retrievedAt));
+    setText(this.automatic, automaticStatus(next.automaticCheck));
+    let status = message("models.loaded");
+    if (action === "refresh") status = message("models.refreshed");
+    if (action === "rollback") status = message("models.restored");
+    setText(this.status, status);
+    this.updateView();
   }
   /** Re-enable allowed list changes after the current request finishes. */
   restoreActions() {
@@ -1921,7 +1988,7 @@ var ModelDialog = class {
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    void this.updateModels("read");
+    this.updateModels("read");
   }
   /** Stop pending requests and return focus to the caller. */
   dispose() {
@@ -1944,16 +2011,16 @@ function openModels(fetcher, nodeId2) {
 // web/live/state.ts
 var CameraStates = class {
   current;
-  pending = [];
+  pending;
   hasIndependentAxes;
   /**
    * Initialize idle camera movement for the selected model.
    * @param hasIndependentAxes - Whether independent movement axes are supported.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Construction records the model and initializes its supported idle axes.
   constructor(hasIndependentAxes) {
     this.hasIndependentAxes = hasIndependentAxes;
     this.current = cameraAxes(/* @__PURE__ */ new Set(), hasIndependentAxes);
+    this.pending = [];
   }
   /**
    * Queue changed camera input while preserving explicit releases.
@@ -1966,7 +2033,7 @@ var CameraStates = class {
     if (release || JSON.stringify(axes) !== JSON.stringify(this.current)) {
       if (this.pending.length >= browserLimits.maxPendingInputs) {
         this.pending = [{ axes: cameraAxes(/* @__PURE__ */ new Set(), this.hasIndependentAxes), release: true }];
-        if (Object.values(axes).some((value) => value !== "idle"))
+        if (!Object.values(axes).every(Object.is.bind(null, "idle")))
           this.pending.push({ axes, release: false });
       } else this.pending.push({ axes, release });
     }
@@ -1976,9 +2043,10 @@ var CameraStates = class {
    * Consume a queued camera update or keep the current held movement.
    * @returns The axes and release flag for the next exchange.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Reading the next state consumes a queued update, so callers must use this owner.
   take() {
-    return this.pending.shift() ?? { axes: this.current, release: false };
+    const queued = this.pending.shift();
+    if (queued) return queued;
+    return { axes: this.current, release: false };
   }
 };
 
@@ -2019,7 +2087,7 @@ var ScenePanel = class {
       translate("live.lookDown")
     ];
     for (const [index, key] of cameraKeys.entries()) {
-      const control = button(labels2[index] ?? key);
+      const control = button(labels2.at(index) ?? key);
       control.dataset.key = key;
       control.disabled = true;
       this.controls.append(control);
@@ -2029,7 +2097,7 @@ var ScenePanel = class {
       this.surface,
       this.controls,
       this.controller.signal,
-      (keys, urgent) => this.states.update(keys, urgent)
+      this.states.update.bind(this.states)
     );
     this.release = input.release.bind(input);
     this.bindActions();
@@ -2058,7 +2126,7 @@ var ScenePanel = class {
   disposed = false;
   sequence = 0;
   previewSequence = 0;
-  /** Build the session header, movement parseControlsInvitation, and prompt input. */
+  /** Build the session header, movement controls, and prompt input. */
   appendContent() {
     const header = element("header");
     header.append(element("h2", message("live.sceneTitle")), this.end);
@@ -2211,9 +2279,7 @@ var ScenePanel = class {
         if (result.closed) this.finish(result);
         else {
           await this.sendPrompt(result);
-          await new Promise(
-            (fulfill) => setTimeout(fulfill, browserLimits.pollIntervalMilliseconds)
-          );
+          await pause(browserLimits.pollIntervalMilliseconds);
         }
       }
     } catch {
@@ -2256,14 +2322,14 @@ function parseDefinitions(value) {
   const definitions = record2(value);
   if (!Object.hasOwn(definitions, "catalog_interval_hours"))
     throw new Error(translate("settings.incompleteResponse"));
-  const result = {};
+  const result = /* @__PURE__ */ new Map();
   for (const [name, raw] of Object.entries(definitions)) {
     const field = record2(raw);
     if (!/^[a-z][a-z_]+$/.test(name) || typeof field.label !== "string" || field.label.length < 1 || field.label.length > 200 || typeof field.minimum !== "number" || !Number.isSafeInteger(field.minimum) || typeof field.maximum !== "number" || !Number.isSafeInteger(field.maximum) || field.minimum > field.maximum)
       throw new Error(translate("settings.invalidDefinition"));
-    result[name] = { label: field.label, minimum: field.minimum, maximum: field.maximum };
+    result.set(name, { label: field.label, minimum: field.minimum, maximum: field.maximum });
   }
-  return result;
+  return Object.fromEntries(result);
 }
 function parseConfiguration(value) {
   const document2 = record2(value);
@@ -2275,8 +2341,9 @@ function parseConfiguration(value) {
   const definitions = parseDefinitions(document2.integer_settings);
   if (typeof settings.catalog_auto_check !== "boolean" || typeof document2.credential_limit !== "number" || !Number.isSafeInteger(document2.credential_limit) || document2.credential_limit < 1)
     throw new Error(translate("settings.invalidChecks"));
+  const settingsByName = new Map(Object.entries(settings));
   for (const [name, definition] of Object.entries(definitions)) {
-    const value2 = settings[name];
+    const value2 = settingsByName.get(name);
     if (typeof value2 !== "number" || !Number.isSafeInteger(value2) || value2 < definition.minimum || value2 > definition.maximum)
       throw new Error(translate("settings.invalidLimit"));
   }
@@ -2337,14 +2404,14 @@ var SettingsDialog = class {
     heading.id = "reactor-settings-title";
     const close = button(message("close"));
     setTextAttribute(close, "aria-label", message("settings.close"));
-    close.addEventListener("click", () => this.dialog.close());
+    close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
     const header = element("header");
     header.append(heading, close);
     this.status.setAttribute("role", "status");
     this.status.setAttribute("aria-live", "polite");
     this.reload.addEventListener(
       "click",
-      () => void this.updateSettings(message("settings.loaded"))
+      this.updateSettings.bind(this, message("settings.loaded"), void 0, void 0, void 0)
     );
     this.dialog.append(
       header,
@@ -2357,7 +2424,7 @@ var SettingsDialog = class {
       this.status,
       this.reload
     );
-    this.dialog.addEventListener("close", () => this.dispose(), { once: true });
+    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   fetcher;
   dialog = element("dialog");
@@ -2388,10 +2455,16 @@ var SettingsDialog = class {
     this.key.required = true;
     label.append(this.key);
     const clear = button(message("settings.clearKey"));
-    clear.addEventListener("click", () => {
-      this.key.value = "";
-      void this.updateSettings(message("settings.keyCleared"), "/credential", "DELETE");
-    });
+    clear.addEventListener(
+      "click",
+      this.updateSettings.bind(
+        this,
+        message("settings.keyCleared"),
+        "/credential",
+        "DELETE",
+        void 0
+      )
+    );
     const actions = element("div");
     actions.className = "reactor-actions";
     actions.append(button(message("settings.saveKey"), "submit"), clear);
@@ -2401,8 +2474,7 @@ var SettingsDialog = class {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const value = this.key.value;
-      this.key.value = "";
-      void this.updateSettings(message("settings.keySaved"), "/credential", "PUT", {
+      this.updateSettings(message("settings.keySaved"), "/credential", "PUT", {
         api_key: value
       });
     });
@@ -2432,7 +2504,9 @@ var SettingsDialog = class {
     this.limitFields.replaceChildren(element("legend", message("settings.limits")));
     const additionalLimits = element("details");
     additionalLimits.append(element("summary", message("settings.advancedLimits")));
-    for (const [index, [name, definition]] of Object.entries(configuration.definitions).filter(([name2]) => name2 !== "catalog_interval_hours").entries()) {
+    let index = 0;
+    for (const [name, definition] of Object.entries(configuration.definitions)) {
+      if (name === "catalog_interval_hours") continue;
       const label = element(
         "label",
         message(`settings.limit.${name}`, {}, definition.label)
@@ -2446,6 +2520,7 @@ var SettingsDialog = class {
       this.inputs.set(name, input);
       label.append(input);
       (index < 2 ? this.limitFields : additionalLimits).append(label);
+      index += 1;
     }
     this.limitFields.append(additionalLimits, button(message("settings.saveLimits"), "submit"));
   }
@@ -2454,17 +2529,18 @@ var SettingsDialog = class {
    * @param configuration - The settings and revision currently shown.
    */
   saveLimits(configuration) {
-    const changes = {};
+    const changes = /* @__PURE__ */ new Map();
+    const settings = new Map(Object.entries(configuration.settings));
     for (const [name, input] of this.inputs) {
-      if (input.valueAsNumber !== configuration.settings[name]) changes[name] = input.valueAsNumber;
+      if (input.valueAsNumber !== settings.get(name)) changes.set(name, input.valueAsNumber);
     }
-    if (Object.keys(changes).length === 0) {
+    if (changes.size === 0) {
       setText(this.status, message("settings.noLimitChanges"));
       return;
     }
-    void this.updateSettings(message("settings.limitsSaved"), "/settings", "PATCH", {
+    this.updateSettings(message("settings.limitsSaved"), "/settings", "PATCH", {
       revision: configuration.revision,
-      settings: changes
+      settings: Object.fromEntries(changes)
     });
   }
   /**
@@ -2509,7 +2585,7 @@ var SettingsDialog = class {
       setText(this.status, message("settings.noCheckChanges"));
       return;
     }
-    void this.updateSettings(message("settings.checksSaved"), "/settings", "PATCH", {
+    this.updateSettings(message("settings.checksSaved"), "/settings", "PATCH", {
       revision: configuration.revision,
       settings
     });
@@ -2535,12 +2611,13 @@ var SettingsDialog = class {
     );
     this.automatic.checked = configuration.settings.catalog_auto_check;
     this.interval.value = String(configuration.settings.catalog_interval_hours);
+    const settings = new Map(Object.entries(configuration.settings));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       const input = this.inputs.get(name);
       if (!input) continue;
       input.min = String(definition.minimum);
       input.max = String(definition.maximum);
-      input.value = String(configuration.settings[name]);
+      input.value = String(settings.get(name));
     }
     if (!configuration.mutationAllowed) setText(this.status, message("settings.readOnly"));
   }
@@ -2550,12 +2627,23 @@ var SettingsDialog = class {
    * @param route - The local settings route.
    * @param method - The HTTP method.
    * @param body - The settings change, if any.
-   * @returns When the response or error is displayed.
    */
-  async updateSettings(success, route, method, body) {
+  updateSettings(success, route, method, body) {
+    if (route === "/credential") this.key.value = "";
     this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
     this.reload.disabled = true;
     setText(this.status, message("working"));
+    void this.requestSettings(success, route, method, body);
+  }
+  /**
+   * Apply the server response and restore editing after a settings request.
+   * @param success - The success message.
+   * @param route - The local settings route.
+   * @param method - The HTTP method.
+   * @param body - The settings change, if any.
+   * @returns When the response or error is displayed.
+   */
+  async requestSettings(success, route, method, body) {
     try {
       const value = await requestConfiguration(
         this.fetcher,
@@ -2584,7 +2672,7 @@ var SettingsDialog = class {
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    void this.updateSettings(message("settings.loaded"));
+    this.updateSettings(message("settings.loaded"));
   }
   /** Clear the key input, stop requests, and return focus to the caller. */
   dispose() {
@@ -2605,27 +2693,37 @@ function openSettings(fetcher) {
   current2.show();
 }
 
+// web/nodes/inputs.ts
+function connectedInputs(node) {
+  const names = /* @__PURE__ */ new Set();
+  for (const input of node.inputs ?? []) {
+    if (input.link != null) names.add(input.name);
+  }
+  return names;
+}
+function inputValues(node) {
+  const connected = connectedInputs(node);
+  const values = /* @__PURE__ */ new Map();
+  for (const widget of node.widgets ?? []) {
+    if (!values.has(widget.name) && !connected.has(widget.name))
+      values.set(widget.name, widget.value);
+  }
+  return values;
+}
+
 // web/nodes/labels.ts
 function configureNodeWidgets(node) {
   if (!node.comfyClass?.startsWith("ReactorInc")) return;
-  const control = node.widgets?.find((widget) => widget.name === "control_after_generate");
-  if (control) bindWidgetLabel(node, control, "nodes.seedBehavior");
+  for (const widget of node.widgets ?? []) {
+    if (widget.name !== "control_after_generate") continue;
+    bindWidgetLabel(node, widget, "nodes.seedBehavior");
+    break;
+  }
+  const connected = connectedInputs(node);
   for (const widget of node.widgets ?? []) {
     if (typeof widget.options?.advanced !== "boolean") continue;
-    const connected = node.inputs?.some(
-      (input) => input.name === widget.name && input.link != null
-    );
-    widget.advanced = widget.options.advanced && !connected;
+    widget.advanced = widget.options.advanced && !connected.has(widget.name);
   }
-}
-function bindNodeWidgets(node) {
-  if (!node.comfyClass?.startsWith("ReactorInc")) return;
-  configureNodeWidgets(node);
-  const changed = node.onConnectionsChange;
-  node.onConnectionsChange = function(...args) {
-    changed?.apply(this, args);
-    configureNodeWidgets(node);
-  };
 }
 var labels = /* @__PURE__ */ new Map();
 function bindWidgetLabel(node, widget, key) {
@@ -2651,10 +2749,11 @@ function refreshWidgetLabels() {
 
 // web/discovery/rate.ts
 function requestedSeconds(node) {
+  const widgets = inputValues(node);
   function value(name) {
-    if (node.inputs?.some((input) => input.name === name && input.link != null)) return void 0;
-    const raw = node.widgets?.find((widget) => widget.name === name)?.value;
-    return typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : void 0;
+    const raw = widgets.get(name);
+    if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) return void 0;
+    return raw;
   }
   if (node.comfyClass === "ReactorIncFastContinue") {
     const seconds = value("clip_seconds");
@@ -2676,7 +2775,7 @@ var CreditDialog = class {
     const title = element("h2", message("pricing.title"));
     title.id = "reactor-rate-title";
     const close = button(message("close"));
-    close.addEventListener("click", () => this.dialog.close());
+    close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
     const header = element("header");
     header.append(title, close);
     const seconds = requestedSeconds(node);
@@ -2704,8 +2803,8 @@ var CreditDialog = class {
       this.status,
       this.rates
     );
-    this.duration.addEventListener("input", () => this.updateView());
-    this.dialog.addEventListener("close", () => this.dispose(), { once: true });
+    this.duration.addEventListener("input", this.updateView.bind(this));
+    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
     this.updateView();
   }
   node;
@@ -2726,12 +2825,7 @@ var CreditDialog = class {
     try {
       const modelList = await requestModels(fetcher, this.controller.signal, "read");
       if (this.controller.signal.aborted) return;
-      this.models = modelList.models.filter(
-        (model) => model.nodeIds.includes(this.node.comfyClass ?? "")
-      );
-      setText(this.status, metadataStatus(modelList.retrievedAt));
-      if (!this.models.length) setText(this.status, message("pricing.modelUnavailable"));
-      this.updateView();
+      this.displayRates(modelList);
     } catch (error) {
       if (!this.controller.signal.aborted)
         setText(
@@ -2739,6 +2833,19 @@ var CreditDialog = class {
           error instanceof Error ? error.message : message("pricing.loadFailed")
         );
     }
+  }
+  /**
+   * Display rates for the selected node and update its calculation.
+   * @param modelList - The validated local model list.
+   */
+  displayRates(modelList) {
+    this.models = [];
+    for (const model of modelList.models) {
+      if (model.nodeIds.includes(this.node.comfyClass ?? "")) this.models.push(model);
+    }
+    setText(this.status, metadataStatus(modelList.retrievedAt));
+    if (!this.models.length) setText(this.status, message("pricing.modelUnavailable"));
+    this.updateView();
   }
   /** Validate session time and update every rate calculation. */
   updateView() {
@@ -2791,7 +2898,7 @@ function bindCreditRate(node, fetcher) {
     "button",
     translate("pricing.viewRate"),
     "",
-    () => openCreditRate(node, fetcher),
+    openCreditRate.bind(null, node, fetcher),
     {
       serialize: false
     }
@@ -2816,7 +2923,7 @@ function openHelpDialog(nodeId2) {
   heading.id = "reactor-node-help-title";
   const close = button(message("close"));
   setTextAttribute(close, "aria-label", message("help.close"));
-  close.addEventListener("click", () => dialog.close());
+  close.addEventListener("click", dialog.close.bind(dialog, void 0));
   const header = element("header");
   header.append(heading, close);
   const frame = element("iframe");
@@ -2827,12 +2934,12 @@ function openHelpDialog(nodeId2) {
     "allow-popups-to-escape-sandbox",
     "allow-downloads"
   );
-  void selectGuide(frame, nodeId2, controller.signal);
-  frame.addEventListener("load", () => prepareGuide(frame, dialog, controller.signal));
+  selectGuide(frame, nodeId2, controller.signal);
+  frame.addEventListener("load", prepareGuide.bind(null, frame, dialog, controller.signal));
   dialog.append(header, frame);
   languageEvents.addEventListener(
     "change",
-    () => void selectGuide(frame, nodeId2, controller.signal),
+    selectGuide.bind(null, frame, nodeId2, controller.signal),
     { signal: controller.signal }
   );
   dialog.addEventListener(
@@ -2878,11 +2985,15 @@ function prepareGuide(frame, dialog, signal) {
     { signal }
   );
 }
-async function selectGuide(frame, nodeId2, signal) {
+function selectGuide(frame, nodeId2, signal) {
   const requested = selectedLocale();
+  const inventoryUrl = new URL("./guides/languages.json", import.meta.url);
+  void displayGuide(frame, nodeId2, signal, requested, inventoryUrl);
+}
+async function displayGuide(frame, nodeId2, signal, requested, inventoryUrl) {
   let language = "en";
   try {
-    const response = await fetch(new URL("./guides/languages.json", import.meta.url), { signal });
+    const response = await fetch(inventoryUrl, { signal });
     const inventory = response.ok ? await response.json() : void 0;
     language = guideLanguage(inventory, nodeId2, requested);
   } catch {
@@ -2893,15 +3004,23 @@ async function selectGuide(frame, nodeId2, signal) {
   if (frame.src !== url) frame.src = url;
 }
 function guideLanguage(inventory, nodeId2, requested) {
-  if (typeof inventory !== "object" || inventory === null || Array.isArray(inventory)) return "en";
-  const installed = inventory[nodeId2];
-  if (!Array.isArray(installed)) return "en";
-  const names = installed.filter((value) => typeof value === "string");
+  const names = guideVariants(inventory, nodeId2);
   for (const candidate of localeCandidates(requested)) {
-    const match = names.find((value) => value.toLowerCase() === candidate);
+    const match = names.get(candidate);
     if (match) return match;
   }
   return "en";
+}
+function guideVariants(inventory, nodeId2) {
+  const names = /* @__PURE__ */ new Map();
+  if (typeof inventory !== "object" || inventory === null || Array.isArray(inventory)) return names;
+  const installed = new Map(Object.entries(inventory)).get(nodeId2);
+  if (!Array.isArray(installed)) return names;
+  for (const value of installed) {
+    if (typeof value === "string" && !names.has(value.toLowerCase()))
+      names.set(value.toLowerCase(), value);
+  }
+  return names;
 }
 
 // web/help/command.ts
@@ -2926,15 +3045,19 @@ app3.registerExtension({
   name: "reactor.inc.configuration",
   init: initializeLanguage,
   setup: () => {
-    languageEvents.addEventListener("change", refreshText);
-    languageEvents.addEventListener("change", refreshWidgetLabels);
+    app3.ui.settings.addEventListener("Comfy.Locale.change", () => {
+      refreshText();
+      refreshWidgetLabels();
+      languageEvents.dispatchEvent(new Event("change"));
+    });
     const stylesheet = document.createElement("link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = new URL("./main.css", import.meta.url).href;
-    if (![...document.querySelectorAll("link[rel=stylesheet]")].some(
-      (link) => link.getAttribute("href") === stylesheet.href
-    ))
-      document.head.append(stylesheet);
+    const stylesheets = /* @__PURE__ */ new Set();
+    for (const link of document.querySelectorAll("link[rel=stylesheet]")) {
+      stylesheets.add(link.getAttribute("href"));
+    }
+    if (!stylesheets.has(stylesheet.href)) document.head.append(stylesheet);
     api3.addEventListener("reactor-inc.live", (event) => {
       if (event instanceof CustomEvent) {
         openSceneControls(event.detail, requestLocal);
@@ -2944,9 +3067,14 @@ app3.registerExtension({
       if (event instanceof CustomEvent) openControls(event.detail, requestLocal);
     });
   },
-  // eslint-disable-next-line local/no-trivial-functions -- ComfyUI calls this hook once to attach labels and the credit rate button.
   nodeCreated: (node) => {
-    bindNodeWidgets(node);
+    if (!node.comfyClass?.startsWith("ReactorInc")) return;
+    configureNodeWidgets(node);
+    const changed = node.onConnectionsChange;
+    node.onConnectionsChange = function(...args) {
+      if (changed) changed.apply(this, args);
+      configureNodeWidgets(node);
+    };
     bindCreditRate(node, requestLocal);
   },
   loadedGraphNode: configureNodeWidgets,
@@ -2961,12 +3089,12 @@ app3.registerExtension({
     {
       id: "ReactorInc.OpenSettings",
       label: translate("settings.title"),
-      function: () => openSettings(requestLocal)
+      function: openSettings.bind(null, requestLocal)
     },
     {
       id: "ReactorInc.OpenCatalog",
       label: translate("models.title"),
-      function: () => openModels(requestLocal)
+      function: openModels.bind(null, requestLocal, void 0)
     }
   ],
   menuCommands: [

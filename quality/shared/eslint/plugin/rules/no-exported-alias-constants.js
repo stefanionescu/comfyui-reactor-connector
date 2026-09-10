@@ -27,6 +27,30 @@ function isIdentifierMemberExpression(node) {
   return isIdentifierMemberExpression(current.object);
 }
 
+function exportedDeclarations(sourceCode, node) {
+  const declarations = [];
+  if (node.declaration?.type === 'VariableDeclaration' && node.declaration.kind === 'const') {
+    declarations.push(...node.declaration.declarations);
+  }
+  if (node.source) return declarations;
+  const scope = sourceCode.getScope(node);
+  for (const specifier of node.specifiers) {
+    const variable = scope.set.get(specifier.local.name);
+    declarations.push(...constantDeclarations(variable));
+  }
+  return declarations;
+}
+
+function constantDeclarations(variable) {
+  const declarations = [];
+  for (const definition of variable?.defs ?? []) {
+    if (definition.type === 'Variable' && definition.parent.kind === 'const') {
+      declarations.push(definition.node);
+    }
+  }
+  return declarations;
+}
+
 export const noExportedAliasConstants = {
   meta: {
     type: 'problem',
@@ -36,25 +60,21 @@ export const noExportedAliasConstants = {
     schema: [],
   },
   create(context) {
-    const ruleContext = context;
-    const visitors = {
+    const sourceCode = context.sourceCode;
+    const report = context.report.bind(context);
+    return {
       ExportNamedDeclaration(node) {
-        if (node.declaration?.type !== 'VariableDeclaration' || node.declaration.kind !== 'const') {
-          return;
-        }
-
-        for (const declarator of node.declaration.declarations) {
+        for (const declarator of exportedDeclarations(sourceCode, node)) {
           if (!isIdentifierMemberExpression(declarator.init)) {
             continue;
           }
 
-          ruleContext.report({
+          report({
             node: declarator,
             message: aliasMessage,
           });
         }
       },
     };
-    return visitors;
   },
 };

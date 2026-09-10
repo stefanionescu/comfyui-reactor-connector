@@ -1,3 +1,4 @@
+import { BARREL_REEXPORTS_MAX } from '#config/limits.js';
 import { isIndexFile } from '#shared/eslint/plugin/path-policy/index-file.js';
 import { normalizeFilename } from '#shared/eslint/plugin/path-policy/normalization.js';
 
@@ -25,11 +26,11 @@ export const maxBarrelReexports = {
       return {};
     }
 
-    const max = (context.options[0] && context.options[0].max) || 5;
+    const max = context.options[0]?.max ?? BARREL_REEXPORTS_MAX;
     const reexportNodes = [];
 
     return {
-      ExportAllDeclaration: (node) => reexportNodes.push(node),
+      ExportAllDeclaration: reexportNodes.push.bind(reexportNodes),
       ExportNamedDeclaration(node) {
         if (node.source) {
           reexportNodes.push(node);

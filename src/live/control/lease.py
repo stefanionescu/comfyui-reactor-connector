@@ -48,9 +48,9 @@ class ControlLease(BrowserLease):
     def action(self, document: dict[str, Json]) -> dict[str, Json]:
         """Authorize, validate, and queue a strictly ordered live action."""
         self.authorize(document.get("capability"))
-        if document.keys() != {"lease", "capability", "sequence", "action", "data"}:
+        if document.keys() != {"lease", "capability", "sequence", "action", "fields"}:
             raise unavailable()
-        name, payload, sequence = document["action"], document["data"], document["sequence"]
+        name, payload, sequence = document["action"], document["fields"], document["sequence"]
         if type(sequence) is not int or not 0 <= sequence < 2**53 or not isinstance(payload, dict):
             raise unavailable()
         self._validate(name, payload)

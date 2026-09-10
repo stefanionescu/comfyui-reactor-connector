@@ -111,10 +111,6 @@ class SessionEvents:
             "predicted_wait_seconds": predicted_wait,
         }
 
-    async def command(self, name: str, payload: dict[str, object]) -> None:
-        """Observe both correlated command replies and separately delivered errors."""
-        await self.command_reply(name, payload)
-
     async def command_reply(self, name: str, payload: dict[str, object]) -> object:
         """Return a reply only after checking separately reported model rejection."""
         self.check()

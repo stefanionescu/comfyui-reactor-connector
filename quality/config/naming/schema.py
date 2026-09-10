@@ -32,4 +32,6 @@ NAMING_RULE_OPTIONAL_KEYS = {
     "is_excluded",
     "are_duplicate_words_allowed",
     "are_digits_allowed",
+    "allowed_banned_terms",
+    "reason",
 }

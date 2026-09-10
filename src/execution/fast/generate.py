@@ -60,9 +60,9 @@ class FastGenerateRequest(VideoInputs):
         if len(audio) != 1:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
         clips = FastClipEvents(events)
-        await events.command("set_autoplay", {"enabled": False})
-        await events.command("set_flush_on_clip_end", {"enabled": False})
-        await events.command("set_canvas", {"aspect": self.aspect})
+        await events.command_reply("set_autoplay", {"enabled": False})
+        await events.command_reply("set_flush_on_clip_end", {"enabled": False})
+        await events.command_reply("set_canvas", {"aspect": self.aspect})
         state = await self._state(transport, events)
         minimum, maximum = (
             seconds(state.get("clip_seconds_min")),
@@ -96,7 +96,7 @@ class FastGenerateRequest(VideoInputs):
         if tail.seconds > maximum:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.continuationLength"))
         await events.call("recording_tail_build", clips.wait_ready(tail))
-        await events.command("play", {"clip_id": tail.clip_id})
+        await events.command_reply("play", {"clip_id": tail.clip_id})
 
     async def _queue_clip(self, transport: Transport, events: SessionEvents) -> FastClip:
         """Upload selected endpoint images and queue a clip within the capture limit."""
@@ -129,7 +129,7 @@ class FastGenerateRequest(VideoInputs):
         start = seconds(before.get("seconds_sent"))
         if before.get("playing") is not False:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipPlaybackOrder"))
-        await events.command("play", {"clip_id": clip.clip_id})
+        await events.command_reply("play", {"clip_id": clip.clip_id})
         await events.call("clip_playback", clips.finished.wait())
         end = seconds(clips.end_seconds)
         if abs(end - start - clip.seconds) > 1 / 24:

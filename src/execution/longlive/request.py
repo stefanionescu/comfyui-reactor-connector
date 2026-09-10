@@ -30,9 +30,9 @@ class LongLiveRequest(VideoInputs):
     async def configure(self, transport: Transport, events: SessionEvents) -> None:
         """Schedule the opening shot and later transitions, then start generation."""
         del transport
-        await events.command("set_seed", {"seed": self.seed})
-        await events.command("set_shot", {"prompt": self.prompt})
+        await events.command_reply("set_seed", {"seed": self.seed})
+        await events.command_reply("set_shot", {"prompt": self.prompt})
         for shot in self.shots:
             command = "schedule_shot" if shot.transition == "soft" else "schedule_scene_cut"
-            await events.command(command, {"prompt": shot.prompt, "at_session_chunk": shot.at_session_chunk})
-        await events.command("start", {})
+            await events.command_reply(command, {"prompt": shot.prompt, "at_session_chunk": shot.at_session_chunk})
+        await events.command_reply("start", {})

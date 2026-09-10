@@ -1,5 +1,7 @@
 import { CASE_PATTERNS } from '#config/naming.js';
 
+const patterns = new Map(Object.entries(CASE_PATTERNS));
+
 /**
  * Compare a name with the configured case convention.
  * @param value - Identifier or file name to check.
@@ -7,7 +9,7 @@ import { CASE_PATTERNS } from '#config/naming.js';
  * @returns Whether the name follows that convention.
  */
 function matchesCase(value, caseName) {
-  const pattern = CASE_PATTERNS[caseName];
+  const pattern = patterns.get(caseName);
   if (!pattern) {
     return false;
   }

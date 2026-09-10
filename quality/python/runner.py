@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from quality.lib.source import python_sources
 from quality.config.repository.paths import PYTHON_SOURCE_DIRS
-from quality.python.rules.definitions import collect_definition_order
 from quality.python.policy import read_import_policy, read_package_policy
 from quality.lib.diagnostics import Diagnostic, diagnostic, report_diagnostics
 from quality.python.rules.imports import boundary, deferred, exports, graph, layout
@@ -30,7 +29,6 @@ def run_rules(root: Path) -> int:
     diagnostics.extend(runtime_singletons.collect_singleton_violations(valid_sources))
     diagnostics.extend(deferred.collect_deferred_import_violations(valid_sources))
     diagnostics.extend(all_at_bottom.collect_all_placement_violations(valid_sources))
-    diagnostics.extend(collect_definition_order(valid_sources))
     diagnostics.extend(layout.collect_import_layout_diagnostics(valid_sources, import_policy))
     diagnostics.extend(boundary.collect_import_boundary_diagnostics(valid_sources, import_policy, package_policy))
     diagnostics.extend(graph.collect_import_graph_violations(valid_sources))

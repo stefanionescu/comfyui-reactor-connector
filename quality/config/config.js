@@ -1,31 +1,46 @@
-export const QUALITY_CONFIG_FORBIDDEN_PATTERNS = [
-  { pattern: /^#!/u, message: 'config files must not be executable entrypoints' },
+export const CONFIG_NODE_RULES = [
   {
-    pattern: /\bnode:fs\b|\bfrom\s+['"]fs['"]|\brequire\(['"]fs['"]\)/u,
-    message: 'config files must not import fs',
+    types: [
+      'FunctionDeclaration',
+      'FunctionExpression',
+      'ArrowFunctionExpression',
+      'ClassDeclaration',
+      'ClassExpression',
+    ],
+    message: 'Config files must not define executable logic.',
   },
   {
-    pattern: /\bnode:child_process\b|\bchild_process\b/u,
-    message: 'config files must not import child_process',
-  },
-  { pattern: /\bprocess(?:\.|\[)/u, message: 'config files must not read process state' },
-  {
-    pattern: /\bimport\.meta\.url\b|\bfileURLToPath\b/u,
-    message: 'config files must not derive runtime paths',
-  },
-  {
-    pattern: /\b(?:exec|execFile|spawn|spawnSync)\b/u,
-    message: 'config files must not execute commands',
-  },
-  {
-    pattern: /\bfunct\x69on\b|=>|\bclass\b/u,
-    message: 'config files must not define executable logic',
-  },
-  {
-    pattern: /\b(?:if|for|while|switch|try|catch)\s*[({]/u,
-    message: 'config files must not contain control flow',
+    types: [
+      'IfStatement',
+      'ForStatement',
+      'ForInStatement',
+      'ForOfStatement',
+      'WhileStatement',
+      'DoWhileStatement',
+      'SwitchStatement',
+      'TryStatement',
+    ],
+    message: 'Config files must not contain control flow.',
   },
 ];
+export const CONFIG_IO_MODULES = [
+  'fs',
+  'node:fs',
+  'fs/promises',
+  'node:fs/promises',
+  'child_process',
+  'node:child_process',
+];
+export const CONFIG_COMMAND_NAMES = [
+  'exec',
+  'execFile',
+  'execSync',
+  'execFileSync',
+  'spawn',
+  'spawnSync',
+];
+// These tool loaders need absolute paths for the selected repository.
+export const CONFIG_PROCESS_PATHS = ['quality/config/eslint/index.js', 'quality/config/madge.cjs'];
 
 export const SHELL_CONFIG_GUARDS = [
   {

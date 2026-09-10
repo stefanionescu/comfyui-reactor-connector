@@ -89,9 +89,9 @@ export class CameraInput {
       },
       { signal },
     );
-    surface.addEventListener('blur', () => this.release(), { signal });
+    surface.addEventListener('blur', this.release.bind(this), { signal });
     this.bindButtons(controls, signal);
-    window.addEventListener('blur', () => this.release(), { signal });
+    window.addEventListener('blur', this.release.bind(this), { signal });
     document.addEventListener(
       'visibilitychange',
       () => {
@@ -99,16 +99,18 @@ export class CameraInput {
       },
       { signal },
     );
-    signal.addEventListener('abort', () => this.release(), { once: true });
+    signal.addEventListener('abort', this.release.bind(this), { once: true });
   }
 
   /**
    * Send combined input after a key, pointer, or timer changes.
    * @param release - Whether the user explicitly released all input.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Each event must publish the same combined keyboard, pointer, and timer state.
+
   private publish(release = false): void {
-    const keys = new Set([...this.keyboard, ...this.pointers.values(), ...this.nudges.keys()]);
+    const keys = new Set(this.keyboard);
+    for (const key of this.pointers.values()) keys.add(key);
+    for (const key of this.nudges.keys()) keys.add(key);
     this.update(keys, release);
   }
 
@@ -122,10 +124,11 @@ export class CameraInput {
     if (previous !== undefined) clearTimeout(previous);
     this.nudges.set(
       key,
-      // eslint-disable-next-line local/no-trivial-functions -- The timer removes its key before publishing the remaining held inputs.
+
       setTimeout(() => {
         this.nudges.delete(key);
-        this.publish();
+        const keys = new Set([...this.keyboard, ...this.pointers.values(), ...this.nudges.keys()]);
+        this.update(keys, false);
       }, milliseconds),
     );
   }
@@ -163,10 +166,10 @@ export class CameraInput {
       { signal },
     );
     for (const kind of ['pointerup', 'pointercancel', 'lostpointercapture'] as const)
-      controls.addEventListener(kind, (event) => this.releasePointer(event), { signal });
+      controls.addEventListener(kind, this.releasePointer.bind(this), { signal });
     for (const kind of ['keydown', 'keyup'] as const)
-      controls.addEventListener(kind, (event) => this.buttonKey(event), { signal });
-    controls.addEventListener('focusout', () => this.release(), { signal });
+      controls.addEventListener(kind, this.buttonKey.bind(this), { signal });
+    controls.addEventListener('focusout', this.release.bind(this), { signal });
     controls.addEventListener(
       'click',
       (event) => {

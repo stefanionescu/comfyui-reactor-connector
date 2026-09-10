@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
+#
+# Check frontend types without running the connector.
 # Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check frontend types without running the connector."
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}" || exit 1
+# main - Check frontend types without running the connector.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}" || exit 1
 
-exec bun --bun node_modules/typescript/bin/tsc --noEmit "$@"
+  exec bun --bun node_modules/typescript/bin/tsc --noEmit "$@"
+}
+
+main "$@"

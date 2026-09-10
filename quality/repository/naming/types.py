@@ -72,6 +72,8 @@ class NamingRule(TypedDict):
     is_excluded: NotRequired[bool]
     are_duplicate_words_allowed: NotRequired[bool]
     are_digits_allowed: NotRequired[bool]
+    allowed_banned_terms: NotRequired[list[str]]
+    reason: NotRequired[str]
 
 
 class NamingPolicy(TypedDict):

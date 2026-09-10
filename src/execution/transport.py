@@ -19,35 +19,29 @@ class Track(Protocol):
     @property
     def name(self) -> str:
         """Return the media slot name declared by the model."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     @property
     def kind(self) -> str | None:
         """Return the media type, or None when the track has no declared type."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     @property
     def direction(self) -> str | None:
         """Return whether the track sends or receives media."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def on_frame(self, callback: Callable[..., None]) -> object:
         """Register a callback for frames arriving on this track."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def off_frame(self, callback: Callable[..., None]) -> None:
         """Remove a previously registered frame callback."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def push_frame(self, frame: object) -> None:
         """Send one frame on an outgoing media track."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class Transport(Protocol):
@@ -56,69 +50,56 @@ class Transport(Protocol):
     @property
     def tracks(self) -> Sequence[Track]:
         """Return the media tracks declared by the connected model."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     @property
     def status(self) -> str:
         """Return the current connection status reported by the transport."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def on(self, event: str, callback: Callable[..., None]) -> None:
         """Register a callback for a named transport event."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def off(self, event: str, callback: Callable[..., None]) -> None:
         """Remove a registered callback from a named transport event."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def connect(self) -> None:
         """Open the model connection for this session."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def disconnect(self) -> None:
         """Disconnect the model session and await completion."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def close(self) -> None:
         """Release local transport resources."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def request_schema(self) -> object:
         """Request the model's current command and state schema."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def send_command(self, command: str, payload: dict[str, object]) -> object:
         """Send a model command and return its correlated reply."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def upload_file(self, file: bytes | Path, *, name: str | None = None, mime_type: str | None = None) -> object:
         """Upload bytes or a local file and return the model's file reference."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def publish_track(self, name: str) -> Track:
         """Open an outgoing track with the declared model slot name."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def request_recording(self) -> Clip:
         """Request the session recording and its timing markers."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def request_clip(self, duration_seconds: float) -> Clip:
         """Request a clip of the selected duration from the active session."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def save_recording(
         self,
@@ -129,8 +110,7 @@ class Transport(Protocol):
         on_window: Callable[[float, float, float, float], None] | None = None,
     ) -> None:
         """Save the recording within its byte and time limits."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class SessionTransport:

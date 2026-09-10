@@ -1,85 +1,9 @@
+import { isImportLike } from '#shared/eslint/plugin/imports.js';
+
 const directiveCommentPattern =
   /^(?:eslint(?:\s|$|-)|global\s|globals\s|exported\s|jshint\s|jslint\s|istanbul\s|c8\s|@?ts-(?:ignore|expect-error|nocheck|check)\b)/u;
 const blankLinePattern = /\n\s*\n/u;
 const whitespaceOnlyPattern = /^\s*$/u;
-
-/**
- * Returns true if the node is a bare `require('...')` call with no assignment.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the statement calls require without assigning its result.
- */
-const isSideEffectRequire = (node) => {
-  if (node.type !== 'ExpressionStatement' || node.expression?.type !== 'CallExpression') {
-    return false;
-  }
-  const callee = node.expression.callee;
-  return (
-    callee?.type === 'Identifier' &&
-    callee.name === 'require' &&
-    node.expression.arguments?.length === 1
-  );
-};
-
-/**
- * Returns true if the node is a `require('...')` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the node is a one-argument call to require.
- */
-function isRequireCall(node) {
-  if (node?.type !== 'CallExpression') {
-    return false;
-  }
-
-  const callee = node.callee;
-  return callee?.type === 'Identifier' && callee.name === 'require' && node.arguments.length === 1;
-}
-
-/**
- * Returns true if the node reads a property from a `require()` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the node reads a property from a require call.
- */
-function isRequireMemberExpression(node) {
-  if (node?.type !== 'MemberExpression') {
-    return false;
-  }
-
-  return isRequireCall(node.object);
-}
-
-/**
- * Returns true if the node is a variable declaration initialized by a `require()` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether one declared variable is initialized from require.
- */
-const isRequireDeclaration = (node) => {
-  if (node.type !== 'VariableDeclaration' || node.declarations.length !== 1) {
-    return false;
-  }
-
-  const declaration = node.declarations[0];
-  if (!declaration?.init) {
-    return false;
-  }
-
-  return isRequireCall(declaration.init) || isRequireMemberExpression(declaration.init);
-};
-
-/**
- * Returns true if the node is an import declaration or (optionally) a require statement.
- * @param node - Syntax-tree node to inspect.
- * @param supportRequire - Whether CommonJS require calls count as imports.
- * @returns Whether the statement belongs in an import block.
- */
-const isImportLike = (node, supportRequire) => {
-  if (node.type === 'ImportDeclaration') {
-    return true;
-  }
-  if (supportRequire) {
-    return isRequireDeclaration(node) || isSideEffectRequire(node);
-  }
-  return false;
-};
 
 /**
  * Returns true if the comment's range falls entirely within the node's range.
@@ -151,11 +75,11 @@ const isLeadingCommentNode = (sourceText, comment, node, { allowSingleBlankLine 
  * Returns true if the comment is inside, trailing, or leading-attached to the given node.
  * @param sourceText - Complete source text for the file.
  * @param comment - Parsed comment and its source range.
- * @param node - Syntax-tree node to inspect.
  * @param options - Comment attachment options.
+ * @param node - Syntax-tree node to inspect.
  * @returns Whether the comment belongs to the node.
  */
-const isAttachedToNode = (sourceText, comment, node, options) => {
+const isAttachedToNode = (sourceText, comment, options, node) => {
   if (isCommentInsideNode(comment, node)) {
     return true;
   }
@@ -193,53 +117,24 @@ export const headerCommentsBeforeImports = {
 
     return {
       Program(node) {
-        const firstImportIndex = node.body.findIndex((statement) =>
-          isImportLike(statement, supportRequire),
-        );
+        const firstImportIndex = node.body.findIndex(isImportLike.bind(null, supportRequire));
         if (firstImportIndex === -1) {
           return;
         }
 
-        let firstNonImportRun = -1;
-        for (let index = firstImportIndex + 1; index < node.body.length; index += 1) {
-          if (!isImportLike(node.body[index], supportRequire)) {
-            firstNonImportRun = index;
-            break;
-          }
-        }
+        const firstNonImportRun = node.body.findIndex(
+          isAfterImportRun.bind(null, firstImportIndex, supportRequire),
+        );
         if (firstNonImportRun === -1) {
           return;
         }
 
-        const firstImportNode = node.body[firstImportIndex];
+        const firstImportNode = node.body.at(firstImportIndex);
         const importRun = node.body.slice(firstImportIndex, firstNonImportRun);
-        const firstNonImportNode = node.body[firstNonImportRun];
-        const violatingComment = sourceCode.getAllComments().find((comment) => {
-          if (comment.range[0] < firstImportNode.range[0]) {
-            return false;
-          }
-          if (comment.range[1] > firstNonImportNode.range[0]) {
-            return false;
-          }
-          const normalizedComment = comment.value.replace(/^\s*\*?/u, '').trim();
-          if (directiveCommentPattern.test(normalizedComment)) {
-            return false;
-          }
-
-          if (importRun.some((importNode) => isAttachedToNode(sourceText, comment, importNode))) {
-            return false;
-          }
-
-          if (
-            isAttachedToNode(sourceText, comment, firstNonImportNode, {
-              allowSingleBlankLine: true,
-            })
-          ) {
-            return false;
-          }
-
-          return true;
-        });
+        const firstNonImportNode = node.body.at(firstNonImportRun);
+        const violatingComment = sourceCode
+          .getAllComments()
+          .find(isHeaderComment.bind(null, sourceText, importRun, firstNonImportNode));
 
         if (!violatingComment) {
           return;
@@ -250,7 +145,7 @@ export const headerCommentsBeforeImports = {
           fix: (fixer) => {
             const lineStart = sourceText.lastIndexOf('\n', violatingComment.range[0] - 1) + 1;
             let segmentEnd = violatingComment.range[1];
-            while (segmentEnd < sourceText.length && /[\t\n\r ]/u.test(sourceText[segmentEnd])) {
+            while (segmentEnd < sourceText.length && /[\t\n\r ]/u.test(sourceText.at(segmentEnd))) {
               segmentEnd += 1;
             }
             const commentText = sourceText.slice(lineStart, violatingComment.range[1]).trimEnd();
@@ -269,3 +164,20 @@ export const headerCommentsBeforeImports = {
     };
   },
 };
+
+function isAfterImportRun(firstIndex, supportRequire, statement, index) {
+  if (index <= firstIndex) return false;
+  return !isImportLike(supportRequire, statement);
+}
+
+function isHeaderComment(sourceText, importRun, nextNode, comment) {
+  const normalizedComment = comment.value.replace(/^\s*\*?/u, '').trim();
+  const isAttachedImport = isAttachedToNode.bind(null, sourceText, comment, undefined);
+  return (
+    comment.range[0] >= importRun[0].range[0] &&
+    comment.range[1] <= nextNode.range[0] &&
+    !directiveCommentPattern.test(normalizedComment) &&
+    !importRun.some(isAttachedImport) &&
+    !isAttachedToNode(sourceText, comment, { allowSingleBlankLine: true }, nextNode)
+  );
+}

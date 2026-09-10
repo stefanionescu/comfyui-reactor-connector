@@ -14,8 +14,7 @@ class AudioStream(Protocol):
 
     def encode(self, frame: av.AudioFrame | None) -> list[object]:
         """Encode one audio frame, or flush pending packets when the frame is None."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class VideoStream(Protocol):
@@ -30,8 +29,7 @@ class VideoStream(Protocol):
 
     def encode(self, frame: av.VideoFrame | None) -> list[object]:
         """Encode one video frame, or flush pending packets when the frame is None."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class MediaWriter(AbstractContextManager["MediaWriter"], Protocol):
@@ -40,16 +38,13 @@ class MediaWriter(AbstractContextManager["MediaWriter"], Protocol):
     @overload
     def add_stream(self, _codec: Literal["aac"], /, *, rate: int) -> AudioStream:
         """Create the selected audio or video encoder with its output rate."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     @overload
     def add_stream(self, _codec: Literal["libx264"], /, *, rate: Fraction) -> VideoStream:
         """Create the selected audio or video encoder with its output rate."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def mux(self, packet: object) -> None:
         """Write an encoded packet into the combined recording."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError

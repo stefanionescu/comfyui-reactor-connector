@@ -33,11 +33,11 @@ export class PointerPreview {
     this.status.hidden = true;
     this.status.append(this.#state, this.#position);
     this.view.append(image, this.#marker);
-    const resize = new ResizeObserver(() => this.#place());
+    const resize = new ResizeObserver(this.#place.bind(this));
     resize.observe(image);
-    image.addEventListener('blur', () => (this.#marker.hidden = true), { signal });
-    image.addEventListener('focus', () => this.#place(), { signal });
-    signal.addEventListener('abort', () => resize.disconnect(), { once: true });
+    image.addEventListener('blur', this.#place.bind(this), { signal });
+    image.addEventListener('focus', this.#place.bind(this), { signal });
+    signal.addEventListener('abort', resize.disconnect.bind(resize), { once: true });
   }
 
   /**
@@ -77,8 +77,8 @@ export class PointerPreview {
 
   #place(): void {
     const pointer = this.#pointer;
-    if (!pointer || this.#image.hidden || document.activeElement !== this.#image) return;
-    this.#marker.hidden = false;
+    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
+    if (this.#marker.hidden || !pointer) return;
     this.#marker.style.left = `${this.#image.offsetLeft + pointer.x * this.#image.clientWidth}px`;
     this.#marker.style.top = `${this.#image.offsetTop + pointer.y * this.#image.clientHeight}px`;
   }

@@ -1,18 +1,9 @@
 """Define editable settings, their units, defaults, and supported ranges."""
 
-from typing import TypedDict
 from .security import MAX_SESSION_SECONDS
 
 
-class IntegerSetting(TypedDict):
-    """One numeric setting shared by server validation and the settings form."""
-
-    default: int
-    maximum: int
-    minimum: int
-
-
-INTEGER_SETTINGS: dict[str, IntegerSetting] = {
+INTEGER_SETTINGS: dict[str, dict[str, int]] = {
     "max_capture_seconds": {
         "default": 60,
         "minimum": 1,
@@ -63,5 +54,4 @@ __all__ = [
     "MAX_SETTINGS_BYTES",
     "MAX_SETTINGS_FILE_BYTES",
     "SETTINGS_TIMEOUT_SECONDS",
-    "IntegerSetting",
 ]

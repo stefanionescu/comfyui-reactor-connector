@@ -111,42 +111,32 @@
             "languages": ["python"],
             "categories": ["variables"],
             "names": ["catalog_interval_hours", "catalog_auto_check"],
-            "is_excluded": true
+            "allowed_banned_terms": ["catalog"],
+            "reason": "These names are the persisted settings fields exposed by the local configuration API."
         },
         {
             "path_regexes": ["^src/extension\\.py$"],
             "languages": ["python"],
             "categories": ["methods"],
             "names": ["on_load"],
-            "is_excluded": true
+            "allowed_banned_terms": ["load"],
+            "reason": "ComfyUI calls this lifecycle method by its exact name."
         },
         {
             "path_regexes": ["(?:^src/media/capture\\.py$|^src/live/preview\\.py$)"],
             "languages": ["python"],
             "categories": ["parameters"],
             "names": ["user_data"],
-            "is_excluded": true
+            "allowed_banned_terms": ["data"],
+            "reason": "The Reactor frame callback uses this parameter for optional frame metadata."
         },
         {
             "path_regexes": ["(?:^src/execution/visko/request\\.py$|^src/nodes/visko/stable\\.py$)"],
             "languages": ["python"],
             "categories": ["variables", "parameters"],
             "names": ["resolution"],
-            "is_excluded": true
-        },
-        {
-            "path_regexes": ["^src/execution/lingbot/request\\.py$"],
-            "languages": ["python"],
-            "categories": ["classes"],
-            "names": ["LingBotWorld2Request"],
-            "is_excluded": true
-        },
-        {
-            "path_regexes": ["^src/nodes/lingbot/world\\.py$"],
-            "languages": ["python"],
-            "categories": ["classes"],
-            "names": ["LingBotWorld2Explore"],
-            "is_excluded": true
+            "allowed_banned_terms": ["resolution"],
+            "reason": "The Visko command schema and saved node input use this field name."
         },
         {
             "path_regexes": ["(?:^src/execution/x2(?:/|$)|^src/nodes/x2/|^scripts/workflows/models/x2\\.py$)"],
@@ -160,14 +150,16 @@
             "languages": ["python"],
             "categories": ["methods"],
             "names": ["send_sync"],
-            "is_excluded": true
+            "allowed_banned_terms": ["sync_", "sync-", "-sync", "_sync"],
+            "reason": "ComfyUI exposes this method on PromptServer."
         },
         {
             "path_regexes": ["^quality/repository/naming/extractors/python\\.py$"],
             "languages": ["python"],
             "categories": ["methods"],
             "names": ["generic_visit"],
-            "is_excluded": true
+            "allowed_banned_terms": ["generic"],
+            "reason": "Python calls this method while traversing an AST visitor."
         }
     ],
     "excluded_paths": [

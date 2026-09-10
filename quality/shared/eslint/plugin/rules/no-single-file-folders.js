@@ -1,7 +1,7 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { CODE_EXTENSIONS } from '#config/files.js';
 import { DIRECTORY_IGNORE_PATHS } from '#config/folders.js';
-import { readDirectory } from '#repository/integrity/directory-prefixes.js';
 
 import {
   normalizeFilename,
@@ -33,7 +33,10 @@ const isCodeFile = (name, extensions) => {
   if (name.endsWith('.d.ts')) {
     return false;
   }
-  return extensions.some((ext) => name.endsWith(ext));
+  for (const extension of extensions) {
+    if (name.endsWith(extension)) return true;
+  }
+  return false;
 };
 
 const directoryCache = new Map();
@@ -52,7 +55,8 @@ const getDirectorySummary = (dirPath, extensions) => {
 
   let fileCount = 0;
   let hasSubdir = false;
-  const entries = readDirectory(dirPath);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- ESLint supplies the source file's directory; unreadable directories must fail the check.
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.isDirectory()) {
       hasSubdir = true;

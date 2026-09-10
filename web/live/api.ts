@@ -1,7 +1,7 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { cameraAxes } from '#web/live/input.ts';
-import { browserLimits, browserPatterns } from '#config/browser.ts';
+import { browserLimits, browserPatterns } from '#config/web/browser.ts';
 
 export type Invitation = {
   lease: string;
@@ -14,9 +14,17 @@ export type Invitation = {
 
 export type SceneInvitation = Invitation & { prompt: string; promptCharacterLimit: number };
 
-// eslint-disable-next-line local/no-trivial-functions -- This type guard narrows untrusted event and response values before field access.
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (typeof value !== 'object' || value === null) return false;
+  return !Array.isArray(value);
+}
+
+function axisChoices(value: unknown): string[] | undefined {
+  if (!Array.isArray(value) || !value.includes('idle')) return;
+  for (const choice of value) {
+    if (typeof choice !== 'string') return;
+  }
+  return value as string[];
 }
 
 /**
@@ -45,20 +53,16 @@ export function parseSceneInvitation(value: unknown): SceneInvitation | undefine
     value.duration_seconds <= 0
   )
     return;
-  const axes: Record<string, string[]> = {};
+  const axes = new Map<string, string[]>();
+  const offered = new Map(Object.entries(value.axes));
   const expected = Object.keys(
     cameraAxes(new Set(), Object.hasOwn(value.axes, 'move_longitudinal')),
   );
-  if (Object.keys(value.axes).length !== expected.length) return;
+  if (offered.size !== expected.length) return;
   for (const key of expected) {
-    const choices = value.axes[key];
-    if (
-      !Array.isArray(choices) ||
-      !choices.includes('idle') ||
-      !choices.every((choice): choice is string => typeof choice === 'string')
-    )
-      return;
-    axes[key] = choices;
+    const choices = axisChoices(offered.get(key));
+    if (!choices) return;
+    axes.set(key, choices);
   }
   return {
     lease: value.lease,
@@ -66,7 +70,7 @@ export function parseSceneInvitation(value: unknown): SceneInvitation | undefine
     model: value.model,
     modelTitle: value.model_title,
     durationSeconds: value.duration_seconds,
-    axes,
+    axes: Object.fromEntries(axes),
     prompt: value.prompt,
     promptCharacterLimit: value.prompt_limit,
   };

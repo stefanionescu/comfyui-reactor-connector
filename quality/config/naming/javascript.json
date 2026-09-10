@@ -26,7 +26,9 @@
                     "javascript property"
                 ]
             }
-        ]
+        ],
+        "banDigits": true,
+        "banDuplicateWords": true
     },
     "local": {
         "bannedTerms": [
@@ -46,7 +48,9 @@
                 "parameters": ["camel"],
                 "properties": ["camel", "upper-snake"],
                 "variables": ["camel", "upper-snake"]
-            }
+            },
+            "maxCharacters": 35,
+            "maxWords": 4
         }
     },
     "nameRules": [
@@ -77,56 +81,541 @@
             "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
         },
         {
-            "pathRegexes": ["^quality/web/madge\\.config\\.cjs$"],
-            "categories": ["files"],
-            "names": ["madge.config"],
-            "structuralPrefixRegexes": ["\\.config$"],
-            "reason": "The graph tool configuration uses the documented .config.cjs suffix."
+            "pathRegexes": ["^quality/config/eslint/base\\.mjs$"],
+            "categories": ["properties", "functions"],
+            "names": ["no-unused-vars"],
+            "allowedViolations": ["case"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
         },
         {
-            "pathRegexes": ["^web/host\\.d\\.ts$"],
-            "categories": ["functions"],
-            "names": ["getCustomNodesI18n"],
-            "exclude": true,
-            "reason": "ComfyUI exposes its translation loader with this exact method name."
+            "pathRegexes": ["^quality/config/eslint/base\\.mjs$"],
+            "categories": ["properties", "functions"],
+            "names": ["@eslint-community/eslint-comments"],
+            "allowedViolations": ["case", "duplicate-words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/base\\.mjs$"],
+            "categories": ["properties", "functions"],
+            "names": ["@eslint-community/eslint-comments/require-description"],
+            "allowedViolations": ["case", "duplicate-words", "length", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/index\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["projectService"],
+            "allowedViolations": ["banned-term"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/index\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "@typescript-eslint",
+                "local/import-path-style",
+                "local/no-trivial-functions",
+                "n/no-process-exit",
+                "no-restricted-imports",
+                "no-unused-vars"
+            ],
+            "allowedViolations": ["case"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/index\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["@eslint-community/eslint-comments"],
+            "allowedViolations": ["case", "duplicate-words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/index\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "@typescript-eslint/no-confusing-void-expression",
+                "@typescript-eslint/restrict-template-expressions"
+            ],
+            "allowedViolations": ["case", "length", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/index\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "@typescript-eslint/no-unused-vars",
+                "local/no-cross-folder-imports",
+                "local/no-single-file-folders"
+            ],
+            "allowedViolations": ["case", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/options\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["fetch"],
+            "allowedViolations": ["banned-term"],
+            "reason": "ESLint global declarations use these exact runtime and browser names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/options\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "AbortSignal",
+                "Buffer",
+                "CustomEvent",
+                "HTMLDialogElement",
+                "HTMLElement",
+                "__dirname",
+                "__filename"
+            ],
+            "allowedViolations": ["case"],
+            "reason": "ESLint global declarations use these exact runtime and browser names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["n/no-sync", "security/detect-object-injection", "sonarjs/prefer-object-literal"],
+            "allowedViolations": ["banned-term", "case"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "security/detect-eval-with-expression",
+                "unicorn/no-useless-promise-resolve-reject",
+                "unicorn/prefer-string-starts-ends-with"
+            ],
+            "allowedViolations": ["banned-term", "case", "length", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "ArrowFunctionExpression",
+                "FunctionDeclaration",
+                "FunctionExpression",
+                "IIFEs",
+                "MethodDefinition",
+                "jsdoc/check-param-names",
+                "jsdoc/check-tag-names",
+                "jsdoc/check-types",
+                "jsdoc/no-undefined-types",
+                "jsdoc/require-description",
+                "jsdoc/require-param",
+                "jsdoc/require-param-description",
+                "jsdoc/require-param-name",
+                "jsdoc/require-param-type",
+                "jsdoc/require-returns",
+                "jsdoc/require-returns-description",
+                "jsdoc/require-returns-type",
+                "jsdoc/valid-types",
+                "lines-between-class-members",
+                "local/import-layout",
+                "local/import-path-style",
+                "local/max-barrel-reexports",
+                "local/newline-after-imports",
+                "local/no-call-through",
+                "local/no-prefix-collisions",
+                "local/no-trivial-functions",
+                "max-lines",
+                "max-lines-per-function",
+                "max-nested-callbacks",
+                "n/no-callback-literal",
+                "n/no-deprecated-api",
+                "n/no-extraneous-import",
+                "n/no-extraneous-require",
+                "n/no-missing-import",
+                "n/no-missing-require",
+                "n/no-new-require",
+                "n/no-path-concat",
+                "n/no-process-exit",
+                "n/no-unpublished-import",
+                "n/no-unpublished-require",
+                "n/prefer-global/buffer",
+                "n/prefer-global/console",
+                "n/prefer-global/process",
+                "n/prefer-global/url",
+                "n/prefer-promises/dns",
+                "n/prefer-promises/fs",
+                "no-unused-vars",
+                "no-useless-call",
+                "no-useless-constructor",
+                "no-useless-rename",
+                "no-useless-return",
+                "padding-line-between-statements",
+                "security/detect-buffer-noassert",
+                "security/detect-child-process",
+                "security/detect-new-buffer",
+                "security/detect-unsafe-regex",
+                "sonarjs/cognitive-complexity",
+                "sonarjs/no-collapsible-if",
+                "sonarjs/no-commented-code",
+                "sonarjs/no-dead-store",
+                "sonarjs/no-duplicated-branches",
+                "sonarjs/no-element-overwrite",
+                "sonarjs/no-empty-collection",
+                "sonarjs/no-extra-arguments",
+                "sonarjs/no-gratuitous-expressions",
+                "sonarjs/no-identical-conditions",
+                "sonarjs/no-identical-expressions",
+                "sonarjs/no-identical-functions",
+                "sonarjs/no-invariant-returns",
+                "sonarjs/no-nested-conditional",
+                "sonarjs/no-nested-functions",
+                "sonarjs/no-nested-switch",
+                "sonarjs/no-parameter-reassignment",
+                "sonarjs/no-redundant-assignments",
+                "sonarjs/no-redundant-boolean",
+                "sonarjs/no-redundant-jump",
+                "sonarjs/no-small-switch",
+                "sonarjs/no-unthrown-error",
+                "sonarjs/no-unused-collection",
+                "sonarjs/no-useless-catch",
+                "sonarjs/no-useless-increment",
+                "sonarjs/non-existent-operator",
+                "sonarjs/prefer-immediate-return",
+                "sonarjs/prefer-while",
+                "sonarjs/updated-loop-counter",
+                "unicorn/no-lonely-if",
+                "unicorn/no-typeof-undefined",
+                "unicorn/no-useless-spread",
+                "unicorn/prefer-array-find",
+                "unicorn/prefer-array-flat",
+                "unicorn/prefer-at",
+                "unicorn/prefer-includes",
+                "unicorn/prefer-node-protocol",
+                "unicorn/prefer-number-properties",
+                "unicorn/prefer-string-slice",
+                "unicorn/prefer-ternary"
+            ],
+            "allowedViolations": ["case"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["jsdoc/require-jsdoc"],
+            "allowedViolations": ["case", "duplicate-words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["@eslint-community/eslint-comments/require-description"],
+            "allowedViolations": ["case", "duplicate-words", "length", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "local/header-comments-before-imports",
+                "n/no-unsupported-features/es-builtins",
+                "n/no-unsupported-features/node-builtins",
+                "security/detect-disable-mustache-escape",
+                "security/detect-no-csrf-before-method-override",
+                "security/detect-non-literal-fs-filename",
+                "security/detect-possible-timing-attacks",
+                "sonarjs/no-equals-in-for-termination",
+                "sonarjs/no-use-of-empty-return-value",
+                "sonarjs/prefer-single-boolean-return"
+            ],
+            "allowedViolations": ["case", "length", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/eslint/rules\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "local/no-cross-folder-imports",
+                "local/no-duplicate-barrel-exports",
+                "local/no-export-only-files",
+                "local/no-exported-alias-constants",
+                "local/no-imports-after-statements",
+                "local/no-reexports-outside-index",
+                "local/no-single-file-folders",
+                "n/no-unsupported-features/es-syntax",
+                "n/prefer-global/url-search-params",
+                "security/detect-non-literal-regexp",
+                "security/detect-non-literal-require",
+                "security/detect-pseudoRandomBytes",
+                "sonarjs/for-loop-increment-sign",
+                "sonarjs/no-all-duplicated-branches",
+                "sonarjs/no-inverted-boolean-check",
+                "sonarjs/no-nested-template-literals",
+                "sonarjs/no-same-line-conditional",
+                "unicorn/no-array-for-each",
+                "unicorn/prefer-array-flat-map",
+                "unicorn/prefer-string-replace-all"
+            ],
+            "allowedViolations": ["case", "words"],
+            "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
+        },
+        {
+            "pathRegexes": ["^quality/config/madge\\.cjs$"],
+            "categories": ["properties", "functions"],
+            "names": ["resolve"],
+            "allowedViolations": ["banned-term"],
+            "reason": "Madge uses this option and these module specifiers to trace imports."
+        },
+        {
+            "pathRegexes": ["^quality/config/madge\\.cjs$"],
+            "categories": ["properties", "functions"],
+            "names": ["#config", "#web", "../../scripts/api.js$", "../../scripts/app.js$"],
+            "allowedViolations": ["case"],
+            "reason": "Madge uses this option and these module specifiers to trace imports."
+        },
+        {
+            "pathRegexes": ["^quality/config/naming\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["upper-snake"],
+            "allowedViolations": ["case"],
+            "reason": "The naming policy uses this exact case identifier."
+        },
+        {
+            "pathRegexes": ["^quality/repository/integrity/config\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["withFileTypes"],
+            "allowedViolations": ["banned-term"],
+            "reason": "Node filesystem calls use the withFileTypes option."
+        },
+        {
+            "pathRegexes": ["^quality/repository/integrity/directory-prefixes\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": ["withFileTypes"],
+            "allowedViolations": ["banned-term"],
+            "reason": "Node filesystem calls use the withFileTypes option."
+        },
+        {
+            "pathRegexes": ["^quality/shared/eslint/plugin/index\\.js$"],
+            "categories": ["properties", "functions"],
+            "names": [
+                "header-comments-before-imports",
+                "import-layout",
+                "import-path-style",
+                "max-barrel-reexports",
+                "newline-after-imports",
+                "no-call-through",
+                "no-cross-folder-imports",
+                "no-duplicate-barrel-exports",
+                "no-export-only-files",
+                "no-exported-alias-constants",
+                "no-imports-after-statements",
+                "no-prefix-collisions",
+                "no-reexports-outside-index",
+                "no-single-file-folders",
+                "no-trivial-functions"
+            ],
+            "allowedViolations": ["case"],
+            "reason": "ESLint rule identifiers use these kebab-case names."
+        },
+        {
+            "pathRegexes": ["^web/discovery/api\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["Content-Type"],
+            "allowedViolations": ["case"],
+            "reason": "HTTP headers retain their protocol names."
+        },
+        {
+            "pathRegexes": ["^web/discovery/api\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["X-Reactor-Comfy"],
+            "allowedViolations": ["case"],
+            "reason": "Local connector requests use this header name."
+        },
+        {
+            "pathRegexes": ["^web/discovery/dialog\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/discovery/rate\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/extension\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["loadedGraphNode"],
+            "allowedViolations": ["banned-term"],
+            "reason": "ComfyUI calls this extension callback by its exact name."
+        },
+        {
+            "pathRegexes": ["^web/help/dialog\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
         },
         {
             "pathRegexes": ["^web/host\\.d\\.ts$"],
             "categories": ["properties", "functions"],
-            "names": ["extensionManager", "loadedGraphNode", "fetchApi"],
-            "exclude": true,
-            "reason": "ComfyUI supplies these exact API member names."
+            "names": ["loadedGraphNode"],
+            "allowedViolations": ["banned-term"],
+            "reason": "ComfyUI calls this extension callback by its exact name."
+        },
+        {
+            "pathRegexes": ["^web/host\\.d\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["fetchApi"],
+            "allowedViolations": ["banned-term"],
+            "reason": "ComfyUI exposes its HTTP client under this exact member name."
+        },
+        {
+            "pathRegexes": ["^web/host\\.d\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["extensionManager"],
+            "allowedViolations": ["banned-term"],
+            "reason": "ComfyUI exposes its extension manager under this exact member name."
+        },
+        {
+            "pathRegexes": ["^web/host\\.d\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["getCustomNodesI18n"],
+            "allowedViolations": ["banned-term", "case", "digits", "words"],
+            "reason": "ComfyUI exposes its translation reader under this exact member name."
+        },
+        {
+            "pathRegexes": ["^web/live/api\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["Content-Type"],
+            "allowedViolations": ["case"],
+            "reason": "HTTP headers retain their protocol names."
+        },
+        {
+            "pathRegexes": ["^web/live/api\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["X-Reactor-Comfy"],
+            "allowedViolations": ["case"],
+            "reason": "Local connector requests use this header name."
+        },
+        {
+            "pathRegexes": ["^web/live/commands\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["Content-Type"],
+            "allowedViolations": ["case"],
+            "reason": "HTTP headers retain their protocol names."
+        },
+        {
+            "pathRegexes": ["^web/live/commands\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["X-Reactor-Comfy"],
+            "allowedViolations": ["case"],
+            "reason": "Local connector requests use this header name."
+        },
+        {
+            "pathRegexes": ["^web/live/controls\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/live/drag\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/live/input\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/live/input\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["look_horizontal", "look_vertical", "move_lateral", "move_longitudinal"],
+            "allowedViolations": ["case"],
+            "reason": "Reactor camera commands use these exact field names."
+        },
+        {
+            "pathRegexes": ["^web/live/pointer\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/live/scene\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/live/webcam\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["Content-Type"],
+            "allowedViolations": ["case"],
+            "reason": "HTTP headers retain their protocol names."
+        },
+        {
+            "pathRegexes": ["^web/live/webcam\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["X-Reactor-Capability", "X-Reactor-Comfy", "X-Reactor-Lease", "X-Reactor-Sequence"],
+            "allowedViolations": ["case"],
+            "reason": "Local connector requests use this header name."
         },
         {
             "pathRegexes": ["^web/nodes/contracts\\.ts$"],
-            "categories": ["properties"],
+            "categories": ["properties", "functions"],
             "names": ["advanced"],
-            "exclude": true,
-            "reason": "ComfyUI widgets use this exact property to control advanced inputs."
+            "allowedViolations": ["banned-term"],
+            "reason": "ComfyUI widgets use this property to control advanced inputs."
         },
         {
             "pathRegexes": ["^web/settings/api\\.ts$"],
-            "categories": ["properties"],
+            "categories": ["properties", "functions"],
             "names": ["catalog_auto_check", "catalog_interval_hours"],
-            "exclude": true,
-            "reason": "These persisted setting keys are sent unchanged to the server."
+            "allowedViolations": ["banned-term"],
+            "reason": "The local settings API uses these persisted field names."
+        },
+        {
+            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["Content-Type"],
+            "allowedViolations": ["case"],
+            "reason": "HTTP headers retain their protocol names."
+        },
+        {
+            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["X-Reactor-Comfy"],
+            "allowedViolations": ["case"],
+            "reason": "Local connector requests use this header name."
+        },
+        {
+            "pathRegexes": ["^web/settings/dialog\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["once"],
+            "allowedViolations": ["banned-term"],
+            "reason": "DOM event listeners use the once option."
+        },
+        {
+            "pathRegexes": ["^web/settings/dialog\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["catalog_auto_check", "catalog_interval_hours"],
+            "allowedViolations": ["banned-term", "case"],
+            "reason": "The local settings API uses these persisted field names."
+        },
+        {
+            "pathRegexes": ["^web/settings/dialog\\.ts$"],
+            "categories": ["properties", "functions"],
+            "names": ["api_key"],
+            "allowedViolations": ["case"],
+            "reason": "The local credential API accepts this exact request field."
         }
     ],
-    "excludedPaths": [
-        "/.git/",
-        "/.artifacts/",
-        "/dist/",
-        "/node_modules/",
-        "/rules/",
-        "/quality/shared/eslint/plugin/"
-    ],
-    "excludedBasenames": [
-        ".commitlintrc.json",
-        ".license-checker.json",
-        ".markdownlint-cli2.jsonc",
-        "README.md",
-        "AGENTS.md",
-        "bun.lock",
-        "package.json"
-    ]
+    "excludedPaths": ["/.git/", "/.artifacts/", "/dist/", "/node_modules/", "/rules/"],
+    "excludedBasenames": [".markdownlint-cli2.jsonc", "README.md", "AGENTS.md", "bun.lock", "package.json"]
 }

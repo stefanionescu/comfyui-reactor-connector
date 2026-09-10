@@ -5,11 +5,11 @@ import sys
 import json
 from pathlib import Path
 from fractions import Fraction
+from types import TracebackType
 from dataclasses import dataclass
-from typing import cast, Protocol
 from collections.abc import Iterator
+from typing import Self, cast, Protocol
 from av.container.input import InputContainer
-from contextlib import AbstractContextManager  # lgtm[py/unused-import] -- reason: Protocol base class.
 from config.media.video import MAX_FRAME_RATE, MAX_COMPONENT_BITS, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
 
 
@@ -28,22 +28,32 @@ class VideoStream(Protocol):
 
     def encode(self, frame: av.VideoFrame | None = None) -> list[object]:
         """Encode one video frame, or flush pending packets when the frame is None."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
-class VideoContainer(AbstractContextManager["VideoContainer"], Protocol):
+class VideoContainer(Protocol):
     """Container operations used to create and write an encoded video track."""
+
+    def __enter__(self) -> Self:
+        """Return the open video container."""
+        raise NotImplementedError
+
+    def __exit__(
+        self,
+        _exception_type: type[BaseException] | None,
+        _exception: BaseException | None,
+        _traceback: TracebackType | None,
+    ) -> bool | None:
+        """Close the container when its context ends."""
+        raise NotImplementedError
 
     def add_stream(self, _codec_name: str, /, rate: Fraction) -> VideoStream:
         """Create an encoder for the selected video codec and frame rate."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def mux(self, packet: object) -> None:
         """Write an encoded packet into the output container."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class SourceError(Exception):

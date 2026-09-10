@@ -76,6 +76,14 @@ def require_mapping(value: object, context: str) -> dict[str, object]:
     return cast("dict[str, object]", candidate)
 
 
+def require_string(value: object, context: str) -> str:
+    """Require a nonempty string in a repository configuration."""
+    if not isinstance(value, str) or not value:
+        message = f"{context} must be a nonempty string"
+        raise JsonConfigError(message)
+    return value
+
+
 def require_string_list(value: object, context: str, *, is_nonempty: bool = False) -> list[str]:
     """Return a list containing only strings."""
     items = require_sequence(value, context)

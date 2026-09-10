@@ -55,13 +55,6 @@ def violations_for_node(
     violations: list[Diagnostic] = []
     if isinstance(node, ast.ImportFrom):
         violations = import_from_violations(relative_path, node, config, package_policy)
-    elif isinstance(node, ast.Import):
-        banned_paths = tuple(config["banned_compatibility_paths"])
-        violations = [
-            diagnostic(relative_path, node.lineno, "import.banned-path", alias.name)
-            for alias in node.names
-            if alias.name.split(".", 1)[0] in banned_paths
-        ]
     elif isinstance(node, ast.Call):
         violations = call_violations(relative_path, node, config, bindings)
     elif isinstance(node, ast.Assign | ast.AnnAssign | ast.AugAssign | ast.Delete):
@@ -81,8 +74,6 @@ def import_from_violations(
         violations.append(diagnostic(relative_path, node.lineno, "import.relative", "use absolute first-party imports"))
     module_name = node.module or ""
     root_name = module_name.split(".", 1)[0]
-    if root_name in config["banned_compatibility_paths"]:
-        violations.append(diagnostic(relative_path, node.lineno, "import.banned-path", module_name))
     package_roots = tuple(config["package_roots"])
     if module_name == "__future__" or not module_name or root_name not in package_roots:
         return violations

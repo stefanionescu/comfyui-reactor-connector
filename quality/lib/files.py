@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from .process import run_command
+from .process import ProcessContext, run_command
 from ..config.repository.paths import PYTHON_SOURCE_DIRS, SHELL_SOURCE_DIRS
 
 
@@ -69,7 +69,7 @@ def git_files(
             command,
             is_failure_raised=True,
             is_output_captured=True,
-            working_directory=root,
+            context=ProcessContext(working_directory=root),
         )
     except RuntimeError as error:
         message = f"Git file discovery failed for {' '.join(command)}: {error}"

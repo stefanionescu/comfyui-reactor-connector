@@ -315,7 +315,8 @@ language selected in ComfyUI. Custom panel labels follow language changes;
 English remains the fallback when a message or guide is missing.
 
 Saved workflow notes and custom titles keep the language used when the workflow
-was built. Changing ComfyUI's language does not rewrite your graph. Node search
+was built. Example prompts and speech scripts stay in English. Changing ComfyUI's
+language does not rewrite your graph or translate model inputs. Node search
 aliases, categories, placeholders, and errors from queued execution currently
 use English. An error already returned by the server keeps its original text.
 
@@ -353,12 +354,17 @@ Python by default. If ComfyUI uses another environment or Windows portable,
 also set `COMFYUI_PYTHON` to that installation's Python executable. These paths
 are local settings; they do not enter the connector package.
 
+Setup downloads the pinned Semgrep rules into ignored local storage and verifies
+their content hashes. To restore those files, run `mise run security:rules`.
+The downloaded rules retain their upstream license notices and are not included
+in the connector package.
+
 | Command                    | Purpose                                                                                           |
 | -------------------------- | ------------------------------------------------------------------------------------------------- |
 | `mise run deps`            | Install locked development dependencies.                                                          |
 | `mise run setup`           | Install tools and dependencies, then enable local hooks. Stops if another project owns the hooks. |
 | `mise run format`          | Format source files.                                                                              |
-| `mise run check`           | Check formatting, source rules, types, and generated-file consistency.                            |
+| `mise run check`           | Check source, types, generated files, dependencies, security, licenses, and links.                |
 | `mise run type:python`     | Check Python types against the selected ComfyUI installation.                                     |
 | `mise run frontend:build`  | Build the shipped JavaScript and CSS.                                                             |
 | `mise run workflows:build` | Build the example graphs and workflow index.                                                      |
@@ -368,7 +374,14 @@ are local settings; they do not enter the connector package.
 | `mise run models:validate` | Check model associations against registered node schemas.                                         |
 | `mise run audit:python`    | Check Python dependencies against advisory services.                                              |
 | `mise run audit:frontend`  | Check frontend dependencies against advisory services.                                            |
+| `mise run security:rules`  | Download and verify the pinned Semgrep rule packs.                                                |
 | `mise run release:package` | Check and build a ComfyUI archive without publishing it.                                          |
+
+Pre-commit checks require the working files to match the staged content. Pre-push
+checks require them to match each revision being pushed. Both hooks reject
+untracked public files so that checks cannot read files missing from the commit.
+Finish or set aside other changes before committing or pushing. Hooks do not
+stash or rewrite your work. Ignored private settings remain local.
 
 Builds write generated assets; checks and hooks do not install dependencies or
 start generation. Dependency audits need network access and do not apply fixes.

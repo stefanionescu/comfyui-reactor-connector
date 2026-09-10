@@ -36,7 +36,7 @@ def main() -> int:
                 "dir",
                 str(snapshot),
                 "--config",
-                str(root / ".gitleaks.toml"),
+                str(root / "quality/config/security/gitleaks/config.toml"),
                 "--baseline-path",
                 str(root / "quality/config/security/gitleaks/baseline.json"),
                 "--no-banner",

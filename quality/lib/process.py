@@ -22,6 +22,15 @@ class ProcessResult:
     stderr: bytes
 
 
+@dataclass(frozen=True, slots=True)
+class ProcessContext:
+    """Execution directory, environment, and deadline for a child process."""
+
+    working_directory: Path | None = None
+    timeout_seconds: float | None = None
+    environment: Mapping[str, str] | None = None
+
+
 def executable(name: str) -> str:
     """Return an absolute executable path from PATH."""
     found = which(name)
@@ -32,14 +41,12 @@ def executable(name: str) -> str:
     return str(Path(found).absolute())
 
 
-def run_command(  # noqa: PLR0913 -- reason: Process options cover capture, failure, directory, timeout, and environment.
+def run_command(
     arguments: Sequence[str],
     *,
     is_output_captured: bool = False,
     is_failure_raised: bool = False,
-    working_directory: Path | None = None,
-    timeout_seconds: float | None = None,
-    environment: Mapping[str, str] | None = None,
+    context: ProcessContext | None = None,
 ) -> ProcessResult:
     """Run a fixed argument list without a shell."""
     if not arguments:
@@ -51,32 +58,28 @@ def run_command(  # noqa: PLR0913 -- reason: Process options cover capture, fail
             command,
             is_output_captured=is_output_captured,
             is_failure_raised=is_failure_raised,
-            working_directory=working_directory,
-            timeout_seconds=timeout_seconds,
-            environment=environment,
+            context=context or ProcessContext(),
         ),
     )
 
 
-async def _run_subprocess(  # noqa: PLR0913 -- reason: Forward the public subprocess options without an extra container.
+async def _run_subprocess(
     command: list[str],
     *,
     is_output_captured: bool,
     is_failure_raised: bool,
-    working_directory: Path | None,
-    timeout_seconds: float | None,
-    environment: Mapping[str, str] | None,
+    context: ProcessContext,
 ) -> ProcessResult:
     """Run one resolved executable and collect its result."""
     process = await asyncio.create_subprocess_exec(
         *command,
-        cwd=working_directory,
-        env=environment,
+        cwd=context.working_directory,
+        env=context.environment,
         stdout=asyncio.subprocess.PIPE if is_output_captured else None,
         stderr=asyncio.subprocess.PIPE if is_output_captured else None,
     )
     try:
-        async with asyncio.timeout(timeout_seconds):
+        async with asyncio.timeout(context.timeout_seconds):
             stdout, stderr = await process.communicate()
     finally:
         if process.returncode is None:

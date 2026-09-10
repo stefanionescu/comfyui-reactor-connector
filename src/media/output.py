@@ -8,6 +8,7 @@ from typing import BinaryIO, TYPE_CHECKING
 from ..errors import ErrorCode, ConnectorError
 
 if TYPE_CHECKING:
+    from typing import Self
     from pathlib import Path
     from types import TracebackType
     from collections.abc import Callable
@@ -55,7 +56,7 @@ class FileOutput:
         """Complete the submitted write off the event loop before allowing cancellation."""
         await owned_io(lambda: self._write(content))
 
-    async def __aenter__(self) -> FileOutput:
+    async def __aenter__(self) -> Self:
         """Create the output off the event loop and discard it if entry fails."""
         try:
             await owned_io(self._open)

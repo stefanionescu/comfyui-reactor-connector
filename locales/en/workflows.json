@@ -1,52 +1,38 @@
 {
     "fast-h3-01-text-to-video": {
-        "prompt": "A small stream flows over smooth stones. Water splashes softly and birds call.",
         "title": "Fast H3: Build a Clip with Sound"
     },
     "fast-h3-02-image-to-video": {
-        "prompt": "Bring this scene to life with gentle motion. Keep the subject and composition. Soft natural ambience.",
         "title": "Fast H3: Animate a Starting Image"
     },
     "fast-h3-03-first-and-last-frames": {
-        "prompt": "Move smoothly from the first scene to the final scene. Keep the motion natural. Soft ambience.",
         "title": "Fast H3: Connect Two Images with Motion"
     },
     "fast-h3-04-ending-frame": {
-        "prompt": "The camera moves slowly toward this final view. Keep the movement smooth. Soft ambience.",
         "title": "Fast H3: Finish on a Chosen Image"
     },
     "fast-h3-05-continue-scene": {
-        "later_prompts": "The stream flows past a mossy rock.\nThe camera follows the stream into a sunlit clearing.",
-        "prompt": "Follow a stream through a quiet forest. Water splashes softly.",
         "title": "Fast H3: Continue a Scene"
     },
     "fast-h3-06-continue-image": {
-        "later_prompts": "",
-        "prompt": "Bring this scene to life with gentle motion and soft natural ambience.",
         "title": "Fast H3: Continue from an Image"
     },
     "helios-01-text-to-video": {
-        "prompt": "A red ball rolls slowly across a wooden table. The camera stays still.",
         "title": "Helios: Text to Video"
     },
     "helios-02-image-to-video": {
-        "prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
         "title": "Helios: Animate a Local Image"
     },
     "helios-03-prompt-sequence": {
-        "prompt": "The camera moves slowly along a forest path in soft morning light.",
         "title": "Helios: Follow a Prompt Sequence"
     },
     "helios-04-image-sequence": {
-        "prompt": "The camera moves slowly along a forest path in soft morning light.",
         "title": "Helios: Animate an Image through Prompt Changes"
     },
     "helios-05-live-prompt": {
-        "prompt": "The camera moves slowly along a sunlit forest path. Green leaves sway gently.",
         "title": "Helios: Change the Prompt while Recording"
     },
     "helios-06-live-image": {
-        "prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
         "title": "Helios: Animate an Image with Live Prompts"
     },
     "index": {
@@ -116,23 +102,18 @@
         "totalDuration": "This example requests {seconds:g} seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up."
     },
     "lingbot-01-explore-image": {
-        "prompt": "A quiet garden path. Move forward slowly through the scene.",
         "title": "LingBot: Explore a Local Image"
     },
     "lingbot-02-live-camera": {
-        "prompt": "A path through a quiet forest.",
         "title": "LingBot: Move through an Image"
     },
     "lingbot-world-2-01-explore-image": {
-        "prompt": "A quiet garden path. Move forward slowly through the scene.",
         "title": "LingBot World 2: Explore a Local Image"
     },
     "lingbot-world-2-02-live-camera": {
-        "prompt": "A path through a quiet forest.",
         "title": "LingBot World 2: Move and Look Independently"
     },
     "live": {
-        "autumn": "Try: The forest leaves turn orange and red as autumn arrives.",
         "camera": "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.",
         "drag": "Drag on the output to steer the subject. Escape releases the pointer. **Help** also explains keyboard controls.",
         "finish": "Let recording finish to save the video. **End session** stops early and discards it.",
@@ -140,23 +121,19 @@
         "prompt": "Edit **Scene prompt**, then select **Apply prompt** to change later frames.",
         "sound": "**Apply sound prompt** changes later sound. The live preview is silent.",
         "start": "In the live panel, select **Start session** within 60 seconds.",
-        "editPrompt": "Change **Edit prompt**, then select **Apply prompt** to change later frames."
+        "editPrompt": "Change **Edit prompt**, then select **Apply prompt** to change later frames.",
+        "examplePrompt": "Try: {prompt}"
     },
     "longlive-v2-01-text-to-video": {
-        "prompt": "A fox walks along a forest path. The camera follows slowly.",
         "title": "LongLive: Opening Shot"
     },
     "longlive-v2-02-storyboard": {
-        "prompt": "A fox walks along a forest path. The camera follows slowly.",
         "title": "LongLive: Soft Transition and Hard Cut"
     },
     "longlive-v2-03-live-prompt": {
-        "prompt": "A fox walks along a forest path. The camera follows slowly.",
         "title": "LongLive: Change the Prompt while Recording"
     },
     "ltx2-01-speaking-portrait": {
-        "prompt": "A person faces the camera and speaks calmly.",
-        "script": "Hello. Welcome to this short video.",
         "title": "LTX: Make a Portrait Speak"
     },
     "nodes": {
@@ -175,22 +152,13 @@
         "start": "Start Here",
         "usage": "Using This Workflow"
     },
-    "prompts": {
-        "clearing": "The camera follows the path into a sunny clearing.",
-        "hardCut": "A wide view of a still lake at sunrise.",
-        "softTransition": "The camera pulls back to show the trees around the fox.",
-        "sunlight": "Sunlight reaches the forest floor as the camera moves forward."
-    },
     "sana-streaming-01-edit-video": {
-        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
         "title": "SANA: Edit a Local Video"
     },
     "sana-streaming-02-live-prompt": {
-        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
         "title": "SANA: Change the Prompt while Recording"
     },
     "sana-streaming-03-webcam": {
-        "prompt": "Turn the scene into a watercolor painting.",
         "title": "SANA: Edit a Webcam"
     },
     "setup": {
@@ -210,49 +178,33 @@
         "editPrompt": "Describe the change you want in **Edit prompt**."
     },
     "visko-dynamic-01-text-to-video": {
-        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-        "prompt": "A small stream flows over smooth stones in a quiet forest.",
         "title": "Visko Dynamic: Video with Sound"
     },
     "visko-dynamic-02-image-to-video": {
-        "audio_prompt": "",
-        "prompt": "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
         "title": "Visko Dynamic: Animate an Image with Sound"
     },
     "visko-dynamic-03-live-prompt": {
-        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-        "prompt": "A small stream flows over smooth stones in a quiet forest.",
         "title": "Visko Dynamic: Change the Prompt while Recording"
     },
     "visko-stable-01-text-to-video": {
-        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-        "prompt": "A small stream flows over smooth stones in a quiet forest.",
         "title": "Visko Stable: Video with Sound"
     },
     "visko-stable-02-image-to-video": {
-        "audio_prompt": "",
-        "prompt": "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
         "title": "Visko Stable: Animate an Image with Sound"
     },
     "visko-stable-03-live-prompt": {
-        "audio_prompt": "Water splashes softly over stones, with birds calling in the distance.",
-        "prompt": "A small stream flows over smooth stones in a quiet forest.",
         "title": "Visko Stable: Change the Prompt while Recording"
     },
     "x2-01-edit-video": {
-        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
         "title": "X2: Edit a Local Video"
     },
     "x2-02-reference-edit": {
-        "prompt": "Replace the main subject with the subject from the reference image. Keep the background.",
         "title": "X2: Edit with a Reference Image"
     },
     "x2-03-webcam": {
-        "prompt": "Turn the scene into a watercolor painting.",
         "title": "X2: Edit and Drag a Webcam Scene"
     },
     "x2-04-live-prompt": {
-        "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
         "title": "X2: Drag and Edit a Video"
     }
 }

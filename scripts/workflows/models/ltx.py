@@ -7,6 +7,8 @@ EXAMPLES = (
         "ltx2-01-speaking-portrait",
         "ReactorIncLtxSpeak",
         inputs={
+            "prompt": "A person faces the camera and speaks calmly.",
+            "script": "Hello. Welcome to this short video.",
             "duration_seconds": 5.0,
             "variation": 0,
             "seed": 42,

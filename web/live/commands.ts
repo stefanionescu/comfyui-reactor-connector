@@ -1,7 +1,7 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import type { Invitation } from '#web/live/api.ts';
-import { browserLimits, browserPatterns } from '#config/browser.ts';
+import { browserLimits, browserPatterns } from '#config/web/browser.ts';
 
 export type Controls = Invitation & {
   prompt: string;
@@ -91,7 +91,7 @@ export async function sendAction(
       capability: owner.capability,
       sequence,
       action: name,
-      data: fields,
+      fields,
     }),
   });
   if (!response.ok) throw new Error(translate('live.actionRejected'));

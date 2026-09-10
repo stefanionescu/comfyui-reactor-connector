@@ -4,7 +4,6 @@ import asyncio
 import folder_paths
 from pathlib import Path
 from dataclasses import replace
-from ...language import translate
 from ...runtime import get_runtime
 from ...media.output import owned_io
 from ...media.images import image_png
@@ -14,6 +13,7 @@ from ...settings.store import read_settings
 from ...execution.x2.request import X2Request
 from ...media.video.input import prepared_video
 from ..controls import live_control, video_outputs
+from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
@@ -47,7 +47,7 @@ class X2EditVideo(io.ComfyNode):
                     io.String.Input(
                         "prompt",
                         multiline=True,
-                        default=translate("prompts", "edit"),
+                        default=DEFAULT_PROMPTS["edit"],
                     ),
                     io.Float.Input(
                         "duration_seconds",

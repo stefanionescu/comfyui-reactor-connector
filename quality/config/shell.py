@@ -18,6 +18,44 @@ SHELL_CONFIG_GUARD_PATTERN = r"^\[\[ -n \$\{(?P<name>_CFG_[A-Z][A-Z0-9_]*_READY)
 SHELL_ARCHITECTURE_PREFIXES = (".mise/tasks/", ".githooks/", "quality/")
 SHELL_RUNTIME_HEADER = "# Runtime: Bash 3.2+, macOS and Linux."
 
+SHELL_ACTION_PREFIXES = {
+    "acquire",
+    "apply",
+    "await",
+    "build",
+    "check",
+    "choose",
+    "cleanup",
+    "clear",
+    "detect",
+    "export",
+    "finalize",
+    "get",
+    "guard",
+    "handle",
+    "init",
+    "install",
+    "kill",
+    "launch",
+    "normalize",
+    "parse",
+    "prepare",
+    "push",
+    "read",
+    "reconfigure",
+    "require",
+    "run",
+    "select",
+    "set",
+    "setup",
+    "show",
+    "start",
+    "stop",
+    "validate",
+    "wipe",
+    "write",
+}
+
 SHELL_BASH_4_PATTERNS = (
     (r"\b(?:mapfile|readarray)\b", "mapfile and readarray require Bash 4"),
     (r"\bdeclare\s+-A\b", "associative arrays require Bash 4"),
@@ -66,10 +104,11 @@ ALLOWED_SCRIPT_ROOT_FOLDERS = {
 }
 
 ALLOWED_SINGLE_SCRIPT_FOLDERS = {
+    # The root setup task installs tools; the other tasks are grouped by purpose.
+    ".mise/tasks",
     # These shell entrypoints share their owner with JavaScript policy or filtering code.
     "quality/config/package-json/licenses",
     "quality/repository/licenses",
-    "quality/security/codeql/frontend/sarif",
     ".mise/tasks/licenses",
     ".mise/tasks/security",
     ".mise/tasks/comfy",
@@ -84,7 +123,9 @@ ALLOWED_SINGLE_SCRIPT_FOLDERS = {
     "quality/security/bandit",
     "quality/security/bearer",
     "quality/security/codeql/python",
+    "quality/security/codeql",
     "quality/security/gitleaks",
     "quality/security/osv",
     "quality/security/pip-audit",
+    "quality/security/semgrep",
 }

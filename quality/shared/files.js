@@ -6,13 +6,16 @@ function isRegularFile(root, relative) {
   // reason: Git supplies repository-relative filenames; the following checks reject symbolic links.
   // bearer:disable javascript_lang_path_traversal
   const absolute = path.join(root, relative);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- Git supplies this repository path; existence is checked before examining its components.
   if (!fs.existsSync(absolute)) return false;
   // A file reached through a symbolic link may expose content outside the repository.
   for (let current = absolute; current !== root; current = path.dirname(current)) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- Inspect each Git path component without following symbolic links.
     if (fs.lstatSync(current).isSymbolicLink()) {
       throw new Error(`Use a regular repository file instead of a symbolic link: ${relative}`);
     }
   }
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- Every component of this Git path has been checked for symbolic links.
   return fs.statSync(absolute).isFile();
 }
 
@@ -27,6 +30,9 @@ export function visibleFiles(root) {
     ['-C', root, 'ls-files', '-z', '--cached', '--others', '--exclude-standard'],
     { encoding: 'utf8' },
   );
-  const files = new Set(output.split('\0').filter(Boolean));
-  return [...files].filter((relative) => isRegularFile(root, relative)).sort();
+  const files = new Set();
+  for (const relative of output.split('\0')) {
+    if (relative && isRegularFile(root, relative)) files.add(relative);
+  }
+  return [...files].sort();
 }

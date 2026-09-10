@@ -14,19 +14,32 @@ const result = await build({
   charset: 'utf8',
   legalComments: 'inline',
 });
-const outputs = new Map(result.outputFiles.map((output) => [basename(output.path), output]));
+const outputs = new Map();
+for (const output of result.outputFiles) {
+  outputs.set(basename(output.path), output);
+}
 for (const filename of ['main.js', 'main.css']) {
   const output = outputs.get(filename);
   if (!output) throw new Error(`The frontend build did not produce ${filename}.`);
   const destination = `web/dist/${filename}`;
   if (process.argv.includes('--check')) {
-    const actual = await readFile(destination, 'utf8').catch(() => '');
+    let actual;
+    try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename -- The destination uses one of the two literal build filenames above.
+      actual = await readFile(destination, 'utf8');
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      console.error(`Build ${filename} with mise run frontend:build.`);
+      process.exitCode = 1;
+      continue;
+    }
     if (actual !== output.text) {
       console.error(`Rebuild ${filename} with mise run frontend:build.`);
       process.exitCode = 1;
     }
   } else {
     await mkdir('web/dist', { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- Write only main.js or main.css under the fixed web/dist directory.
     await writeFile(destination, output.contents);
   }
 }

@@ -52,13 +52,16 @@ export class Webcam {
     const controls = element('div');
     controls.append(label, this.enable);
     this.view.append(controls, this.video, this.status);
-    this.enable.addEventListener('click', () => void this.start());
+    this.enable.addEventListener('click', () => {
+      this.enable.disabled = true;
+      const selected = this.select.value;
+      void this.start(selected);
+    });
   }
 
-  private async start(): Promise<void> {
-    this.enable.disabled = true;
+  private async start(selected: string): Promise<void> {
     try {
-      if (!(await this.openCamera())) return;
+      if (!(await this.openCamera(selected))) return;
       await this.listCameras();
       if (this.closed) return;
       setText(this.enable, message('camera.select'));
@@ -66,18 +69,18 @@ export class Webcam {
     } catch (error) {
       this.stopCamera();
       if (this.closed) return;
-      const errors: Record<string, MessageKey> = {
-        NotAllowedError: 'camera.permissionDenied',
-        SecurityError: 'camera.browserRequirements',
-        NotFoundError: 'camera.notFound',
-        NotReadableError: 'camera.busy',
-        OverconstrainedError: 'camera.unavailableSelection',
-      };
+      const errors = new Map<string, MessageKey>([
+        ['NotAllowedError', 'camera.permissionDenied'],
+        ['SecurityError', 'camera.browserRequirements'],
+        ['NotFoundError', 'camera.notFound'],
+        ['NotReadableError', 'camera.busy'],
+        ['OverconstrainedError', 'camera.unavailableSelection'],
+      ]);
       setText(
         this.status,
         message(
           error instanceof Error
-            ? (errors[error.name] ?? 'camera.accessFailed')
+            ? (errors.get(error.name) ?? 'camera.accessFailed')
             : 'camera.accessFailed',
         ),
       );
@@ -88,9 +91,10 @@ export class Webcam {
 
   /**
    * Open the selected camera and release any previous stream.
+   * @param selected - The selected device ID, or an empty string for the default camera.
    * @returns Whether the camera is ready and the panel is still open.
    */
-  private async openCamera(): Promise<boolean> {
+  private async openCamera(selected: string): Promise<boolean> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- DOM types omit browsers and insecure contexts where camera access is unavailable.
     if (!navigator.mediaDevices?.getUserMedia) throw new DOMException('', 'SecurityError');
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -99,7 +103,7 @@ export class Webcam {
         width: { ideal: 640 },
         height: { ideal: 480 },
         frameRate: { ideal: 12, max: 24 },
-        ...(this.select.value ? { deviceId: { exact: this.select.value } } : {}),
+        ...(selected ? { deviceId: { exact: selected } } : {}),
       },
     });
     if (this.closed) {
@@ -126,19 +130,19 @@ export class Webcam {
     const devices = await navigator.mediaDevices.enumerateDevices();
     if (this.closed) return;
     const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
-    this.select.replaceChildren(
-      ...devices
-        .filter((device) => device.kind === 'videoinput')
-        .map((device, index) => {
-          const option = element(
-            'option',
-            device.label || message('camera.number', { number: index + 1 }),
-          );
-          option.value = device.deviceId;
-          option.selected = device.deviceId === selected;
-          return option;
-        }),
-    );
+    const options = document.createDocumentFragment();
+    for (const device of devices) {
+      if (device.kind !== 'videoinput') continue;
+      const option = element(
+        'option',
+        device.label || message('camera.number', { number: options.childElementCount + 1 }),
+      );
+      option.value = device.deviceId;
+      option.selected = device.deviceId === selected;
+      options.appendChild(option);
+    }
+    this.select.replaceChildren();
+    this.select.appendChild(options);
   }
 
   /**
@@ -147,7 +151,8 @@ export class Webcam {
    */
   async frame(): Promise<boolean> {
     if (this.closed || !this.stream || this.video.readyState < 2) return false;
-    if (this.stream.getVideoTracks().some((track) => track.readyState !== 'live')) {
+    for (const track of this.stream.getVideoTracks()) {
+      if (track.readyState === 'live') continue;
       this.fail(translate('camera.disconnected'));
       return false;
     }
@@ -158,9 +163,6 @@ export class Webcam {
     const ratio = Math.min(640 / this.video.videoWidth, 480 / this.video.videoHeight, 1);
     this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
     this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-    const context = this.canvas.getContext('2d');
-    if (!context) throw new Error(translate('camera.readFailed'));
-    context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
     this.upload = this.send();
     try {
       await this.upload;
@@ -171,9 +173,12 @@ export class Webcam {
   }
 
   private async send(): Promise<void> {
-    const blob = await new Promise<Blob | null>((fulfill) =>
-      this.canvas.toBlob(fulfill, 'image/jpeg', 0.8),
-    );
+    const blob = await new Promise<Blob | null>((fulfill) => {
+      const context = this.canvas.getContext('2d');
+      if (!context) throw new Error(translate('camera.readFailed'));
+      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      this.canvas.toBlob(fulfill, 'image/jpeg', 0.8);
+    });
     if (this.closed || !blob) return;
     const response = await this.fetcher('/reactor-inc/v1/live/camera', {
       method: 'POST',

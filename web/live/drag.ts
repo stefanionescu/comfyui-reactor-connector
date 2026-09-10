@@ -42,8 +42,8 @@ export class DragInput {
       { signal },
     );
     for (const name of ['pointerup', 'pointercancel', 'lostpointercapture', 'blur'])
-      image.addEventListener(name, () => this.release(), { signal });
-    image.addEventListener('keydown', (event) => this.keydown(event), { signal });
+      image.addEventListener(name, this.release.bind(this), { signal });
+    image.addEventListener('keydown', this.keydown.bind(this), { signal });
     image.addEventListener(
       'keyup',
       (event) => {
@@ -55,7 +55,7 @@ export class DragInput {
       },
       { signal },
     );
-    window.addEventListener('blur', () => this.release(), { signal });
+    window.addEventListener('blur', this.release.bind(this), { signal });
     document.addEventListener(
       'visibilitychange',
       () => {
@@ -63,7 +63,7 @@ export class DragInput {
       },
       { signal },
     );
-    signal.addEventListener('abort', () => this.release(), { once: true });
+    signal.addEventListener('abort', this.release.bind(this), { once: true });
   }
 
   /** Stop holding the pointer and release any browser pointer capture. */
@@ -96,15 +96,15 @@ export class DragInput {
    * @param event - A key pressed while the preview has focus.
    */
   private keydown(event: KeyboardEvent): void {
-    const offsets: Record<string, readonly [number, number]> = {
-      ArrowLeft: [-0.03, 0],
-      ArrowRight: [0.03, 0],
-      ArrowUp: [0, -0.03],
-      ArrowDown: [0, 0.03],
-      ' ': [0, 0],
-      Escape: [0, 0],
-    };
-    const offset = Object.hasOwn(offsets, event.key) ? offsets[event.key] : undefined;
+    const offsets = new Map<string, readonly [number, number]>([
+      ['ArrowLeft', [-0.03, 0]],
+      ['ArrowRight', [0.03, 0]],
+      ['ArrowUp', [0, -0.03]],
+      ['ArrowDown', [0, 0.03]],
+      [' ', [0, 0]],
+      ['Escape', [0, 0]],
+    ]);
+    const offset = offsets.get(event.key);
     if (!offset) return;
     event.preventDefault();
     event.stopPropagation();

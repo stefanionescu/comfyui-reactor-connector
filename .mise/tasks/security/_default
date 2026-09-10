@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
+#
+# Scan public source, history, and dependencies for security issues.
 # Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Scan public source, history, and dependencies for security issues."
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}" || exit 1
+# main - Scan public source, history, and dependencies for security issues.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}" || exit 1
 
-bash quality/security/gitleaks/run.sh all
-bash quality/security/bearer/run.sh
-bash quality/security/bandit/run.sh
-mise run audit:python
-mise run audit:frontend
-# shellcheck source=../../../quality/config/security/semgrep/environment.sh
-source "${REPO_ROOT}/quality/config/security/semgrep/environment.sh"
-semgrep_arguments=(semgrep "${SEMGREP_FLAGS[@]}")
-for config_file in "${SEMGREP_LOCAL_CONFIGS[@]}"; do
-  semgrep_arguments+=(--config "${config_file}")
-done
-semgrep_arguments+=("${SEMGREP_SCAN_PATHS[@]}")
-"${semgrep_arguments[@]}"
-uv run --no-sync python -m quality.security.codeql.python.paths
-bash quality/security/codeql/python/scan.sh
-bash quality/security/codeql/frontend/run.sh
+  bash quality/security/gitleaks/run.sh all
+  bash quality/security/bearer/run.sh
+  bash quality/security/bandit/run.sh
+  mise run audit:python
+  mise run audit:frontend
+  bash quality/security/semgrep/run.sh
+  uv run --no-sync python -m quality.security.codeql.python.paths
+  bash quality/security/codeql/python/scan.sh
+  bash quality/security/codeql/frontend/run.sh
+}
+
+main "$@"

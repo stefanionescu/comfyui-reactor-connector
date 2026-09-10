@@ -1,10 +1,9 @@
 """Build and execute LongLive shots without making users write model commands."""
 
 from comfy_api.latest import io
-from ...language import translate
 from ..schema import translate_schema
 from ...execution.longlive.storyboard import Shot, append_shot
-from ....config.generation.prompts import MAX_SHOT_CHUNK, DEFAULT_TRANSITION, OPTIONS_TRANSITION
+from ....config.generation.prompts import MAX_SHOT_CHUNK, DEFAULT_TRANSITION, OPTIONS_TRANSITION, DEFAULT_PROMPTS
 
 
 class LongLiveAddShot(io.ComfyNode):
@@ -36,7 +35,7 @@ class LongLiveAddShot(io.ComfyNode):
                     ),
                     io.String.Input(
                         "prompt",
-                        default=translate("prompts", "shot"),
+                        default=DEFAULT_PROMPTS["shot"],
                         multiline=True,
                     ),
                 ],

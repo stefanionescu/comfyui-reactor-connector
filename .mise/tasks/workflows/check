@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
+#
+# Check generated workflows.
 # Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check generated workflows."
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}/.." || exit 1
+# main - Check generated workflows.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}/.." || exit 1
 
-exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.workflows.build" --check "$@"
+  exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.workflows.build" --check "$@"
+}
+
+main "$@"

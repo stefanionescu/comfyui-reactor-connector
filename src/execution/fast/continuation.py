@@ -53,9 +53,9 @@ class FastContinueRequest(FastGenerateRequest):
         ):
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
         clips = FastClipEvents(events, limit=self.clip_count + 1)
-        await events.command("set_autoplay", {"enabled": False})
-        await events.command("set_flush_on_clip_end", {"enabled": False})
-        await events.command("set_canvas", {"aspect": self.aspect})
+        await events.command_reply("set_autoplay", {"enabled": False})
+        await events.command_reply("set_flush_on_clip_end", {"enabled": False})
+        await events.command_reply("set_canvas", {"aspect": self.aspect})
         state = await self._state(transport, events)
         minimum, maximum = (
             seconds(state.get("clip_seconds_min")),
@@ -72,14 +72,14 @@ class FastContinueRequest(FastGenerateRequest):
         if state.get("playing") is not False:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sequencePlaybackOrder"))
         self.recording.start_seconds = seconds(state.get("seconds_sent"))
-        await events.command("set_autoplay", {"enabled": True})
+        await events.command_reply("set_autoplay", {"enabled": True})
         # Queue one continuation ahead. Each clip opens from the previous clip's last frame.
         for index in range(1, self.clip_count):
             following = await self._enqueue(events, current, index)
             await events.call("clip_playback", clips.wait_finished(current))
             current = following
         duration = await events.call("clip_playback", clips.wait_finished(current)) - self.recording.start_seconds
-        await events.command("set_autoplay", {"enabled": False})
+        await events.command_reply("set_autoplay", {"enabled": False})
         if not 0 < duration <= self.recording.maximum_seconds:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
@@ -90,7 +90,7 @@ class FastContinueRequest(FastGenerateRequest):
         # The recorder needs later media to close its final fragment.
         tail = await self._enqueue(events, current, self.clip_count, duration=maximum)
         await events.call("recording_tail_build", clips.wait_ready(tail))
-        await events.command("play", {"clip_id": tail.clip_id})
+        await events.command_reply("play", {"clip_id": tail.clip_id})
 
     async def _enqueue(
         self,

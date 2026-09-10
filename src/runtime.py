@@ -13,7 +13,6 @@ def initialize_runtime() -> None:
     global _runtime  # noqa: PLW0603 -- reason: ComfyUI initializes one shared runtime during loading.
     for language in available_languages():
         read_messages("nodeDefs", language)
-        read_messages("prompts", language)
         read_messages("main", language)
     if _runtime is None:
         _runtime = Runtime()

@@ -7,9 +7,9 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from quality.lib.output import write_error
-from quality.lib.process import run_command
 from quality.lib.comfy import host_installation
 from quality.lib.json_config import require_string_list
+from quality.lib.process import ProcessContext, run_command
 
 
 def host_paths() -> list[str]:
@@ -24,7 +24,7 @@ def host_paths() -> list[str]:
         ],
         is_failure_raised=True,
         is_output_captured=True,
-        timeout_seconds=10,
+        context=ProcessContext(timeout_seconds=10),
     )
     packages = require_string_list(json.loads(result.stdout), "ComfyUI package directories", is_nonempty=True)
     if not all(Path(item).is_dir() for item in packages):
@@ -41,12 +41,18 @@ def main() -> int:
         with TemporaryDirectory(prefix="comfyui-reactor-types-") as temporary:
             configuration = Path(temporary) / "pyrightconfig.json"
             configuration.write_text(
-                json.dumps({"extends": str(root / "pyrightconfig.json"), "extraPaths": search_paths}),
+                json.dumps(
+                    {
+                        "extends": str(root / "pyrightconfig.json"),
+                        "extraPaths": search_paths,
+                        "executionEnvironments": [{"root": str(root / "quality"), "extraPaths": [str(root)]}],
+                    }
+                ),
                 encoding="utf-8",
             )
             return run_command(
                 ["basedpyright", "--project", str(configuration), *sys.argv[1:]],
-                working_directory=root,
+                context=ProcessContext(working_directory=root),
             ).return_code
     except (OSError, ValueError, RuntimeError) as error:
         write_error(f"Python type check could not start: {error}")

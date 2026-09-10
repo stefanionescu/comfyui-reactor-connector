@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from quality.lib.process import run_command
+from quality.lib.process import ProcessContext, run_command
 from quality.shell.scope import find_shell_files, parse_arguments
 
 
@@ -18,7 +18,7 @@ def main() -> int:
         result = run_command(
             ["bash", "-n", file],
             is_failure_raised=False,
-            working_directory=root,
+            context=ProcessContext(working_directory=root),
         )
         if result.return_code != 0:
             exit_code = 1

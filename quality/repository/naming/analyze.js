@@ -15,7 +15,7 @@ import {
   nameRulesForEntry,
   pathHasScope,
   termEntriesForPath,
-} from '#repository/naming/policy.js';
+} from '#repository/naming/scope.js';
 
 function addViolation(violations, seen, violation) {
   const key = [violation.file, violation.line, violation.name, violation.kind, violation.rule].join(
@@ -39,17 +39,6 @@ function compareViolations(left, right) {
   return left.message.localeCompare(right.message);
 }
 
-function readTrackedFile(relativePath) {
-  // reason: The caller supplies only Git-listed regular files after symbolic-link checks.
-  // bearer:disable javascript_lang_path_traversal
-  const absolutePath = path.join(repoRoot, relativePath);
-  if (!fs.existsSync(absolutePath)) {
-    throw new Error(`tracked file is missing: ${relativePath}`);
-  }
-
-  return fs.readFileSync(absolutePath, 'utf8');
-}
-
 function sourceNamingEntries(relativePath, sourceText, language) {
   if (language === 'javascript') {
     return collectJavaScriptNames(relativePath, sourceText, language);
@@ -63,7 +52,10 @@ function namingEntriesForFile(relativePath, policy) {
     return [];
   }
 
-  const sourceText = readTrackedFile(relativePath);
+  // reason: The caller supplies only Git-listed regular files after symbolic-link checks.
+  // bearer:disable javascript_lang_path_traversal
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- Only Git-listed regular files that passed the symbolic-link checks reach this reader.
+  const sourceText = fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
   const language = languageForPath(relativePath, sourceText);
   if (language !== 'javascript') return [];
   const fileNames = [
@@ -86,8 +78,12 @@ function stripStructuralPrefixes(name, regexes) {
 }
 
 function checkedEntryForRules(entry, nameRules) {
-  const caseRule = nameRules.findLast((rule) => rule.caseNames.length > 0);
-  const structuralPrefixRegexes = nameRules.flatMap((rule) => rule.structuralPrefixRegexes);
+  let caseRule;
+  const structuralPrefixRegexes = [];
+  for (const rule of nameRules) {
+    if (rule.caseNames.length > 0) caseRule = rule;
+    structuralPrefixRegexes.push(...rule.structuralPrefixRegexes);
+  }
   if (!caseRule && structuralPrefixRegexes.length === 0) {
     return entry;
   }
@@ -104,12 +100,15 @@ function checkedEntryForRules(entry, nameRules) {
 
 function addNamingEntryViolations(policy, relativePath, entry, violations, seen) {
   const nameRules = nameRulesForEntry(policy, relativePath, entry);
-  if (nameRules.some((rule) => rule.exclude)) return;
+  const allowed = new Set();
+  for (const rule of nameRules) {
+    for (const violation of rule.allowedViolations) allowed.add(violation);
+  }
   const checkedEntry = checkedEntryForRules(entry, nameRules);
   const profile = policy.languages?.[entry.language];
   const termEntries = termEntriesForPath(policy, relativePath);
   for (const violation of validateName(checkedEntry, profile, termEntries, policy.global)) {
-    addViolation(violations, seen, violation);
+    if (!allowed.has(violation.rule)) addViolation(violations, seen, violation);
   }
 }
 

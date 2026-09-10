@@ -6,7 +6,7 @@ export class SoundControls {
 
   private readonly prompt = element('textarea');
 
-  private readonly apply = button(message('sound.applyPrompt'));
+  private readonly apply = button(message('sound.applyPrompt'), 'submit');
 
   private pending: string | undefined;
 
@@ -21,14 +21,12 @@ export class SoundControls {
     this.prompt.rows = 2;
     const label = element('label', message('sound.prompt'));
     label.append(this.prompt);
-    this.view.append(
-      element('legend', message('sound.title')),
-      label,
-      this.apply,
-      element('p', message('sound.promptNotice')),
-    );
-    // eslint-disable-next-line local/no-trivial-functions -- Applying sound queues the prompt and prevents duplicate submission.
-    this.apply.addEventListener('click', () => {
+    const form = element('form');
+    form.append(label, this.apply, element('p', message('sound.promptNotice')));
+    this.view.append(element('legend', message('sound.title')), form);
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
       this.pending = this.prompt.value;
       this.apply.disabled = true;
     });
@@ -39,10 +37,13 @@ export class SoundControls {
    * Enable sound input only when the session accepts changes.
    * @param ready - Whether the model accepts live controls.
    */
-  // eslint-disable-next-line local/no-trivial-functions -- Both controls follow session readiness while a queued prompt keeps Apply disabled.
   setReady(ready: boolean): void {
     this.prompt.disabled = !ready;
-    this.apply.disabled = !ready || this.pending !== undefined;
+    if (!ready) {
+      this.apply.disabled = true;
+      return;
+    }
+    this.apply.disabled = this.pending !== undefined;
   }
 
   /**

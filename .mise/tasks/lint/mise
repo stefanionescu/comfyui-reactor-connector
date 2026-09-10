@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
+#
+# Check mise syntax, formatting, and shell rules.
 # Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check mise syntax, formatting, and shell rules."
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}" || exit 1
+# main - Check mise syntax, formatting, and shell rules.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}" || exit 1
 
-uv run --no-sync python -m quality.shell.syntax --scope mise "$@"
-uv run --no-sync python -m quality.shell.tools --scope mise "$@"
-uv run --no-sync python -m quality.shell.runner --scope mise "$@"
+  uv run --no-sync python -m quality.shell.syntax --scope mise "$@"
+  uv run --no-sync python -m quality.shell.tools --scope mise "$@"
+  uv run --no-sync python -m quality.shell.runner --scope mise "$@"
+}
+
+main "$@"

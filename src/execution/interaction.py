@@ -10,20 +10,16 @@ class SessionInteraction(Protocol):
 
     async def connected(self, transport: Transport, track: Track, events: SessionEvents) -> None:
         """Attach live controls to the connected transport, output track, and session events."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def configured(self, *, video_started: bool) -> None:
         """Mark the model ready for live actions and identify whether video has started."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def stop(self) -> None:
         """Stop owned control tasks before session cleanup completes."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
         """Record whether remote termination was confirmed and whether execution failed."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError

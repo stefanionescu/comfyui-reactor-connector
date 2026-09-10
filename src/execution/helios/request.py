@@ -25,12 +25,12 @@ class HeliosRequest(VideoInputs):
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:
         """Set the initial image or prompt, schedule later prompts, and start generation."""
-        await events.command("set_seed", {"seed": self.seed})
+        await events.command_reply("set_seed", {"seed": self.seed})
         if self.image is None:
-            await events.command("set_prompt", {"prompt": self.prompt})
+            await events.command_reply("set_prompt", {"prompt": self.prompt})
         else:
             reference = await transport.upload_file(self.image, name="input.png", mime_type="image/png")
-            await events.command("set_conditioning", {"prompt": self.prompt, "image": reference})
+            await events.command_reply("set_conditioning", {"prompt": self.prompt, "image": reference})
         for prompt in self.prompts:
-            await events.command("schedule_prompt", prompt.to_dict())
-        await events.command("start", {})
+            await events.command_reply("schedule_prompt", prompt.to_dict())
+        await events.command_reply("start", {})

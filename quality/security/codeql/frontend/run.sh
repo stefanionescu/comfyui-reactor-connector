@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# Runtime: Bash 3.2+, macOS and Linux.
+#
 # Check the frontend CodeQL configuration before scanning.
+# Runtime: Bash 3.2+, macOS and Linux.
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}" || exit 1
+# main - Check the frontend CodeQL configuration before scanning.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}" || exit 1
 
-bun quality/security/codeql/frontend/integrity/paths.js
-bun quality/security/codeql/frontend/integrity/false-positives.js
-exec bash quality/security/codeql/frontend/scan.sh "$@"
+  bun quality/security/codeql/frontend/paths.js
+  exec bash quality/security/codeql/frontend/scan.sh "$@"
+}
+
+main "$@"

@@ -18,7 +18,7 @@ from .nodes.helios.generate import HeliosGenerate
 from .nodes.helios.sequence import HeliosSequence
 from .nodes.lingbot.explore import LingBotExplore
 from .nodes.visko.stable import ViskoStableGenerate
-from .nodes.lingbot.world import LingBotWorld2Explore
+from .nodes.lingbot.world import LingBotWorldExplore
 from .nodes.longlive.generate import LongLiveGenerate
 from .nodes.visko.dynamic import ViskoDynamicGenerate
 from .nodes.longlive.storyboard import LongLiveStoryboard
@@ -35,7 +35,7 @@ NODE_REGISTRATIONS: dict[type[io.ComfyNode], str] = {
     HeliosAddPrompt: "helios",
     HeliosSequence: "helios",
     LingBotExplore: "lingbot",
-    LingBotWorld2Explore: "lingbot-world-2",
+    LingBotWorldExplore: "lingbot-world-2",
     LongLiveGenerate: "longlive-v2",
     LongLiveStoryboard: "longlive-v2",
     LongLiveAddShot: "longlive-v2",

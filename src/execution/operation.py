@@ -14,14 +14,12 @@ class VideoOperation(Protocol):
     @property
     def prompt(self) -> str:
         """Return the opening prompt for the model request."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     @property
     def duration_seconds(self) -> float:
         """Return the requested generation duration in seconds."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     fallback_fps: ClassVar[int]
     requires_audio: ClassVar[bool]
@@ -29,26 +27,21 @@ class VideoOperation(Protocol):
     @property
     def recording_start_seconds(self) -> float:
         """Return the start of the interval to keep from the session recording."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     @property
     def recording_duration_seconds(self) -> float:
         """Return the duration to keep from the session recording."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def validate(self, settings: Settings) -> None:
         """Reject inputs that violate the model contract or configured execution limits."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def configure(self, transport: Transport, events: SessionEvents) -> None:
         """Set the model inputs and start generation through the observed transport."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     async def release(self, transport: Transport) -> None:
         """Release request-owned uploads or input tracks before the session closes."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError

@@ -2,6 +2,7 @@
 
 from .example import Example
 from ...src.language import translate
+from .models.helios import AUTUMN_PROMPT
 
 
 def setup_steps(example: Example) -> list[str]:
@@ -38,8 +39,6 @@ def live_notes(example: Example) -> list[str]:
     if example.mode in {"live", "webcam"}:
         keys.append("live.camera" if example.mode == "webcam" else "live.start")
         keys.append("live.editPrompt" if example.model in {"sana-streaming", "x2"} else "live.prompt")
-        if example.slug == "helios-05-live-prompt":
-            keys.append("live.autumn")
         if example.model.startswith("visko-"):
             keys.append("live.sound")
         if example.model == "x2":
@@ -48,7 +47,10 @@ def live_notes(example: Example) -> list[str]:
         keys.append("live.move")
     if example.mode != "record":
         keys.append("live.finish")
-    return [translate("workflows", key) for key in keys]
+    notes = [translate("workflows", key) for key in keys]
+    if example.slug == "helios-05-live-prompt":
+        notes.insert(2, translate("workflows", "live.examplePrompt", prompt=AUTUMN_PROMPT))
+    return notes
 
 
 def model_notes(example: Example) -> list[str]:

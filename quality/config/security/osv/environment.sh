@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# Define osv configuration values.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
 # lint:justify -- reason: scanner scripts consume these lockfile paths.

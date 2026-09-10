@@ -20,7 +20,6 @@ from ..quality.lib.files import git_visible_files
 MAX_ARCHIVE_MEMBER_BYTES = 20_000_000
 
 PACKAGE_DIRECTORY = "reactor-inc"
-LEGACY_DIRECTORY = "reactor-inc-connector"
 ROOT_FILES = (
     "LICENSE.md",
     "__init__.py",
@@ -105,7 +104,7 @@ def scan_archive(root: Path, candidate: Path) -> None:
         "dir",
         str(candidate),
         "--config",
-        str(root / ".gitleaks.toml"),
+        str(root / "quality/config/security/gitleaks/config.toml"),
         "--report-format",
         "json",
         "--report-path",
@@ -125,27 +124,21 @@ def scan_archive(root: Path, candidate: Path) -> None:
 
 
 def replace_package(extracted: Path, destination: Path, staging: Path, host: Path) -> None:
-    """Preserve managed packages and restore their original paths if installation fails."""
-    previous = [path for path in (destination, destination.parent / LEGACY_DIRECTORY) if path.exists()]
-    for path in previous:
-        if path.is_symlink() or not (path / ".reactor-package.json").is_file():
+    """Preserve the managed package and restore it if installation fails."""
+    saved = staging / "previous"
+    if destination.exists():
+        if destination.is_symlink() or not (destination / ".reactor-package.json").is_file():
             msg = "An existing unmanaged Reactor directory was preserved."
             raise ValueError(msg)
-    backup_root = host.parent / ".reactor-package-backups"
-    if previous:
+        backup_root = host.parent / ".reactor-package-backups"
         backup_root.mkdir(mode=0o700, exist_ok=True)
-    for path in previous:
-        shutil.copytree(path, backup_root / str(time.time_ns()), symlinks=True)
-    moved: list[tuple[Path, Path]] = []
+        shutil.copytree(destination, backup_root / str(time.time_ns()), symlinks=True)
+        destination.replace(saved)
     try:
-        for path in previous:
-            saved = staging / f"previous-{path.name}"
-            path.replace(saved)
-            moved.append((path, saved))
         extracted.replace(destination)
     except OSError:
-        for original, saved in reversed(moved):
-            saved.replace(original)
+        if saved.exists():
+            saved.replace(destination)
         raise
 
 

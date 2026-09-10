@@ -1,5 +1,5 @@
 import type { Fetcher } from '#web/http.ts';
-import { browserPatterns } from '#config/browser.ts';
+import { browserPatterns } from '#config/web/browser.ts';
 import { translate, formatDate } from '#web/language.ts';
 import { message, type Message } from '#web/localization.ts';
 
@@ -36,9 +36,14 @@ function record(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-// eslint-disable-next-line local/no-trivial-functions -- This shared type guard validates repeated fields at the API boundary.
 function isShortText(value: unknown, max = 200): value is string {
-  return typeof value === 'string' && value.length > 0 && value.length <= max;
+  if (typeof value !== 'string') return false;
+  return value.length > 0 && value.length <= max;
+}
+
+function isNodeId(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  return /^ReactorInc[A-Za-z0-9]+$/.test(value);
 }
 
 function parseModel(value: unknown): Model {
@@ -65,7 +70,7 @@ function parseModel(value: unknown): Model {
     !['available', 'adapter_required'].includes(String(row.support)) ||
     !Array.isArray(row.node_ids) ||
     row.node_ids.length > 100 ||
-    !row.node_ids.every((id) => typeof id === 'string' && /^ReactorInc[A-Za-z0-9]+$/.test(id))
+    !row.node_ids.every(isNodeId)
   )
     throw new Error(translate('models.invalidResponse'));
   return {
@@ -77,7 +82,7 @@ function parseModel(value: unknown): Model {
     creditsPerSecond: row.credits_per_second,
     observed: row.observed,
     support: row.support as Model['support'],
-    nodeIds: row.node_ids as string[],
+    nodeIds: row.node_ids,
   };
 }
 
@@ -103,8 +108,11 @@ function parseModelList(value: unknown): ModelList {
   )
     throw new Error(translate('models.invalidResponse'));
   const models = document.models.map(parseModel);
-  if (new Set(models.map((row) => row.entryKey)).size !== models.length)
-    throw new Error(translate('models.invalidResponse'));
+  const keys = new Set<string>();
+  for (const model of models) {
+    if (keys.has(model.entryKey)) throw new Error(translate('models.invalidResponse'));
+    keys.add(model.entryKey);
+  }
   return {
     revision: document.revision,
     retrievedAt: document.retrieved_at,
@@ -148,11 +156,9 @@ function parseAutomaticCheck(value: unknown): NonNullable<ModelList['automaticCh
  * @param retrievedAt - The saved retrieval time, or null before the first refresh.
  * @returns A readable date or the action needed to load metadata.
  */
-// eslint-disable-next-line local/no-trivial-functions -- Share first-refresh guidance and date formatting between model and rate dialogs.
 export function metadataStatus(retrievedAt: string | null): Message {
-  return retrievedAt === null
-    ? message('models.installedList')
-    : message('models.lastRefresh', { date: () => formatDate(retrievedAt) });
+  if (retrievedAt === null) return message('models.installedList');
+  return message('models.lastRefresh', { date: formatDate.bind(null, retrievedAt) });
 }
 
 /**

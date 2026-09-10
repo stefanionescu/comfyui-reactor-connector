@@ -12,6 +12,7 @@ const repoRoot = process.cwd();
 const errors = [];
 
 function readMiseBunVersion() {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- MISE_TOOL_FILE is the repository-owned mise.toml path.
   const source = fs.readFileSync(path.join(repoRoot, MISE_TOOL_FILE), 'utf8');
   const match = source.match(BUN_TOOL_REGEX);
   if (!match) {
@@ -24,6 +25,7 @@ function readMiseBunVersion() {
 const expectedPackageSpec = `${BUN_TOOL_NAME}@${readMiseBunVersion()}`;
 
 for (const packageFile of PACKAGE_JSON_DEFAULT_FILES) {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- The configured list contains only the root and quality package manifests.
   const parsed = JSON.parse(fs.readFileSync(path.join(repoRoot, packageFile), 'utf8'));
   if (parsed.packageManager !== expectedPackageSpec) {
     errors.push(`${packageFile}: packageManager must be ${expectedPackageSpec}`);

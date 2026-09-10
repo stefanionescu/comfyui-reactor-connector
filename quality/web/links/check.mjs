@@ -23,6 +23,7 @@ function copyPublicFiles(destination) {
     // reason: Only Git-listed regular files are copied into this private temporary directory.
     // bearer:disable javascript_lang_path_traversal
     const target = path.join(destination, relative);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- visibleFiles rejects symbolic links; copy only those Git-visible files into the owned temporary directory.
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(path.join(root, relative), target);
     if (/\.(?:md|html)$/u.test(relative) && !LINK_TEMPLATES.includes(relative))
@@ -39,6 +40,7 @@ function copyAliases(destination, relative, target) {
     // reason: Configured aliases copy only Git-listed assets into the private scan directory.
     // bearer:disable javascript_lang_path_traversal
     const installed = path.join(destination, alias, relative.slice(source.length));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- Both paths belong to the temporary scan directory and the alias comes from static configuration.
     fs.mkdirSync(path.dirname(installed), { recursive: true });
     fs.copyFileSync(target, installed);
     if (/\.(?:md|html)$/u.test(relative)) pages.push(path.relative(destination, installed));
@@ -64,7 +66,8 @@ async function main() {
         return mode === '--local' && url.hostname !== 'localhost';
       },
     });
-    for (const link of results.links.filter((item) => item.state === 'BROKEN')) {
+    for (const link of results.links) {
+      if (link.state !== 'BROKEN') continue;
       console.error(`Broken link (${link.status ?? 'unreachable'}): ${link.url}`);
       if (link.parent) console.error(`  From: ${link.parent}`);
     }

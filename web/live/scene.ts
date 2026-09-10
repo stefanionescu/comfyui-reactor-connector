@@ -1,9 +1,10 @@
 import type { Fetcher } from '#web/http.ts';
+import { pause } from '#web/live/polling.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { CameraStates } from '#web/live/state.ts';
-import { browserLimits } from '#config/browser.ts';
 import { sendAction } from '#web/live/commands.ts';
+import { browserLimits } from '#config/web/browser.ts';
 import { CameraInput, cameraKeys } from '#web/live/input.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
 
@@ -95,7 +96,7 @@ class ScenePanel {
       translate('live.lookDown'),
     ];
     for (const [index, key] of cameraKeys.entries()) {
-      const control = button(labels[index] ?? key);
+      const control = button(labels.at(index) ?? key);
       control.dataset.key = key;
       control.disabled = true;
       this.controls.append(control);
@@ -105,14 +106,14 @@ class ScenePanel {
       this.surface,
       this.controls,
       this.controller.signal,
-      (keys, urgent) => this.states.update(keys, urgent),
+      this.states.update.bind(this.states),
     );
     this.release = input.release.bind(input);
     this.bindActions();
     this.appendContent();
   }
 
-  /** Build the session header, movement parseControlsInvitation, and prompt input. */
+  /** Build the session header, movement controls, and prompt input. */
   private appendContent(): void {
     const header = element('header');
     header.append(element('h2', message('live.sceneTitle')), this.end);
@@ -279,9 +280,7 @@ class ScenePanel {
         if (result.closed) this.finish(result);
         else {
           await this.sendPrompt(result);
-          await new Promise((fulfill) =>
-            setTimeout(fulfill, browserLimits.pollIntervalMilliseconds),
-          );
+          await pause(browserLimits.pollIntervalMilliseconds);
         }
       }
     } catch {

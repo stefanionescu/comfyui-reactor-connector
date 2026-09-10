@@ -45,6 +45,14 @@ function addKeyEntry(entries, file, language, category, kind, node) {
   addEntry(entries, file, language, category, kind, keyName(node.key), node.key ?? node);
 }
 
+function collectMember(entries, file, language, node, parent) {
+  if (node.type === 'Property' && parent.type !== 'ObjectExpression') return;
+  if (node.kind === 'constructor') return;
+  const category = node.method || node.type.includes('Method') ? 'functions' : 'properties';
+  addKeyEntry(entries, file, language, category, `${language} property`, node);
+  collectParams(entries, file, language, node.value ?? node);
+}
+
 function patternChildren(node) {
   switch (node.type) {
     case 'RestElement':
@@ -55,10 +63,13 @@ function patternChildren(node) {
       return [node.left];
     case 'ArrayPattern':
       return node.elements;
-    case 'ObjectPattern':
-      return node.properties.map((field) =>
-        field.type === 'RestElement' ? field.argument : field.value,
-      );
+    case 'ObjectPattern': {
+      const children = [];
+      for (const field of node.properties) {
+        children.push(field.type === 'RestElement' ? field.argument : field.value);
+      }
+      return children;
+    }
     default:
       return [];
   }
@@ -96,6 +107,7 @@ function walkTree(node, visit, parent = null) {
   visit(node, parent);
 
   for (const key of getKeys(node)) {
+    // eslint-disable-next-line security/detect-object-injection -- The parser supplies both the AST record and its traversal keys; this only reads child nodes.
     const child = node[key];
     if (Array.isArray(child)) {
       for (const item of child) {
@@ -122,7 +134,18 @@ function parseSource(relativePath, sourceText) {
   return parse(sourceText, options);
 }
 
-function collectNode(entries, file, language, node) {
+function collectBinding(entries, file, language, node) {
+  const category = node.type === 'TSParameterProperty' ? 'properties' : 'variables';
+  const kind = node.type === 'TSParameterProperty' ? 'parameter property' : `${language} variable`;
+  const binding = node.id ?? node.param ?? node.parameter;
+  collectPatternNames(entries, file, language, category, kind, binding);
+}
+
+function collectNode(entries, file, language, node, parent) {
+  if (['TSParameterProperty', 'VariableDeclarator', 'CatchClause'].includes(node.type)) {
+    collectBinding(entries, file, language, node);
+    return;
+  }
   switch (node.type) {
     case 'ClassDeclaration':
     case 'TSInterfaceDeclaration':
@@ -140,17 +163,6 @@ function collectNode(entries, file, language, node) {
       break;
     case 'TSDeclareFunction':
     case 'FunctionDeclaration':
-      addEntry(
-        entries,
-        file,
-        language,
-        'functions',
-        `${language} function`,
-        node.id?.name,
-        node.id ?? node,
-      );
-      collectParams(entries, file, language, node);
-      break;
     case 'FunctionExpression':
       addEntry(
         entries,
@@ -169,42 +181,19 @@ function collectNode(entries, file, language, node) {
     case 'ArrowFunctionExpression':
       collectParams(entries, file, language, node);
       break;
-    case 'VariableDeclarator':
-      collectPatternNames(entries, file, language, 'variables', `${language} variable`, node.id);
-      break;
     case 'TSMethodSignature':
     case 'MethodDefinition':
-      if (node.kind !== 'constructor') {
-        addKeyEntry(entries, file, language, 'functions', `${language} function`, node);
-      }
-      collectParams(entries, file, language, node.value ?? node);
-      break;
+    case 'Property':
     case 'TSAbstractPropertyDefinition':
     case 'TSPropertySignature':
     case 'PropertyDefinition':
-      addKeyEntry(entries, file, language, 'properties', `${language} property`, node);
+      collectMember(entries, file, language, node, parent);
       break;
-    case 'TSTypeParameter':
-      addEntry(
-        entries,
-        file,
-        language,
-        'classes',
-        'type parameter',
-        node.name?.name ?? node.name,
-        node,
-      );
+    case 'TSTypeParameter': {
+      const name = node.name?.name ?? node.name;
+      addEntry(entries, file, language, 'classes', 'type parameter', name, node);
       break;
-    case 'TSParameterProperty':
-      collectPatternNames(
-        entries,
-        file,
-        language,
-        'properties',
-        'parameter property',
-        node.parameter,
-      );
-      break;
+    }
     case 'TSEnumMember':
       addEntry(entries, file, language, 'properties', 'enum member', keyName(node.id), node);
       break;
@@ -231,7 +220,7 @@ function collectJavaScriptNames(relativePath, sourceText, language) {
     throw new Error(`failed to parse ${relativePath}: ${message}`, { cause: error });
   }
 
-  walkTree(astRoot, (node) => collectNode(entries, relativePath, language, node));
+  walkTree(astRoot, collectNode.bind(null, entries, relativePath, language));
   return entries;
 }
 

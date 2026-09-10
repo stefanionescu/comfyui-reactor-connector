@@ -26,8 +26,10 @@ dev = [
   "pip-licenses",
   "pydoclint",
   "pyproject-fmt",
+  "pyyaml==6.0.3",
   "ruff>=0.12,<1",
   "tomli",
+  "types-pyyaml==6.0.12.20260906",
   "validate-pyproject",
   "vulture",
 ]
@@ -84,6 +86,7 @@ lint.select = [
   "PIE",
   "PL",
   "PTH",
+  "PYI",
   "Q",
   "RET",
   "RSE",
@@ -110,6 +113,8 @@ lint.fixable = [
 ]
 lint.unfixable = []
 lint.mccabe.max-complexity = 8
+# ComfyUI imports the hyphenated repository directory as a Python package.
+lint.pep8-naming.extend-ignore-names = [ "comfyui-reactor-connector" ]
 lint.pylint.max-args = 5
 lint.pylint.max-bool-expr = 4
 lint.pylint.max-branches = 8
@@ -118,10 +123,7 @@ lint.pylint.max-public-methods = 12
 lint.pylint.max-returns = 4
 lint.pylint.max-statements = 30
 
-# ComfyUI loads the repository as a package even when its folder name has hyphens.
 [tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = [ "N999" ]
-"__main__.py" = [ "N999" ]
 # This Protocol has overloaded declarations without an implementation to document.
 "src/media/recording/streams.py" = [ "D418" ]
 
@@ -147,7 +149,8 @@ exclude = [ ".artifacts", ".git", ".venv", "node_modules", "web/dist" ]
 ignore_notebooks = true
 # ComfyUI supplies these modules and libraries in its own Python environment.
 per_rule_ignores.DEP001 = [ "comfy", "comfy_api", "comfy_execution", "folder_paths", "server", "torch" ]
-per_rule_ignores.DEP004 = [ "aiohttp", "av", "numpy", "PIL", "tomli", "packaging", "markdown_it" ]
+# Build and quality modules use these development dependencies outside the runtime package.
+per_rule_ignores.DEP004 = [ "aiohttp", "av", "numpy", "PIL", "tomli", "packaging", "markdown_it", "yaml" ]
 known_first_party = [ "config", "quality", "scripts", "src" ]
 package_module_name_map.reactor-sdk = [ "reactor" ]
 
@@ -186,6 +189,12 @@ name = "Settings and discovery must not import execution or host nodes"
 type = "forbidden"
 source_modules = [ "src.settings", "src.discovery" ]
 forbidden_modules = [ "src.execution", "src.nodes", "src.comfy" ]
+
+[[tool.importlinter.contracts]]
+name = "Discovery must not import media processing"
+type = "forbidden"
+source_modules = [ "src.discovery" ]
+forbidden_modules = [ "src.media" ]
 
 [[tool.importlinter.contracts]]
 name = "Execution must not import host nodes"

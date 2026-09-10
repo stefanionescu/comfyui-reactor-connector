@@ -610,9 +610,9 @@ existing page.
 Do not begin by copying source comments, tickets, or implementation notes.
 Translate verified behavior into a reader-focused explanation.
 
-When a documentation plan is requested, state the reader's task, affected pages,
-and proposed changes. Include exact patches only when requested or needed to
-explain a specific edit.
+A documentation plan must include the complete text diff for every proposed
+change, the affected paths, and the exact commands needed to generate artifacts.
+Keep the steps in implementation order and do not leave edits implied.
 
 ## Voice and tone
 

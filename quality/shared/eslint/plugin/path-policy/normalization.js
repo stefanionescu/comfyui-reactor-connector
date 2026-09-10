@@ -27,3 +27,16 @@ export function normalizePath(value) {
   }
   return pathText.replaceAll('\\', '/');
 }
+
+/**
+ * Checks whether a normalized filename belongs to a configured source directory.
+ * @param filename Absolute filename with forward slashes.
+ * @param scope Directory segments governed by the rule.
+ * @returns Whether any configured directory contains the file.
+ */
+export function isInScope(filename, scope) {
+  for (const segment of scope) {
+    if (filename.includes(`/${segment}/`)) return true;
+  }
+  return false;
+}

@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
+import { readPolicy } from '#repository/naming/policy.js';
 import { analyzeNaming } from '#repository/naming/analyze.js';
-import { usage, readPolicy, scopeParts } from '#repository/naming/policy.js';
+import { usage, scopeParts } from '#repository/naming/scope.js';
 
 /**
  * Read and validate the requested naming scopes.
@@ -12,9 +13,9 @@ function parseScope(argv) {
   let scope = 'all';
 
   for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
+    const arg = argv.at(index);
     if (arg === '--scope') {
-      scope = argv[index + 1] ?? '';
+      scope = argv.at(index + 1) ?? '';
       index += 1;
       continue;
     }

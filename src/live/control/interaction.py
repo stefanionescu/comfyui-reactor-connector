@@ -59,12 +59,12 @@ class ControlInteraction(CameraInteraction):
             await self._pointer(events, payload)
         elif name == "audio_prompt":
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-                await events.command("set_audio_prompt", dict(payload))
+                await events.command_reply("set_audio_prompt", dict(payload))
         else:
             if self.control_lease.options.model.startswith("reactor/visko-"):
                 payload = {**payload, "passthrough": self.control_lease.options.passthrough}
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-                await events.command(
+                await events.command_reply(
                     "set_shot" if self.control_lease.options.model == "reactor/longlive-v2" else "set_prompt",
                     dict(payload),
                 )
@@ -74,7 +74,7 @@ class ControlInteraction(CameraInteraction):
         """Track a possible press before sending it so cleanup covers a missing reply."""
         self.pointer_active = self.pointer_active or payload.get("active") is True
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-            await events.command("set_pointer", dict(payload))
+            await events.command_reply("set_pointer", dict(payload))
         self.pointer_active = payload.get("active") is True
 
     async def stop(self) -> None:

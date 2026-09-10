@@ -60,8 +60,8 @@ class LtxSpeakRequest(VideoInputs):
         reference = await events.call(
             "upload", transport.upload_file(self.image, name="input.png", mime_type="image/png")
         )
-        await events.command("set_avatar_image", {"avatar_image": reference})
-        await events.command("set_script", {"script": self.script})
+        await events.command_reply("set_avatar_image", {"avatar_image": reference})
+        await events.command_reply("set_script", {"script": self.script})
         state = await events.call("speech_state", events.snapshot("state_update"))
         minimum, maximum = state.get("wpm_min"), state.get("wpm_max")
         if (
@@ -90,13 +90,13 @@ class LtxSpeakRequest(VideoInputs):
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT, translate("main", "errors.speechPaceRange", minimum=minimum, maximum=maximum)
             )
-        await events.command("set_wpm", {"wpm": self.words_per_minute})
+        await events.command_reply("set_wpm", {"wpm": self.words_per_minute})
         # Recording fragments need later media to close after the requested capture ends.
-        await events.command(
+        await events.command_reply(
             "set_duration_seconds",
             {"duration_seconds": self.duration_seconds + RECORDING_TAIL_SECONDS},
         )
-        await events.command("set_seed", {"seed": self.seed})
+        await events.command_reply("set_seed", {"seed": self.seed})
         if self.prompt.strip():
-            await events.command("set_prompt", {"prompt": self.prompt})
-        await events.command("start", {})
+            await events.command_reply("set_prompt", {"prompt": self.prompt})
+        await events.command_reply("start", {})

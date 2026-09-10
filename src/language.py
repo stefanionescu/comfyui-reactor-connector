@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 _language = ContextVar("reactor_language", default="en")
 
-type MessageFile = Literal["nodeDefs", "main", "commands", "workflows", "prompts"]
+type MessageFile = Literal["nodeDefs", "main", "commands", "workflows"]
 
 
 @cache
@@ -37,7 +37,7 @@ def read_messages(name: MessageFile, language: str = "en") -> dict[str, object]:
     return cast("dict[str, object]", json.loads(path.read_text(encoding="utf-8")))
 
 
-def translate(name: MessageFile, key: str, **values: str | int | float) -> str:
+def translate(name: MessageFile, key: str, **values: str | float) -> str:
     """Read a message in the current request language, with an English fallback."""
     path = f"reactorInc.{key}" if name == "main" else key
     message = _read_message(read_messages(name, _language.get()), path)

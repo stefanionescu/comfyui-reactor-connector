@@ -2,6 +2,7 @@ import path from 'node:path';
 import { ALIAS_ROOTS, DEFAULT_SCOPE } from '#config/paths.js';
 
 import {
+  isInScope,
   normalizeFilename,
   normalizePath,
 } from '#shared/eslint/plugin/path-policy/normalization.js';
@@ -82,15 +83,10 @@ export const noCrossFolderImports = {
     }
 
     const options = context.options?.[0] ?? {};
-    const scope =
-      Array.isArray(options.scope) && options.scope.length > 0 ? options.scope : DEFAULT_SCOPE;
-    const aliasRoots =
-      Array.isArray(options.aliasRoots) && options.aliasRoots.length > 0
-        ? options.aliasRoots
-        : ALIAS_ROOTS;
+    const scope = options.scope?.length ? options.scope : DEFAULT_SCOPE;
+    const aliasRoots = options.aliasRoots?.length ? options.aliasRoots : ALIAS_ROOTS;
 
-    const inScope = scope.some((segment) => normalizedFilename.includes(`/${segment}/`));
-    if (!inScope) {
+    if (!isInScope(normalizedFilename, scope)) {
       return {};
     }
 
@@ -110,17 +106,18 @@ export const noCrossFolderImports = {
         path.posix.normalize(path.posix.join(importerDir, source)),
       );
       const aliasPath = findAliasPath(absoluteTargetPath, aliasRoots);
-      const quote = getQuote(sourceNode);
 
       context.report({
         node: sourceNode,
         message: aliasPath
           ? `Cross-folder relative imports are not allowed. Use "${aliasPath}" instead.`
           : 'Cross-folder relative imports are not allowed. Use project aliases instead.',
-        fix: aliasPath
-          ? (fixer) => fixer.replaceText(sourceNode, `${quote}${aliasPath}${quote}`)
-          : null,
+        fix: aliasPath ? replaceSource.bind(null, sourceNode, aliasPath) : null,
       });
+    };
+
+    const checkModuleSource = (node) => {
+      if (node.source) checkSource(node.source);
     };
 
     return {
@@ -129,18 +126,16 @@ export const noCrossFolderImports = {
           checkSource(node.arguments?.[0]);
         }
       },
-      ImportDeclaration: (node) => checkSource(node.source),
-      ImportExpression: (node) => checkSource(node.source),
-      ExportAllDeclaration(node) {
-        if (node.source) {
-          checkSource(node.source);
-        }
-      },
-      ExportNamedDeclaration(node) {
-        if (node.source) {
-          checkSource(node.source);
-        }
-      },
+      ImportDeclaration: checkModuleSource,
+      ImportExpression: checkModuleSource,
+      ExportAllDeclaration: checkModuleSource,
+      ExportNamedDeclaration: checkModuleSource,
     };
   },
 };
+
+function replaceSource(sourceNode, aliasPath, fixer) {
+  const quote = getQuote(sourceNode);
+  const replacement = `${quote}${aliasPath}${quote}`;
+  return fixer.replaceText(sourceNode, replacement);
+}

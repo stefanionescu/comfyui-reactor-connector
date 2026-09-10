@@ -48,14 +48,14 @@ class SettingsDialog {
     heading.id = 'reactor-settings-title';
     const close = button(message('close'));
     setTextAttribute(close, 'aria-label', message('settings.close'));
-    close.addEventListener('click', () => this.dialog.close());
+    close.addEventListener('click', this.dialog.close.bind(this.dialog, undefined));
     const header = element('header');
     header.append(heading, close);
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
     this.reload.addEventListener(
       'click',
-      () => void this.updateSettings(message('settings.loaded')),
+      this.updateSettings.bind(this, message('settings.loaded'), undefined, undefined, undefined),
     );
     this.dialog.append(
       header,
@@ -68,7 +68,7 @@ class SettingsDialog {
       this.status,
       this.reload,
     );
-    this.dialog.addEventListener('close', () => this.dispose(), { once: true });
+    this.dialog.addEventListener('close', this.dispose.bind(this), { once: true });
   }
 
   /**
@@ -85,11 +85,17 @@ class SettingsDialog {
     this.key.required = true;
     label.append(this.key);
     const clear = button(message('settings.clearKey'));
-    // eslint-disable-next-line local/no-trivial-functions -- Clearing the key field must happen before this user-triggered request.
-    clear.addEventListener('click', () => {
-      this.key.value = '';
-      void this.updateSettings(message('settings.keyCleared'), '/credential', 'DELETE');
-    });
+
+    clear.addEventListener(
+      'click',
+      this.updateSettings.bind(
+        this,
+        message('settings.keyCleared'),
+        '/credential',
+        'DELETE',
+        undefined,
+      ),
+    );
     const actions = element('div');
     actions.className = 'reactor-actions';
     actions.append(button(message('settings.saveKey'), 'submit'), clear);
@@ -99,8 +105,7 @@ class SettingsDialog {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const value = this.key.value;
-      this.key.value = '';
-      void this.updateSettings(message('settings.keySaved'), '/credential', 'PUT', {
+      this.updateSettings(message('settings.keySaved'), '/credential', 'PUT', {
         api_key: value,
       });
     });
@@ -132,9 +137,9 @@ class SettingsDialog {
     this.limitFields.replaceChildren(element('legend', message('settings.limits')));
     const additionalLimits = element('details');
     additionalLimits.append(element('summary', message('settings.advancedLimits')));
-    for (const [index, [name, definition]] of Object.entries(configuration.definitions)
-      .filter(([name]) => name !== 'catalog_interval_hours')
-      .entries()) {
+    let index = 0;
+    for (const [name, definition] of Object.entries(configuration.definitions)) {
+      if (name === 'catalog_interval_hours') continue;
       const label = element(
         'label',
         message(`settings.limit.${name}` as MessageKey, {}, definition.label),
@@ -148,6 +153,7 @@ class SettingsDialog {
       this.inputs.set(name, input);
       label.append(input);
       (index < 2 ? this.limitFields : additionalLimits).append(label);
+      index += 1;
     }
     this.limitFields.append(additionalLimits, button(message('settings.saveLimits'), 'submit'));
   }
@@ -157,17 +163,18 @@ class SettingsDialog {
    * @param configuration - The settings and revision currently shown.
    */
   private saveLimits(configuration: Configuration): void {
-    const changes: Record<string, number> = {};
+    const changes = new Map<string, number>();
+    const settings = new Map(Object.entries(configuration.settings));
     for (const [name, input] of this.inputs) {
-      if (input.valueAsNumber !== configuration.settings[name]) changes[name] = input.valueAsNumber;
+      if (input.valueAsNumber !== settings.get(name)) changes.set(name, input.valueAsNumber);
     }
-    if (Object.keys(changes).length === 0) {
+    if (changes.size === 0) {
       setText(this.status, message('settings.noLimitChanges'));
       return;
     }
-    void this.updateSettings(message('settings.limitsSaved'), '/settings', 'PATCH', {
+    this.updateSettings(message('settings.limitsSaved'), '/settings', 'PATCH', {
       revision: configuration.revision,
-      settings: changes,
+      settings: Object.fromEntries(changes),
     });
   }
 
@@ -217,7 +224,7 @@ class SettingsDialog {
       setText(this.status, message('settings.noCheckChanges'));
       return;
     }
-    void this.updateSettings(message('settings.checksSaved'), '/settings', 'PATCH', {
+    this.updateSettings(message('settings.checksSaved'), '/settings', 'PATCH', {
       revision: configuration.revision,
       settings,
     });
@@ -244,12 +251,13 @@ class SettingsDialog {
     );
     this.automatic.checked = configuration.settings.catalog_auto_check;
     this.interval.value = String(configuration.settings.catalog_interval_hours);
+    const settings = new Map(Object.entries(configuration.settings));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       const input = this.inputs.get(name);
       if (!input) continue;
       input.min = String(definition.minimum);
       input.max = String(definition.maximum);
-      input.value = String(configuration.settings[name]);
+      input.value = String(settings.get(name));
     }
     if (!configuration.mutationAllowed) setText(this.status, message('settings.readOnly'));
   }
@@ -260,17 +268,29 @@ class SettingsDialog {
    * @param route - The local settings route.
    * @param method - The HTTP method.
    * @param body - The settings change, if any.
+   */
+  private updateSettings(success: Message, route?: string, method?: string, body?: unknown): void {
+    if (route === '/credential') this.key.value = '';
+    this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
+    this.reload.disabled = true;
+    setText(this.status, message('working'));
+    void this.requestSettings(success, route, method, body);
+  }
+
+  /**
+   * Apply the server response and restore editing after a settings request.
+   * @param success - The success message.
+   * @param route - The local settings route.
+   * @param method - The HTTP method.
+   * @param body - The settings change, if any.
    * @returns When the response or error is displayed.
    */
-  private async updateSettings(
+  private async requestSettings(
     success: Message,
     route?: string,
     method?: string,
     body?: unknown,
   ): Promise<void> {
-    this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
-    this.reload.disabled = true;
-    setText(this.status, message('working'));
     try {
       const value = await requestConfiguration(
         this.fetcher,
@@ -303,7 +323,7 @@ class SettingsDialog {
   show(): void {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    void this.updateSettings(message('settings.loaded'));
+    this.updateSettings(message('settings.loaded'));
   }
 
   /** Clear the key input, stop requests, and return focus to the caller. */

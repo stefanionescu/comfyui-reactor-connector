@@ -9,24 +9,26 @@ import { openSceneControls } from '#web/live/scene.ts';
 import { openSettings } from '#web/settings/dialog.ts';
 import { bindCreditRate } from '#web/discovery/rate.ts';
 import { HELP_COMMAND, helpCommands, openNodeHelp } from '#web/help/command.ts';
+import { configureNodeWidgets, refreshWidgetLabels } from '#web/nodes/labels.ts';
 import { translate, initializeLanguage, languageEvents } from '#web/language.ts';
-import { bindNodeWidgets, configureNodeWidgets, refreshWidgetLabels } from '#web/nodes/labels.ts';
 
 app.registerExtension({
   name: 'reactor.inc.configuration',
   init: initializeLanguage,
   setup: () => {
-    languageEvents.addEventListener('change', refreshText);
-    languageEvents.addEventListener('change', refreshWidgetLabels);
+    app.ui.settings.addEventListener('Comfy.Locale.change', () => {
+      refreshText();
+      refreshWidgetLabels();
+      languageEvents.dispatchEvent(new Event('change'));
+    });
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.href = new URL('./main.css', import.meta.url).href;
-    if (
-      ![...document.querySelectorAll('link[rel=stylesheet]')].some(
-        (link) => link.getAttribute('href') === stylesheet.href,
-      )
-    )
-      document.head.append(stylesheet);
+    const stylesheets = new Set();
+    for (const link of document.querySelectorAll('link[rel=stylesheet]')) {
+      stylesheets.add(link.getAttribute('href'));
+    }
+    if (!stylesheets.has(stylesheet.href)) document.head.append(stylesheet);
 
     api.addEventListener('reactor-inc.live', (event) => {
       if (event instanceof CustomEvent) {
@@ -38,9 +40,15 @@ app.registerExtension({
       if (event instanceof CustomEvent) openControls(event.detail, requestLocal);
     });
   },
-  // eslint-disable-next-line local/no-trivial-functions -- ComfyUI calls this hook once to attach labels and the credit rate button.
+
   nodeCreated: (node) => {
-    bindNodeWidgets(node);
+    if (!node.comfyClass?.startsWith('ReactorInc')) return;
+    configureNodeWidgets(node);
+    const changed = node.onConnectionsChange;
+    node.onConnectionsChange = function (...args: unknown[]) {
+      if (changed) changed.apply(this, args);
+      configureNodeWidgets(node);
+    };
     bindCreditRate(node, requestLocal);
   },
   loadedGraphNode: configureNodeWidgets,
@@ -55,12 +63,12 @@ app.registerExtension({
     {
       id: 'ReactorInc.OpenSettings',
       label: translate('settings.title'),
-      function: () => openSettings(requestLocal),
+      function: openSettings.bind(null, requestLocal),
     },
     {
       id: 'ReactorInc.OpenCatalog',
       label: translate('models.title'),
-      function: () => openModels(requestLocal),
+      function: openModels.bind(null, requestLocal, undefined),
     },
   ],
   menuCommands: [

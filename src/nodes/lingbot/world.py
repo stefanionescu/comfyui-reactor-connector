@@ -4,11 +4,11 @@ import asyncio
 from .schema import lingbot_schema
 from ...media.images import image_png
 from comfy_api.latest import io, Input
-from ...execution.lingbot.request import LingBotWorld2Request
+from ...execution.lingbot.request import LingBotWorldRequest
 from ...comfy.execution import execute_video, operation_fingerprint
 
 
-class LingBotWorld2Explore(io.ComfyNode):
+class LingBotWorldExplore(io.ComfyNode):
     """Record World 2 with separate forward/back and sideways controls."""
 
     @classmethod
@@ -42,7 +42,7 @@ class LingBotWorld2Explore(io.ComfyNode):
         del variation
         encoded = await asyncio.to_thread(image_png, image)
         return await execute_video(
-            LingBotWorld2Request(
+            LingBotWorldRequest(
                 prompt,
                 duration_seconds,
                 seed,

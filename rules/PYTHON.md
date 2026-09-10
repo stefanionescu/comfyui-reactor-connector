@@ -117,7 +117,7 @@ Use these defaults for Python source, imports, types, and documentation.
 | Standard-library line length | PEP 8's 79-character code limit and 72-character comment/docstring limit describe the Python standard library, not this repo.                                                                                            |
 | Google line length           | Google's 80-character default is useful guidance for docstring summaries and comments, but local Ruff formatting is authoritative.                                                                                       |
 | Formatter                    | Ruff format is the local formatter. Do not hand-format against a different style.                                                                                                                                        |
-| Linter                       | Keep the existing lint, type, import, and structural policies. Run checks only when requested.                                                                           |
+| Linter                       | Keep the existing lint, type, import, and structural policies. Run checks only when requested.                                                                                                                           |
 | Runtime                      | The project requires Python 3.12. Use Python 3.12 syntax when it improves clarity.                                                                                                                                       |
 | Future imports               | Prefer `from __future__ import annotations` in Python modules.                                                                                                                                                           |
 | Quotes                       | Ruff format uses double quotes. Use double quotes for ordinary strings unless another quote avoids escaping. Docstrings always use triple double quotes.                                                                 |
@@ -165,7 +165,7 @@ Keep these structural requirements:
   repository folder policy.
 - Directories should not contain multiple `.py` files with the same
   underscore-delimited prefix.
-- When present, `__all__` must appear at the bottom of the module.
+- `__all__` must appear at the bottom of each module.
 - Python logic must live in Python modules. Shell scripts must call it with
   `python -m`; do not embed inline Python in shell scripts.
 
@@ -301,8 +301,8 @@ Rules:
   long computations at import time.
 - Do not mutate global runtime state at import time except for declared
   constants and deliberate local configuration.
-- Use `__all__` for deliberate public re-exports, configuration exports, and the
-  root host entrypoint. Internal runtime modules do not need export inventories.
+- Keep `__all__` explicit for modules with a public API.
+- Use `__all__ = []` when a module intentionally exports no public names.
 
 Good:
 
@@ -382,7 +382,7 @@ import logging
 from pathlib import Path
 from .runtime import RuntimeConfig
 from .registry import SUPPORTED_MODELS
-from .configuration.settings import Settings
+from .settings.settings import Settings
 from collections.abc import Iterable, Sequence
 ```
 
@@ -404,7 +404,7 @@ and typing symbols when they make the call site clearer:
 from pathlib import Path
 from typing import Literal
 from dataclasses import dataclass
-from .configuration.settings import Settings
+from .settings.settings import Settings
 ```
 
 Use module imports when the module prefix makes ownership clearer:
@@ -440,9 +440,7 @@ Rules:
 - Do not use double-leading underscores unless avoiding subclass collisions in a
   class designed for inheritance.
 - Do not invent double-leading and double-trailing dunder names.
-- Use `__all__` for deliberate public re-exports, configuration exports, and the
-  root host entrypoint.
-  Internal runtime modules do not need duplicate export inventories.
+- Use `__all__` to declare public module exports.
 - Imported names are implementation details unless explicitly exported through
   `__all__` or documented as module API.
 - Do not rely on indirect access to names imported by another module.
@@ -476,6 +474,9 @@ Bad:
 def __normalize_label__(value):
     return int(value)
 ```
+
+<!-- Preserve the layout used to demonstrate formatting rules. -->
+<!-- fmt:off -->
 
 ## Formatting
 
@@ -522,14 +523,20 @@ result = long_function_name(first_argument, second_argument, third_argument)
 Bad:
 
 ```python
-result = long_function_name(first_argument, second_argument, third_argument)
+result = long_function_name(first_argument,
+    second_argument,
+    third_argument)
 ```
 
 Long conditionals may use extra indentation to distinguish the condition from
 the body:
 
 ```python
-if config is None or "editor.language" not in config or config["editor.language"].use_spaces is False:
+if (
+    config is None
+    or "editor.language" not in config
+    or config["editor.language"].use_spaces is False
+):
     use_tabs()
 ```
 
@@ -553,25 +560,39 @@ Rules:
 Good:
 
 ```python
-income = gross_wages + taxable_interest + (dividends - qualified_dividends) - ira_deduction - student_loan_interest
+income = (
+    gross_wages
+    + taxable_interest
+    + (dividends - qualified_dividends)
+    - ira_deduction
+    - student_loan_interest
+)
 ```
 
 Bad:
 
 ```python
-income = gross_wages + taxable_interest + (dividends - qualified_dividends) - ira_deduction - student_loan_interest
+income = (gross_wages +
+          taxable_interest +
+          (dividends - qualified_dividends) -
+          ira_deduction -
+          student_loan_interest)
 ```
 
 Good:
 
 ```python
-message = "This long string is split through implicit literal concatenation inside parentheses."
+message = (
+    "This long string is split through implicit literal concatenation "
+    "inside parentheses."
+)
 ```
 
 Bad:
 
 ```python
-message = "This long string is split with an explicit continuation character."
+message = "This long string is split with an explicit continuation " \
+    "character."
 ```
 
 ### Blank lines
@@ -636,8 +657,8 @@ if value is not None:
 Bad:
 
 ```python
-spam(ham[1], {"eggs": 2})
-x = 1
+spam( ham[ 1 ], { "eggs" : 2 } )
+x         = 1
 long_name = 2
 if value == None:
     return value
@@ -658,9 +679,9 @@ items[: upper_fn(x) : step_fn(x)]
 Bad:
 
 ```python
-items[1:9]
-items[lower + offset : upper + offset]
-items[:upper]
+items[1: 9]
+items[lower + offset:upper + offset]
+items[ : upper]
 ```
 
 ### Trailing commas
@@ -688,11 +709,8 @@ VARIANTS = [
 Bad:
 
 ```python
-FILES = ("setup.cfg",)
-VARIANTS = [
-    "trt",
-    "vllm",
-]
+FILES = "setup.cfg",
+VARIANTS = ["trt", "vllm",]
 ```
 
 ### Parentheses
@@ -718,8 +736,8 @@ return first, second
 Bad:
 
 ```python
-if is_ready:
-    return value
+if (is_ready):
+    return (value)
 ```
 
 ### String quotes
@@ -745,9 +763,11 @@ doc = """One multiline string."""
 Bad:
 
 ```python
-name = "ModernBERT"
-doc = """A docstring-like string."""
+name = 'ModernBERT'
+doc = '''A docstring-like string.'''
 ```
+
+<!-- fmt:on -->
 
 ## Naming
 
@@ -948,28 +968,28 @@ Rules:
 Good:
 
 ```python
-def build_engine_settings(
+def build_recording_settings(
     recording_format: str | None,
-    trt_engine_dir: str,
-    default_max_batched_tokens: int,
-) -> EngineSettings:
+    output_directory: Path,
+    maximum_frames: int,
+) -> RecordingSettings:
     """Build recording settings from validated inputs.
 
     Args:
         recording_format: Recording format name.
-        trt_engine_dir: TensorRT engine directory.
-        default_max_batched_tokens: vLLM token batch limit.
+        output_directory: Directory for completed recordings.
+        maximum_frames: Maximum number of frames to record.
 
     Returns:
-        Resolved engine settings.
+        Recording settings for the requested output.
     """
 ```
 
 Bad:
 
 ```python
-def build_engine_settings(engine, path, tokens):
-    """build_engine_settings(engine, path, tokens)."""
+def build_recording_settings(format, path, frames):
+    """build_recording_settings(format, path, frames)."""
 ```
 
 ### Class docstrings
@@ -1518,6 +1538,9 @@ class BaseReader(abc.ABC):
     def read(self) -> str: ...
 ```
 
+<!-- Preserve the layout used to demonstrate formatting rules. -->
+<!-- fmt:off -->
+
 ### Variable annotations
 
 Rules:
@@ -1537,9 +1560,11 @@ label_by_name: dict[str, int] = {}
 Bad:
 
 ```python
-examples: list[PromptExample] = []
-label_by_name: dict[str, int] = {}
+examples:list[PromptExample] = []
+label_by_name : dict[str, int]={}
 ```
+
+<!-- fmt:on -->
 
 ### Ignoring type errors
 
@@ -1652,6 +1677,9 @@ def _part_one(data): ...
 def _part_two(data): ...
 ```
 
+<!-- Preserve the layout used to demonstrate formatting rules. -->
+<!-- fmt:off -->
+
 ### Default arguments
 
 Rules:
@@ -1685,14 +1713,18 @@ def collect_labels(labels: list[str] = []) -> list[str]:
 Good formatting:
 
 ```python
-def resize(width: int = 0, height: int = 0) -> None: ...
+def resize(width: int = 0, height: int = 0) -> None:
+    ...
 ```
 
 Bad formatting:
 
 ```python
-def resize(width: int = 0, height: int = 0) -> None: ...
+def resize(width: int=0, height: int=0) -> None:
+    ...
 ```
+
+<!-- fmt:on -->
 
 ### Return statements
 
@@ -1883,8 +1915,9 @@ Rules:
 
 - Prefer functions and data structures unless a class owns real state,
   invariants, or behavior.
-- Keep one top-level non-dataclass class per file.
-- Related dataclasses may live together when they form one small data contract.
+- Keep related classes together when they form one cohesive contract, including
+  schemas, exceptions, protocols, and their input/output records.
+- Split modules by independent responsibilities, not by class count.
 - Do not create classes only to group static functions.
 - Avoid `Manager`, `Processor`, `Helper`, and similar vague class names.
 - Decide deliberately which attributes are public and which are internal.
@@ -2772,9 +2805,10 @@ Rules:
 - Isolated media workers use the selected host interpreter and an explicit
   import path supplied by their launcher.
 
-Import-linter keeps runtime code independent of development tools, discovery
-independent of execution and media, and settings independent of execution and
-ComfyUI integration. The exact contracts live in `pyproject.toml`.
+Import-linter keeps runtime code independent of development tools. Discovery and
+settings remain independent of execution and ComfyUI integration. Discovery also
+remains independent of media processing. The exact contracts live in
+`pyproject.toml`.
 
 Keep cohesive modules together. A folder with only one implementation file is
 allowed only where the repository folder policy names an explicit exception.

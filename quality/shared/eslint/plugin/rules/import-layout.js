@@ -1,80 +1,7 @@
+import { isImportLike } from '#shared/eslint/plugin/imports.js';
+
 const blankLinePattern = /\n\s*\n/u;
 const whitespaceOnlyPattern = /^\s*$/u;
-
-/**
- * Returns true if the node is a bare `require('...')` call with no assignment.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the statement calls require without assigning its result.
- */
-const isSideEffectRequire = (node) => {
-  if (node.type !== 'ExpressionStatement' || node.expression?.type !== 'CallExpression') {
-    return false;
-  }
-  const callee = node.expression.callee;
-  return (
-    callee?.type === 'Identifier' &&
-    callee.name === 'require' &&
-    node.expression.arguments?.length === 1
-  );
-};
-
-/**
- * Returns true if the node is a `require('...')` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the node is a one-argument call to require.
- */
-function isRequireCall(node) {
-  if (node?.type !== 'CallExpression') {
-    return false;
-  }
-
-  const callee = node.callee;
-  return callee?.type === 'Identifier' && callee.name === 'require' && node.arguments.length === 1;
-}
-
-/**
- * Returns true if the node reads a property from a `require()` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the node reads a property from a require call.
- */
-function isRequireMemberExpression(node) {
-  if (node?.type !== 'MemberExpression') {
-    return false;
-  }
-
-  return isRequireCall(node.object);
-}
-
-/**
- * Returns true if the node is a variable declaration initialized by a `require()` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether one declared variable is initialized from require.
- */
-const isRequireDeclaration = (node) => {
-  if (node.type !== 'VariableDeclaration' || node.declarations.length !== 1) {
-    return false;
-  }
-
-  const declaration = node.declarations[0];
-  if (!declaration?.init) {
-    return false;
-  }
-
-  return isRequireCall(declaration.init) || isRequireMemberExpression(declaration.init);
-};
-
-/**
- * Returns true if the node is an import declaration or (optionally) a require statement.
- * @param node - Syntax-tree node to inspect.
- * @param supportRequire - Whether CommonJS require calls count as imports.
- * @returns Whether the statement belongs in an import block.
- */
-const isImportLike = (node, supportRequire) => {
-  if (node.type === 'ImportDeclaration') {
-    return true;
-  }
-  return supportRequire && (isRequireDeclaration(node) || isSideEffectRequire(node));
-};
 
 /**
  * Returns the source offset where the import's leading attached comments begin.
@@ -88,7 +15,8 @@ const getLeadingSegmentStart = (sourceCode, node) => {
   let start = node.range[0];
 
   for (let index = commentsBefore.length - 1; index >= 0; index -= 1) {
-    const comment = commentsBefore[index];
+    const comment = commentsBefore.at(index);
+    if (comment.type === 'Shebang') break;
     const betweenCommentNode = fullText.slice(comment.range[1], start);
     if (!whitespaceOnlyPattern.test(betweenCommentNode)) {
       break;
@@ -141,8 +69,8 @@ const importSortWhitespacePattern = /\s+/gu;
 const buildEntries = (importNodes, segmentStarts, blockEnd, sourceCode) => {
   const entries = [];
   for (const [index, importNode] of importNodes.entries()) {
-    const start = segmentStarts[index];
-    const end = index < importNodes.length - 1 ? segmentStarts[index + 1] : blockEnd;
+    const start = segmentStarts.at(index);
+    const end = index < importNodes.length - 1 ? segmentStarts.at(index + 1) : blockEnd;
     const text = sourceCode.getText().slice(start, end).trim();
     const importText = sourceCode.getText(importNode);
     const sortText = importText.replaceAll(importSortWhitespacePattern, ' ').trim();
@@ -164,25 +92,12 @@ const buildEntries = (importNodes, segmentStarts, blockEnd, sourceCode) => {
 };
 
 /**
- * Compares two text values lexicographically.
+ * Compare two values of the same type in ascending order.
  * @param leftValue - First value to compare.
  * @param rightValue - Second value to compare.
  * @returns A negative, zero, or positive ordering result.
  */
 const compareTextValues = (leftValue, rightValue) => {
-  if (leftValue === rightValue) {
-    return 0;
-  }
-  return leftValue < rightValue ? -1 : 1;
-};
-
-/**
- * Compares two numbers in ascending order.
- * @param leftValue - First value to compare.
- * @param rightValue - Second value to compare.
- * @returns A negative, zero, or positive ordering result.
- */
-const compareNumbers = (leftValue, rightValue) => {
   if (leftValue === rightValue) {
     return 0;
   }
@@ -196,7 +111,7 @@ const compareNumbers = (leftValue, rightValue) => {
  * @returns Ordering by normalized length, text, then original position.
  */
 const compareSingleLineEntries = (leftEntry, rightEntry) => {
-  const lengthComparison = compareNumbers(leftEntry.sortLength, rightEntry.sortLength);
+  const lengthComparison = compareTextValues(leftEntry.sortLength, rightEntry.sortLength);
   if (lengthComparison !== 0) {
     return lengthComparison;
   }
@@ -216,7 +131,7 @@ const compareSingleLineEntries = (leftEntry, rightEntry) => {
  * @returns Ordering by line count, then the single-line sort keys.
  */
 const compareMultiLineEntries = (leftEntry, rightEntry) => {
-  const lineSpanComparison = compareNumbers(leftEntry.lineSpan, rightEntry.lineSpan);
+  const lineSpanComparison = compareTextValues(leftEntry.lineSpan, rightEntry.lineSpan);
   if (lineSpanComparison !== 0) {
     return lineSpanComparison;
   }
@@ -230,13 +145,16 @@ const compareMultiLineEntries = (leftEntry, rightEntry) => {
  * @returns Single-line imports followed by multiline imports, each sorted.
  */
 const computeExpectedEntries = (entries) => {
-  const singleLineEntries = entries
-    .filter((entry) => !entry.isMultiLine)
-    .sort(compareSingleLineEntries);
-  const multiLineEntries = entries
-    .filter((entry) => entry.isMultiLine)
-    .sort(compareMultiLineEntries);
-  return [...singleLineEntries, ...multiLineEntries];
+  const singleLineEntries = [];
+  const multiLineEntries = [];
+  for (const entry of entries) {
+    if (entry.isMultiLine) multiLineEntries.push(entry);
+    else singleLineEntries.push(entry);
+  }
+  return [
+    ...singleLineEntries.sort(compareSingleLineEntries),
+    ...multiLineEntries.sort(compareMultiLineEntries),
+  ];
 };
 
 /**
@@ -252,7 +170,7 @@ const buildReplacementText = (expectedEntries) => {
       continue;
     }
 
-    const previousEntry = expectedEntries[index - 1];
+    const previousEntry = expectedEntries.at(index - 1);
     const separator = !previousEntry.isMultiLine && entry.isMultiLine ? '\n\n' : '\n';
     replacementText = `${replacementText}${separator}${entry.text}`;
   }
@@ -270,7 +188,7 @@ const collectImportRuns = (programBody, supportRequire) => {
   let currentRun = [];
 
   for (const statement of programBody) {
-    if (isImportLike(statement, supportRequire)) {
+    if (isImportLike(supportRequire, statement)) {
       currentRun.push(statement);
       continue;
     }
@@ -318,9 +236,7 @@ export const importLayout = {
             continue;
           }
 
-          const segmentStarts = importNodes.map((importNode) =>
-            getLeadingSegmentStart(sourceCode, importNode),
-          );
+          const segmentStarts = importNodes.map(getLeadingSegmentStart.bind(null, sourceCode));
           const blockEnd = getImportEndComments(sourceCode, importNodes.at(-1));
           const entries = buildEntries(importNodes, segmentStarts, blockEnd, sourceCode);
           const expectedEntries = computeExpectedEntries(entries);
@@ -336,19 +252,28 @@ export const importLayout = {
             continue;
           }
 
-          const firstMisorderedEntry =
-            entries.find(
-              (entry, index) => entry.importNode !== expectedEntries[index].importNode,
-            ) ?? entries[0];
+          const firstMisorderedEntry = findMisorderedEntry(entries, expectedEntries);
 
           context.report({
             node: firstMisorderedEntry.importNode,
             messageId: 'importLayout',
-            fix: (fixer) =>
-              fixer.replaceTextRange([entries[0].start, entries.at(-1).end], replacementText),
+            fix: replaceImports.bind(null, entries, replacementText),
           });
         }
       },
     };
   },
 };
+
+function replaceImports(entries, replacementText, fixer) {
+  const firstOffset = entries[0].start;
+  const lastOffset = entries.at(-1).end;
+  return fixer.replaceTextRange([firstOffset, lastOffset], replacementText);
+}
+
+function findMisorderedEntry(entries, expectedEntries) {
+  for (const [index, entry] of entries.entries()) {
+    if (entry.importNode !== expectedEntries.at(index).importNode) return entry;
+  }
+  return entries[0];
+}

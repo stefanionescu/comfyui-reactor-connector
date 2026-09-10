@@ -16,5 +16,3 @@ export const ALIAS_ROOTS = [
   { segment: 'config', aliasPrefix: '#config/' },
 ];
 export const INTERNAL_PREFIXES = ['./', '../', '#config/', '#web/', '#shared/', '#repository/'];
-
-export const NAMING_POLICY_PATH = 'quality/config/naming/javascript.json';

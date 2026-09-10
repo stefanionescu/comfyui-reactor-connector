@@ -51,16 +51,17 @@ def read_policy(root: str | Path = ".") -> NamingPolicy:
     validate_global_policy(global_policy)
     vocabulary = read_json_mapping(Path(root) / NAMING_TERMS_PATH)
     require_keys(vocabulary, required={"banned_terms"}, context=NAMING_TERMS_PATH)
-    global_policy["banned_terms"] = require_string_list(
+    banned_terms = require_string_list(
         vocabulary["banned_terms"], f"{NAMING_TERMS_PATH}.banned_terms", is_nonempty=True
     )
+    global_policy["banned_terms"] = banned_terms
     validate_languages(require_mapping(payload["languages"], f"{NAMING_POLICY_PATH}.languages"))
     rules_context = f"{NAMING_POLICY_PATH}.name_rules"
     rules = [
         require_mapping(item, f"{rules_context}[{index}]")
         for index, item in enumerate(require_sequence(payload["name_rules"], rules_context))
     ]
-    validate_rules(rules)
+    validate_rules(rules, set(banned_terms))
     excluded_paths = require_string_list(
         payload["excluded_paths"],
         f"{NAMING_POLICY_PATH}.excluded_paths",
@@ -98,7 +99,7 @@ def validate_languages(languages: dict[str, object]) -> None:
                 raise JsonConfigError(message)
 
 
-def validate_rules(rules: list[dict[str, object]]) -> None:
+def validate_rules(rules: list[dict[str, object]], banned_terms: set[str]) -> None:
     """Validate conditional naming rules and compile their patterns."""
     for index, rule in enumerate(rules):
         context = f"{NAMING_POLICY_PATH}.name_rules[{index}]"
@@ -115,6 +116,21 @@ def validate_rules(rules: list[dict[str, object]]) -> None:
         for key in ("is_excluded", "are_duplicate_words_allowed", "are_digits_allowed"):
             if key in rule:
                 require_bool(rule[key], f"{context}.{key}")
+        if "allowed_banned_terms" in rule:
+            validate_term_exception(rule, context, banned_terms)
+
+
+def validate_term_exception(rule: dict[str, object], context: str, banned_terms: set[str]) -> None:
+    """Limit vocabulary exceptions to named declarations and exact banned terms."""
+    names = require_string_list(rule.get("names"), f"{context}.names", is_nonempty=True)
+    terms = require_string_list(rule["allowed_banned_terms"], f"{context}.allowed_banned_terms", is_nonempty=True)
+    reason = rule.get("reason")
+    if any(not name.strip() for name in names) or not isinstance(reason, str) or not reason.strip():
+        message = f"{context} requires exact nonempty names and a reason"
+        raise JsonConfigError(message)
+    if set(terms) - banned_terms:
+        message = f"{context}.allowed_banned_terms contains terms outside the banned vocabulary"
+        raise JsonConfigError(message)
 
 
 def validate_regexes(patterns: list[str], context: str) -> None:

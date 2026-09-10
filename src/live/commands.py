@@ -67,7 +67,7 @@ class CameraCommands:
             raise ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.cameraInputStale"))
         started = time.monotonic()
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-            await self.events.command(f"set_{axis}", {axis: change.value})
+            await self.events.command_reply(f"set_{axis}", {axis: change.value})
         self.maximum_reply_seconds = max(self.maximum_reply_seconds, time.monotonic() - started)
         label = f"{axis}:{change.value}"
         self.accepted[label] = self.accepted.get(label, 0) + 1

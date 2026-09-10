@@ -1,6 +1,6 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
-import { browserPatterns, browserLimits } from '#config/browser.ts';
+import { browserPatterns, browserLimits } from '#config/web/browser.ts';
 
 type SettingDefinition = { label: string; minimum: number; maximum: number };
 export type Configuration = {
@@ -31,7 +31,7 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
   const definitions = record(value);
   if (!Object.hasOwn(definitions, 'catalog_interval_hours'))
     throw new Error(translate('settings.incompleteResponse'));
-  const result: Record<string, SettingDefinition> = {};
+  const result = new Map<string, SettingDefinition>();
   for (const [name, raw] of Object.entries(definitions)) {
     const field = record(raw);
     if (
@@ -46,9 +46,9 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
       field.minimum > field.maximum
     )
       throw new Error(translate('settings.invalidDefinition'));
-    result[name] = { label: field.label, minimum: field.minimum, maximum: field.maximum };
+    result.set(name, { label: field.label, minimum: field.minimum, maximum: field.maximum });
   }
-  return result as Configuration['definitions'];
+  return Object.fromEntries(result) as Configuration['definitions'];
 }
 
 /**
@@ -77,8 +77,9 @@ function parseConfiguration(value: unknown): Configuration {
     document.credential_limit < 1
   )
     throw new Error(translate('settings.invalidChecks'));
+  const settingsByName = new Map(Object.entries(settings));
   for (const [name, definition] of Object.entries(definitions)) {
-    const value = settings[name];
+    const value = settingsByName.get(name);
     if (
       typeof value !== 'number' ||
       !Number.isSafeInteger(value) ||

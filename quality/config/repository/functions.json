@@ -20,11 +20,6 @@
                 "reason": "Makes intentional access to the redacted credential explicit at authorized private boundaries."
             },
             {
-                "path": "src/execution/events.py",
-                "names": ["SessionEvents.command"],
-                "reason": "Multiple model adapters send commands without consuming the reply while retaining the shared error checks."
-            },
-            {
                 "path": "src/execution/helios/prompts.py",
                 "names": ["ScheduledPrompt.to_dict"],
                 "reason": "Owns the saved Helios command payload independently of the dataclass representation."
@@ -102,7 +97,7 @@
             },
             {
                 "path": "src/nodes/lingbot/world.py",
-                "names": ["LingBotWorld2Explore.define_schema", "LingBotWorld2Explore.fingerprint_inputs"],
+                "names": ["LingBotWorldExplore.define_schema", "LingBotWorldExplore.fingerprint_inputs"],
                 "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
             },
             {

@@ -1,19 +1,31 @@
 {
-    "allowed_licenses": [
-        "Apache-2.0",
-        "ISC",
-        "MIT",
-        "Python-2.0",
-        "BSD-2-Clause",
-        "BSD-3-Clause",
-        "MPL-2.0",
-        "MIT-CMU",
-        "Apache-2.0 AND MIT",
-        "Apache-2.0 OR BSD-2-Clause",
-        "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
-        "MPL-2.0 and MIT and BSD-3-Clause"
-    ],
+    "allowed_licenses": ["Apache-2.0", "ISC", "MIT", "Python-2.0"],
     "package_exemptions": [
+        {
+            "package": "aiohttp",
+            "licenses": ["Apache-2.0 AND MIT"],
+            "reason": "The package combines code under the Apache-2.0 and MIT licenses."
+        },
+        {
+            "package": "av",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "boolean-py",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "certifi",
+            "licenses": ["MPL-2.0"],
+            "reason": "The Mozilla Public License applies to the certificate bundle package, not repository source."
+        },
+        {
+            "package": "click",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
         {
             "package": "colorama",
             "licenses": ["BSD"],
@@ -30,9 +42,44 @@
             "reason": "The installed 3.17 distribution includes the BSD-2-Clause license; its legacy metadata reports only BSD. Development dependency; not bundled in the connector."
         },
         {
+            "package": "idna",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
             "package": "import-linter",
             "licenses": ["BSD"],
             "reason": "The installed 2.15 distribution includes the BSD-2-Clause license; its legacy metadata reports only BSD. Development dependency; not bundled in the connector."
+        },
+        {
+            "package": "numpy",
+            "licenses": ["BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"],
+            "reason": "NumPy declares separate licenses for its array code and bundled numerical libraries; this expression applies only to NumPy."
+        },
+        {
+            "package": "packaging",
+            "licenses": ["Apache-2.0", "Apache-2.0 OR BSD-2-Clause"],
+            "reason": "The package offers a choice of two approved permissive licenses."
+        },
+        {
+            "package": "pillow",
+            "licenses": ["MIT-CMU"],
+            "reason": "The package uses the permissive MIT-CMU license."
+        },
+        {
+            "package": "prettytable",
+            "licenses": ["BSD-3-Clause"],
+            "reason": "The package uses the permissive three-clause BSD license."
+        },
+        {
+            "package": "pygments",
+            "licenses": ["BSD-2-Clause"],
+            "reason": "The package uses the permissive two-clause BSD license."
+        },
+        {
+            "package": "validate-pyproject",
+            "licenses": ["MPL-2.0 and MIT and BSD-3-Clause"],
+            "reason": "The development tool publishes a composite expression for its code and bundled components."
         }
     ]
 }

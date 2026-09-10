@@ -17,20 +17,18 @@ export const noReexportsOutsideIndex = {
       return {};
     }
 
-    return {
-      ExportAllDeclaration: (node) =>
+    function reportReexport(node) {
+      if (node.source) {
         context.report({
           node,
           message: 'Re-exports are only allowed from index barrel files.',
-        }),
-      ExportNamedDeclaration(node) {
-        if (node.source) {
-          context.report({
-            node,
-            message: 'Re-exports are only allowed from index barrel files.',
-          });
-        }
-      },
+        });
+      }
+    }
+
+    return {
+      ExportAllDeclaration: reportReexport,
+      ExportNamedDeclaration: reportReexport,
     };
   },
 };

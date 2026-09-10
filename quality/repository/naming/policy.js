@@ -1,64 +1,21 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { NAMING_POLICY_PATH } from '#config/paths.js';
-import { GENERATED_SOURCE_FILES } from '#config/files.js';
+import { VALID_SCOPES } from '#config/repository.js';
+import { requireDictionary, requireKeys } from '#shared/json.js';
 import { buildTermEntries } from '#shared/naming/identifier-parts.js';
 import vocabulary from '#config/naming/terms.json' with { type: 'json' };
-import { SCOPE_PREFIXES, VALID_SCOPES, VALID_SCOPE_USAGE } from '#config/repository.js';
+import rawPolicy from '#config/naming/javascript.json' with { type: 'json' };
 
-const repoRoot = process.cwd();
-const policyPath = path.join(repoRoot, NAMING_POLICY_PATH);
-const usage = `Usage: bun quality/repository/naming/check.js [--scope ${VALID_SCOPE_USAGE}]`;
-const generatedFiles = new Set(GENERATED_SOURCE_FILES);
+import {
+  CASE_PATTERNS,
+  NAMING_EXCEPTION_RULES,
+  NAMING_POLICY_FIELDS,
+  NAMING_RULE_FIELDS,
+  JAVASCRIPT_NAME_CATEGORIES,
+} from '#config/naming.js';
 
-function toPosix(value) {
-  if (typeof value !== 'string') {
-    throw new TypeError(`path must be a string, received ${typeof value}`);
-  }
-
-  return value.replaceAll('\\', '/');
-}
-
-/**
- * Split the requested scopes and reject unknown names.
- * @param scope - Comma-separated repository scopes to check.
- * @returns Validated scope names as an array.
- */
-function scopeParts(scope) {
-  const parts = String(scope)
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (parts.length === 0 || parts.some((part) => !VALID_SCOPES.includes(part))) {
-    throw new Error(`invalid scope "${scope}". expected ${VALID_SCOPE_USAGE}`);
-  }
-
-  return parts;
-}
-
-/**
- * Check whether a file belongs to any requested scope.
- * @param relativePath - File path relative to the repository root.
- * @param scope - Comma-separated repository scopes to check.
- * @returns Whether at least one selected scope contains the file.
- */
-function pathHasScope(relativePath, scope) {
-  const parts = scopeParts(scope);
-  if (parts.includes('all')) {
-    return true;
-  }
-
-  return parts.some((part) =>
-    SCOPE_PREFIXES[part].some((prefix) => toPosix(relativePath).startsWith(prefix)),
-  );
-}
-
-function assertPlainRecord(value, key) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`${key} must be an object`);
-  }
-
-  return value;
+function policyRecord(value, required, optional, context) {
+  const record = requireDictionary(value, context);
+  requireKeys(record, required, optional, context);
+  return record;
 }
 
 function assertArray(value, key) {
@@ -70,13 +27,7 @@ function assertArray(value, key) {
 }
 
 function normalizeTerms(terms, key) {
-  const normalized = Array.from(
-    new Set(
-      assertArray(terms, key)
-        .map((term) => String(term).trim())
-        .filter(Boolean),
-    ),
-  );
+  const normalized = normalizeOptionalTerms(terms, key);
   if (normalized.length === 0) {
     throw new Error(`${key} must not be empty`);
   }
@@ -86,39 +37,49 @@ function normalizeTerms(terms, key) {
 
 function normalizeOptionalTerms(value, key) {
   if (value === undefined) return [];
-  const normalized = Array.from(
-    new Set(
-      assertArray(value, key)
-        .map((term) => String(term).trim())
-        .filter(Boolean),
-    ),
-  );
-  return normalized;
+  const terms = new Set();
+  for (const term of assertArray(value, key)) {
+    if (typeof term !== 'string' || term.trim().length === 0) {
+      throw new Error(`${key} must contain nonempty strings.`);
+    }
+    terms.add(term.trim());
+  }
+  return [...terms];
 }
 
 function normalizeNameList(names, caseInsensitive, key) {
-  const normalizedNames = normalizeOptionalTerms(names, key).map((name) =>
-    caseInsensitive ? name.toLowerCase() : name,
-  );
-  const nameSet = new Set(normalizedNames);
-  return nameSet;
+  const normalized = new Set();
+  for (const name of normalizeOptionalTerms(names, key)) {
+    normalized.add(caseInsensitive ? name.toLowerCase() : name);
+  }
+  return normalized;
 }
 
 function normalizeRegexList(value, key) {
-  const patterns = normalizeOptionalTerms(value, key);
-  // eslint-disable-next-line security/detect-non-literal-regexp -- Patterns come from the reviewed repository policy.
-  const regexes = patterns.map((pattern) => new RegExp(pattern, 'u'));
-  return regexes;
+  const patterns = [];
+  for (const pattern of normalizeOptionalTerms(value, key)) {
+    // eslint-disable-next-line security/detect-non-literal-regexp -- Patterns come from the reviewed repository policy.
+    patterns.push(new RegExp(pattern, 'u'));
+  }
+  return patterns;
+}
+
+function normalizeCases(value, context) {
+  const names = value === undefined ? [] : normalizeTerms(value, context);
+  for (const name of names) {
+    if (!Object.hasOwn(CASE_PATTERNS, name)) throw new Error(`${context}: unknown case ${name}.`);
+  }
+  return names;
 }
 
 function buildNameRules(nameRules) {
-  const rules = assertArray(nameRules, 'nameRules');
-  const normalizedRules = rules.map((entry, index) => {
-    const rule = assertPlainRecord(entry, `nameRules[${index}]`);
+  const rules = [];
+  for (const [index, entry] of assertArray(nameRules, 'nameRules').entries()) {
+    const rule = policyRecord(entry, ['pathRegexes'], NAMING_RULE_FIELDS, `nameRules[${index}]`);
     const pathRegexes = normalizeRegexList(rule.pathRegexes, `nameRules[${index}].pathRegexes`);
     if (pathRegexes.length === 0)
       throw new Error(`nameRules[${index}].pathRegexes must not be empty`);
-    return {
+    rules.push({
       pathRegexes,
       entryPathRegexes: normalizeRegexList(
         rule.entryPathRegexes,
@@ -129,26 +90,37 @@ function buildNameRules(nameRules) {
       kinds: normalizeOptionalTerms(rule.kinds, `nameRules[${index}].kinds`),
       names: normalizeOptionalTerms(rule.names, `nameRules[${index}].names`),
       nameRegexes: normalizeRegexList(rule.nameRegexes, `nameRules[${index}].nameRegexes`),
-      caseNames: normalizeOptionalTerms(rule.caseNames, `nameRules[${index}].caseNames`),
+      caseNames: normalizeCases(rule.caseNames, `nameRules[${index}].caseNames`),
       structuralPrefixRegexes: normalizeRegexList(
         rule.structuralPrefixRegexes,
         `nameRules[${index}].structuralPrefixRegexes`,
       ),
-      exclude: Boolean(rule.exclude),
-    };
-  });
+      allowedViolations: readExceptions(rule, `nameRules[${index}]`),
+    });
+  }
+  return rules;
+}
 
-  return normalizedRules;
+function readExceptions(rule, context) {
+  const codes = normalizeOptionalTerms(rule.allowedViolations, `${context}.allowedViolations`);
+  if (codes.length === 0) return codes;
+  normalizeTerms(rule.names, `${context}.names`);
+  if (typeof rule.reason !== 'string' || !rule.reason.trim()) {
+    throw new Error(`${context}: naming exceptions require exact names and a reason.`);
+  }
+  for (const code of codes) {
+    if (!NAMING_EXCEPTION_RULES.includes(code)) {
+      throw new Error(`${context}: unknown naming exception ${code}.`);
+    }
+  }
+  return codes;
 }
 
 function buildLocalTerms(localTerms) {
-  const terms = assertArray(localTerms, 'local.bannedTerms');
-  const normalizedTerms = terms.map((value, index) => {
-    const entry = assertPlainRecord(value, `local.bannedTerms[${index}]`);
+  const entries = [];
+  for (const [index, value] of assertArray(localTerms, 'local.bannedTerms').entries()) {
+    const entry = policyRecord(value, ['scopes', 'terms'], [], `local.bannedTerms[${index}]`);
     const scopes = normalizeTerms(entry.scopes, `local.bannedTerms[${index}].scopes`);
-    if (scopes.length === 0) {
-      throw new Error(`local.bannedTerms[${index}].scopes must not be empty`);
-    }
 
     for (const scope of scopes) {
       if (!VALID_SCOPES.includes(scope)) {
@@ -158,13 +130,47 @@ function buildLocalTerms(localTerms) {
 
     const terms = normalizeTerms(entry.terms, `local.bannedTerms[${index}].terms`);
 
-    return {
+    entries.push({
       scopes,
       termEntries: buildTermEntries(terms),
-    };
-  });
+    });
+  }
+  return entries;
+}
 
-  return normalizedTerms;
+function validateLanguage(value) {
+  const profile = policyRecord(
+    value,
+    ['categories', 'maxCharacters', 'maxWords'],
+    [],
+    'javascript',
+  );
+  for (const limit of [profile.maxCharacters, profile.maxWords]) {
+    if (!Number.isInteger(limit) || limit < 1) {
+      throw new Error('JavaScript naming limits must be positive integers.');
+    }
+  }
+  const categories = policyRecord(
+    profile.categories,
+    JAVASCRIPT_NAME_CATEGORIES,
+    [],
+    'javascript.categories',
+  );
+  for (const [category, names] of Object.entries(categories)) {
+    normalizeCases(names, category);
+  }
+}
+
+function reservedTerms(value) {
+  const terms = [];
+  for (const [index, item] of assertArray(value, 'global.reservedTerms').entries()) {
+    const context = `global.reservedTerms[${index}]`;
+    const entry = policyRecord(item, ['term', 'allowedKinds'], [], context);
+    const [term] = normalizeTerms([entry.term], `${context}.term`);
+    const allowedKinds = normalizeTerms(entry.allowedKinds, `${context}.allowedKinds`);
+    terms.push({ term: term.toLowerCase(), allowedKinds });
+  }
+  return terms;
 }
 
 /**
@@ -172,33 +178,28 @@ function buildLocalTerms(localTerms) {
  * @returns Validated rules, normalized terms, and path exclusions.
  */
 function readPolicy() {
-  const parsed = assertPlainRecord(
-    JSON.parse(fs.readFileSync(policyPath, 'utf8')),
-    'naming policy',
+  const parsed = policyRecord(rawPolicy, NAMING_POLICY_FIELDS, [], 'naming policy');
+  const global = policyRecord(
+    parsed.global,
+    ['bannedTermExemptions', 'reservedTerms', 'banDigits', 'banDuplicateWords'],
+    [],
+    'global',
   );
-  const global = assertPlainRecord(parsed.global, 'global');
-  const local = assertPlainRecord(parsed.local, 'local');
-  const caseInsensitive = Boolean(parsed.matching?.caseInsensitive);
+  const local = policyRecord(parsed.local, ['bannedTerms'], [], 'local');
+  const languages = policyRecord(parsed.languages, ['javascript'], [], 'languages');
+  const matching = policyRecord(parsed.matching, ['caseInsensitive'], [], 'matching');
+  validateLanguage(languages.javascript);
+  const caseInsensitive = matching.caseInsensitive;
+  for (const flag of [caseInsensitive, global.banDigits, global.banDuplicateWords]) {
+    if (typeof flag !== 'boolean') throw new Error('Naming policy flags must be booleans.');
+  }
   const globalTerms = normalizeTerms(vocabulary.banned_terms, 'banned_terms');
 
   return {
     ...parsed,
     global: {
       ...global,
-      reservedTerms: assertArray(global.reservedTerms, 'global.reservedTerms').map(
-        (value, index) => {
-          const entry = assertPlainRecord(value, `global.reservedTerms[${index}]`);
-          const term = String(entry.term).trim().toLowerCase();
-          const allowedKinds = normalizeTerms(
-            entry.allowedKinds,
-            `global.reservedTerms[${index}].allowedKinds`,
-          );
-          return {
-            term,
-            allowedKinds,
-          };
-        },
-      ),
+      reservedTerms: reservedTerms(global.reservedTerms),
       bannedTermExemptions: normalizeNameList(
         global.bannedTermExemptions,
         caseInsensitive,
@@ -207,94 +208,11 @@ function readPolicy() {
       caseInsensitive,
       termEntries: buildTermEntries(globalTerms),
     },
-    scopedTermEntries: buildLocalTerms(local.bannedTerms),
+    pathTermEntries: buildLocalTerms(local.bannedTerms),
     nameRules: buildNameRules(parsed.nameRules),
     excludedPathParts: normalizeTerms(parsed.excludedPaths, 'excludedPaths'),
     excludedBasenames: new Set(normalizeTerms(parsed.excludedBasenames, 'excludedBasenames')),
   };
 }
 
-function nameRuleApplies(rule, relativePath, entry) {
-  if (!rule.pathRegexes.some((regex) => regex.test(relativePath))) {
-    return false;
-  }
-  if (
-    rule.entryPathRegexes.length > 0 &&
-    !rule.entryPathRegexes.some((regex) => regex.test(entry.path ?? ''))
-  ) {
-    return false;
-  }
-  const fields = [
-    [rule.languages, entry.language],
-    [rule.categories, entry.category],
-    [rule.kinds, entry.kind],
-    [rule.names, entry.name],
-  ];
-  if (fields.some(([values, value]) => values.length > 0 && !values.includes(value))) return false;
-
-  return rule.nameRegexes.length === 0 || rule.nameRegexes.some((regex) => regex.test(entry.name));
-}
-
-/**
- * Select naming rules that apply to one identifier.
- * @param policy - Validated repository naming policy.
- * @param relativePath - File path relative to the repository root.
- * @param entry - Identifier record with its name, kind, language, and source location.
- * @returns Policy rules matching the identifier and its source path.
- */
-function nameRulesForEntry(policy, relativePath, entry) {
-  const matchingRules = [];
-  for (const rule of policy.nameRules) {
-    if (nameRuleApplies(rule, relativePath, entry)) {
-      matchingRules.push(rule);
-    }
-  }
-  return matchingRules;
-}
-
-/**
- * Combine global and scoped banned terms for a source file.
- * @param policy - Validated repository naming policy.
- * @param relativePath - File path relative to the repository root.
- * @returns Global and applicable scoped term records.
- */
-function termEntriesForPath(policy, relativePath) {
-  const entries = [...policy.global.termEntries];
-  for (const scopeEntry of policy.scopedTermEntries) {
-    if (scopeEntry.scopes.some((scope) => pathHasScope(relativePath, scope))) {
-      entries.push(...scopeEntry.termEntries);
-    }
-  }
-  return entries;
-}
-
-/**
- * Check generated-file and path exclusions before naming analysis.
- * @param relativePath - File path relative to the repository root.
- * @param policy - Validated repository naming policy.
- * @returns Whether the file is excluded from naming checks.
- */
-function isPathExcluded(relativePath, policy) {
-  const normalized = `/${toPosix(relativePath)}`;
-  const basename = path.basename(relativePath);
-
-  if (generatedFiles.has(toPosix(relativePath))) {
-    return true;
-  }
-
-  return (
-    policy.excludedBasenames.has(basename) ||
-    policy.excludedPathParts.some((part) => normalized.includes(part))
-  );
-}
-
-export {
-  repoRoot,
-  usage,
-  isPathExcluded,
-  nameRulesForEntry,
-  pathHasScope,
-  readPolicy,
-  scopeParts,
-  termEntriesForPath,
-};
+export { readPolicy };

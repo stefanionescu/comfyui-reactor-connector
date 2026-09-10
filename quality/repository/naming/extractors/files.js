@@ -80,12 +80,12 @@ function collectFileNames(relativePath, sourceText = '') {
 function languageForDirectoryPath(relativePath) {
   const normalized = relativePath.replaceAll('\\', '/');
 
-  if (JAVASCRIPT_DIRECTORY_PREFIXES.some((prefix) => normalized.startsWith(prefix))) {
-    return 'javascript';
+  for (const prefix of JAVASCRIPT_DIRECTORY_PREFIXES) {
+    if (normalized.startsWith(prefix)) return 'javascript';
   }
 
-  if (SHELL_DIRECTORY_PREFIXES.some((prefix) => normalized.startsWith(prefix))) {
-    return 'shell';
+  for (const prefix of SHELL_DIRECTORY_PREFIXES) {
+    if (normalized.startsWith(prefix)) return 'shell';
   }
 
   return null;

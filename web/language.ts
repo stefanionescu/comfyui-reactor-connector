@@ -14,7 +14,7 @@ export type MessageKey = MessagePaths<typeof english.reactorInc>;
 
 export const languageEvents = new EventTarget();
 
-let messages: Record<string, unknown> = {};
+let messages = new Map<string, unknown>();
 
 /**
  * Resolve a nested message from a language resource.
@@ -27,6 +27,7 @@ function readMessage(source: unknown, key: string): string | undefined {
   for (const part of key.split('.')) {
     if (typeof value !== 'object' || value === null || !Object.hasOwn(value, part))
       return undefined;
+    // eslint-disable-next-line security/detect-object-injection -- Translation paths read only own properties of the host's JSON resource; each traversed value is checked above.
     value = (value as Record<string, unknown>)[part];
   }
   return typeof value === 'string' ? value : undefined;
@@ -36,18 +37,15 @@ function readMessage(source: unknown, key: string): string | undefined {
 export async function initializeLanguage(): Promise<void> {
   try {
     const languages = await api.getCustomNodesI18n();
-    const available: Record<string, unknown> = {};
+    const available = new Map<string, unknown>();
     for (const [language, document] of Object.entries(languages)) {
-      available[language.toLowerCase()] = document;
+      available.set(language.toLowerCase(), document);
     }
     messages = available;
   } catch {
     // Bundled English remains available if ComfyUI cannot serve translations.
-    messages = {};
+    messages = new Map();
   }
-  app.ui.settings.addEventListener('Comfy.Locale.change', () =>
-    languageEvents.dispatchEvent(new Event('change')),
-  );
 }
 
 /**
@@ -58,17 +56,13 @@ export async function initializeLanguage(): Promise<void> {
  * @returns The message for the current ComfyUI language.
  */
 export function translate(key: MessageKey, values: MessageValues = {}, fallback?: string): string {
-  const languages = localeCandidates(selectedLocale());
-  const message =
-    languages
-      .map((language) => readMessage(messages[language], `reactorInc.${key}`))
-      .find((value) => value !== undefined) ??
-    readMessage(english.reactorInc, key) ??
-    fallback ??
-    key;
-  return message.replaceAll(/\{(\w+)\}/g, (placeholder: string, name: string) =>
-    Object.hasOwn(values, name) ? displayValue(values[name]) : placeholder,
-  );
+  let message: string | undefined;
+  for (const language of localeCandidates(selectedLocale())) {
+    message = readMessage(messages.get(language), `reactorInc.${key}`);
+    if (message !== undefined) break;
+  }
+  const text = message ?? readMessage(english.reactorInc, key) ?? fallback ?? key;
+  return text.replaceAll(/\{(\w+)\}/g, substituteValue.bind(null, values));
 }
 
 /**
@@ -95,9 +89,13 @@ export function selectedLocale(): string {
 export function localeCandidates(locale: string): string[] {
   const exact = locale.replaceAll('_', '-').toLowerCase();
   const base = exact.split('-')[0] ?? 'en';
-  const chinese = ['zh-tw', 'zh-hk', 'zh-mo', 'zh-hant'].some(
-    (tag) => exact === tag || exact.startsWith(tag + '-'),
-  );
+  let chinese = false;
+  for (const tag of ['zh-tw', 'zh-hk', 'zh-mo', 'zh-hant']) {
+    if (exact === tag || exact.startsWith(tag + '-')) {
+      chinese = true;
+      break;
+    }
+  }
   return [...new Set([exact, chinese ? 'zh-tw' : base, 'en'])];
 }
 
@@ -107,9 +105,10 @@ export function localeCandidates(locale: string): string[] {
  * @param options - Precision and other display options.
  * @returns The number in the selected ComfyUI locale.
  */
-// eslint-disable-next-line local/no-trivial-functions -- The shared formatter applies the selected ComfyUI locale to display values.
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
-  return new Intl.NumberFormat(selectedLocale(), options).format(value);
+  const locale = selectedLocale();
+  const formatter = new Intl.NumberFormat(locale, options);
+  return formatter.format(value);
 }
 
 /**
@@ -117,9 +116,16 @@ export function formatNumber(value: number, options?: Intl.NumberFormatOptions):
  * @param value - A validated timestamp.
  * @returns The local date and time.
  */
-// eslint-disable-next-line local/no-trivial-functions -- The shared formatter applies the selected ComfyUI locale to timestamps.
 export function formatDate(value: string): string {
-  return new Date(value).toLocaleString(selectedLocale());
+  const date = new Date(value);
+  const locale = selectedLocale();
+  return date.toLocaleString(locale);
+}
+
+function substituteValue(values: MessageValues, placeholder: string, name: string): string {
+  if (!Object.hasOwn(values, name)) return placeholder;
+  // eslint-disable-next-line security/detect-object-injection -- Interpolation reads an own property from the caller's display values and inserts the result as plain text.
+  return displayValue(values[name]);
 }
 
 function displayValue(value: MessageValues[string] | undefined): string {

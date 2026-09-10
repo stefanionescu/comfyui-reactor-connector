@@ -1,10 +1,9 @@
 """Build a Helios prompt sequence using ordinary ComfyUI connections."""
 
 from comfy_api.latest import io
-from ...language import translate
 from ..schema import translate_schema
-from ....config.generation.prompts import MAX_PROMPT_CHUNK
 from ...execution.helios.prompts import append_prompt, ScheduledPrompt
+from ....config.generation.prompts import MAX_PROMPT_CHUNK, DEFAULT_PROMPTS
 
 
 class HeliosAddPrompt(io.ComfyNode):
@@ -31,7 +30,7 @@ class HeliosAddPrompt(io.ComfyNode):
                     ),
                     io.String.Input(
                         "prompt",
-                        default=translate("prompts", "forest"),
+                        default=DEFAULT_PROMPTS["forest"],
                         multiline=True,
                     ),
                 ],

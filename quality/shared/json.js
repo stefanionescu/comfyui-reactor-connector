@@ -1,15 +1,6 @@
 import fs from 'node:fs';
 
 /**
- * Throws a validation error.
- *
- * @param {string} message Failure reason.
- */
-function fail(message) {
-  throw new Error(message);
-}
-
-/**
  * Reads a JSON file.
  *
  * @param {string} filePath File path.
@@ -18,10 +9,11 @@ function fail(message) {
  */
 export function readJsonFile(filePath, description) {
   try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- Repository commands supply local paths; this reader accepts no network requests.
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    fail(`${description} could not be read: ${message}`);
+    throw new Error(`${description} could not be read: ${message}`, { cause: error });
   }
 }
 
@@ -34,7 +26,7 @@ export function readJsonFile(filePath, description) {
  */
 export function requireArray(value, name) {
   if (!Array.isArray(value)) {
-    fail(`${name} must be an array`);
+    throw new Error(`${name} must be an array`);
   }
   return value;
 }
@@ -48,7 +40,7 @@ export function requireArray(value, name) {
  */
 export function requireDictionary(value, name) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    fail(`${name} must be an item`);
+    throw new Error(`${name} must be an item`);
   }
   return value;
 }
@@ -62,7 +54,31 @@ export function requireDictionary(value, name) {
  */
 export function requireString(value, name) {
   if (typeof value !== 'string' || value.length === 0) {
-    fail(`${name} must be a non-empty string`);
+    throw new Error(`${name} must be a non-empty string`);
   }
   return value;
+}
+
+/**
+ * Reject missing and unknown configuration fields.
+ * @param value - Configuration object to inspect.
+ * @param required - Required field names.
+ * @param optional - Optional field names.
+ * @param context - Location of the configuration object.
+ */
+export function requireKeys(value, required, optional, context) {
+  const allowed = new Set([...required, ...optional]);
+  const missing = [];
+  const unknown = [];
+  for (const key of required) {
+    if (!Object.hasOwn(value, key)) missing.push(key);
+  }
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) unknown.push(key);
+  }
+  if (missing.length > 0 || unknown.length > 0) {
+    throw new Error(
+      `${context}: missing fields [${missing.join(', ')}]; unknown fields [${unknown.join(', ')}].`,
+    );
+  }
 }

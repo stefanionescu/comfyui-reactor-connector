@@ -36,8 +36,7 @@ class VideoStream(Protocol):
 
     def encode(self, frame: av.VideoFrame | None = None) -> list[object]:
         """Encode one video frame, or flush pending packets when the frame is None."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class VideoContainer(AbstractContextManager["VideoContainer"], Protocol):
@@ -45,13 +44,11 @@ class VideoContainer(AbstractContextManager["VideoContainer"], Protocol):
 
     def add_stream(self, _codec_name: str, /, rate: Fraction) -> VideoStream:
         """Create an encoder for the selected video codec and frame rate."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
     def mux(self, packet: object) -> None:
         """Write an encoded packet into the output container."""
-        # codeql[py/ineffectual-statement] -- reason: Protocol method declaration.
-        ...
+        raise NotImplementedError
 
 
 class EncodingError(Exception):

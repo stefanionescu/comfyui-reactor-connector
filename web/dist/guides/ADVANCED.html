@@ -398,7 +398,8 @@ Deleting a saved key does not revoke it in Reactor.</p>
 language selected in ComfyUI. Custom panel labels follow language changes;
 English remains the fallback when a message or guide is missing.</p>
 <p>Saved workflow notes and custom titles keep the language used when the workflow
-was built. Changing ComfyUI's language does not rewrite your graph. Node search
+was built. Example prompts and speech scripts stay in English. Changing ComfyUI's
+language does not rewrite your graph or translate model inputs. Node search
 aliases, categories, placeholders, and errors from queued execution currently
 use English. An error already returned by the server keeps its original text.</p>
 <p>To build workflow text from an installed locale, choose a separate output folder:</p>
@@ -424,6 +425,10 @@ COMFYUI_PATH = &quot;/path/to/ComfyUI&quot;
 Python by default. If ComfyUI uses another environment or Windows portable,
 also set <code>COMFYUI_PYTHON</code> to that installation's Python executable. These paths
 are local settings; they do not enter the connector package.</p>
+<p>Setup downloads the pinned Semgrep rules into ignored local storage and verifies
+their content hashes. To restore those files, run <code>mise run security:rules</code>.
+The downloaded rules retain their upstream license notices and are not included
+in the connector package.</p>
 <table>
 <thead>
 <tr>
@@ -446,7 +451,7 @@ are local settings; they do not enter the connector package.</p>
 </tr>
 <tr>
 <td><code>mise run check</code></td>
-<td>Check formatting, source rules, types, and generated-file consistency.</td>
+<td>Check source, types, generated files, dependencies, security, licenses, and links.</td>
 </tr>
 <tr>
 <td><code>mise run type:python</code></td>
@@ -485,11 +490,20 @@ are local settings; they do not enter the connector package.</p>
 <td>Check frontend dependencies against advisory services.</td>
 </tr>
 <tr>
+<td><code>mise run security:rules</code></td>
+<td>Download and verify the pinned Semgrep rule packs.</td>
+</tr>
+<tr>
 <td><code>mise run release:package</code></td>
 <td>Check and build a ComfyUI archive without publishing it.</td>
 </tr>
 </tbody>
 </table>
+<p>Pre-commit checks require the working files to match the staged content. Pre-push
+checks require them to match each revision being pushed. Both hooks reject
+untracked public files so that checks cannot read files missing from the commit.
+Finish or set aside other changes before committing or pushing. Hooks do not
+stash or rewrite your work. Ignored private settings remain local.</p>
 <p>Builds write generated assets; checks and hooks do not install dependencies or
 start generation. Dependency audits need network access and do not apply fixes.
 Archives include only the public runtime files, with a content hash in their

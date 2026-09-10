@@ -1,7 +1,7 @@
 import { MAX_TRIVIAL_FUNCTION_STATEMENTS } from '#config/limits.js';
 
 const defaultMaxStatements = MAX_TRIVIAL_FUNCTION_STATEMENTS;
-const message = 'Inline functions whose block body only wraps trivial delegation.';
+const message = 'Inline functions with only one or two executable statements.';
 const trivialStatementTypes = new Set([
   'ExpressionStatement',
   'ReturnStatement',
@@ -36,57 +36,25 @@ function functionName(node) {
   return '<anonymous>';
 }
 
-function maxStatements(context) {
-  const [options = {}] = context.options;
-  const configured = Number(options.maxStatements ?? defaultMaxStatements);
-  if (!Number.isInteger(configured) || configured < 1) {
-    return defaultMaxStatements;
-  }
-
-  return configured;
-}
-
-function reportIfTrivial(context, node) {
+function reportIfTrivial(context, maxStatements, node) {
   const body = node.body;
-  if (!body || body.type !== 'BlockStatement') {
+  const statements = body.type === 'BlockStatement' ? executableStatements(body.body) : [body];
+  if (statements.length === 0 || statements.length > maxStatements) {
     return;
   }
-
-  const statements = executableStatements(body.body);
-  if (statements.length === 0 || statements.length > maxStatements(context)) {
-    return;
+  if (body.type === 'BlockStatement') {
+    for (const statement of statements) {
+      if (!trivialStatementTypes.has(statement.type)) return;
+    }
   }
-  if (statements.some((statement) => !trivialStatementTypes.has(statement.type))) {
-    return;
-  }
-
-  context.report({
-    node,
-    message: `${message} Function: ${functionName(node)}.`,
-  });
-}
-
-function reportIfExpressionArrow(context, node) {
-  if (node.body?.type === 'BlockStatement') {
-    return;
-  }
-
-  const name = functionName(node);
-  if (name === '<anonymous>') {
-    return;
-  }
-
-  context.report({
-    node,
-    message: `${message} Function: ${name}.`,
-  });
+  context.report({ node, message: `${message} Function: ${functionName(node)}.` });
 }
 
 export const noTrivialFunctions = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow block-bodied functions with too few trivial executable statements.',
+      description: 'Disallow functions with only one or two simple executable statements.',
     },
     schema: [
       {
@@ -101,15 +69,13 @@ export const noTrivialFunctions = {
       },
     ],
   },
-  create: (context) => ({
-    FunctionDeclaration: (node) => reportIfTrivial(context, node),
-    FunctionExpression: (node) => reportIfTrivial(context, node),
-    ArrowFunctionExpression: (node) => {
-      reportIfTrivial(context, node);
-      if (node.body?.type === 'BlockStatement') {
-        return;
-      }
-      reportIfExpressionArrow(context, node);
-    },
-  }),
+  create(context) {
+    const maxStatements = context.options[0]?.maxStatements ?? defaultMaxStatements;
+    const visit = reportIfTrivial.bind(null, context, maxStatements);
+    return {
+      FunctionDeclaration: visit,
+      FunctionExpression: visit,
+      ArrowFunctionExpression: visit,
+    };
+  },
 };

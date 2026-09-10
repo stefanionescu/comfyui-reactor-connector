@@ -20,7 +20,7 @@ export function openHelpDialog(nodeId: string): void {
   heading.id = 'reactor-node-help-title';
   const close = button(message('close'));
   setTextAttribute(close, 'aria-label', message('help.close'));
-  close.addEventListener('click', () => dialog.close());
+  close.addEventListener('click', dialog.close.bind(dialog, undefined));
   const header = element('header');
   header.append(heading, close);
   const frame = element('iframe');
@@ -31,12 +31,12 @@ export function openHelpDialog(nodeId: string): void {
     'allow-popups-to-escape-sandbox',
     'allow-downloads',
   );
-  void selectGuide(frame, nodeId, controller.signal);
-  frame.addEventListener('load', () => prepareGuide(frame, dialog, controller.signal));
+  selectGuide(frame, nodeId, controller.signal);
+  frame.addEventListener('load', prepareGuide.bind(null, frame, dialog, controller.signal));
   dialog.append(header, frame);
   languageEvents.addEventListener(
     'change',
-    () => void selectGuide(frame, nodeId, controller.signal),
+    selectGuide.bind(null, frame, nodeId, controller.signal),
     { signal: controller.signal },
   );
   dialog.addEventListener(
@@ -95,17 +95,23 @@ function prepareGuide(
  * @param frame - The help frame owned by the open dialog.
  * @param nodeId - A registered Reactor node ID.
  * @param signal - The dialog lifetime.
- * @returns When a guide URL has been selected.
  */
-async function selectGuide(
+function selectGuide(frame: HTMLIFrameElement, nodeId: string, signal: AbortSignal): void {
+  const requested = selectedLocale();
+  const inventoryUrl = new URL('./guides/languages.json', import.meta.url);
+  void displayGuide(frame, nodeId, signal, requested, inventoryUrl);
+}
+
+async function displayGuide(
   frame: HTMLIFrameElement,
   nodeId: string,
   signal: AbortSignal,
+  requested: string,
+  inventoryUrl: URL,
 ): Promise<void> {
-  const requested = selectedLocale();
   let language = 'en';
   try {
-    const response = await fetch(new URL('./guides/languages.json', import.meta.url), { signal });
+    const response = await fetch(inventoryUrl, { signal });
     const inventory: unknown = response.ok ? await response.json() : undefined;
     language = guideLanguage(inventory, nodeId, requested);
   } catch {
@@ -119,13 +125,22 @@ async function selectGuide(
 }
 
 function guideLanguage(inventory: unknown, nodeId: string, requested: string): string {
-  if (typeof inventory !== 'object' || inventory === null || Array.isArray(inventory)) return 'en';
-  const installed: unknown = (inventory as Record<string, unknown>)[nodeId];
-  if (!Array.isArray(installed)) return 'en';
-  const names = installed.filter((value: unknown): value is string => typeof value === 'string');
+  const names = guideVariants(inventory, nodeId);
   for (const candidate of localeCandidates(requested)) {
-    const match = names.find((value) => value.toLowerCase() === candidate);
+    const match = names.get(candidate);
     if (match) return match;
   }
   return 'en';
+}
+
+function guideVariants(inventory: unknown, nodeId: string): Map<string, string> {
+  const names = new Map<string, string>();
+  if (typeof inventory !== 'object' || inventory === null || Array.isArray(inventory)) return names;
+  const installed: unknown = new Map(Object.entries(inventory)).get(nodeId);
+  if (!Array.isArray(installed)) return names;
+  for (const value of installed) {
+    if (typeof value === 'string' && !names.has(value.toLowerCase()))
+      names.set(value.toLowerCase(), value);
+  }
+  return names;
 }

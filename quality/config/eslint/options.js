@@ -1,11 +1,3 @@
-export const UNICORN_ESLINT_MIN = '9.38.0';
-export const SEMVER_PREFIX_REGEX = /^[^0-9]*/u;
-export const SEMVER_SUFFIX_REGEX = /[^0-9.].*$/u;
-
-export const INDEX_IMPORT_MESSAGE = 'Import the owning leaf module instead of an index barrel.';
-export const INDEX_IMPORT_ALLOWLIST = [];
-export const INDEX_IMPORT_PATTERNS = [/^\.{1,2}\/index\.js$/u];
-
 export const ESLINT_NODE_GLOBALS = {
   AbortSignal: 'readonly',
   Buffer: 'readonly',

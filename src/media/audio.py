@@ -13,8 +13,10 @@ from ...config.media.audio import SAMPLE_RATE, PCM_SAMPLE_BYTES
 if TYPE_CHECKING:
     from pathlib import Path
     from torch import Tensor
-    from numpy.typing import NDArray  # lgtm[py/unused-import] -- reason: Required in cast annotations.
-    from collections.abc import Callable  # lgtm[py/unused-import] -- reason: Required in cast annotations.
+    from numpy.typing import NDArray
+    from collections.abc import Callable
+
+    type AudioConversion = Callable[[NDArray[np.float32]], Tensor]
 
 
 class NativeAudio(TypedDict):
@@ -41,5 +43,5 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
             raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioIncomplete"))
     values = np.frombuffer(content, dtype="<i2").reshape(count, channels).T.astype(np.float32)
     values /= 32768
-    from_numpy = cast("Callable[[NDArray[np.float32]], Tensor]", torch.from_numpy)
+    from_numpy = cast("AudioConversion", torch.from_numpy)
     return {"waveform": from_numpy(values).unsqueeze(0), "sample_rate": SAMPLE_RATE}

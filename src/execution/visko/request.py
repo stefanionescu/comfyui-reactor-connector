@@ -86,15 +86,15 @@ class ViskoStableRequest(VideoInputs):
         if len(tracks) != 1:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.viskoAudioMissing"))
         started = ViskoStart(events)
-        await events.command("set_seed", {"seed": self.seed})
+        await events.command_reply("set_seed", {"seed": self.seed})
         if self.image is not None:
             reference = await events.call(
                 "upload", transport.upload_file(self.image, name="input.png", mime_type="image/png")
             )
-            await events.command("set_image", {"image": reference})
-        await events.command("set_audio_enabled", {"audio_enabled": self.audio_enabled})
-        await events.command("set_audio_prompt", {"prompt": self.audio_prompt})
-        await events.command("set_prompt", {"prompt": self.prompt, "passthrough": self.prompt_passthrough})
+            await events.command_reply("set_image", {"image": reference})
+        await events.command_reply("set_audio_enabled", {"audio_enabled": self.audio_enabled})
+        await events.command_reply("set_audio_prompt", {"prompt": self.audio_prompt})
+        await events.command_reply("set_prompt", {"prompt": self.prompt, "passthrough": self.prompt_passthrough})
         if self.resolution:
             # The generated seed setter may emit nothing. Condition commands emit state.
             await events.call("resolution_state", events.state_ready.wait())
@@ -104,8 +104,8 @@ class ViskoStableRequest(VideoInputs):
                     ErrorCode.INVALID_INPUT,
                     translate("main", "errors.resolutionUnavailable"),
                 )
-            await events.command("set_resolution", {"resolution": self.resolution})
-        await events.command("start", {})
+            await events.command_reply("set_resolution", {"resolution": self.resolution})
+        await events.command_reply("start", {})
         await events.call(
             "generation_started",
             started.confirm(

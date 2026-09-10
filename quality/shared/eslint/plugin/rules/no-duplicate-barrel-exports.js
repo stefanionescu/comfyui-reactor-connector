@@ -24,21 +24,21 @@ const findModulePath = (importerFile, source) => {
     return null;
   }
 
-  publicModuleFiles ??= new Set(
-    visibleFiles(process.cwd()).map((file) => path.resolve(process.cwd(), file)),
-  );
+  publicModuleFiles ??= readPublicModules();
   const importerDir = path.dirname(importerFile);
   // reason: Candidates are read only after membership in the Git-visible regular-file set is checked.
   // bearer:disable javascript_lang_path_traversal
   const sourcePath = path.resolve(importerDir, source);
 
-  const candidates = [
-    sourcePath,
-    ...EXPORT_FILE_EXTENSIONS.map((ext) => `${sourcePath}${ext}`),
+  const candidates = [sourcePath];
+  for (const extension of EXPORT_FILE_EXTENSIONS) {
+    candidates.push(`${sourcePath}${extension}`);
+  }
+  for (const extension of EXPORT_FILE_EXTENSIONS) {
     // reason: Candidates are read only after membership in the Git-visible regular-file set is checked.
     // bearer:disable javascript_lang_path_traversal
-    ...EXPORT_FILE_EXTENSIONS.map((ext) => path.join(sourcePath, `index${ext}`)),
-  ];
+    candidates.push(path.join(sourcePath, `index${extension}`));
+  }
   for (const candidate of candidates) {
     if (publicModuleFiles.has(candidate)) return candidate;
   }
@@ -65,43 +65,44 @@ const getExportForFile = (filePath, visited = new Set()) => {
     return cached;
   }
 
-  let content;
-  try {
-    content = fs.readFileSync(filePath, 'utf8');
-  } catch {
-    const empty = new Set();
-    exportNameCache.set(cacheKey, empty);
-    return empty;
-  }
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- The resolver selects this path from Git-visible regular files; read errors must fail the check.
+  const content = fs.readFileSync(filePath, 'utf8');
 
   const statements = parse(content, { jsx: /\.[jt]sx$/u.test(filePath) }).body;
   const names = new Set(statements.flatMap(exportedNames));
-  const sources = statements
-    .filter((statement) => statement.type === 'ExportAllDeclaration')
-    .map((statement) => statement.source.value);
-  for (const source of sources) {
-    const resolved = findModulePath(filePath, source);
-    if (!resolved) {
-      continue;
-    }
-    const childNames = getExportForFile(resolved, new Set(visited));
-    for (const name of childNames) {
-      names.add(name);
-    }
-  }
+  expandStarExports(filePath, statements, visited, names);
 
   exportNameCache.set(cacheKey, names);
   return names;
 };
 
+function readPublicModules() {
+  const files = new Set();
+  for (const file of visibleFiles(process.cwd())) {
+    files.add(path.resolve(process.cwd(), file));
+  }
+  return files;
+}
+
+function expandStarExports(filePath, statements, visited, names) {
+  for (const statement of statements) {
+    if (statement.type !== 'ExportAllDeclaration') continue;
+    const resolved = findModulePath(filePath, statement.source.value);
+    if (!resolved) continue;
+    const childNames = getExportForFile(resolved, new Set(visited));
+    for (const name of childNames) {
+      names.add(name);
+    }
+  }
+}
+
 function exportedNames(statement) {
   if (statement.type !== 'ExportNamedDeclaration') return [];
-  return [
-    ...collectDeclarationNames(statement.declaration),
-    ...statement.specifiers.map((specifier) =>
-      specifier.exported.type === 'Identifier' ? specifier.exported.name : specifier.exported.value,
-    ),
-  ];
+  const names = collectDeclarationNames(statement.declaration);
+  for (const { exported } of statement.specifiers) {
+    names.push(exported.type === 'Identifier' ? exported.name : exported.value);
+  }
+  return names;
 }
 
 /**
@@ -150,9 +151,11 @@ const collectDeclarationNames = (declaration) => {
     return [];
   }
 
-  return declaration.declarations
-    .map((item) => (item.id.type === 'Identifier' ? item.id.name : null))
-    .filter(Boolean);
+  const names = [];
+  for (const item of declaration.declarations) {
+    if (item.id.type === 'Identifier') names.push(item.id.name);
+  }
+  return names;
 };
 
 /**

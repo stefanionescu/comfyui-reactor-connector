@@ -2,8 +2,8 @@ import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import { formatDate } from '#web/language.ts';
 import { modelRow } from '#web/discovery/row.ts';
-import { browserLimits } from '#config/browser.ts';
 import type { Message } from '#web/localization.ts';
+import { browserLimits } from '#config/web/browser.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
 import { type ModelList, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
@@ -22,7 +22,7 @@ function automaticStatus(check: ModelList['automaticCheck']): string | Message {
   if (check.updateAvailable === true) return message('models.listChanged');
   if (check.checkedAt)
     return message('models.checkSchedule', {
-      date: () => formatDate(check.checkedAt ?? ''),
+      date: formatDate.bind(null, check.checkedAt),
       hours: check.intervalHours,
     });
   return message('models.checkDue');
@@ -71,7 +71,7 @@ class ModelDialog {
     heading.id = 'reactor-models-title';
     const close = button(message('close'));
     setTextAttribute(close, 'aria-label', message('models.close'));
-    close.addEventListener('click', () => this.dialog.close());
+    close.addEventListener('click', this.dialog.close.bind(this.dialog, undefined));
     const header = element('header');
     header.append(heading, close);
     const searchLabel = element('label', message('models.search'));
@@ -94,9 +94,9 @@ class ModelDialog {
       this.count,
       this.list,
     );
-    this.search.addEventListener('input', () => this.updateView());
-    this.duration.addEventListener('input', () => this.updateView());
-    this.dialog.addEventListener('close', () => this.dispose(), { once: true });
+    this.search.addEventListener('input', this.updateView.bind(this));
+    this.duration.addEventListener('input', this.updateView.bind(this));
+    this.dialog.addEventListener('close', this.dispose.bind(this), { once: true });
   }
 
   /**
@@ -112,8 +112,8 @@ class ModelDialog {
       this.updateView();
     });
     this.refresh.disabled = this.rollback.disabled = true;
-    this.refresh.addEventListener('click', () => void this.updateModels('refresh'));
-    this.rollback.addEventListener('click', () => void this.updateModels('rollback'));
+    this.refresh.addEventListener('click', this.updateModels.bind(this, 'refresh'));
+    this.rollback.addEventListener('click', this.updateModels.bind(this, 'rollback'));
     const actions = element('div');
     actions.className = 'reactor-actions';
     actions.append(this.refresh, this.rollback, showAll);
@@ -145,23 +145,23 @@ class ModelDialog {
   private updateView(): void {
     const query = this.search.value.trim().toLowerCase();
     const nodeId = this.nodeId;
-    const visible =
-      this.modelList?.models.filter(
-        (model) =>
-          (!nodeId || model.nodeIds.includes(nodeId)) &&
-          `${model.modelSlug} ${model.title} ${model.connectionName ?? ''}`
-            .toLowerCase()
-            .includes(query),
-      ) ?? [];
     const seconds =
       this.duration.validity.valid && this.duration.value !== ''
         ? this.duration.valueAsNumber
         : undefined;
-    this.list.replaceChildren(...visible.map((model) => modelRow(model, seconds)));
+    const rows = document.createDocumentFragment();
+    for (const model of this.modelList?.models ?? []) {
+      if (nodeId && !model.nodeIds.includes(nodeId)) continue;
+      const label = `${model.modelSlug} ${model.title} ${model.connectionName ?? ''}`;
+      if (label.toLowerCase().includes(query)) rows.appendChild(modelRow(model, seconds));
+    }
+    const visible = rows.childElementCount;
+    this.list.replaceChildren();
+    this.list.appendChild(rows);
     setText(
       this.count,
       message('models.count', {
-        visible: visible.length,
+        visible,
         total: this.modelList?.models.length ?? 0,
       }),
     );
@@ -170,14 +170,22 @@ class ModelDialog {
   /**
    * Read or update the locally stored model list.
    * @param action - Read, refresh from public sources, or restore the previous list.
-   * @returns When the model list or error is displayed.
    */
-  private async updateModels(action: 'read' | 'refresh' | 'rollback'): Promise<void> {
+  private updateModels(action: 'read' | 'refresh' | 'rollback'): void {
     this.refresh.disabled = this.rollback.disabled = true;
     setText(
       this.status,
       action === 'refresh' ? message('models.checking') : message('models.loading'),
     );
+    void this.requestModels(action);
+  }
+
+  /**
+   * Apply a model-list response while the dialog is open.
+   * @param action - The requested list operation.
+   * @returns When the request and action cleanup finish.
+   */
+  private async requestModels(action: 'read' | 'refresh' | 'rollback'): Promise<void> {
     try {
       const next = await requestModels(
         this.fetcher,
@@ -186,24 +194,29 @@ class ModelDialog {
         this.modelList?.revision,
       );
       if (this.controller.signal.aborted) return;
-      this.modelList = next;
-      setText(this.checked, metadataStatus(next.retrievedAt));
-      setText(this.automatic, automaticStatus(next.automaticCheck));
-      setText(
-        this.status,
-        {
-          refresh: message('models.refreshed'),
-          rollback: message('models.restored'),
-          read: message('models.loaded'),
-        }[action],
-      );
-      this.updateView();
+      this.displayModels(next, action);
     } catch (error) {
       if (!this.controller.signal.aborted)
         setText(this.status, error instanceof Error ? error.message : message('models.loadFailed'));
     } finally {
       this.restoreActions();
     }
+  }
+
+  /**
+   * Display a model list and the outcome of its requested operation.
+   * @param next - The validated local model list.
+   * @param action - The completed list operation.
+   */
+  private displayModels(next: ModelList, action: 'read' | 'refresh' | 'rollback'): void {
+    this.modelList = next;
+    setText(this.checked, metadataStatus(next.retrievedAt));
+    setText(this.automatic, automaticStatus(next.automaticCheck));
+    let status = message('models.loaded');
+    if (action === 'refresh') status = message('models.refreshed');
+    if (action === 'rollback') status = message('models.restored');
+    setText(this.status, status);
+    this.updateView();
   }
 
   /** Re-enable allowed list changes after the current request finishes. */
@@ -217,7 +230,7 @@ class ModelDialog {
   show(): void {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    void this.updateModels('read');
+    this.updateModels('read');
   }
 
   /** Stop pending requests and return focus to the caller. */

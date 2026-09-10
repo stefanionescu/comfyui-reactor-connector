@@ -80,7 +80,11 @@ def validate_candidate(candidate: NameCandidate, policy: NamingPolicy) -> list[D
     messages = validate_name(name, cases, language_policy)
     if boolean_rule_matches(candidate, name, policy, "are_duplicate_words_allowed"):
         messages = [message for message in messages if message != "contains duplicate words"]
-    messages.extend(banned_term_messages(name, policy))
+    allowed_terms: set[str] = set()
+    for rule in policy["name_rules"]:
+        if rule_applies(rule, candidate) and name in rule.get("names", []):
+            allowed_terms.update(rule.get("allowed_banned_terms", []))
+    messages.extend(banned_term_messages(name, policy, allowed_terms))
     messages.extend(digit_messages(candidate, name, policy))
     return [
         {
@@ -167,7 +171,7 @@ def rule_applies(rule: NamingRule, candidate: NameCandidate | dict[str, str]) ->
     )
 
 
-def banned_term_messages(name: str, policy: NamingPolicy) -> list[str]:
+def banned_term_messages(name: str, policy: NamingPolicy, allowed_terms: set[str]) -> list[str]:
     """Return banned term diagnostics for a name."""
     exemptions = set(policy["global_policy"]["banned_term_exemptions"])
     if name in exemptions:
@@ -176,6 +180,8 @@ def banned_term_messages(name: str, policy: NamingPolicy) -> list[str]:
     lower_name = name.lower()
     messages: list[str] = []
     for term in policy["global_policy"]["banned_terms"]:
+        if term in allowed_terms:
+            continue
         term_value = str(term).lower()
         term_words = identifier_parts(term_value)
         if not term_words:

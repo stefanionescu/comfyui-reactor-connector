@@ -1,80 +1,7 @@
+import { isImportLike } from '#shared/eslint/plugin/imports.js';
+
 const blankLinePattern = /\n\s*\n/u;
 const whitespaceOnlyPattern = /^\s*$/u;
-
-/**
- * Returns true if the node is a bare `require('...')` call with no assignment.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the statement calls require without assigning its result.
- */
-const isSideEffectRequire = (node) => {
-  if (node.type !== 'ExpressionStatement' || node.expression?.type !== 'CallExpression') {
-    return false;
-  }
-  const callee = node.expression.callee;
-  return (
-    callee?.type === 'Identifier' &&
-    callee.name === 'require' &&
-    node.expression.arguments?.length === 1
-  );
-};
-
-/**
- * Returns true if the node is a `require('...')` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the node is a one-argument call to require.
- */
-function isRequireCall(node) {
-  if (node?.type !== 'CallExpression') {
-    return false;
-  }
-
-  const callee = node.callee;
-  return callee?.type === 'Identifier' && callee.name === 'require' && node.arguments.length === 1;
-}
-
-/**
- * Returns true if the node reads a property from a `require()` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether the node reads a property from a require call.
- */
-function isRequireMemberExpression(node) {
-  if (node?.type !== 'MemberExpression') {
-    return false;
-  }
-
-  return isRequireCall(node.object);
-}
-
-/**
- * Returns true if the node is a variable declaration initialized by a `require()` call.
- * @param node - Syntax-tree node to inspect.
- * @returns Whether one declared variable is initialized from require.
- */
-const isRequireDeclaration = (node) => {
-  if (node.type !== 'VariableDeclaration' || node.declarations.length !== 1) {
-    return false;
-  }
-
-  const declaration = node.declarations[0];
-  if (!declaration?.init) {
-    return false;
-  }
-
-  return isRequireCall(declaration.init) || isRequireMemberExpression(declaration.init);
-};
-
-/**
- * Returns true if the node is an import declaration or (optionally) a require statement.
- * @param node - Syntax-tree node to inspect.
- * @param supportRequire - Whether CommonJS require calls count as imports.
- * @returns Whether the statement belongs in an import block.
- */
-const isImportLike = (node, supportRequire) => {
-  if (node.type === 'ImportDeclaration') {
-    return true;
-  }
-  return supportRequire && (isRequireDeclaration(node) || isSideEffectRequire(node));
-};
 
 /**
  * Returns the source offset after the node including any same-line trailing comments.
@@ -140,35 +67,28 @@ export const newlineAfterImports = {
 
     return {
       Program(node) {
-        const firstImportIndex = node.body.findIndex((statement) =>
-          isImportLike(statement, supportRequire),
-        );
+        const firstImportIndex = node.body.findIndex(isImportLike.bind(null, supportRequire));
         if (firstImportIndex === -1) {
           return;
         }
 
         let lastImportIndex = firstImportIndex;
         for (let index = firstImportIndex + 1; index < node.body.length; index += 1) {
-          if (!isImportLike(node.body[index], supportRequire)) {
+          if (!isImportLike(supportRequire, node.body.at(index))) {
             break;
           }
           lastImportIndex = index;
         }
 
-        const firstNonImportNode = node.body[lastImportIndex + 1];
+        const firstNonImportNode = node.body.at(lastImportIndex + 1);
         if (!firstNonImportNode) {
           return;
         }
 
-        const lastImportNode = node.body[lastImportIndex];
+        const lastImportNode = node.body.at(lastImportIndex);
         const importEnd = getStatementEndComments(sourceCode, lastImportNode);
         const boundaryText = sourceText.slice(importEnd, firstNonImportNode.range[0]);
-        const firstContentOffset = getFirstContentOffset(
-          boundaryText,
-          importEnd,
-          firstNonImportNode.range[0],
-        );
-        const leadingWhitespace = sourceText.slice(importEnd, firstContentOffset);
+        const leadingWhitespace = boundaryText.match(/^\s*/u)[0];
 
         if (blankLinePattern.test(leadingWhitespace)) {
           return;
@@ -177,7 +97,15 @@ export const newlineAfterImports = {
         context.report({
           node: firstNonImportNode,
           messageId: supportRequire ? 'newlineAfterImportOrRequire' : 'newlineAfterImport',
-          fix: (fixer) => fixer.replaceTextRange([importEnd, firstContentOffset], '\n\n'),
+          fix(fixer) {
+            const contentStart = getFirstContentOffset(
+              boundaryText,
+              importEnd,
+              firstNonImportNode.range[0],
+            );
+            const range = [importEnd, contentStart];
+            return fixer.replaceTextRange(range, '\n\n');
+          },
         });
       },
     };

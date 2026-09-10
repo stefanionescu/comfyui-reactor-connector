@@ -51,13 +51,13 @@ class X2Request(VideoInputs):
             reference = await events.call(
                 "upload", transport.upload_file(self.image, name="input.png", mime_type="image/png")
             )
-            await events.command("set_reference_image", {"reference_image": reference})
-        await events.command("set_keep_backlog", {"keep_backlog": self.keep_backlog})
-        await events.command(
+            await events.command_reply("set_reference_image", {"reference_image": reference})
+        await events.command_reply("set_keep_backlog", {"keep_backlog": self.keep_backlog})
+        await events.command_reply(
             "set_pointer",
             {"x": self.pointer_x, "y": self.pointer_y, "active": self.pointer_active},
         )
-        await events.command("set_prompt", {"prompt": self.prompt})
+        await events.command_reply("set_prompt", {"prompt": self.prompt})
         track = await events.call("publish_source", transport.publish_track("source"))
         if self.webcam is not None:
             await self.webcam.begin(track, events.on_error)

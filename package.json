@@ -37,5 +37,8 @@
         "#web/*": "./web/*",
         "#config/*": "./config/*",
         "#locales/*": "./locales/*"
+    },
+    "overrides": {
+        "smol-toml": "1.8.0"
     }
 }

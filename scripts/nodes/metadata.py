@@ -5,8 +5,8 @@ import sys
 import argparse
 from pathlib import Path
 from ...config.models.nodes import NODE_MODELS
-from ...quality.lib.process import run_command
 from ...quality.lib.comfy import host_installation
+from ...quality.lib.process import ProcessContext, run_command
 from ...src.serialization import Json, parse_json, mapping_value
 
 
@@ -20,9 +20,7 @@ def read_schemas() -> dict[str, Json]:
         [str(interpreter), "-m", f"{root.name}.scripts.nodes.schema"],
         is_output_captured=True,
         is_failure_raised=True,
-        working_directory=root.parent,
-        timeout_seconds=60,
-        environment=environment,
+        context=ProcessContext(working_directory=root.parent, timeout_seconds=60, environment=environment),
     )
     return mapping_value(parse_json(result.stdout.decode()))
 

@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
+#
+# Check that browser files match their source.
 # Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check that browser files match their source."
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}" || exit 1
+# main - Check that browser files match their source.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}" || exit 1
 
-exec bun scripts/frontend.mjs --check "$@"
+  exec bun scripts/frontend.mjs --check "$@"
+}
+
+main "$@"

@@ -1,10 +1,11 @@
 import type { Fetcher } from '#web/http.ts';
 import { Webcam } from '#web/live/webcam.ts';
+import { pause } from '#web/live/polling.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { SoundControls } from '#web/live/sound.ts';
-import { browserLimits } from '#config/browser.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
+import { browserLimits } from '#config/web/browser.ts';
 import { DragInput, type Pointer } from '#web/live/drag.ts';
 import { exchange, type LiveStatus } from '#web/live/api.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
@@ -82,11 +83,8 @@ class ControlPanel {
     this.sound = owner.sound
       ? new SoundControls(owner.audioPrompt, owner.audioPromptCharacterLimit)
       : undefined;
-    this.camera = owner.webcam
-      ? new Webcam(owner, fetcher, (message) => this.stop(message))
-      : undefined;
-    if (owner.pointer)
-      new DragInput(this.image, this.abort.signal, (next) => this.queuePointer(next));
+    this.camera = owner.webcam ? new Webcam(owner, fetcher, this.stop.bind(this)) : undefined;
+    if (owner.pointer) new DragInput(this.image, this.abort.signal, this.queuePointer.bind(this));
     this.bindActions();
     this.appendContent();
   }
@@ -129,10 +127,14 @@ class ControlPanel {
 
   /** Bind start, prompt, stop, and dialog cleanup actions. */
   private bindActions(): void {
-    // eslint-disable-next-line local/no-trivial-functions -- This click queues the start and disables repeat activation.
-    this.start.addEventListener('click', () => {
-      this.startRequested = true;
-      this.start.disabled = true;
+    this.dialog.addEventListener('click', (event) => {
+      if (event.target === this.start) {
+        this.startRequested = true;
+        this.start.disabled = true;
+      } else if (event.target === this.end) {
+        if (this.finished) this.dialog.close();
+        else this.stop();
+      }
     });
     this.update.addEventListener('click', () => {
       if (!this.prompt.value.trim() && this.owner.model !== 'reactor/sana-streaming') {
@@ -141,10 +143,6 @@ class ControlPanel {
       }
       this.pendingPrompt = this.prompt.value;
       this.update.disabled = true;
-    });
-    this.end.addEventListener('click', () => {
-      if (this.finished) this.dialog.close();
-      else this.stop();
     });
     this.dialog.addEventListener('cancel', (event) => {
       event.preventDefault();
@@ -334,7 +332,7 @@ class ControlPanel {
     try {
       while (!this.finished && !this.abort.signal.aborted) {
         if (!(await this.cycle())) break;
-        await new Promise((fulfill) => setTimeout(fulfill, browserLimits.pollIntervalMilliseconds));
+        await pause(browserLimits.pollIntervalMilliseconds, this.abort.signal);
       }
     } catch (error) {
       this.stop(error instanceof Error ? error.message : translate('controls.connectionEnded'));

@@ -45,20 +45,8 @@ def sarif_findings(payload: object) -> list[tuple[str, str, int, str]]:
         results = require_sequence(required_member(run, "results", run_context), f"{run_context}.results")
         for result_index, result_value in enumerate(results):
             finding = parse_result(result_value, f"{run_context}.results[{result_index}]")
-            if not source_suppressed(result_value):
-                findings.append(finding)
+            findings.append(finding)
     return findings
-
-
-def source_suppressed(value: object) -> bool:
-    """Honor only CodeQL's exact source annotations; external SARIF suppressions do not apply."""
-    result = require_mapping(value, "SARIF result")
-    suppressed = False
-    for item in require_sequence(result.get("suppressions", []), "SARIF suppressions"):
-        suppression = require_mapping(item, "SARIF suppression")
-        if suppression.get("kind") == "inSource" and suppression.get("status") != "rejected":
-            suppressed = True
-    return suppressed
 
 
 def parse_result(value: object, context: str) -> tuple[str, str, int, str]:

@@ -12,7 +12,7 @@ const unwrapNodeTypes = new Set([
 function unwrapExpression(node) {
   let current = node;
   while (current && unwrapNodeTypes.has(current.type)) {
-    current = current.expression;
+    current = current.type === 'AwaitExpression' ? current.argument : current.expression;
   }
   return current;
 }
@@ -28,11 +28,12 @@ function getStatementExpression(statement) {
 }
 
 function getOnlyCall(body) {
-  if (!body || body.type !== 'BlockStatement' || body.body.length !== 1) {
+  if (body.type === 'BlockStatement' && body.body.length !== 1) {
     return null;
   }
-
-  const expression = unwrapExpression(getStatementExpression(body.body[0]));
+  const expression = unwrapExpression(
+    body.type === 'BlockStatement' ? getStatementExpression(body.body[0]) : body,
+  );
   return expression?.type === 'CallExpression' ? expression : null;
 }
 
@@ -62,19 +63,13 @@ function isDirectCallThrough(node, call) {
   }
 
   const callee = unwrapExpression(call.callee);
-  return (
-    callee?.type === 'Identifier' &&
-    call.arguments.length === parameterNames.length &&
-    call.arguments.every((argument, index) => getArgumentName(argument) === parameterNames[index])
-  );
-}
-
-function normalizedFilename(context) {
-  const filename = String(
-    context.physicalFilename || context.filename || context.getFilename?.() || '',
-  );
-  const normalized = filename.replaceAll('\\', '/');
-  return normalized;
+  if (callee?.type !== 'Identifier' || call.arguments.length !== parameterNames.length) {
+    return false;
+  }
+  for (const [index, argument] of call.arguments.entries()) {
+    if (getArgumentName(argument) !== parameterNames.at(index)) return false;
+  }
+  return true;
 }
 
 function isAllowed(context, functionName, allow) {
@@ -82,13 +77,17 @@ function isAllowed(context, functionName, allow) {
     return false;
   }
 
-  const filename = normalizedFilename(context);
+  const filename = context.physicalFilename.replaceAll('\\', '/');
   const key = `${filename}:${functionName}`;
-  return allow.some((entry) => key === entry || key.endsWith(`/${entry}`));
+  for (const entry of allow) {
+    if (key === entry || key.endsWith(`/${entry}`)) return true;
+  }
+  return false;
 }
 
-function reportCallThrough(context, node, allow) {
-  const functionName = node.id?.name ?? null;
+function reportCallThrough(context, allow, node) {
+  const functionName =
+    node.id?.name ?? (node.parent.type === 'VariableDeclarator' ? node.parent.id.name : null);
   if (!functionName || isAllowed(context, functionName, allow)) {
     return;
   }
@@ -120,11 +119,12 @@ export const noCallThrough = {
     ],
   },
   create(context) {
-    const options = context.options?.[0] ?? {};
-    const allow = Array.isArray(options.allow) ? options.allow : [];
-
+    const allow = context.options[0]?.allow ?? [];
+    const visit = reportCallThrough.bind(null, context, allow);
     return {
-      FunctionDeclaration: (node) => reportCallThrough(context, node, allow),
+      FunctionDeclaration: visit,
+      FunctionExpression: visit,
+      ArrowFunctionExpression: visit,
     };
   },
 };

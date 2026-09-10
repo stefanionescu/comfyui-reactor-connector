@@ -1,1 +1,2 @@
-export const NODE_VERSION = '>=22.0.0 <23.0.0';
+// Bun scripts use Node APIs available from this compatibility baseline.
+export const NODE_API_VERSION = '>=22.13.0 <23.0.0';

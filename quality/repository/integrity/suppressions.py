@@ -14,8 +14,6 @@ from quality.lib.diagnostics import Diagnostic, diagnostic, report_diagnostics
 NOSEMGREP_RE = re.compile(r"\bnosem" + r"grep\b", re.IGNORECASE)
 NOSEC_RE = re.compile(r"\bnosec\b(?P<tail>.*)$", re.IGNORECASE)
 NOQA_RE = re.compile(r"\bnoqa\b(?P<tail>.*)$", re.IGNORECASE)
-CODEQL_RE = re.compile(r"^#\s*(?:codeql|lgtm)(?P<tail>\[.*|\s*)$", re.IGNORECASE)
-CODEQL_CODES_RE = re.compile(r"^\[py/[a-z][a-z0-9/-]*\]$")
 BEARER_DISABLE_RE = re.compile(r"\bbearer:disable\b(?P<tail>.*)$", re.IGNORECASE)
 TYPE_IGNORE_RE = re.compile(r"\btype:\s*ignore(?P<tail>.*)$", re.IGNORECASE)
 PYRIGHT_IGNORE_RE = re.compile(r"\bpyright:\s*ignore(?P<tail>.*)$", re.IGNORECASE)
@@ -55,7 +53,6 @@ def collect_suppression_diagnostics(root: Path, scope: str = "all") -> list[Diag
             diagnostics.extend(line_diagnostics(relative_path, line_number, comment))
             diagnostics.extend(nosec_diagnostics(relative_path, line_number, comment, source_lines))
             diagnostics.extend(bearer_diagnostics(relative_path, line_number, comment, source_lines))
-            diagnostics.extend(codeql_diagnostics(relative_path, line_number, comment))
     return diagnostics
 
 
@@ -212,17 +209,6 @@ def main() -> int:
     arguments = parser.parse_args()
     diagnostics = collect_suppression_diagnostics(Path.cwd(), arguments.scope)
     return report_diagnostics("Inline suppression policy violations:", diagnostics)
-
-
-def codeql_diagnostics(path: str, line_number: int, comment: str) -> list[Diagnostic]:
-    """Require one exact Python CodeQL rule and a same-line explanation."""
-    match = CODEQL_RE.search(comment)
-    if match is None:
-        return []
-    codes, separator, reason = match.group("tail").partition(REASON_SEPARATOR)
-    if CODEQL_CODES_RE.fullmatch(codes.strip()) and separator and reason.strip():
-        return []
-    return [diagnostic(path, line_number, "suppression.codeql", "Use one exact CodeQL rule with a same-line reason.")]
 
 
 if __name__ == "__main__":

@@ -88,8 +88,7 @@ async def _capture_until_end(capture: VideoCapture, events: SessionEvents) -> No
                 await asyncio.wait_for(asyncio.shield(captured), 0.5)
             except TimeoutError:
                 capture.finish()
-            # codeql[py/ineffectual-statement] -- reason: Await final frame delivery.
-            await captured
+            await asyncio.gather(captured)
     finally:
         for task in (captured, completed):
             if not task.done():

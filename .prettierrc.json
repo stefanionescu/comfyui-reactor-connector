@@ -10,10 +10,7 @@
             "files": ["*.js", "*.mjs", "*.cjs", "*.ts", "*.css"],
             "options": {
                 "tabWidth": 2,
-                "printWidth": 100,
-                "semi": true,
-                "singleQuote": true,
-                "trailingComma": "all"
+                "printWidth": 100
             }
         }
     ]

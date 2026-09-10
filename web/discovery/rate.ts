@@ -1,12 +1,13 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
-import { browserLimits } from '#config/browser.ts';
+import { inputValues } from '#web/nodes/inputs.ts';
 import { bindWidgetLabel } from '#web/nodes/labels.ts';
+import { browserLimits } from '#config/web/browser.ts';
 import type { ReactorNode } from '#web/nodes/contracts.ts';
 import { formatCreditSummary } from '#web/discovery/pricing.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
-import { type Model, requestModels, metadataStatus } from '#web/discovery/api.ts';
+import { type Model, type ModelList, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
 /**
  * Read the requested video length only when it is known in the editor.
@@ -14,15 +15,16 @@ import { type Model, requestModels, metadataStatus } from '#web/discovery/api.ts
  * @returns Requested video seconds, or undefined for connected or unknown inputs.
  */
 function requestedSeconds(node: ReactorNode): number | undefined {
+  const widgets = inputValues(node);
   /**
    * Read a positive numeric widget that is not replaced by a connection.
    * @param name - The saved widget and input name.
    * @returns The widget value, if it is available and valid.
    */
   function value(name: string): number | undefined {
-    if (node.inputs?.some((input) => input.name === name && input.link != null)) return undefined;
-    const raw = node.widgets?.find((widget) => widget.name === name)?.value;
-    return typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : undefined;
+    const raw = widgets.get(name);
+    if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return undefined;
+    return raw;
   }
   if (node.comfyClass === 'ReactorIncFastContinue') {
     const seconds = value('clip_seconds');
@@ -62,7 +64,7 @@ class CreditDialog {
     const title = element('h2', message('pricing.title'));
     title.id = 'reactor-rate-title';
     const close = button(message('close'));
-    close.addEventListener('click', () => this.dialog.close());
+    close.addEventListener('click', this.dialog.close.bind(this.dialog, undefined));
     const header = element('header');
     header.append(title, close);
     const seconds = requestedSeconds(node);
@@ -92,8 +94,8 @@ class CreditDialog {
       this.status,
       this.rates,
     );
-    this.duration.addEventListener('input', () => this.updateView());
-    this.dialog.addEventListener('close', () => this.dispose(), { once: true });
+    this.duration.addEventListener('input', this.updateView.bind(this));
+    this.dialog.addEventListener('close', this.dispose.bind(this), { once: true });
     this.updateView();
   }
 
@@ -106,12 +108,7 @@ class CreditDialog {
     try {
       const modelList = await requestModels(fetcher, this.controller.signal, 'read');
       if (this.controller.signal.aborted) return;
-      this.models = modelList.models.filter((model) =>
-        model.nodeIds.includes(this.node.comfyClass ?? ''),
-      );
-      setText(this.status, metadataStatus(modelList.retrievedAt));
-      if (!this.models.length) setText(this.status, message('pricing.modelUnavailable'));
-      this.updateView();
+      this.displayRates(modelList);
     } catch (error) {
       if (!this.controller.signal.aborted)
         setText(
@@ -119,6 +116,20 @@ class CreditDialog {
           error instanceof Error ? error.message : message('pricing.loadFailed'),
         );
     }
+  }
+
+  /**
+   * Display rates for the selected node and update its calculation.
+   * @param modelList - The validated local model list.
+   */
+  private displayRates(modelList: ModelList): void {
+    this.models = [];
+    for (const model of modelList.models) {
+      if (model.nodeIds.includes(this.node.comfyClass ?? '')) this.models.push(model);
+    }
+    setText(this.status, metadataStatus(modelList.retrievedAt));
+    if (!this.models.length) setText(this.status, message('pricing.modelUnavailable'));
+    this.updateView();
   }
 
   /** Validate session time and update every rate calculation. */
@@ -192,7 +203,7 @@ export function bindCreditRate(node: ReactorNode, fetcher: Fetcher): void {
     'button',
     translate('pricing.viewRate'),
     '',
-    () => openCreditRate(node, fetcher),
+    openCreditRate.bind(null, node, fetcher),
     {
       serialize: false,
     },

@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
+#
+# Define frontend configuration values.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
 # lint:justify -- reason: CodeQL policy is sourced by scanner scripts -- ticket: quality-config
 # shellcheck disable=SC2034
-
 [[ -n ${_CFG_QLJS_READY:-} ]] && return 0
 readonly _CFG_QLJS_READY=1
 
-CODEQL_COMMAND='codeql'
-readonly CODEQL_COMMAND
-CODEQL_ARTIFACT_ROOT='.artifacts/security/codeql'
+CODEQL_ARTIFACT_ROOT='.artifacts/security/codeql/frontend'
 readonly CODEQL_ARTIFACT_ROOT
 CODEQL_DATABASE_DIR_PREFIX='db-'
 readonly CODEQL_DATABASE_DIR_PREFIX

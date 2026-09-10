@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
+#
+# Check links to public documentation.
 # Runtime: Bash 3.2+, macOS and Linux.
 #MISE description="Check links to public documentation."
 set -euo pipefail
 
-REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-cd "${REPO_ROOT}" || exit 1
+# main - Check links to public documentation.
+main() {
+  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+  cd "${REPO_ROOT}" || exit 1
 
-exec bun quality/web/links/check.mjs --external "$@"
+  exec bun quality/web/links/check.mjs --external "$@"
+}
+
+main "$@"

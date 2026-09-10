@@ -6,12 +6,6 @@ import {
   splitIdentifierParts,
 } from '#shared/naming/identifier-parts.js';
 
-function nameLabel(entry) {
-  const displayName = entry.displayName ?? entry.name;
-  const label = `${entry.kind} "${displayName}"`;
-  return label;
-}
-
 function addNameViolation(violations, entry, rule, message) {
   const location = { file: entry.file, line: entry.line };
   const violation = {
@@ -58,6 +52,7 @@ function reservedTermAllowed(entry, globalRules, bannedTerm) {
  */
 function validateName(entry, profile, termEntries, globalRules) {
   const violations = [];
+  const label = `${entry.kind} "${entry.displayName ?? entry.name}"`;
   const limitName = entry.limitName ?? entry.name;
   const partsName = entry.partsName ?? entry.name;
   const digitsName = entry.digitsName ?? entry.name;
@@ -65,32 +60,22 @@ function validateName(entry, profile, termEntries, globalRules) {
   const parts = splitIdentifierParts(partsName);
   const caseNames = entry.caseNames ?? profile?.categories?.[entry.category] ?? [];
 
-  if (caseNames.length > 0 && !caseNames.some((name) => matchesCase(caseName, name))) {
-    addNameViolation(
-      violations,
-      entry,
-      'case',
-      `${nameLabel(entry)} must use ${caseNames.join(', ')} case`,
-    );
+  if (caseNames.length > 0 && !caseNames.some(matchesCase.bind(null, caseName))) {
+    addNameViolation(violations, entry, 'case', `${label} must use ${caseNames.join(', ')} case`);
   }
 
   if (globalRules.banDigits && /\d/u.test(digitsName)) {
-    addNameViolation(violations, entry, 'digits', `${nameLabel(entry)} must not contain digits`);
+    addNameViolation(violations, entry, 'digits', `${label} must not contain digits`);
   }
 
   const maxCharacters = entry.maxCharacters ?? profile?.maxCharacters;
   if (Number.isInteger(maxCharacters) && limitName.length > maxCharacters) {
-    addNameViolation(
-      violations,
-      entry,
-      'length',
-      `${nameLabel(entry)} exceeds ${maxCharacters} characters`,
-    );
+    addNameViolation(violations, entry, 'length', `${label} exceeds ${maxCharacters} characters`);
   }
 
   const maxWords = entry.maxWords ?? profile?.maxWords;
   if (Number.isInteger(maxWords) && parts.length > maxWords) {
-    addNameViolation(violations, entry, 'words', `${nameLabel(entry)} exceeds ${maxWords} words`);
+    addNameViolation(violations, entry, 'words', `${label} exceeds ${maxWords} words`);
   }
 
   checkTerms(violations, entry, parts, termEntries, globalRules);
@@ -99,6 +84,7 @@ function validateName(entry, profile, termEntries, globalRules) {
 }
 
 function checkTerms(violations, entry, parts, termEntries, globalRules) {
+  const label = `${entry.kind} "${entry.displayName ?? entry.name}"`;
   if (globalRules.banDuplicateWords) {
     const duplicatePart = firstDuplicatePart(parts);
     if (duplicatePart) {
@@ -106,7 +92,7 @@ function checkTerms(violations, entry, parts, termEntries, globalRules) {
         violations,
         entry,
         'duplicate-words',
-        `${nameLabel(entry)} repeats word "${duplicatePart}"`,
+        `${label} repeats word "${duplicatePart}"`,
       );
     }
   }
@@ -118,7 +104,7 @@ function checkTerms(violations, entry, parts, termEntries, globalRules) {
         violations,
         entry,
         'banned-term',
-        `${nameLabel(entry)} contains banned term "${bannedTerm}"`,
+        `${label} contains banned term "${bannedTerm}"`,
       );
     }
   }

@@ -1,7 +1,7 @@
 """Shared controls for video generation."""
 
 from comfy_api.latest import io
-from ..language import translate
+from ...config.generation.prompts import DEFAULT_PROMPTS
 from ...config.nodes import (
     MAX_SEED,
     DEFAULT_SEED,
@@ -21,7 +21,7 @@ def generation_controls(
         io.String.Input(
             "prompt",
             multiline=True,
-            default=translate("prompts", prompt_key),
+            default=DEFAULT_PROMPTS[prompt_key],
         ),
         io.Float.Input(
             "duration_seconds",

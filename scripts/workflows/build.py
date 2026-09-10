@@ -12,6 +12,8 @@ from .definitions import EXAMPLES
 from .index import workflow_index
 from ...src.serialization import Json
 from ..docs.build import inventory_issues
+from .models.longlive import SHOT_PROMPTS
+from .models.helios import SEQUENCE_PROMPTS
 from ...src.language import translate, language_scope
 from ..nodes.metadata import read_schemas, validate_models
 from .serialize import widget_values, validate_sources, validate_connections, output_types
@@ -63,7 +65,7 @@ def build_workflow(example: Example, schemas: dict[str, Json]) -> dict[str, Json
         if text
     ]
     validate_sources(schemas[example.node_id], example.sources)
-    widgets = widget_values(schemas[example.node_id], example.widgets)
+    widgets = widget_values(schemas[example.node_id], example.inputs)
     generation = node(3, example.node_id, widgets, title=example.title)
     generation["outputs"] = [output("video", "VIDEO", [1]), output("metadata", "STRING", [])]
     save = node(
@@ -170,7 +172,7 @@ def append_storyboard(
                 "previous": "[]",
                 "at_session_chunk": 1,
                 "transition": "soft",
-                "prompt": translate("workflows", "prompts.softTransition"),
+                "prompt": SHOT_PROMPTS["soft_transition"],
             },
         ),
         title=translate("workflows", "nodes.softTransition"),
@@ -185,7 +187,7 @@ def append_storyboard(
                 "previous": "[]",
                 "at_session_chunk": 2,
                 "transition": "cut",
-                "prompt": translate("workflows", "prompts.hardCut"),
+                "prompt": SHOT_PROMPTS["hard_cut"],
             },
         ),
         title=translate("workflows", "nodes.hardCut"),
@@ -228,7 +230,7 @@ def append_prompt_sequence(
         "ReactorIncHeliosAddPrompt",
         widget_values(
             schemas["ReactorIncHeliosAddPrompt"],
-            {"previous": "[]", "chunk": 1, "prompt": translate("workflows", "prompts.sunlight")},
+            {"previous": "[]", "chunk": 1, "prompt": SEQUENCE_PROMPTS["sunlight"]},
         ),
         title=translate("workflows", "nodes.sunlight"),
     )
@@ -238,7 +240,7 @@ def append_prompt_sequence(
         "ReactorIncHeliosAddPrompt",
         widget_values(
             schemas["ReactorIncHeliosAddPrompt"],
-            {"previous": "[]", "chunk": 3, "prompt": translate("workflows", "prompts.clearing")},
+            {"previous": "[]", "chunk": 3, "prompt": SEQUENCE_PROMPTS["clearing"]},
         ),
         title=translate("workflows", "nodes.clearing"),
     )
@@ -260,7 +262,9 @@ def arguments() -> argparse.Namespace:
     """Read build options without changing files or importing the host."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
-    parser.add_argument("--language", default="en", help="Language for workflow text; missing messages use English.")
+    parser.add_argument(
+        "--language", default="en", help="Language for workflow labels and notes; missing messages use English."
+    )
     parser.add_argument("--output-directory", type=Path, help="Output folder; required for non-English workflows.")
     return parser.parse_args()
 

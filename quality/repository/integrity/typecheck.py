@@ -3,16 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 from quality.lib.files import git_visible_source_files
 from quality.config.repository.paths import PYTHON_SOURCE_DIRS
 from quality.lib.diagnostics import Diagnostic, diagnostic, report_diagnostics
 from quality.lib.json_config import JsonConfigError, read_json_mapping, require_string_list
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-TYPECHECK_PROJECTS = (("connector", "pyrightconfig.json"),)
 
 
 def _expand_pattern(root: Path, config_path: Path, pattern: str) -> set[str]:
@@ -58,10 +52,7 @@ def project_python_files(root: Path, relative_config_path: str) -> set[str]:
     return included_files - excluded_files
 
 
-def unassigned_python_files(
-    root: Path,
-    projects: Sequence[tuple[str, str]] = TYPECHECK_PROJECTS,
-) -> list[str]:
+def unassigned_python_files(root: Path) -> list[str]:
     """Return governed Python files that belong to no typecheck project."""
     governed_prefixes = tuple(f"{directory}/" for directory in PYTHON_SOURCE_DIRS)
     governed_files = {
@@ -69,7 +60,7 @@ def unassigned_python_files(
         for path in git_visible_source_files(root=root, is_existing_required=True)
         if Path(path).suffix in {".py", ".pyi"} and (path in PYTHON_SOURCE_DIRS or path.startswith(governed_prefixes))
     }
-    assigned_files = {path for _name, config_path in projects for path in project_python_files(root, config_path)}
+    assigned_files = project_python_files(root, "pyrightconfig.json")
     return sorted(governed_files - assigned_files)
 
 

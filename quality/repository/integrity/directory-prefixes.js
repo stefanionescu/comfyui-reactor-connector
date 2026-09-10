@@ -12,27 +12,11 @@ const directoryCache = new Map();
  * @returns Normalized prefix used for collision/grouping checks.
  */
 export function getPrefix(fileStem) {
-  const dashIndex = fileStem.indexOf('-');
-  const dotIndex = fileStem.indexOf('.');
-  const cutIndexes = [dashIndex, dotIndex].filter((idx) => idx >= 0);
-  if (cutIndexes.length === 0) {
+  const separator = fileStem.search(/[-.]/u);
+  if (separator === -1) {
     return fileStem;
   }
-  return fileStem.slice(0, Math.min(...cutIndexes));
-}
-
-/**
- * Read directory entries and tolerate missing or unreadable paths.
- *
- * @param dirAbsPath Absolute directory path to inspect.
- * @returns Directory entries when readable, otherwise an empty array.
- */
-export function readDirectory(dirAbsPath) {
-  try {
-    return fs.readdirSync(dirAbsPath, { withFileTypes: true });
-  } catch {
-    return [];
-  }
+  return fileStem.slice(0, separator);
 }
 
 /**
@@ -53,7 +37,8 @@ export function analyzeDirectory(dirAbsPath, options = {}) {
   }
 
   const prefixMap = new Map();
-  const entries = readDirectory(dirAbsPath);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- ESLint supplies the source file's directory; unreadable directories must fail the check.
+  const entries = fs.readdirSync(dirAbsPath, { withFileTypes: true });
 
   for (const entry of entries) {
     const record = classifyEntry(entry, ignorePaths, skipIndexFiles);

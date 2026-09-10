@@ -1,21 +1,5 @@
-import jsdoc from 'eslint-plugin-jsdoc';
-import nodePlugin from 'eslint-plugin-n';
-import sonarjs from 'eslint-plugin-sonarjs';
-import unicorn from 'eslint-plugin-unicorn';
-import security from 'eslint-plugin-security';
-import tsParser from '@typescript-eslint/parser';
-import { NODE_VERSION } from '#config/runtime.js';
-import prettierConfig from 'eslint-config-prettier';
-import sharedPolicy from '#shared/eslint/policy.mjs';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import { rules as localRules } from '#shared/eslint/plugin/index.js';
-import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
+import { NODE_API_VERSION } from '#config/runtime.js';
 
-import {
-  ESLINT_BROWSER_GLOBALS,
-  ESLINT_COMMONJS_GLOBALS,
-  ESLINT_NODE_GLOBALS,
-} from '#config/eslint.js';
 import {
   BARREL_REEXPORTS_MAX,
   COGNITIVE_COMPLEXITY_THRESHOLD,
@@ -26,43 +10,14 @@ import {
   PREFIXED_FILES_THRESHOLD,
 } from '#config/limits.js';
 
-const ignores = [
-  '**/node_modules/**',
-  '.artifacts/**',
-  'dist/**',
-  'web/dist/**',
-  '**/.venv/**',
-  '**/.git/**',
-];
-
-const nodeScriptFiles = ['scripts/**/*.mjs'];
-const browserFiles = ['config/**/*.ts', 'web/**/*.ts'];
-const qualityModuleFiles = ['quality/**/*.mjs', 'quality/**/*.js'];
-const qualityCommonjsFiles = ['quality/**/*.cjs'];
-
-const plugins = {
-  '@eslint-community/eslint-comments': eslintComments,
-  jsdoc,
-  local: { rules: localRules },
-  n: nodePlugin,
-  security,
-  sonarjs,
-  unicorn,
-};
-
-const eslintNodeSettings = {
-  node: {
-    version: NODE_VERSION,
-  },
-};
 const eslintNodeRules = {
   'n/no-deprecated-api': 'error',
   'n/no-process-exit': 'error',
   'n/no-unsupported-features/node-builtins': [
     'error',
-    { version: NODE_VERSION, allowExperimental: true },
+    { version: NODE_API_VERSION, allowExperimental: true },
   ],
-  'n/no-unsupported-features/es-builtins': ['error', { version: NODE_VERSION }],
+  'n/no-unsupported-features/es-builtins': ['error', { version: NODE_API_VERSION }],
   'n/no-unsupported-features/es-syntax': 'off',
   'n/prefer-global/buffer': ['error', 'always'],
   'n/prefer-global/console': ['error', 'always'],
@@ -149,8 +104,8 @@ const eslintSecurityRules = {
   'security/detect-possible-timing-attacks': 'error',
   'security/detect-pseudoRandomBytes': 'error',
   'security/detect-unsafe-regex': 'error',
-  'security/detect-object-injection': 'off',
-  'security/detect-non-literal-fs-filename': 'off',
+  'security/detect-object-injection': 'error',
+  'security/detect-non-literal-fs-filename': 'error',
 };
 const eslintSonarRules = {
   'sonarjs/no-all-duplicated-branches': 'error',
@@ -231,6 +186,7 @@ const eslintSourceLocalRules = {
   'local/no-call-through': ['error', { allow: [] }],
   'local/no-duplicate-barrel-exports': 'error',
   'local/no-export-only-files': 'error',
+  'local/no-exported-alias-constants': 'error',
   'local/no-trivial-functions': ['error', { maxStatements: MAX_TRIVIAL_FUNCTION_STATEMENTS }],
   'local/no-prefix-collisions': [
     'error',
@@ -255,7 +211,7 @@ const eslintSourceLocalRules = {
   'local/no-cross-folder-imports': 'error',
   'local/newline-after-imports': ['error', { supportRequire: true }],
 };
-const eslintPracticalUnusedVarsRule = [
+const unusedVarsRule = [
   'error',
   {
     args: 'all',
@@ -266,10 +222,7 @@ const eslintPracticalUnusedVarsRule = [
     varsIgnorePattern: '^_',
   },
 ];
-const eslintQualityTrivialFunctionRule = [
-  'error',
-  { maxStatements: MAX_TRIVIAL_FUNCTION_STATEMENTS },
-];
+const trivialFunctionRule = ['error', { maxStatements: MAX_TRIVIAL_FUNCTION_STATEMENTS }];
 
 const sourceRules = {
   ...eslintSourceLocalRules,
@@ -287,115 +240,4 @@ const nodeSourceRules = {
   ...sourceRules,
 };
 
-const boundaryOverrides = [
-  {
-    files: browserFiles,
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['node:*', '#config/**', '#shared/**', '#repository/**', '**/quality/**'],
-              message: 'ComfyUI browser code must not import build or quality tools.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-];
-
-const qualityToolingOverrides = {
-  files: [...qualityModuleFiles, ...qualityCommonjsFiles],
-  rules: {
-    'local/no-trivial-functions': eslintQualityTrivialFunctionRule,
-    'max-lines': 'off',
-    'max-lines-per-function': 'off',
-    'n/no-process-exit': 'off',
-    'sonarjs/no-collapsible-if': 'off',
-    'sonarjs/no-identical-functions': 'off',
-    'sonarjs/no-duplicated-branches': 'off',
-    'sonarjs/no-nested-conditional': 'off',
-    'sonarjs/prefer-single-boolean-return': 'off',
-    'sonarjs/prefer-immediate-return': 'off',
-    'unicorn/no-lonely-if': 'off',
-    'unicorn/no-useless-spread': 'off',
-    'unicorn/prefer-array-find': 'off',
-  },
-};
-
-export default [
-  { ignores },
-  {
-    settings: eslintNodeSettings,
-  },
-  ...sharedPolicy,
-  {
-    files: [...nodeScriptFiles, ...qualityModuleFiles],
-    plugins,
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: ESLINT_NODE_GLOBALS,
-    },
-    rules: nodeSourceRules,
-  },
-  {
-    files: browserFiles,
-    plugins: { ...plugins, '@typescript-eslint': tsPlugin },
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: process.cwd(),
-      },
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: ESLINT_BROWSER_GLOBALS,
-    },
-    rules: {
-      ...sourceRules,
-      ...tsPlugin.configs['eslint-recommended'].overrides[0].rules,
-      ...tsPlugin.configs['strict-type-checked'].rules,
-      '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
-      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': eslintPracticalUnusedVarsRule,
-      'local/import-path-style': ['error', { style: 'ts' }],
-    },
-  },
-  {
-    files: qualityCommonjsFiles,
-    plugins,
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'commonjs',
-      globals: ESLINT_COMMONJS_GLOBALS,
-    },
-    rules: nodeSourceRules,
-  },
-  qualityToolingOverrides,
-  ...boundaryOverrides,
-  {
-    files: ['web/extension.ts', 'web/help/command.ts', 'web/language.ts', 'web/http.ts'],
-    rules: {
-      // ComfyUI serves these modules outside the connector's bundled directory.
-      'local/import-path-style': [
-        'error',
-        {
-          style: 'ts',
-          externalSources: ['../../scripts/app.js', '../../scripts/api.js'],
-        },
-      ],
-      'local/no-cross-folder-imports': [
-        'error',
-        {
-          externalSources: ['../../scripts/app.js', '../../scripts/api.js'],
-        },
-      ],
-    },
-  },
-  prettierConfig,
-  { rules: eslintSpacingRules },
-];
+export { sourceRules, nodeSourceRules, eslintSpacingRules, unusedVarsRule, trivialFunctionRule };

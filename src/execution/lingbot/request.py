@@ -60,14 +60,14 @@ class LingBotRequest(VideoInputs):
         """Upload the starting image, set camera controls, and start the scene."""
         if self.image is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.startingImageRequired"))
-        await events.command("set_seed", {"seed": self.seed})
+        await events.command_reply("set_seed", {"seed": self.seed})
         reference = await transport.upload_file(self.image, name="input.png", mime_type="image/png")
-        await events.command("set_image", {"image": reference})
-        await events.command("set_prompt", {"prompt": self.prompt})
-        await events.command("set_rotation_speed_deg", {"rotation_speed_deg": self.rotation_speed_deg})
+        await events.command_reply("set_image", {"image": reference})
+        await events.command_reply("set_prompt", {"prompt": self.prompt})
+        await events.command_reply("set_rotation_speed_deg", {"rotation_speed_deg": self.rotation_speed_deg})
         for axis, value in self.axes():
-            await events.command(f"set_{axis}", {axis: value})
-        await events.command("start", {})
+            await events.command_reply(f"set_{axis}", {axis: value})
+        await events.command_reply("start", {})
 
     async def release(self, transport: Transport) -> None:
         """Release held axes before disconnect; disconnect still runs if release fails."""
@@ -77,7 +77,7 @@ class LingBotRequest(VideoInputs):
 
 
 @dataclass(frozen=True, slots=True)
-class LingBotWorld2Request(LingBotRequest):
+class LingBotWorldRequest(LingBotRequest):
     """Keep longitudinal and lateral movement independent for World 2."""
 
     lateral: str = "idle"

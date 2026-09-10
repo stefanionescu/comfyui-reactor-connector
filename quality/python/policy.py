@@ -31,7 +31,6 @@ class ImportPolicy(TypedDict):
     are_relative_imports_allowed: bool
     allow_imports_after_statements: list[str]
     are_dynamic_imports_banned: bool
-    banned_compatibility_paths: list[str]
 
 
 class PackagePolicy(TypedDict):
@@ -55,7 +54,6 @@ def read_import_policy(root: Path) -> ImportPolicy:
             "are_relative_imports_allowed",
             "allow_imports_after_statements",
             "are_dynamic_imports_banned",
-            "banned_compatibility_paths",
         },
         context=IMPORT_POLICY_PATH,
     )
@@ -77,7 +75,6 @@ def read_import_policy(root: Path) -> ImportPolicy:
             message = f"{IMPORT_POLICY_PATH}.allow_imports_after_statements references missing file {relative_path}"
             raise JsonConfigError(message)
     require_bool(payload["are_dynamic_imports_banned"], f"{IMPORT_POLICY_PATH}.are_dynamic_imports_banned")
-    require_string_list(payload["banned_compatibility_paths"], f"{IMPORT_POLICY_PATH}.banned_compatibility_paths")
     return {
         "version": require_int(payload["version"], f"{IMPORT_POLICY_PATH}.version", minimum=1),
         "package_roots": package_roots,
@@ -89,10 +86,6 @@ def read_import_policy(root: Path) -> ImportPolicy:
         "are_dynamic_imports_banned": require_bool(
             payload["are_dynamic_imports_banned"],
             f"{IMPORT_POLICY_PATH}.are_dynamic_imports_banned",
-        ),
-        "banned_compatibility_paths": require_string_list(
-            payload["banned_compatibility_paths"],
-            f"{IMPORT_POLICY_PATH}.banned_compatibility_paths",
         ),
     }
 

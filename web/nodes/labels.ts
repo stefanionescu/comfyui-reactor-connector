@@ -1,3 +1,4 @@
+import { connectedInputs } from '#web/nodes/inputs.ts';
 import { translate, type MessageKey } from '#web/language.ts';
 import type { ReactorNode, NodeWidget } from '#web/nodes/contracts.ts';
 
@@ -7,31 +8,17 @@ import type { ReactorNode, NodeWidget } from '#web/nodes/contracts.ts';
  */
 export function configureNodeWidgets(node: ReactorNode): void {
   if (!node.comfyClass?.startsWith('ReactorInc')) return;
-  const control = node.widgets?.find((widget) => widget.name === 'control_after_generate');
-  if (control) bindWidgetLabel(node, control, 'nodes.seedBehavior');
+  for (const widget of node.widgets ?? []) {
+    if (widget.name !== 'control_after_generate') continue;
+    bindWidgetLabel(node, widget, 'nodes.seedBehavior');
+    break;
+  }
+  const connected = connectedInputs(node);
   for (const widget of node.widgets ?? []) {
     if (typeof widget.options?.advanced !== 'boolean') continue;
-    const connected = node.inputs?.some(
-      (input) => input.name === widget.name && input.link != null,
-    );
     // The canvas renderer needs this flag, but connected inputs must keep their labels.
-    widget.advanced = widget.options.advanced && !connected;
+    widget.advanced = widget.options.advanced && !connected.has(widget.name);
   }
-}
-
-/**
- * Refresh widget labels after ComfyUI changes input connections.
- * @param node - The newly created Reactor node.
- */
-export function bindNodeWidgets(node: ReactorNode): void {
-  if (!node.comfyClass?.startsWith('ReactorInc')) return;
-  configureNodeWidgets(node);
-  const changed = node.onConnectionsChange;
-  // eslint-disable-next-line local/no-trivial-functions -- ComfyUI requires a callback that preserves the previous listener and refreshes widget labels.
-  node.onConnectionsChange = function (...args: unknown[]) {
-    changed?.apply(this, args);
-    configureNodeWidgets(node);
-  };
 }
 
 const labels = new Map<WeakRef<NodeWidget>, { node: WeakRef<ReactorNode>; key: MessageKey }>();

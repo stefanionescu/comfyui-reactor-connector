@@ -124,7 +124,7 @@ Use these defaults for shell code. Keep runtime requirements explicit.
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Shell language      | Executable shell scripts use Bash, not `sh`, unless a constrained runtime explicitly requires POSIX `sh`.                                                                                                                |
 | Shebang             | New cross-platform repo scripts use `#!/usr/bin/env bash`. Linux-only remote host scripts may use `#!/bin/bash` when the target guarantees that path. Follow the surrounding script family when editing.                 |
-| Bash version        | Use the declared Bash runtime; do not add support for older versions.                                                                                                                    |
+| Bash version        | Default to Bash 3.2-compatible syntax unless the script declares and checks a newer Bash requirement.                                                                                                                    |
 | Script size         | Bash is acceptable for small utilities and orchestration. Over about 100 lines, complex branching, complex parsing, or nested data structures, split and simplify the Bash instead of adding another scripting language. |
 | Quoting             | Quote variable expansions and command substitutions by default. Use arrays for argument lists.                                                                                                                           |
 | Conditionals        | Prefer `[[ ... ]]` for Bash string/file conditionals and `(( ... ))` for trusted arithmetic comparisons. Validate untrusted numeric input before arithmetic contexts.                                                    |
@@ -132,7 +132,7 @@ Use these defaults for shell code. Keep runtime requirements explicit.
 | Deprecated syntax   | Ban legacy and ambiguous forms even when Bash still accepts them. Use the clearer replacement forms listed in this guide.                                                                                                |
 | Function comments   | Every function gets a one-line header comment. Public, library, or non-obvious functions also document globals, arguments, outputs, and return behavior.                                                                 |
 | Pipelines           | Split long pipelines one command per line. Understand `pipefail`, `PIPESTATUS`, and commands such as `grep -q` that may close the pipe early.                                                                            |
-| External examples   | Use examples that explain a real shell operation in this project.                                                                                                             |
+| External examples   | Use examples that explain a real shell operation in this project.                                                                                                                                                        |
 
 ## When to use Bash
 
@@ -253,13 +253,33 @@ that the same as a broken shebang.
 
 ## Runtime requirements
 
-Use the Bash version selected for the script's execution environment. State its
-minimum version in the script header and use features available in that version.
-Do not default to Bash 3.2 or add older-shell compatibility paths.
+macOS ships Bash 3.2 by default. Unless a script checks for a newer version,
+avoid Bash 4+ and Bash 5+ features:
 
-If a script needs a newer Bash than its callers provide, update the runtime
-requirement as part of the requested change. Fail clearly when that requirement
-is not met. Do not silently choose another implementation.
+- associative arrays;
+- `readarray` and `mapfile`;
+- `globstar`;
+- namerefs with `declare -n`;
+- `${var@Q}` and other newer parameter transformations;
+- `coproc`;
+- `BASH_XTRACEFD`;
+- `wait -n`;
+- `local -n`;
+- `shopt -s lastpipe`;
+- process-substitution behavior that has not been verified on the target OS.
+
+If a script requires a newer Bash:
+
+```bash
+require_bash_4() {
+  if (( BASH_VERSINFO[0] < 4 )); then
+    printf 'error: bash 4 or newer is required\n' >&2
+    return 1
+  fi
+}
+```
+
+State the requirement in the file header and fail before doing work.
 
 ## Deprecated and forbidden syntax
 
@@ -534,8 +554,8 @@ after the first match can create false failures under `pipefail`.
 - Do not use unguarded `${1}` when an argument may be missing. Use `${1:-}`.
 - Be careful with arrays under `set -u`; check lengths before indexing.
 - If empty arrays are meaningful, require Bash 4.4 or newer before relying on
-  behavior under `set -u`. Declare that runtime requirement instead of adding
-  older-shell workarounds.
+  their behavior under `set -u`. Bash 3.2-compatible scripts must guard array
+  access explicitly.
 
 ## Output, logging, and errors
 
@@ -978,7 +998,7 @@ Rules:
 - Use a `while read` loop or Bash 4+ `readarray` only when runtime support is
   guaranteed.
 - Avoid arrays as ersatz nested data structures.
-- Use indexed or associative arrays according to the data and declared runtime.
+- On Bash 3.2-compatible scripts, indexed arrays are allowed; associative arrays are not.
 
 Safe multi-line command output into an array on Bash 4+:
 
@@ -2116,15 +2136,33 @@ into code.
 
 ## Platform requirements
 
-Target the platforms required by the task. Do not add platform-detection layers
-or wrapper functions for hypothetical environments.
+Rules:
 
-- State the supported platform and minimum Bash version in the script header.
-- Use the selected runtime and utilities directly.
-- Account for utility differences only on platforms the script must support.
-- Use physical paths when symlink resolution matters.
-- Do not assume hooks inherit the developer shell's PATH.
-- Keep process checks, quoting, and exit-status handling correct on the target.
+- Default to Bash 3.2-compatible syntax unless runtime support is checked.
+- Every file header declares the supported platform and minimum Bash version.
+- The declared contract and syntax must agree. Bash 4+ features such as
+  `mapfile`, `readarray`, associative arrays, and `${value,,}` require a
+  checked Bash 4+ entry boundary; otherwise they are forbidden.
+- Account for macOS/BSD and GNU differences in `sed`, `date`, `readlink`,
+  `mktemp`, `stat`, `xargs`, and `grep`.
+- Prefer project-provided wrappers for platform-specific behavior.
+- Do not use `realpath` unless the target platform guarantees it.
+- Use `pwd -P` after `cd` for physical paths when symlinks matter.
+- Avoid `sed -i` unless platform-specific behavior is handled.
+- Avoid `date` parsing that differs between GNU and BSD.
+- Do not assume `/bin/bash` is a modern Bash on macOS.
+- Do not use Linux-only utilities in macOS-compatible scripts without checks.
+- Do not assume hooks have the same PATH as a developer shell.
+
+Portable-ish script directory:
+
+```bash
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly SCRIPT_DIR
+```
+
+When absolute path resolution must handle symlinks across platforms, prefer a
+small verified Bash helper or product-owned application code.
 
 ## Linting and formatting
 
@@ -2347,7 +2385,7 @@ reference index.
 | `set -euo pipefail`, `errexit`, `pipefail`, `nounset`                      | [Shell Options](#shell-options)                                                                                                                                                        |
 | `eval`, configured shells, `find -exec sh -c`, `xargs`, network-to-shell   | [Security Rules](#security-rules), [Network Commands](#network-commands)                                                                                                               |
 | `sudo`, `su`, process matching, closed descriptors                         | [Process Management and Privilege Boundaries](#process-management-and-privilege-boundaries), [Pipelines and Redirection](#pipelines-and-redirection)                                   |
-| BOM, CRLF, Bash version, macOS/GNU differences                             | [File Encoding and Line Endings](#file-encoding-and-line-endings), [Runtime Requirements](#runtime-requirements), [Platform Requirements](#platform-requirements)                            |
+| BOM, CRLF, Bash version, macOS/GNU differences                             | [File Encoding and Line Endings](#file-encoding-and-line-endings), [Runtime Requirements](#runtime-requirements), [Platform Requirements](#platform-requirements)                      |
 | ShellCheck, readability, structure, comments, debugging                    | [Script Structure](#script-structure), [Comments and Documentation](#comments-and-documentation), [Linting and Formatting](#linting-and-formatting), [Debugging Bash](#debugging-bash) |
 
 ## Anti-patterns

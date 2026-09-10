@@ -6,10 +6,12 @@ const wordPattern = /[A-Z]+(?=[A-Z][a-z]|$)|[A-Z]?[a-z]+|[0-9]+/g;
  * @returns Lowercase word and numeric parts in source order.
  */
 function splitIdentifierParts(value) {
-  const segments = String(value)
-    .split(/[^A-Za-z0-9]+/u)
-    .flatMap((segment) => segment.match(wordPattern) ?? []);
-  const parts = segments.map((part) => part.toLowerCase()).filter(Boolean);
+  const parts = [];
+  for (const segment of String(value).split(/[^A-Za-z0-9]+/u)) {
+    for (const part of segment.match(wordPattern) ?? []) {
+      parts.push(part.toLowerCase());
+    }
+  }
   return parts;
 }
 
@@ -64,11 +66,18 @@ function findBannedTerm(parts, termEntries) {
   for (const entry of termEntries) {
     const lastStart = parts.length - entry.parts.length;
     for (let index = 0; index <= lastStart; index += 1) {
-      if (entry.parts.every((part, offset) => parts[index + offset] === part)) return entry.term;
+      if (matchesPhrase(parts, entry.parts, index)) return entry.term;
     }
   }
 
   return null;
+}
+
+function matchesPhrase(parts, phrase, start) {
+  for (const [offset, part] of phrase.entries()) {
+    if (parts.at(start + offset) !== part) return false;
+  }
+  return true;
 }
 
 export { buildTermEntries, findBannedTerm, firstDuplicatePart, splitIdentifierParts };

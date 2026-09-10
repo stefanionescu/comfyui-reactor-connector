@@ -1,9 +1,9 @@
 """Describe named node inputs and the connections included in one workflow."""
 
-from typing import cast, Literal
+from typing import Literal
 from dataclasses import dataclass
+from ...src.language import translate
 from ...config.models.nodes import NODE_MODELS
-from ...src.language import read_messages, translate
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,17 +21,6 @@ class Example:
     def title(self) -> str:
         """Read the example title from the workflow language file."""
         return translate("workflows", self.slug + ".title")
-
-    @property
-    def widgets(self) -> dict[str, str | float | bool]:
-        """Combine model controls with the example's editable text."""
-        values = self.inputs.copy()
-        messages = cast("dict[str, object]", read_messages("workflows")[self.slug])
-        for name in ("prompt", "audio_prompt", "script", "later_prompts"):
-            key = self.slug + "." + name
-            if name in messages:
-                values[name] = translate("workflows", key)
-        return values
 
     @property
     def model(self) -> str:

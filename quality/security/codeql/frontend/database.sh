@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
+#
+# Configure and run CodeQL database scans.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck disable=SC2154
 # lint:justify -- reason: scan.sh supplies these values before sourcing and calling this file.
-# Configure and run CodeQL database scans.
+# shellcheck source=../cleanup.sh
+source "${REPO_ROOT}/quality/security/codeql/cleanup.sh"
 
-# configure_codeql_paths - Validates scan paths and prepares artifact paths.
-configure_codeql_paths() {
+# codeql_configure_paths - Validates scan paths and prepares artifact paths.
+# Globals:
+#   Reads repository and CodeQL settings; sets artifact_root, database_dir, and sarif_file.
+# Arguments:
+#   Source root and scan configuration path.
+# Outputs:
+#   Creates the owned database directory; writes failures to standard error.
+# Returns:
+#   Zero when paths are ready; nonzero on invalid paths or filesystem failure.
+codeql_configure_paths() {
   local source_root_abs="$1"
   local config_file_abs="$2"
 
@@ -18,8 +29,7 @@ configure_codeql_paths() {
     return 1
   fi
 
-  artifact_root="${REPO_ROOT}/${CODEQL_ARTIFACT_ROOT}/${project_name}"
-  database_dir="${artifact_root}/${CODEQL_DATABASE_DIR_PREFIX}${language}"
+  artifact_root="${REPO_ROOT}/${CODEQL_ARTIFACT_ROOT}"
   sarif_file="${artifact_root}/${language}${CODEQL_SARIF_EXTENSION}"
   for artifact_parent in .artifacts .artifacts/security .artifacts/security/codeql .artifacts/security/codeql/frontend; do
     if [[ -L "${REPO_ROOT}/${artifact_parent}" ]]; then
@@ -27,23 +37,40 @@ configure_codeql_paths() {
       return 1
     fi
   done
-  mkdir -p -- "${artifact_root}" "$(dirname -- "${sarif_file}")"
+  mkdir -p -- "${artifact_root}"
+  database_dir="$(mktemp -d "${artifact_root}/${CODEQL_DATABASE_DIR_PREFIX}${language}.XXXXXX")"
 }
 
-# cleanup_codeql_database - Removes the database unless retention is enabled.
-cleanup_codeql_database() {
+# codeql_cleanup_database - Removes the database unless retention is enabled.
+# Globals:
+#   Reads keep_database, database_dir, artifact_root, and language.
+# Arguments:
+#   None.
+# Outputs:
+#   Removes the owned database unless retention is enabled.
+# Returns:
+#   Zero when retained or removed; nonzero for invalid ownership or removal failure.
+codeql_cleanup_database() {
   [[ ${keep_database} == '1' ]] && return 0
-  [[ ${database_dir} == "${artifact_root}/${CODEQL_DATABASE_DIR_PREFIX}${language}" ]] || return 1
-  rm -rf -- "${database_dir}"
+  [[ ${database_dir} == "${artifact_root}/${CODEQL_DATABASE_DIR_PREFIX}${language}."* ]] || return 1
+  runtime_remove_owned_path "${REPO_ROOT}" "${database_dir}"
 }
 
-# build_codeql_create_args - Builds database creation command arguments.
-build_codeql_create_args() {
+# codeql_create_arguments - Builds database creation command arguments.
+# Globals:
+#   Reads CodeQL settings and database_dir; writes create_args.
+# Arguments:
+#   Source root and scan configuration path.
+# Outputs:
+#   None.
+# Returns:
+#   Zero.
+codeql_create_arguments() {
   local source_root_abs="$1"
   local config_file_abs="$2"
 
   create_args=(
-    "${CODEQL_COMMAND}"
+    mise exec -- codeql
     database
     create
     "--language=${language}"
@@ -59,10 +86,18 @@ build_codeql_create_args() {
   create_args+=(-- "${database_dir}")
 }
 
-# build_codeql_analyze_args - Builds database analysis command arguments.
-build_codeql_analyze_args() {
+# codeql_analyze_arguments - Builds database analysis command arguments.
+# Globals:
+#   Reads CodeQL settings and query_suites; writes analyze_args.
+# Arguments:
+#   None.
+# Outputs:
+#   None.
+# Returns:
+#   Zero.
+codeql_analyze_arguments() {
   analyze_args=(
-    "${CODEQL_COMMAND}"
+    mise exec -- codeql
     database
     analyze
     "--format=${CODEQL_SARIF_FORMAT}"
@@ -77,10 +112,17 @@ build_codeql_analyze_args() {
   analyze_args+=(-- "${database_dir}" "${query_suites[@]}")
 }
 
-# run_codeql_commands - Creates and analyzes the CodeQL database.
-run_codeql_commands() {
-  printf 'step=codeql project=%s language=%s status=running\n' \
-    "${project_name}" "${language}" >&2
+# codeql_run_commands - Creates and analyzes the CodeQL database.
+# Globals:
+#   Reads language, create_args, and analyze_args.
+# Arguments:
+#   None.
+# Outputs:
+#   Writes CodeQL progress and findings.
+# Returns:
+#   Returns the CodeQL command status.
+codeql_run_commands() {
+  printf 'CodeQL %s scan running.\n' "${language}" >&2
   "${create_args[@]}"
   "${analyze_args[@]}"
 }

@@ -48,19 +48,19 @@ class SanaRequest(VideoInputs):
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sanaWebcamUnsupported"))
         if mode == "file":
             await self._accept_file(transport, events)
-        await events.command("set_seed", {"seed": self.seed})
+        await events.command_reply("set_seed", {"seed": self.seed})
         if self.prompt.strip():
-            await events.command("set_prompt", {"prompt": self.prompt})
-        await events.command("set_anchor_interval", {"chunks": self.anchor_interval})
+            await events.command_reply("set_prompt", {"prompt": self.prompt})
+        await events.command_reply("set_anchor_interval", {"chunks": self.anchor_interval})
         if mode == "file":
-            await events.command("set_mode", {"mode": "file"})
+            await events.command_reply("set_mode", {"mode": "file"})
         else:
             track = await events.call("publish_camera", transport.publish_track("camera"))
             if self.webcam is not None:
                 await self.webcam.begin(track, events.on_error)
             elif self.video is not None:
                 await self.publication.begin(self.video, track, events.on_error)
-        await events.command("start", {})
+        await events.command_reply("start", {})
         self.publication.resume()
 
     async def release(self, transport: Transport) -> None:
@@ -94,7 +94,7 @@ class SanaRequest(VideoInputs):
             reference = await events.call(
                 "upload", transport.upload_file(self.video, name="input.mp4", mime_type="video/mp4")
             )
-            await events.command("set_video", {"video": reference})
+            await events.command_reply("set_video", {"video": reference})
             await accepted.wait()
         finally:
             transport.off("message", observe)

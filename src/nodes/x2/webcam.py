@@ -2,7 +2,6 @@
 
 import asyncio
 from functools import partial
-from ...language import translate
 from ...media.output import owned_io
 from ..controls import video_outputs
 from ...live.state import LiveOptions
@@ -11,6 +10,7 @@ from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...media.webcam import WebcamFrames
 from ...execution.x2.request import X2Request
+from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
@@ -39,7 +39,7 @@ class X2Webcam(io.ComfyNode):
                     io.String.Input(
                         "prompt",
                         multiline=True,
-                        default=translate("prompts", "webcam"),
+                        default=DEFAULT_PROMPTS["webcam"],
                     ),
                     io.Float.Input(
                         "duration_seconds",

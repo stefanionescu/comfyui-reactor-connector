@@ -277,7 +277,7 @@ TypeScript JSDoc, node help, and workflow notes.
 
 ## Protected files
 
-Do not modify `AGENTS.md` or files under `rules/` unless the user
+Do not modify `AGENTS.md`, `CLAUDE.md`, or files under `rules/` unless the user
 explicitly asks for rule changes.
 
 ## Language discipline
