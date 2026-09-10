@@ -40,7 +40,10 @@ export const CONFIG_COMMAND_NAMES = [
   'spawnSync',
 ];
 // These tool loaders need absolute paths for the selected repository.
-export const CONFIG_PROCESS_PATHS = ['quality/config/eslint/index.js', 'quality/config/madge.cjs'];
+export const CONFIG_PROCESS_PATHS = [
+  'quality/config/eslint/index.js',
+  'quality/config/imports/madge.cjs',
+];
 
 export const SHELL_CONFIG_GUARDS = [
   {

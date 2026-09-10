@@ -1,7 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { PREFIX_COLLISION_ALLOWLIST, SINGLE_FILE_FOLDER_PATTERNS } from '#config/folders.js';
+
+import {
+  PREFIX_COLLISION_ALLOWLIST,
+  SINGLE_FILE_FOLDER_PATTERNS,
+} from '#config/repository/directories.js';
 
 const repoRoot = process.cwd();
 
@@ -24,7 +28,7 @@ function validateFolderPolicy() {
       // eslint-disable-next-line security/detect-non-literal-fs-filename -- This checks paths declared in the repository folder policy; it reads no file content.
       if (!fs.existsSync(absolutePath)) {
         errors.push(
-          `stale ${name} entry in quality/config/folders.js: "${relativePath}" does not exist`,
+          `stale ${name} entry in quality/config/repository/directories.js: "${relativePath}" does not exist`,
         );
       }
     }

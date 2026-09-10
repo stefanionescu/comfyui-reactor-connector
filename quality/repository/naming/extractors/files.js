@@ -1,6 +1,14 @@
 import path from 'node:path';
-import { JAVASCRIPT_DIRECTORY_PREFIXES, SHELL_DIRECTORY_PREFIXES } from '#config/naming.js';
-import { JAVASCRIPT_EXTENSIONS, SHELL_EXTENSIONS, SHELL_SHEBANG_REGEX } from '#config/files.js';
+
+import {
+  JAVASCRIPT_DIRECTORY_PREFIXES,
+  SHELL_DIRECTORY_PREFIXES,
+} from '#config/naming/identifiers.js';
+import {
+  JAVASCRIPT_EXTENSIONS,
+  SHELL_EXTENSIONS,
+  SHELL_SHEBANG_REGEX,
+} from '#config/repository/extensions.js';
 
 const javascriptExtensionSet = new Set(JAVASCRIPT_EXTENSIONS);
 const shellExtensionSet = new Set(SHELL_EXTENSIONS);

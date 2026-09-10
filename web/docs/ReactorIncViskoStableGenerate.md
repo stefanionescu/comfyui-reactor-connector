@@ -54,20 +54,15 @@ Preparing the recording can add time after generation. The session must
 finish within the limit in Reactor settings. If recording fails, the node
 returns an error and removes unfinished files.
 
-## Cancellation
+## Stop and recover
 
-Session time includes connection, setup,
-generation, and recording readiness; it can exceed the saved video's duration.
-The configured session time limit applies throughout. Pausing playback or closing
-the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.
+Use ComfyUI's cancel control to stop generation. Pausing playback or closing
+the ComfyUI window does not stop it. Change **Run number** to request another run
+with unchanged inputs.
 
-Unchanged inputs may reuse ComfyUI's cache. Change **Run number** for another run. A seed does not guarantee identical results across model updates.
-The connector does not automatically retry failed commands or uncertain sessions.
-
-If the session reaches its limit before recording is ready, try a shorter recording
-or review the host's session limit and expected cost. If a recording is unavailable,
-check provider status before deciding whether to retry. A larger limit must remain
-within your own cost constraints.
+If the session reaches its limit before recording is ready, try a shorter video
+or increase **Maximum session duration** in Reactor settings. For other failures,
+follow the [recovery guide](../../ADVANCED.md#recovery) before trying again.
 
 [Reactor Visko Stable schema](https://docs.reactor.inc/model-api-reference/visko-orbis-stable/schema)
 

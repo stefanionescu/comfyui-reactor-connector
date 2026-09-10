@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { JSX_EXTENSIONS } from '#config/files.js';
 import { getKeys } from '@typescript-eslint/visitor-keys';
 import { parse } from '@typescript-eslint/typescript-estree';
+import { JSX_EXTENSIONS } from '#config/repository/extensions.js';
 
 const jsxExtensionSet = new Set(JSX_EXTENSIONS);
 

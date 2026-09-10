@@ -18,7 +18,7 @@ main() {
     printf '%s\n' 'error: provide the commit message file' >&2
     exit 2
   fi
-  exec bun --bun node_modules/@commitlint/cli/cli.js --config quality/config/commitlint.json --edit "$1"
+  exec bun --bun node_modules/@commitlint/cli/cli.js --config quality/config/repository/commitlint.json --edit "$1"
 }
 
 main "$@"

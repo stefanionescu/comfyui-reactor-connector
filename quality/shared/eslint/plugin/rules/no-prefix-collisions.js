@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { PREFIXED_FILES_SCOPE } from '#config/paths.js';
-import { DIRECTORY_IGNORE_PATHS } from '#config/folders.js';
-import { PREFIXED_FILES_THRESHOLD } from '#config/limits.js';
+import { PREFIXED_FILES_SCOPE } from '#config/imports/aliases.js';
+import { PREFIXED_FILES_THRESHOLD } from '#config/eslint/limits.js';
+import { DIRECTORY_IGNORE_PATHS } from '#config/repository/directories.js';
 import { isIndexFile } from '#shared/eslint/plugin/path-policy/index-file.js';
 import { analyzeDirectory, getPrefix } from '#repository/integrity/directory-prefixes.js';
 

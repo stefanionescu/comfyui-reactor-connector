@@ -2,10 +2,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { JAVASCRIPT_EXTENSIONS } from '#config/files.js';
 import { parse } from '@typescript-eslint/typescript-estree';
 import { visitorKeys } from '@typescript-eslint/visitor-keys';
-import { DISALLOWED_RUNTIME_FOLDERS } from '#config/folders.js';
+import { JAVASCRIPT_EXTENSIONS } from '#config/repository/extensions.js';
+import { DISALLOWED_RUNTIME_FOLDERS } from '#config/repository/directories.js';
 
 import {
   CONFIG_NODE_RULES,
@@ -13,7 +13,7 @@ import {
   CONFIG_COMMAND_NAMES,
   CONFIG_PROCESS_PATHS,
   SHELL_CONFIG_GUARDS,
-} from '#config/config.js';
+} from '#config/repository/declarations.js';
 
 const repoRoot = process.cwd();
 const qualityRoot = path.join(repoRoot, 'quality');

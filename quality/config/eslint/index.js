@@ -6,11 +6,11 @@ import security from 'eslint-plugin-security';
 import tsParser from '@typescript-eslint/parser';
 import sharedPolicy from '#config/eslint/base.mjs';
 import prettierConfig from 'eslint-config-prettier';
-import { NODE_API_VERSION } from '#config/runtime.js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
-import { SINGLE_FILE_FOLDER_PATTERNS } from '#config/folders.js';
+import { NODE_API_VERSION } from '#config/eslint/runtime.js';
 import { rules as localRules } from '#shared/eslint/plugin/index.js';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
+import { SINGLE_FILE_FOLDER_PATTERNS } from '#config/repository/directories.js';
 
 import {
   ESLINT_BROWSER_GLOBALS,
@@ -58,6 +58,18 @@ const boundaryOverrides = [
   {
     files: browserFiles,
     rules: {
+      'no-alert': 'error',
+      'no-restricted-properties': [
+        'error',
+        {
+          property: 'getCanvasMenuOptions',
+          message: 'Use the ComfyUI getCanvasMenuItems extension hook.',
+        },
+        {
+          property: 'getExtraMenuOptions',
+          message: 'Use the ComfyUI getNodeMenuItems extension hook.',
+        },
+      ],
       'no-restricted-imports': [
         'error',
         {

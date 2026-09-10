@@ -1,4 +1,4 @@
-import { NODE_API_VERSION } from '#config/runtime.js';
+import { NODE_API_VERSION } from '#config/eslint/runtime.js';
 
 import {
   BARREL_REEXPORTS_MAX,
@@ -8,7 +8,7 @@ import {
   MAX_FUNCTION_LINES,
   MAX_TRIVIAL_FUNCTION_STATEMENTS,
   PREFIXED_FILES_THRESHOLD,
-} from '#config/limits.js';
+} from '#config/eslint/limits.js';
 
 const eslintNodeRules = {
   'n/no-deprecated-api': 'error',

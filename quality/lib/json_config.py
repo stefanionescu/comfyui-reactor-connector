@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
+from .files import read_utf8
 from typing import TYPE_CHECKING, cast
-from quality.lib.files import read_utf8
 from collections.abc import Mapping, Sequence
 
 if TYPE_CHECKING:

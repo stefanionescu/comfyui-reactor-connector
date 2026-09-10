@@ -15,7 +15,7 @@ from ..docs.build import inventory_issues
 from .models.longlive import SHOT_PROMPTS
 from .models.helios import SEQUENCE_PROMPTS
 from ...src.language import translate, language_scope
-from ..nodes.metadata import read_schemas, validate_models
+from ..nodes.metadata import read_schemas, validate_metadata
 from .serialize import widget_values, validate_sources, validate_connections, output_types
 
 
@@ -279,7 +279,7 @@ def main() -> int:
         sys.stderr.write("Choose --output-directory outside workflows/ for a non-English build.\n")
         return 2
     schemas = read_schemas()
-    issues = validate_models(schemas)
+    issues = validate_metadata(schemas)
     issues.extend(inventory_issues(root / "web/docs", root / "web/dist/docs", set(schemas)))
     covered = {example.node_id for example in EXAMPLES}
     if any((example.plan == "shots") for example in EXAMPLES):

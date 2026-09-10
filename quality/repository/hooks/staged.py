@@ -14,7 +14,7 @@ def require_private_files_unstaged(paths: Iterable[str]) -> None:
     for path in paths:
         parts = path.split("/")
         name = parts[-1]
-        if name in {".env", ".mise.local.toml"} or name.startswith(".env.") or ".reactor-private" in parts:
+        if name == ".env" or name.startswith(".env.") or ".reactor-private" in parts:
             msg = "Remove private settings or credentials from staging before committing."
             raise ValueError(msg)
 

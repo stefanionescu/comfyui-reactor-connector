@@ -765,7 +765,7 @@ Good:
 web/help/links.ts
 web/settings/api.ts
 web/live/controls.ts
-src/workflows/validate-links.js
+quality/web/links/check.mjs
 ```
 
 ### JavaScript functions

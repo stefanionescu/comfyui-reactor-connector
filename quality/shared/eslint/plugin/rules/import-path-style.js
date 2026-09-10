@@ -1,4 +1,4 @@
-import { INTERNAL_PREFIXES } from '#config/paths.js';
+import { INTERNAL_PREFIXES } from '#config/imports/aliases.js';
 
 const styleMessages = new Map([
   ['js', 'Internal imports must use explicit JavaScript file extensions.'],

@@ -4,8 +4,6 @@ Move through a scene from your image and save a video. Choose a direction for
 the camera to follow, or turn on **Live controls** to steer with keys and buttons.
 Recording stops after the duration you choose.
 
-Use a room or path with clear depth to make camera movement easier to see.
-
 ## Set up and run
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
@@ -15,8 +13,9 @@ Use a room or path with clear depth to make camera movement easier to see.
 5. Connect **Video** to **Save Video**, then select **Run**.
 6. Play the result in Save Video. It also saves the file in ComfyUI's output folder.
 
-For a first run, use a picture of a path or room with clear depth. Choose
-`forward`, leave look directions at `idle`, and record two seconds.
+For a first run, use a picture of a path or room with clear depth. Set **Movement**
+to **Forward**, set **Turn left or right** and **Look up or down** to **Stop**,
+set **Sideways movement** to **Stop**, and record two seconds.
 
 ## Inputs
 
@@ -28,7 +27,7 @@ For a first run, use a picture of a path or room with clear depth. Choose
 | Seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                      |
 | Run number              | Change this number to request another run with the same other settings. Default: 0.                                                          |
 | Movement                | Forward, Back, or Stop. Choose Stop to stay in place.                                                                                        |
-| Sideways movement       | Sideways movement: strafe left, strafe right, or idle. Combine it with forward or back to move diagonally.                                   |
+| Sideways movement       | Move left, Move right, or Stop. Combine it with Forward or Back to move diagonally.                                   |
 | Turn left or right      | Keep looking left or right. Choose Stop to stop turning.                                                                                     |
 | Look up or down         | Keep looking up or down. You can combine it with horizontal look.                                                                            |
 | Turn per step (degrees) | Turn amount per model step, in degrees. Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. This is not degrees per second. |
@@ -56,17 +55,16 @@ the video from that run. These controls work in the ComfyUI window that started 
 The preview shows up to ten frames per second at up to 640 × 360 pixels.
 The saved video keeps the model's original resolution. This operation has no sound.
 
-## Outputs and cost
+## Outputs
 
-**Video** connects to Save Video or another ComfyUI video node. **Recording details** is text
-with recording details. For live runs, it also lists camera commands the model
-confirmed receiving and the number of preview frames. Receiving a command does
-not prove that the requested movement is visible.
+**Video** connects to **Save Video** or another ComfyUI video node.
+**Recording details** describes the saved file and model. For live runs, it also
+lists camera commands the model confirmed receiving and the number of preview
+frames. Receiving a command does not prove that the requested movement is visible.
+See the [field reference](../../ADVANCED.md#recording-details) for the full list.
 
-Setup and connection time also count toward the
-session time limit. Running the same
-workflow again may reuse ComfyUI's cached result. Change **Run number** for another
-run. Changing the account or execution limits also prevents reuse.
+Change **Run number** to request another run with unchanged inputs. See
+[execution limits](../../ADVANCED.md#execution-limits) for session timing and caching.
 
 ## Stop and recover
 
@@ -76,11 +74,8 @@ and asks Reactor to stop after five seconds without contact. Cleanup has its own
 time limit. Wait for confirmation that the session ended before trying again.
 If confirmation is missing, check Reactor Usage and wait for the session limit.
 
-The connector runs one session at a time. It does not automatically repeat a
-rejected command or create a replacement session after a connection failure.
-A missing image, invalid direction, or oversized prompt is rejected before a
-session starts. If video stops arriving, check Reactor availability and
-your account, then consider a shorter recording.
+If video stops arriving or a run fails, follow the
+[recovery guide](../../ADVANCED.md#recovery) before trying again.
 
 A saved video cannot reopen the scene on Reactor. Playing it again only repeats
 the recording.
@@ -88,8 +83,3 @@ the recording.
 [Reactor LingBot World 2 schema](https://docs.reactor.inc/model-api-reference/lingbot-world-2/schema)
 
 Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
-
-## Recording details
-
-This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.

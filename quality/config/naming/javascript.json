@@ -116,7 +116,9 @@
                 "local/import-path-style",
                 "local/no-trivial-functions",
                 "n/no-process-exit",
+                "no-alert",
                 "no-restricted-imports",
+                "no-restricted-properties",
                 "no-unused-vars"
             ],
             "allowedViolations": ["case"],
@@ -355,21 +357,21 @@
             "reason": "ESLint and its plugins require these rule, plugin, option, and syntax-tree names."
         },
         {
-            "pathRegexes": ["^quality/config/madge\\.cjs$"],
+            "pathRegexes": ["^quality/config/imports/madge\\.cjs$"],
             "categories": ["properties", "functions"],
             "names": ["resolve"],
             "allowedViolations": ["banned-term"],
             "reason": "Madge uses this option and these module specifiers to trace imports."
         },
         {
-            "pathRegexes": ["^quality/config/madge\\.cjs$"],
+            "pathRegexes": ["^quality/config/imports/madge\\.cjs$"],
             "categories": ["properties", "functions"],
             "names": ["#config", "#web", "../../scripts/api.js$", "../../scripts/app.js$"],
             "allowedViolations": ["case"],
             "reason": "Madge uses this option and these module specifiers to trace imports."
         },
         {
-            "pathRegexes": ["^quality/config/naming\\.js$"],
+            "pathRegexes": ["^quality/config/naming/identifiers\\.js$"],
             "categories": ["properties", "functions"],
             "names": ["upper-snake"],
             "allowedViolations": ["case"],

@@ -96,17 +96,13 @@ The result ends at the requested duration or the available video's end.</p>
 <p>Preparing the recording can add time after generation. The session must
 finish within the limit in Reactor settings. If recording fails, the node
 returns an error and removes unfinished files.</p>
-<h2 id="cancellation">Cancellation</h2>
-<p>Session time includes connection, setup,
-generation, and recording readiness; it can exceed the saved video's duration.
-The configured session time limit applies throughout. Pausing playback or closing
-the ComfyUI window does not stop generation. Use ComfyUI's cancel control to stop.</p>
-<p>Unchanged inputs may reuse ComfyUI's cache. Change <strong>Run number</strong> for another run. A seed does not guarantee identical results across model updates.
-The connector does not automatically retry failed commands or uncertain sessions.</p>
-<p>If the session reaches its limit before recording is ready, try a shorter recording
-or review the host's session limit and expected cost. If a recording is unavailable,
-check provider status before deciding whether to retry. A larger limit must remain
-within your own cost constraints.</p>
+<h2 id="stop-and-recover">Stop and recover</h2>
+<p>Use ComfyUI's cancel control to stop generation. Pausing playback or closing
+the ComfyUI window does not stop it. Change <strong>Run number</strong> to request another run
+with unchanged inputs.</p>
+<p>If the session reaches its limit before recording is ready, try a shorter video
+or increase <strong>Maximum session duration</strong> in Reactor settings. For other failures,
+follow the <a href="../ADVANCED.html#recovery">recovery guide</a> before trying again.</p>
 <p><a href="https://docs.reactor.inc/model-api-reference/visko-orbis-stable/schema">Reactor Visko Stable schema</a></p>
 <h2 id="live-controls">Live controls</h2>
 <p>Turn <strong>Live controls</strong> on, select <strong>Run</strong>, then select <strong>Start session</strong> in the

@@ -12,8 +12,10 @@ action explains its inputs and model-specific limits.
 - [Model updates](#model-updates)
 - [Live controls](#live-controls)
 - [Recording details](#recording-details)
+- [Recording overhead](#recording-overhead)
 - [Recovery](#recovery)
 - [Update, restore, or remove](#update-restore-or-remove)
+- [Language](#language)
 - [Development commands](#development-commands)
 
 ## Keys and access
@@ -104,12 +106,9 @@ HappyOyster is excluded, including when an older list is restored.
 Refreshing does not add nodes, change their connections, or change active
 workflows. New models need support in the connector before they can run.
 
-All three public sources must pass validation. A timeout, invalid response,
-conflicting names, or too many missing entries leaves the current list intact.
-Descriptions remain text and cannot execute code. **Restore previous list**
-restores the list saved before the latest refresh. It does not restore a provider
-model, reverse charges, or change the installed package. Searches survive refresh
-and restoration. Only the local ComfyUI user can change the list.
+A failed refresh leaves the current list intact. **Restore previous list** restores
+the list saved before the latest refresh. Both actions keep your search text.
+Only the local ComfyUI user can change the list.
 
 ### Automatic checks
 
@@ -247,6 +246,23 @@ ComfyUI may reuse a cached report and its `run_id`; pressing **Run** does not pr
 a new session started. Older reports may have fewer fields and no schema version.
 Allow missing fields when reading them. Do not rerun solely to update a report.
 
+## Recording overhead
+
+### Fast H3
+
+After the selected clip finishes, the connector builds and starts one additional
+continuation. This advances the recording service so it can finish the selected
+clip's media fragments. The continuation uses credits but is omitted from the
+saved output. Its requested length is the deployment's longest clip, currently
+14.375 seconds. The session ends as soon as the selected recording is ready,
+even if that continuation has not finished. The host session cap still applies.
+
+### LTX
+
+LTX may generate up to 20 extra seconds while Reactor prepares the recording.
+These seconds can use credits and are not saved. The session time limit applies
+to the whole run.
+
 ## Recovery
 
 Read the error and the node's **Help** before trying again. Pausing a video preview does not stop its session.
@@ -288,9 +304,7 @@ Keep a backup of the connector folder outside `custom_nodes`. Replace the whole
 folder with the new package, install its runtime requirements using ComfyUI's
 Python, and restart. Refresh the ComfyUI window.
 
-Keep only one installed copy. If an older folder is named `reactor-inc-connector`,
-move it outside `custom_nodes` before installing `reactor-inc`. Loading both
-creates duplicate nodes and routes.
+Keep only one installed copy in `custom_nodes` to avoid duplicate nodes and menus.
 
 Open an updated example in a new workflow tab. Existing tabs and saved graphs
 keep their own notes, prompts, and layout. Copy settings you want to reuse before
@@ -342,17 +356,22 @@ the root launcher in isolated Python processes; those workers use only the media
 modules and static configuration.
 
 Python checks read types from your actual ComfyUI installation. Set its source
-directory in `.mise.local.toml`, which Git ignores:
+directory in your terminal before running development commands:
 
-```toml
-[env]
-COMFYUI_PATH = "/path/to/ComfyUI"
+```sh
+export COMFYUI_PATH="/path/to/ComfyUI"
 ```
 
 That directory must contain `main.py` and `comfy_api`. Checks use its `.venv`
 Python by default. If ComfyUI uses another environment or Windows portable,
-also set `COMFYUI_PYTHON` to that installation's Python executable. These paths
-are local settings; they do not enter the connector package.
+also set `COMFYUI_PYTHON` to that installation's Python executable:
+
+```sh
+export COMFYUI_PYTHON="/path/to/ComfyUI/python"
+```
+
+Replace these example paths with your installation's paths. The variables apply
+to commands run from that terminal; they are not stored in the repository.
 
 Setup downloads the pinned Semgrep rules into ignored local storage and verifies
 their content hashes. To restore those files, run `mise run security:rules`.
@@ -371,17 +390,16 @@ in the connector package.
 | `mise run docs:build`      | Build native node help and local HTML guides.                                                     |
 | `mise run deps:export`     | Generate runtime requirements from project metadata.                                              |
 | `mise run models:check`    | Read public prices and guides without saving them.                                                |
-| `mise run models:validate` | Check model associations against registered node schemas.                                         |
+| `mise run models:validate` | Check node registrations and translations.                                                       |
 | `mise run audit:python`    | Check Python dependencies against advisory services.                                              |
 | `mise run audit:frontend`  | Check frontend dependencies against advisory services.                                            |
 | `mise run security:rules`  | Download and verify the pinned Semgrep rule packs.                                                |
 | `mise run release:package` | Check and build a ComfyUI archive without publishing it.                                          |
 
-Pre-commit checks require the working files to match the staged content. Pre-push
-checks require them to match each revision being pushed. Both hooks reject
-untracked public files so that checks cannot read files missing from the commit.
-Finish or set aside other changes before committing or pushing. Hooks do not
-stash or rewrite your work. Ignored private settings remain local.
+Pre-commit checks scan staged changes for secrets and reject staged private
+settings files. They also check source files, frontend types, and generated output
+in the working directory. Pre-push runs `mise run check` against the working
+directory. Hooks do not stash or rewrite your work.
 
 Builds write generated assets; checks and hooks do not install dependencies or
 start generation. Dependency audits need network access and do not apply fixes.
@@ -406,20 +424,3 @@ files directly. Rebuild examples before packaging.
 Python checks use actual ComfyUI and dependency types. Where an upstream API lacks
 complete annotations, the code defines only the interface it consumes. Check
 changed host calls manually in the installed ComfyUI as well.
-
-## Recording overhead
-
-### Fast H3
-
-After the selected clip finishes, the connector builds and starts one additional
-continuation. This advances the recording service so it can finish the selected
-clip's media fragments. The continuation uses credits but is omitted from the
-saved output. Its requested length is the deployment's longest clip, currently
-14.375 seconds. The session ends as soon as the selected recording is ready,
-even if that continuation has not finished. The host session cap still applies.
-
-### LTX
-
-LTX may generate up to 20 extra seconds while Reactor prepares the recording.
-These seconds can use credits and are not saved. The session time limit applies
-to the whole run.

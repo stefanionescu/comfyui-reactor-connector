@@ -107,7 +107,7 @@ ALLOWED_SINGLE_SCRIPT_FOLDERS = {
     # The root setup task installs tools; the other tasks are grouped by purpose.
     ".mise/tasks",
     # These shell entrypoints share their owner with JavaScript policy or filtering code.
-    "quality/config/package-json/licenses",
+    "quality/config/repository/licenses",
     "quality/repository/licenses",
     ".mise/tasks/licenses",
     ".mise/tasks/security",

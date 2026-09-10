@@ -23,39 +23,54 @@ and a Reactor account with credits.
    Choose the command below for your installation.
 4. Start ComfyUI, then refresh its window.
 
-For Comfy Desktop, use that instance's ComfyUI directory and Python environment.
 You do not need Bun, mise, or development dependencies to use the connector.
 
-### macOS or Linux
+### Comfy Desktop
+
+1. On the home screen, open the installation's **⋮** menu and select **Manage**.
+2. Open **About** and copy **Location** to find the installation folder. Inside it,
+   find the `ComfyUI` folder containing `main.py` and extract the connector into
+   `custom_nodes/reactor-inc`.
+3. Open **Terminal** in the same Manage panel. Desktop opens the ComfyUI folder
+   and activates that installation's Python environment. Run:
+
+```sh
+pip install -r custom_nodes/reactor-inc/requirements.txt
+```
+
+Start the installation after the command finishes. See
+[Comfy Desktop's Manage panel](https://docs.comfy.org/installation/desktop/usage/manage)
+for the folder and terminal controls.
+
+### Manual installation: macOS or Linux
 
 Run from the ComfyUI directory. Replace `.venv` if your environment has another name:
 
 ```sh
-.venv/bin/python -m pip install \
-  -r custom_nodes/reactor-inc/requirements.txt
+.venv/bin/python -m pip install -r custom_nodes/reactor-inc/requirements.txt
 ```
 
 For a uv environment without pip, use:
 
 ```sh
-uv pip install --python .venv/bin/python \
-  -r custom_nodes/reactor-inc/requirements.txt
+uv pip install --python .venv/bin/python -r custom_nodes/reactor-inc/requirements.txt
 ```
 
-### Windows
+### Manual installation: Windows
 
-For a virtual environment, run in PowerShell from the ComfyUI directory:
+Run in PowerShell from the ComfyUI directory. Replace `.venv` if your virtual
+environment has another name or location:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install `
-  -r .\custom_nodes\reactor-inc\requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r .\custom_nodes\reactor-inc\requirements.txt
 ```
 
-For Windows portable, run from the folder containing `ComfyUI` and `python_embeded`:
+### Windows portable
+
+Run in PowerShell from the folder containing `ComfyUI` and `python_embeded`:
 
 ```powershell
-.\python_embeded\python.exe -m pip install `
-  -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
+.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
 ```
 
 See [update, restore, or remove](ADVANCED.md#update-restore-or-remove) for later

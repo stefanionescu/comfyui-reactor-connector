@@ -15,7 +15,6 @@ __pycache__/
 # Private settings and credentials
 .env
 .env.*
-.mise.local.toml
 .reactor-private/
 
 # Logs and operating system files

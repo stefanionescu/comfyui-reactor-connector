@@ -18,7 +18,7 @@
                 "config": ["quality/config/eslint/index.js"]
             },
             "commitlint": {
-                "config": ["quality/config/commitlint.json"]
+                "config": ["quality/config/repository/commitlint.json"]
             }
         },
         "quality": {
@@ -30,7 +30,7 @@
                 "security/codeql/frontend/paths.js",
                 "security/codeql/frontend/sarif.js",
                 "web/links/check.mjs",
-                "config/madge.cjs",
+                "config/imports/madge.cjs",
                 "repository/integrity/folder-policy.js",
                 "repository/licenses/javascript.js"
             ],
@@ -38,7 +38,7 @@
         }
     },
     "ignoreIssues": {
-        "quality/config/limits.js": ["duplicates"],
-        "quality/config/paths.js": ["duplicates"]
+        "quality/config/eslint/limits.js": ["duplicates"],
+        "quality/config/imports/aliases.js": ["duplicates"]
     }
 }

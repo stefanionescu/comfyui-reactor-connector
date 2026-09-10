@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { ALIAS_ROOTS, DEFAULT_SCOPE } from '#config/paths.js';
+import { ALIAS_ROOTS, DEFAULT_SCOPE } from '#config/imports/aliases.js';
 
 import {
   isInScope,

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# Check model associations against registered node schemas.
+# Check node registrations and translations.
 # Runtime: Bash 3.2+, macOS and Linux.
-#MISE description="Check model associations against registered node schemas."
+#MISE description="Check node registrations and translations."
 set -euo pipefail
 
-# main - Check model associations against registered node schemas.
+# main - Check node registrations and translations.
 main() {
   REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
   cd "${REPO_ROOT}/.." || exit 1

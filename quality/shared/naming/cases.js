@@ -1,4 +1,4 @@
-import { CASE_PATTERNS } from '#config/naming.js';
+import { CASE_PATTERNS } from '#config/naming/identifiers.js';
 
 const patterns = new Map(Object.entries(CASE_PATTERNS));
 

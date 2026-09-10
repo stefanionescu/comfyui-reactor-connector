@@ -1,4 +1,4 @@
-import { MAX_TRIVIAL_FUNCTION_STATEMENTS } from '#config/limits.js';
+import { MAX_TRIVIAL_FUNCTION_STATEMENTS } from '#config/eslint/limits.js';
 
 const defaultMaxStatements = MAX_TRIVIAL_FUNCTION_STATEMENTS;
 const message = 'Inline functions with only one or two executable statements.';

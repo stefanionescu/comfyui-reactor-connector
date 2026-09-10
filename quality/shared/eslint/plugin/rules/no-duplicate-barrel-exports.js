@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { visibleFiles } from '#shared/files.js';
-import { EXPORT_FILE_EXTENSIONS } from '#config/files.js';
 import { parse } from '@typescript-eslint/typescript-estree';
+import { EXPORT_FILE_EXTENSIONS } from '#config/repository/extensions.js';
 import { isIndexFile } from '#shared/eslint/plugin/path-policy/index-file.js';
 
 import {

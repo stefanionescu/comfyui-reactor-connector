@@ -12,7 +12,7 @@ import {
   LINK_USAGE,
   LINK_ALIASES,
   LINK_TEMPLATES,
-} from '#config/links.js';
+} from '#config/html/links.js';
 
 const root = process.cwd();
 const mode = process.argv[2] ?? '--local';

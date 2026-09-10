@@ -1,4 +1,4 @@
-import { VALID_SCOPES } from '#config/repository.js';
+import { VALID_SCOPES } from '#config/repository/scopes.js';
 import { requireDictionary, requireKeys } from '#shared/json.js';
 import { buildTermEntries } from '#shared/naming/identifier-parts.js';
 import vocabulary from '#config/naming/terms.json' with { type: 'json' };
@@ -10,7 +10,7 @@ import {
   NAMING_POLICY_FIELDS,
   NAMING_RULE_FIELDS,
   JAVASCRIPT_NAME_CATEGORIES,
-} from '#config/naming.js';
+} from '#config/naming/identifiers.js';
 
 function policyRecord(value, required, optional, context) {
   const record = requireDictionary(value, context);

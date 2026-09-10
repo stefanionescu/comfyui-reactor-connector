@@ -35,25 +35,36 @@ Place <code>__init__.py</code> and <code>requirements.txt</code> directly inside
 Choose the command below for your installation.</li>
 <li>Start ComfyUI, then refresh its window.</li>
 </ol>
-<p>For Comfy Desktop, use that instance's ComfyUI directory and Python environment.
-You do not need Bun, mise, or development dependencies to use the connector.</p>
-<h3 id="macos-or-linux">macOS or Linux</h3>
+<p>You do not need Bun, mise, or development dependencies to use the connector.</p>
+<h3 id="comfy-desktop">Comfy Desktop</h3>
+<ol>
+<li>On the home screen, open the installation's <strong>⋮</strong> menu and select <strong>Manage</strong>.</li>
+<li>Open <strong>About</strong> and copy <strong>Location</strong> to find the installation folder. Inside it,
+find the <code>ComfyUI</code> folder containing <code>main.py</code> and extract the connector into
+<code>custom_nodes/reactor-inc</code>.</li>
+<li>Open <strong>Terminal</strong> in the same Manage panel. Desktop opens the ComfyUI folder
+and activates that installation's Python environment. Run:</li>
+</ol>
+<pre><code class="language-sh">pip install -r custom_nodes/reactor-inc/requirements.txt
+</code></pre>
+<p>Start the installation after the command finishes. See
+<a href="https://docs.comfy.org/installation/desktop/usage/manage">Comfy Desktop's Manage panel</a>
+for the folder and terminal controls.</p>
+<h3 id="manual-installation-macos-or-linux">Manual installation: macOS or Linux</h3>
 <p>Run from the ComfyUI directory. Replace <code>.venv</code> if your environment has another name:</p>
-<pre><code class="language-sh">.venv/bin/python -m pip install \
-  -r custom_nodes/reactor-inc/requirements.txt
+<pre><code class="language-sh">.venv/bin/python -m pip install -r custom_nodes/reactor-inc/requirements.txt
 </code></pre>
 <p>For a uv environment without pip, use:</p>
-<pre><code class="language-sh">uv pip install --python .venv/bin/python \
-  -r custom_nodes/reactor-inc/requirements.txt
+<pre><code class="language-sh">uv pip install --python .venv/bin/python -r custom_nodes/reactor-inc/requirements.txt
 </code></pre>
-<h3 id="windows">Windows</h3>
-<p>For a virtual environment, run in PowerShell from the ComfyUI directory:</p>
-<pre><code class="language-powershell">.\.venv\Scripts\python.exe -m pip install `
-  -r .\custom_nodes\reactor-inc\requirements.txt
+<h3 id="manual-installation-windows">Manual installation: Windows</h3>
+<p>Run in PowerShell from the ComfyUI directory. Replace <code>.venv</code> if your virtual
+environment has another name or location:</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe -m pip install -r .\custom_nodes\reactor-inc\requirements.txt
 </code></pre>
-<p>For Windows portable, run from the folder containing <code>ComfyUI</code> and <code>python_embeded</code>:</p>
-<pre><code class="language-powershell">.\python_embeded\python.exe -m pip install `
-  -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
+<h3 id="windows-portable">Windows portable</h3>
+<p>Run in PowerShell from the folder containing <code>ComfyUI</code> and <code>python_embeded</code>:</p>
+<pre><code class="language-powershell">.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
 </code></pre>
 <p>See <a href="ADVANCED.html#update-restore-or-remove">update, restore, or remove</a> for later
 package changes. Install only runtime requirements into ComfyUI's environment.</p>

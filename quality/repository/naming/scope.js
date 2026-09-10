@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { GENERATED_SOURCE_FILES } from '#config/files.js';
-import { SCOPE_PREFIXES, VALID_SCOPES, VALID_SCOPE_USAGE } from '#config/repository.js';
+import { GENERATED_SOURCE_FILES } from '#config/repository/extensions.js';
+import { SCOPE_PREFIXES, VALID_SCOPES, VALID_SCOPE_USAGE } from '#config/repository/scopes.js';
 
 const repoRoot = process.cwd();
 const usage = `Usage: bun quality/repository/naming/check.js [--scope ${VALID_SCOPE_USAGE}]`;

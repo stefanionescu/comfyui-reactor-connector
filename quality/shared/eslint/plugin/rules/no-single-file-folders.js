@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { CODE_EXTENSIONS } from '#config/files.js';
-import { DIRECTORY_IGNORE_PATHS } from '#config/folders.js';
+import { CODE_EXTENSIONS } from '#config/repository/extensions.js';
+import { DIRECTORY_IGNORE_PATHS } from '#config/repository/directories.js';
 
 import {
   normalizeFilename,

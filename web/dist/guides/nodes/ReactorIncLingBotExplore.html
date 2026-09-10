@@ -16,8 +16,6 @@
 <p>Move through a scene from your image and save a video. Choose a direction for
 the camera to follow, or turn on <strong>Live controls</strong> to steer with keys and buttons.
 Recording stops after the duration you choose.</p>
-<p>Start with a picture that has clear depth, such as a room or path. Try forward
-movement with both look directions idle before combining camera controls.</p>
 <h2 id="set-up-and-run">Set up and run</h2>
 <ol>
 <li>Set your key privately in <strong>ComfyUI menu → Extensions → Reactor → Reactor settings</strong>.</li>
@@ -27,8 +25,9 @@ movement with both look directions idle before combining camera controls.</p>
 <li>Connect <strong>Video</strong> to <strong>Save Video</strong>, then select <strong>Run</strong>.</li>
 <li>Play the result in Save Video. It also saves the file in ComfyUI's output folder.</li>
 </ol>
-<p>For a first run, use a picture of a path or room with clear depth. Choose
-<code>forward</code>, leave look directions at <code>idle</code>, and record two seconds.</p>
+<p>For a first run, use a picture of a path or room with clear depth. Set <strong>Movement</strong>
+to <strong>Forward</strong>, set <strong>Turn left or right</strong> and <strong>Look up or down</strong> to <strong>Stop</strong>,
+and record two seconds.</p>
 <h2 id="inputs">Inputs</h2>
 <table>
 <thead>
@@ -96,33 +95,26 @@ Let recording finish to save the video. <strong>End session</strong> stops early
 the video from that run. These controls work in the ComfyUI window that started the workflow. Multi-user mode is not supported.</p>
 <p>The preview shows up to ten frames per second at up to 640 × 360 pixels.
 The saved video keeps the model's original resolution. This operation has no sound.</p>
-<h2 id="outputs-and-cost">Outputs and cost</h2>
-<p><strong>Video</strong> connects to Save Video or another ComfyUI video node. <strong>Recording details</strong> is text
-with recording details. For live runs, it also lists camera commands the model
-confirmed receiving and the number of preview frames. Receiving a command does
-not prove that the requested movement is visible.</p>
-<p>Setup and connection time also count toward the
-session time limit. Running the same
-workflow again may reuse ComfyUI's cached result. Change <strong>Run number</strong> for another
-run. Changing the account or execution limits also prevents reuse.</p>
+<h2 id="outputs">Outputs</h2>
+<p><strong>Video</strong> connects to <strong>Save Video</strong> or another ComfyUI video node.
+<strong>Recording details</strong> describes the saved file and model. For live runs, it also
+lists camera commands the model confirmed receiving and the number of preview
+frames. Receiving a command does not prove that the requested movement is visible.
+See the <a href="../ADVANCED.html#recording-details">field reference</a> for the full list.</p>
+<p>Change <strong>Run number</strong> to request another run with unchanged inputs. See
+<a href="../ADVANCED.html#execution-limits">execution limits</a> for session timing and caching.</p>
 <h2 id="stop-and-recover">Stop and recover</h2>
 <p>Use ComfyUI's cancel control to stop a run. Closing an ordinary workflow tab does
 not cancel it. If the live panel disconnects, the connector releases movement
 and asks Reactor to stop after five seconds without contact. Cleanup has its own
 time limit. Wait for confirmation that the session ended before trying again.
 If confirmation is missing, check Reactor Usage and wait for the session limit.</p>
-<p>The connector runs one session at a time. It does not automatically repeat a
-rejected command or create a replacement session after a connection failure.
-A missing image, invalid direction, or oversized prompt is rejected before a
-session starts. If video stops arriving, check Reactor availability and
-your account, then consider a shorter recording.</p>
+<p>If video stops arriving or a run fails, follow the
+<a href="../ADVANCED.html#recovery">recovery guide</a> before trying again.</p>
 <p>A saved video cannot reopen the scene on Reactor. Playing it again only repeats
 the recording.</p>
 <p><a href="https://docs.reactor.inc/model-api-reference/lingbot/schema">Reactor LingBot schema</a></p>
 <p>Select <strong>View credit rate</strong> for a <a href="../ADVANCED.html#credit-rates">session estimate</a>.</p>
-<h2 id="recording-details">Recording details</h2>
-<p>This output describes the saved file and model. See the
-<a href="../ADVANCED.html#recording-details">field reference</a> for timing, privacy, and cache behavior.</p>
 </main>
     </body>
 </html>

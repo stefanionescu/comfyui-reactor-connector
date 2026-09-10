@@ -1,4 +1,4 @@
-import { BARREL_REEXPORTS_MAX } from '#config/limits.js';
+import { BARREL_REEXPORTS_MAX } from '#config/eslint/limits.js';
 import { isIndexFile } from '#shared/eslint/plugin/path-policy/index-file.js';
 import { normalizeFilename } from '#shared/eslint/plugin/path-policy/normalization.js';
 

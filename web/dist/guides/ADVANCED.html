@@ -24,8 +24,10 @@ action explains its inputs and model-specific limits.</p>
 <li><a href="#model-updates">Model updates</a></li>
 <li><a href="#live-controls">Live controls</a></li>
 <li><a href="#recording-details">Recording details</a></li>
+<li><a href="#recording-overhead">Recording overhead</a></li>
 <li><a href="#recovery">Recovery</a></li>
 <li><a href="#update-restore-or-remove">Update, restore, or remove</a></li>
+<li><a href="#language">Language</a></li>
 <li><a href="#development-commands">Development commands</a></li>
 </ul>
 <h2 id="keys-and-access">Keys and access</h2>
@@ -128,12 +130,9 @@ HappyOyster is excluded, including when an older list is restored.</p>
 </table>
 <p>Refreshing does not add nodes, change their connections, or change active
 workflows. New models need support in the connector before they can run.</p>
-<p>All three public sources must pass validation. A timeout, invalid response,
-conflicting names, or too many missing entries leaves the current list intact.
-Descriptions remain text and cannot execute code. <strong>Restore previous list</strong>
-restores the list saved before the latest refresh. It does not restore a provider
-model, reverse charges, or change the installed package. Searches survive refresh
-and restoration. Only the local ComfyUI user can change the list.</p>
+<p>A failed refresh leaves the current list intact. <strong>Restore previous list</strong> restores
+the list saved before the latest refresh. Both actions keep your search text.
+Only the local ComfyUI user can change the list.</p>
 <h3 id="automatic-checks">Automatic checks</h3>
 <p>Under <strong>Reactor settings → Model updates</strong>, enable checks and choose an interval
 in hours. New installations check at startup and every 24 hours while ComfyUI
@@ -311,6 +310,18 @@ length or ends early. File details do not assess visual quality or billed time.<
 ComfyUI may reuse a cached report and its <code>run_id</code>; pressing <strong>Run</strong> does not prove
 a new session started. Older reports may have fewer fields and no schema version.
 Allow missing fields when reading them. Do not rerun solely to update a report.</p>
+<h2 id="recording-overhead">Recording overhead</h2>
+<h3 id="fast-h3">Fast H3</h3>
+<p>After the selected clip finishes, the connector builds and starts one additional
+continuation. This advances the recording service so it can finish the selected
+clip's media fragments. The continuation uses credits but is omitted from the
+saved output. Its requested length is the deployment's longest clip, currently
+14.375 seconds. The session ends as soon as the selected recording is ready,
+even if that continuation has not finished. The host session cap still applies.</p>
+<h3 id="ltx">LTX</h3>
+<p>LTX may generate up to 20 extra seconds while Reactor prepares the recording.
+These seconds can use credits and are not saved. The session time limit applies
+to the whole run.</p>
 <h2 id="recovery">Recovery</h2>
 <p>Read the error and the node's <strong>Help</strong> before trying again. Pausing a video preview does not stop its session.</p>
 <table>
@@ -377,9 +388,7 @@ private prompt or model details. Review any excerpt before sharing it.</p>
 Keep a backup of the connector folder outside <code>custom_nodes</code>. Replace the whole
 folder with the new package, install its runtime requirements using ComfyUI's
 Python, and restart. Refresh the ComfyUI window.</p>
-<p>Keep only one installed copy. If an older folder is named <code>reactor-inc-connector</code>,
-move it outside <code>custom_nodes</code> before installing <code>reactor-inc</code>. Loading both
-creates duplicate nodes and routes.</p>
+<p>Keep only one installed copy in <code>custom_nodes</code> to avoid duplicate nodes and menus.</p>
 <p>Open an updated example in a new workflow tab. Existing tabs and saved graphs
 keep their own notes, prompts, and layout. Copy settings you want to reuse before
 closing the old graph.</p>
@@ -417,14 +426,16 @@ Quality tools run from the repository root. ComfyUI starts media workers through
 the root launcher in isolated Python processes; those workers use only the media
 modules and static configuration.</p>
 <p>Python checks read types from your actual ComfyUI installation. Set its source
-directory in <code>.mise.local.toml</code>, which Git ignores:</p>
-<pre><code class="language-toml">[env]
-COMFYUI_PATH = &quot;/path/to/ComfyUI&quot;
+directory in your terminal before running development commands:</p>
+<pre><code class="language-sh">export COMFYUI_PATH=&quot;/path/to/ComfyUI&quot;
 </code></pre>
 <p>That directory must contain <code>main.py</code> and <code>comfy_api</code>. Checks use its <code>.venv</code>
 Python by default. If ComfyUI uses another environment or Windows portable,
-also set <code>COMFYUI_PYTHON</code> to that installation's Python executable. These paths
-are local settings; they do not enter the connector package.</p>
+also set <code>COMFYUI_PYTHON</code> to that installation's Python executable:</p>
+<pre><code class="language-sh">export COMFYUI_PYTHON=&quot;/path/to/ComfyUI/python&quot;
+</code></pre>
+<p>Replace these example paths with your installation's paths. The variables apply
+to commands run from that terminal; they are not stored in the repository.</p>
 <p>Setup downloads the pinned Semgrep rules into ignored local storage and verifies
 their content hashes. To restore those files, run <code>mise run security:rules</code>.
 The downloaded rules retain their upstream license notices and are not included
@@ -479,7 +490,7 @@ in the connector package.</p>
 </tr>
 <tr>
 <td><code>mise run models:validate</code></td>
-<td>Check model associations against registered node schemas.</td>
+<td>Check node registrations and translations.</td>
 </tr>
 <tr>
 <td><code>mise run audit:python</code></td>
@@ -499,11 +510,10 @@ in the connector package.</p>
 </tr>
 </tbody>
 </table>
-<p>Pre-commit checks require the working files to match the staged content. Pre-push
-checks require them to match each revision being pushed. Both hooks reject
-untracked public files so that checks cannot read files missing from the commit.
-Finish or set aside other changes before committing or pushing. Hooks do not
-stash or rewrite your work. Ignored private settings remain local.</p>
+<p>Pre-commit checks scan staged changes for secrets and reject staged private
+settings files. They also check source files, frontend types, and generated output
+in the working directory. Pre-push runs <code>mise run check</code> against the working
+directory. Hooks do not stash or rewrite your work.</p>
 <p>Builds write generated assets; checks and hooks do not install dependencies or
 start generation. Dependency audits need network access and do not apply fixes.
 Archives include only the public runtime files, with a content hash in their
@@ -521,18 +531,6 @@ files directly. Rebuild examples before packaging.</p>
 <p>Python checks use actual ComfyUI and dependency types. Where an upstream API lacks
 complete annotations, the code defines only the interface it consumes. Check
 changed host calls manually in the installed ComfyUI as well.</p>
-<h2 id="recording-overhead">Recording overhead</h2>
-<h3 id="fast-h3">Fast H3</h3>
-<p>After the selected clip finishes, the connector builds and starts one additional
-continuation. This advances the recording service so it can finish the selected
-clip's media fragments. The continuation uses credits but is omitted from the
-saved output. Its requested length is the deployment's longest clip, currently
-14.375 seconds. The session ends as soon as the selected recording is ready,
-even if that continuation has not finished. The host session cap still applies.</p>
-<h3 id="ltx">LTX</h3>
-<p>LTX may generate up to 20 extra seconds while Reactor prepares the recording.
-These seconds can use credits and are not saved. The session time limit applies
-to the whole run.</p>
 </main>
     </body>
 </html>
