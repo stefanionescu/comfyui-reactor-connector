@@ -8,9 +8,9 @@ from ...serialization import Json
 from ..lease import unavailable, BrowserLease
 from ...errors import ErrorCode, ConnectorError
 from ....config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
+from ...model_registry import ModelDefinition, MODELS_BY_CONNECTION
 from ....config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
-from ....config.nodes import DEFAULT_POINTER_POSITION, MAX_POINTER_POSITION, MIN_POINTER_POSITION
-from ....config.models.identities import MODELS_BY_CONNECTION, ModelDefinition
+from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
 
 
 class ControlLease(BrowserLease):
@@ -37,14 +37,14 @@ class ControlLease(BrowserLease):
         result.update(
             model_title=self.definition.title,
             prompt_kind=self.definition.prompt_kind,
-            allow_empty_prompt=self.definition.allow_empty_prompt,
+            allow_empty_prompt=self.definition.is_empty_prompt_allowed,
             audio_prompt_limit=MAX_AUDIO_PROMPT_CHARACTERS,
             prompt=self.options.prompt,
             prompt_limit=self.definition.prompt_limit,
             webcam=self.options.webcam is not None,
-            pointer=self.definition.supports_pointer,
+            pointer=self.definition.has_pointer,
             audio_prompt=self.options.audio_prompt,
-            sound=self.definition.supports_audio_prompt and self.options.audio_enabled,
+            sound=self.definition.has_audio_prompt and self.options.audio_enabled,
         )
         return result
 
@@ -91,19 +91,19 @@ class ControlLease(BrowserLease):
             valid = (
                 payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
-                and (bool(prompt.strip()) or self.definition.allow_empty_prompt)
+                and (bool(prompt.strip()) or self.definition.is_empty_prompt_allowed)
                 and len(prompt) <= self.definition.prompt_limit
             )
         elif name == "audio_prompt":
             prompt = payload.get("prompt")
             valid = (
-                self.definition.supports_audio_prompt
+                self.definition.has_audio_prompt
                 and self.options.audio_enabled
                 and payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
                 and len(prompt) <= MAX_AUDIO_PROMPT_CHARACTERS
             )
-        elif name == "pointer" and self.definition.supports_pointer:
+        elif name == "pointer" and self.definition.has_pointer:
             valid = (
                 payload.keys() == {"x", "y", "active"}
                 and type(payload.get("active")) is bool

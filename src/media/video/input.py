@@ -14,6 +14,7 @@ from .components import prepare_components
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from comfy_api.latest import Input, InputImpl
+from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, EncoderProcess
 from ....config.media.video import MIN_SOURCE_FRAMES
@@ -74,7 +75,7 @@ async def prepared_video(video: Input.Video, settings: Settings, temporary_root:
     """Own source and output copies until the model has finished using them."""
     if not isinstance(video, (InputImpl.VideoFromFile, InputImpl.VideoFromComponents)):
         raise input_error()
-    maximum = settings.max_upload_megabytes * 1_048_576
+    maximum = convert_mebibytes_to_bytes(settings.max_upload_megabytes)
     with TemporaryDirectory(prefix="reactor-source-", dir=temporary_root) as directory:
         source = Path(directory) / "source.video"
         destination = Path(directory) / "input.mp4"
@@ -113,7 +114,7 @@ async def _prepare_file(
             str(start),
             str(duration),
             str(maximum),
-            str(settings.max_queue_megabytes * 1_048_576),
+            str(convert_mebibytes_to_bytes(settings.max_queue_megabytes)),
         ]
     )
     result = await worker.run(close_input, asyncio.Event(), asyncio.Event())

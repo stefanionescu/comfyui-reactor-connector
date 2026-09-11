@@ -67,7 +67,7 @@ class ControlInteraction(CameraInteraction):
                 await events.command_reply("set_audio_prompt", dict(payload))
         else:
             definition = self.control_lease.definition
-            if definition.supports_prompt_passthrough:
+            if definition.has_prompt_passthrough:
                 payload = {**payload, "passthrough": self.control_lease.options.passthrough}
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
                 await events.command_reply(definition.prompt_command, dict(payload))

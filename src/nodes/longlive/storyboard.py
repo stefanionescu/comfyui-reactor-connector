@@ -5,7 +5,7 @@ from ..schema import translate_schema
 from ...execution.longlive.request import LongLiveRequest
 from ..controls import video_outputs, generation_controls
 from ...execution.longlive.storyboard import parse_storyboard
-from ...comfy.execution import execute_video, operation_fingerprint
+from ...comfy.execution import generate_video, operation_fingerprint
 
 
 class LongLiveStoryboard(io.ComfyNode):
@@ -49,7 +49,7 @@ class LongLiveStoryboard(io.ComfyNode):
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
         shots = parse_storyboard(storyboard)
-        return await execute_video(
+        return await generate_video(
             LongLiveRequest(prompt, duration_seconds, seed, shots=shots),
             node_id=cls.define_schema().node_id,
         )

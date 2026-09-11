@@ -139,7 +139,7 @@ class Snapshot:
             timestamp = datetime.fromisoformat(retrieved_at)
         except ValueError:
             raise invalid() from None
-        if timestamp.tzinfo is None or type(conversion) is not int or not 1 <= conversion <= 10**9:
+        if timestamp.tzinfo is None or type(conversion) is not int or not 1 <= conversion <= MAX_PRICE_AMOUNT:
             raise invalid()
         prices = tuple(Price.parse(row) for row in rows(value["prices"]))
         guides = tuple(Guide.parse(row) for row in rows(value["guides"]))

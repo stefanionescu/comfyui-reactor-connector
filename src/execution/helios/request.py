@@ -3,18 +3,23 @@
 import json
 from typing import ClassVar
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
 from ...settings.settings import Settings
-from ....config.models.identities import MODELS
 from .prompts import parse_sequence, ScheduledPrompt
 
 
 @dataclass(frozen=True, slots=True)
 class HeliosRequest(VideoInputs):
-    """Generate a Helios video of the requested length from a prompt and optional image."""
+    """Generate a Helios video of the requested length from a prompt and optional image.
+
+    Attributes:
+        prompts: Prompt changes scheduled during generation.
+
+    """
 
     prompts: tuple[ScheduledPrompt, ...] = ()
     model_name: ClassVar[str] = MODELS["helios"].connection_name

@@ -3,7 +3,23 @@
 import secrets
 from .settings import Settings
 from ..credentials import Credential
-from .state import ExecutionConfiguration
+from dataclasses import field, dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class ExecutionConfiguration:
+    """One private settings and credential snapshot for an admitted operation.
+
+    Attributes:
+        settings: Effective execution limits and preferences.
+        credential: Private provider credential excluded from representations.
+        generation: Token identifying the effective execution configuration.
+
+    """
+
+    settings: Settings
+    credential: Credential = field(repr=False)
+    generation: str
 
 
 class ConfigurationGeneration:
@@ -27,7 +43,7 @@ class ConfigurationGeneration:
         previous = self._previous
         generation = previous.generation if previous is not None else secrets.token_hex(16)
         if previous is not None and (
-            previous.credential != credential or execution_settings(previous.settings) != execution_settings(settings)
+            previous.credential != credential or _execution_settings(previous.settings) != _execution_settings(settings)
         ):
             generation = secrets.token_hex(16)
         current = ExecutionConfiguration(settings, credential, generation)
@@ -35,10 +51,13 @@ class ConfigurationGeneration:
         return current
 
 
-def execution_settings(settings: Settings) -> dict[str, object]:
+def _execution_settings(settings: Settings) -> dict[str, object]:
     """Exclude catalog check preferences that cannot change generated media."""
     return {
         key: value
         for key, value in settings.to_json().items()
         if key not in {"catalog_auto_check", "catalog_interval_hours"}
     }
+
+
+__all__ = ["ConfigurationGeneration", "ExecutionConfiguration"]

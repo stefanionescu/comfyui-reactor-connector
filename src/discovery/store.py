@@ -2,19 +2,40 @@
 
 import json
 import asyncio
+import hashlib
 import threading
 from pathlib import Path
-from .state import ModelState
 from .views import model_views
-from dataclasses import replace
 from ..language import translate
 from .sources import read_public_models
 from .contracts import invalid, Snapshot
+from dataclasses import replace, dataclass
 from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Awaitable
 from ..storage import atomic_write, read_private
 from ..serialization import Json, parse_json, mapping_value
-from ...config.discovery import MAX_ADDED_MODELS, SOURCE_RETENTION_DIVISOR, MAX_STORED_METADATA_BYTES
+from ...config.discovery import STORAGE_VERSION, MAX_ADDED_MODELS, SOURCE_RETENTION_DIVISOR, MAX_STORED_METADATA_BYTES
+
+
+@dataclass(frozen=True, slots=True)
+class _ModelState:
+    """The current public snapshot and one optional rollback snapshot."""
+
+    current: Snapshot | None = None
+    previous: Snapshot | None = None
+
+    @property
+    def revision(self) -> str:
+        """Identify the cached metadata or the state before the first refresh."""
+        return self.current.revision if self.current else hashlib.sha256(b"null").hexdigest()
+
+    def to_json(self) -> dict[str, Json]:
+        """Serialize both snapshots in the versioned local storage format."""
+        return {
+            "version": STORAGE_VERSION,
+            "current": self.current.to_json() if self.current else None,
+            "previous": self.previous.to_json() if self.previous else None,
+        }
 
 
 class ModelStore:
@@ -22,23 +43,23 @@ class ModelStore:
 
     def __init__(self, directory: Path) -> None:
         """Select private storage and initialize separate state and refresh locks."""
-        self.path = directory / "catalog.json"
+        self._storage_path = directory / "catalog.json"
         self._lock = threading.Lock()
         self._admission_lock = threading.Lock()
         self._refreshing = False
 
-    def _read(self) -> ModelState:
+    def _read(self) -> _ModelState:
         """Load cached public metadata, or start without prices before the first refresh."""
         try:
-            payload = read_private(self.path, max_bytes=MAX_STORED_METADATA_BYTES)
+            payload = read_private(self._storage_path, max_bytes=MAX_STORED_METADATA_BYTES)
         except FileNotFoundError:
-            return ModelState()
+            return _ModelState()
         value = mapping_value(parse_json(payload.decode(), max_bytes=MAX_STORED_METADATA_BYTES))
         if value.keys() != {"version", "current", "previous"} or type(value["version"]) is not int:
             raise invalid()
-        if value["version"] != 1:
+        if value["version"] != STORAGE_VERSION:
             raise invalid()
-        return ModelState(
+        return _ModelState(
             Snapshot.parse(mapping_value(value["current"])),
             Snapshot.parse(mapping_value(value["previous"])) if value["previous"] is not None else None,
         )
@@ -47,20 +68,16 @@ class ModelStore:
         """Read a consistent model list while holding the state lock."""
         with self._lock:
             state = self._read()
-            return self._view(state)
+            return self._build_status(state)
 
-    def _view(self, state: ModelState) -> dict[str, Json]:
+    def _build_status(self, state: _ModelState) -> dict[str, Json]:
         """Describe model support, source freshness, and available list actions."""
         models: list[Json] = list(model_views(state.current))
         return {
             "revision": state.revision,
             "retrieved_at": state.current.retrieved_at if state.current else None,
-            "credits_per_dollar": state.current.credits_per_dollar if state.current else None,
             "models": models,
             "can_rollback": state.previous is not None,
-            "refreshing": self._is_refreshing(),
-            "source": "local" if state.current else "registered",
-            "scope": "public_pricing_and_documentation",
         }
 
     def _begin(self) -> None:
@@ -79,7 +96,7 @@ class ModelStore:
         """Validate a candidate against the current snapshot without writing it."""
         with self._lock:
             state = self._read()
-            return state.revision, merge_observations(state.current, candidate).revision
+            return state.revision, _merge_observations(state.current, candidate).revision
 
     def _finish(self) -> None:
         """Release refresh admission after the fetch and any state write finish."""
@@ -96,11 +113,11 @@ class ModelStore:
         with self._lock:
             state = self._read()
             self._require_revision(state, revision)
-            merged = merge_observations(state.current, candidate)
+            merged = _merge_observations(state.current, candidate)
             previous = state.current if merged.revision != revision else state.previous
-            updated = ModelState(merged, previous)
-            atomic_write(self.path, (json.dumps(updated.to_json(), indent=2) + "\n").encode())
-            return self._view(updated)
+            updated = _ModelState(merged, previous)
+            atomic_write(self._storage_path, (json.dumps(updated.to_json(), indent=2) + "\n").encode())
+            return self._build_status(updated)
 
     async def refresh(self, fetcher: Callable[[], Awaitable[Snapshot]] = read_public_models) -> dict[str, Json]:
         """Fetch without holding the state lock and reject overlapping refreshes."""
@@ -108,9 +125,7 @@ class ModelStore:
         try:
             revision = await asyncio.to_thread(self._revision)
             candidate = await fetcher()
-            result = await self._promote_owned(candidate, revision)
-            result["refreshing"] = False
-            return result
+            return await self._promote_owned(candidate, revision)
         finally:
             self._finish()
 
@@ -129,7 +144,7 @@ class ModelStore:
         return task.result()
 
     @staticmethod
-    def _require_revision(state: ModelState, revision: str) -> None:
+    def _require_revision(state: _ModelState, revision: str) -> None:
         """Reject a write based on an outdated model-list revision."""
         if state.revision != revision:
             raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListChanged"))
@@ -143,12 +158,12 @@ class ModelStore:
             self._require_revision(state, revision)
             if state.previous is None:
                 raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListHistoryEmpty"))
-            restored = ModelState(state.previous, state.current)
-            atomic_write(self.path, (json.dumps(restored.to_json(), indent=2) + "\n").encode())
-            return self._view(restored)
+            restored = _ModelState(state.previous, state.current)
+            atomic_write(self._storage_path, (json.dumps(restored.to_json(), indent=2) + "\n").encode())
+            return self._build_status(restored)
 
 
-def merge_observations(previous: Snapshot | None, candidate: Snapshot) -> Snapshot:
+def _merge_observations(previous: Snapshot | None, candidate: Snapshot) -> Snapshot:
     """Keep missing entries visible without claiming they remain available or current."""
     if previous is None:
         return candidate

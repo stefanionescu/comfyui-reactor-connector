@@ -4,6 +4,7 @@ import { button, element } from '#web/dom.ts';
 import { inputValues } from '#web/nodes/inputs.ts';
 import { bindWidgetLabel } from '#web/nodes/labels.ts';
 import { browserLimits } from '#config/web/browser.ts';
+import { nodePricingRules } from '#config/web/pricing.ts';
 import type { ReactorNode } from '#web/nodes/contracts.ts';
 import { formatCreditSummary } from '#web/discovery/pricing.ts';
 import type { Model, ModelList } from '#web/discovery/schema.ts';
@@ -27,10 +28,13 @@ function requestedSeconds(node: ReactorNode): number | undefined {
     if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return undefined;
     return raw;
   }
-  if (node.comfyClass === 'ReactorIncFastContinue') {
-    const seconds = value('clip_seconds');
-    const count = value('clip_count');
-    return seconds !== undefined && count !== undefined ? seconds * count : undefined;
+  const factors = node.comfyClass
+    ? nodePricingRules.multipliedDurationInputs[node.comfyClass]
+    : undefined;
+  if (factors) {
+    const first = value(factors[0]);
+    const second = value(factors[1]);
+    return first !== undefined && second !== undefined ? first * second : undefined;
   }
   return value('duration_seconds');
 }
@@ -194,12 +198,7 @@ function openCreditRate(node: ReactorNode, fetcher: Fetcher): void {
  */
 export function bindCreditRate(node: ReactorNode, fetcher: Fetcher): void {
   const id = node.comfyClass;
-  if (
-    !id?.startsWith('ReactorInc') ||
-    id === 'ReactorIncHeliosAddPrompt' ||
-    id === 'ReactorIncLongLiveAddShot'
-  )
-    return;
+  if (!id?.startsWith('ReactorInc') || nodePricingRules.excludedNodeIds.includes(id)) return;
   const widget = node.addWidget(
     'button',
     translate('pricing.viewRate'),

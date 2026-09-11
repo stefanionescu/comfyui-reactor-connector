@@ -2,6 +2,7 @@
 
 from typing import Protocol
 from .events import SessionEvents
+from collections.abc import Callable
 from .transport import Track, Transport
 
 
@@ -22,4 +23,16 @@ class SessionInteraction(Protocol):
 
     def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
         """Record whether remote termination was confirmed and whether execution failed."""
+        raise NotImplementedError
+
+
+class FramePublisher(Protocol):
+    """Publish input frames for an operation and release them during cleanup."""
+
+    async def begin(self, track: Track, fail: Callable[[object], None]) -> None:
+        """Start publishing frames and report failures to the session owner."""
+        raise NotImplementedError
+
+    async def close(self) -> None:
+        """Stop publication and release retained frames."""
         raise NotImplementedError

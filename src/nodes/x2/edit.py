@@ -14,7 +14,7 @@ from ...execution.x2.request import X2Request
 from ...media.video.input import prepared_video
 from ..controls import live_control, video_outputs
 from ....config.generation.prompts import DEFAULT_PROMPTS
-from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
     MIN_VARIATION,
@@ -155,7 +155,7 @@ async def _edit(
     settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
     image = None if reference_image is None else await owned_io(lambda: image_png(reference_image))
     async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
-        return await execute_video(
+        return await generate_video(
             replace(request, image=image, video=video),
             interactive=interactive,
             node_id=node_id,

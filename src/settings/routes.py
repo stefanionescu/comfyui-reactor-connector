@@ -22,16 +22,17 @@ class ConfigurationRoutes:
     async def status(self, _request: web.Request) -> dict[str, Json]:
         """Return effective settings and whether the current host permits changes."""
         result = await asyncio.to_thread(self.store.status)
-        result["mutation_allowed"] = not self.multi_user
-        return result
+        return self._add_mutation_permission(result)
 
     async def settings(self, request: web.Request) -> dict[str, Json]:
         """Validate a settings patch and save it against the caller's current revision."""
         document = await read_document(request)
         if document.keys() != {"revision", "settings"} or not isinstance(document["revision"], str):
             raise web.HTTPBadRequest(text=translate("main", "errors.settingsRevisionRequired"))
-        return await asyncio.to_thread(
-            self.store.update_settings, mapping_value(document["settings"]), document["revision"]
+        return self._add_mutation_permission(
+            await asyncio.to_thread(
+                self.store.update_settings, mapping_value(document["settings"]), document["revision"]
+            )
         )
 
     async def credential(self, request: web.Request) -> dict[str, Json]:
@@ -39,13 +40,18 @@ class ConfigurationRoutes:
         document = await read_document(request)
         if document.keys() != {"api_key"} or not isinstance(document["api_key"], str):
             raise web.HTTPBadRequest(text=translate("main", "errors.singleKeyRequired"))
-        return await asyncio.to_thread(self.store.save_credential, document["api_key"])
+        return self._add_mutation_permission(await asyncio.to_thread(self.store.save_credential, document["api_key"]))
 
     async def clear_credential(self, request: web.Request) -> dict[str, Json]:
         """Remove the saved key after rejecting unexpected request content."""
         if request.can_read_body:
             raise web.HTTPBadRequest(text=translate("main", "errors.clearKeyBody"))
-        return await asyncio.to_thread(self.store.clear_credential)
+        return self._add_mutation_permission(await asyncio.to_thread(self.store.clear_credential))
+
+    def _add_mutation_permission(self, result: dict[str, Json]) -> dict[str, Json]:
+        """Add the settings editor permission to one configuration response."""
+        result["mutation_allowed"] = not self.multi_user
+        return result
 
     def _guard(
         self, callback: Callable[[web.Request], Awaitable[dict[str, Json]]], *, mutation: bool

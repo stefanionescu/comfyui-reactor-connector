@@ -18,15 +18,16 @@ from ..execution.report import RunReport
 from ..settings.settings import Settings
 from comfy_api.latest import io, InputImpl
 from .interaction import prepare_interaction
-from ..execution.session.run import run_video
 from ..errors import ErrorCode, ConnectorError
 from ..execution.diagnostics import save_failure
 from ..execution.operation import VideoOperation
 from ..live.interaction import CameraInteraction
 from ..media.metadata.read import read_recording
-from ..settings.state import ExecutionConfiguration
 from ..execution.session.state import SessionOutcome
+from ..media.units import convert_mebibytes_to_bytes
 from contextlib import suppress, asynccontextmanager
+from ..execution.session.capture import capture_video
+from ..settings.execution import ExecutionConfiguration
 from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
 from ...config.generation.session import CANCELLATION_POLL_SECONDS
@@ -46,7 +47,7 @@ async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
             await asyncio.gather(task, return_exceptions=True)
 
 
-async def _admitted_run(
+async def _generate_admitted_video(
     request: VideoOperation,
     configuration: ExecutionConfiguration,
     destination: Path,
@@ -68,7 +69,7 @@ async def _admitted_run(
                 2 * settings.max_session_seconds + settings.cleanup_timeout_seconds,
             )
             async with reservation.protect(outcome):
-                result = await run_video(
+                result = await capture_video(
                     request,
                     configuration,
                     destination,
@@ -108,7 +109,7 @@ async def recording_report(
     """Combine saved media facts with the execution and live-control report."""
     facts = report.to_json()
     recording = await wait_for_execution(
-        asyncio.create_task(read_recording(result, settings.max_capture_megabytes * 1_048_576))
+        asyncio.create_task(read_recording(result, convert_mebibytes_to_bytes(settings.max_capture_megabytes)))
     )
     facts.update(recording)
     if interaction_summary is not None:
@@ -126,7 +127,9 @@ async def node_output(
     if result.audio_path is not None:
         audio_path = result.audio_path
         try:
-            audio = await owned_io(lambda: read_audio(audio_path, settings.max_queue_megabytes * 1_048_576))
+            audio = await owned_io(
+                lambda: read_audio(audio_path, convert_mebibytes_to_bytes(settings.max_queue_megabytes))
+            )
         finally:
             await owned_io(partial(audio_path.unlink, missing_ok=True))
         return io.NodeOutput(InputImpl.VideoFromFile(str(result.path)), audio, metadata)
@@ -161,7 +164,7 @@ async def _temporary_video() -> AsyncGenerator[Path, None]:
             await owned_io(partial(destination.with_suffix(".wav").unlink, missing_ok=True))
 
 
-async def execute_video(
+async def generate_video(
     request: VideoOperation,
     *,
     node_id: str,
@@ -178,7 +181,7 @@ async def execute_video(
     try:
         async with _temporary_video() as destination:
             task = asyncio.create_task(
-                _admitted_run(
+                _generate_admitted_video(
                     request,
                     snapshot,
                     destination,

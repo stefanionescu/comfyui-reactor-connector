@@ -25,7 +25,6 @@ def local_route(
             try:
                 require_local_request(request, mutation=mutation, multi_user=multi_user)
                 result = await callback(request)
-                result["mutation_allowed"] = not multi_user
                 return web.json_response(result[response_key] if response_key else result, headers=PRIVATE_HEADERS)
             except SettingsConflictError as error:
                 message, status = str(error), 409

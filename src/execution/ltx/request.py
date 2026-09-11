@@ -3,13 +3,14 @@
 import json
 from typing import ClassVar
 from ...language import translate
-from ..operation import RecordingWindow
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
+from ...media.units import convert_mebibytes_to_bytes
 from ..inputs import VideoInputs, validate_capture_inputs
 from ....config.generation.speech import (
     MIN_SPEECH_SECONDS,
@@ -24,7 +25,13 @@ from ....config.generation.speech import (
 
 @dataclass(frozen=True, slots=True)
 class LtxSpeakRequest(VideoInputs):
-    """Keep take conditions fixed until the session owner ends the run."""
+    """Keep take conditions fixed until the session owner ends the run.
+
+    Attributes:
+        script: Speech text sent to the provider.
+        words_per_minute: Requested speech rate.
+
+    """
 
     script: str = ""
     words_per_minute: int = DEFAULT_WORDS_PER_MINUTE
@@ -48,7 +55,7 @@ class LtxSpeakRequest(VideoInputs):
         if (
             type(self.image) is not bytes
             or not self.image
-            or len(self.image) > settings.max_upload_megabytes * 1_048_576
+            or len(self.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.portraitUploadLimit"))
 

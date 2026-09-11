@@ -167,8 +167,8 @@ paths.py
 latency_stats.py
 ```
 
-The banned-terms file includes `Helper`, `Helpers`, `Utility`, `Utilities`,
-`Util`, `Utils`, `Common`, `Shared`, `Base`, `Core`, `Manager`, and `Processor`.
+The banned-terms file includes `Helper`, `Helpers`, `Util`, `Utils`, `Common`,
+`Core`, `Manager`, and `Processor`.
 Use one of these terms only when the applicable language policy contains an
 explicit exception for that name and location.
 

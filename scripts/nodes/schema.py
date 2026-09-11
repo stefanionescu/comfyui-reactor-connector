@@ -5,7 +5,7 @@ import json
 import inspect
 from comfy_api.latest import io
 from ...src.extension import NODE_REGISTRATIONS
-from ...config.models.identities import MODELS
+from ...config.models.identities import MODEL_IDENTITIES
 
 
 def main() -> None:
@@ -13,7 +13,7 @@ def main() -> None:
     schemas = {}
     for node, model in NODE_REGISTRATIONS.items():
         schema = node.define_schema()
-        if schema.node_id in schemas or model not in MODELS:
+        if schema.node_id in schemas or model not in MODEL_IDENTITIES:
             msg = "Each node must have a unique ID and a known model."
             raise ValueError(msg)
         # ComfyUI leaves the base execution callable untyped; inspect only its declared names.

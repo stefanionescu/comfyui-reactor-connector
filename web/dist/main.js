@@ -1426,6 +1426,7 @@ var invitationEntries = {
   prompt_kind: picklist(["scene", "edit"]),
   allow_empty_prompt: boolean()
 };
+var invitationSchema = object(invitationEntries);
 function buildInvitation(document2, axes) {
   const identity = { lease: document2.lease, capability: document2.capability };
   const presentation = { modelTitle: document2.model_title, promptKind: document2.prompt_kind };
@@ -1445,7 +1446,7 @@ var axisChoicesSchema = pipe(array(string()), includes("idle"));
 var axesSchema = record(string(), axisChoicesSchema);
 var sceneInvitationSchema = pipe(
   object({
-    ...invitationEntries,
+    ...invitationSchema.entries,
     ...promptEntries,
     axes: axesSchema
   }),
@@ -1471,7 +1472,7 @@ var sceneInvitationSchema = pipe(
 );
 var controlsInvitationSchema = pipe(
   object({
-    ...invitationEntries,
+    ...invitationSchema.entries,
     ...promptEntries,
     webcam: boolean(),
     pointer: boolean(),
@@ -2414,6 +2415,18 @@ function modelRow(model, seconds) {
   return row;
 }
 
+// web/schema.ts
+var publicErrorSchema = object({
+  error: optional(
+    pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters))
+  )
+});
+function parsePublicError(value) {
+  const result = safeParse(publicErrorSchema, value);
+  if (!result.success) return void 0;
+  return result.output.error;
+}
+
 // web/discovery/schema.ts
 var shortTextSchema = pipe(
   string(),
@@ -2512,22 +2525,10 @@ var modelListSchema = pipe(
     };
   })
 );
-var errorDocumentSchema = object({ error: optional(unknown()) });
-var errorTextSchema = pipe(
-  string(),
-  minLength(1),
-  maxLength(browserLimits.maxErrorCharacters)
-);
 function parseModelList(value) {
   const result = safeParse(modelListSchema, value);
   if (!result.success) throw new Error(translate("models.invalidResponse"));
   return result.output;
-}
-function parseModelError(value) {
-  const document2 = safeParse(errorDocumentSchema, value);
-  if (!document2.success) throw new Error(translate("models.invalidResponse"));
-  const error = safeParse(errorTextSchema, document2.output.error);
-  return error.success ? error.output : void 0;
 }
 
 // web/discovery/api.ts
@@ -2565,7 +2566,7 @@ async function requestModels(fetcher, signal, action, revision) {
     throw new Error(translate("models.invalidResponse"));
   }
   if (!response.ok) {
-    throw new Error(parseModelError(body) ?? translate("models.requestFailed"));
+    throw new Error(parsePublicError(body) ?? translate("models.requestFailed"));
   }
   return parseModelList(body);
 }
@@ -3088,6 +3089,7 @@ function openSceneControls(value, fetcher) {
 
 // web/settings/schema.ts
 var unknownRecordSchema = record(string(), unknown());
+var settingNameSchema = pipe(string(), regex(browserPatterns.settingName));
 var settingDefinitionSchema = object({
   label: pipe(string(), minLength(1), maxLength(browserLimits.maxTextCharacters)),
   minimum: pipe(number(), safeInteger()),
@@ -3105,8 +3107,6 @@ var configurationDocumentSchema = object({
 });
 var checkSettingsSchema = object({ catalog_auto_check: boolean() });
 var credentialLimitSchema = pipe(number(), safeInteger(), minValue(1));
-var errorDocumentSchema2 = object({ error: optional(unknown()) });
-var errorTextSchema2 = pipe(string(), maxLength(browserLimits.maxErrorCharacters));
 function parseDefinitions(value) {
   const document2 = safeParse(unknownRecordSchema, value);
   if (!document2.success) throw new Error(translate("settings.invalidResponse"));
@@ -3115,10 +3115,8 @@ function parseDefinitions(value) {
   }
   const definitions = /* @__PURE__ */ new Map();
   for (const [name, raw] of Object.entries(document2.output)) {
-    const field = safeParse(unknownRecordSchema, raw);
-    if (!field.success) throw new Error(translate("settings.invalidResponse"));
-    const validName = safeParse(pipe(string(), regex(browserPatterns.settingName)), name);
-    const definition = safeParse(settingDefinitionSchema, field.output);
+    const validName = safeParse(settingNameSchema, name);
+    const definition = safeParse(settingDefinitionSchema, raw);
     if (!validName.success || !definition.success || definition.output.minimum > definition.output.maximum) {
       throw new Error(translate("settings.invalidDefinition"));
     }
@@ -3158,12 +3156,6 @@ function parseConfiguration(value) {
     settings: document2.settings
   };
 }
-function parseSettingsError(value) {
-  const document2 = safeParse(errorDocumentSchema2, value);
-  if (!document2.success) throw new Error(translate("settings.invalidResponse"));
-  const error = safeParse(errorTextSchema2, document2.output.error);
-  return error.success ? error.output : void 0;
-}
 
 // web/settings/api.ts
 async function requestConfiguration(fetcher, signal, route = browserRoutes.settings.status, method = "GET", body) {
@@ -3191,7 +3183,7 @@ async function requestConfiguration(fetcher, signal, route = browserRoutes.setti
     throw new Error(translate("settings.unreadableResponse"));
   }
   if (!response.ok) {
-    throw new Error(parseSettingsError(document2) ?? translate("settings.saveFailed"));
+    throw new Error(parsePublicError(document2) ?? translate("settings.saveFailed"));
   }
   return parseConfiguration(document2);
 }
@@ -3554,6 +3546,15 @@ function refreshWidgetLabels() {
   }
 }
 
+// config/web/pricing.ts
+var fastContinueNodeId = "ReactorIncFastContinue";
+var nodePricingRules = {
+  excludedNodeIds: ["ReactorIncHeliosAddPrompt", "ReactorIncLongLiveAddShot"],
+  multipliedDurationInputs: {
+    [fastContinueNodeId]: ["clip_seconds", "clip_count"]
+  }
+};
+
 // web/discovery/rate.ts
 function requestedSeconds(node) {
   const widgets = inputValues(node);
@@ -3562,10 +3563,11 @@ function requestedSeconds(node) {
     if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) return void 0;
     return raw;
   }
-  if (node.comfyClass === "ReactorIncFastContinue") {
-    const seconds = value("clip_seconds");
-    const count = value("clip_count");
-    return seconds !== void 0 && count !== void 0 ? seconds * count : void 0;
+  const factors = node.comfyClass ? nodePricingRules.multipliedDurationInputs[node.comfyClass] : void 0;
+  if (factors) {
+    const first = value(factors[0]);
+    const second = value(factors[1]);
+    return first !== void 0 && second !== void 0 ? first * second : void 0;
   }
   return value("duration_seconds");
 }
@@ -3699,8 +3701,7 @@ function openCreditRate(node, fetcher) {
 }
 function bindCreditRate(node, fetcher) {
   const id = node.comfyClass;
-  if (!id?.startsWith("ReactorInc") || id === "ReactorIncHeliosAddPrompt" || id === "ReactorIncLongLiveAddShot")
-    return;
+  if (!id?.startsWith("ReactorInc") || nodePricingRules.excludedNodeIds.includes(id)) return;
   const widget = node.addWidget(
     "button",
     translate("pricing.viewRate"),

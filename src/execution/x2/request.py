@@ -3,27 +3,38 @@
 from pathlib import Path
 from typing import ClassVar
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
-from ...media.webcam import WebcamFrames
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
+from ..interaction import FramePublisher
 from dataclasses import field, dataclass
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
 from ...media.video.publish import VideoPublication
 from ...serialization import mapping_value, validate_json
 from ....config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
-from ....config.nodes import DEFAULT_POINTER_POSITION, MAX_POINTER_POSITION, MIN_POINTER_POSITION
+from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
 
 
 @dataclass(frozen=True, slots=True)
 class X2Request(VideoInputs):
-    """Edit a clip using an optional reference image and a fixed pointer position."""
+    """Edit a clip using an optional reference image and a fixed pointer position.
+
+    Attributes:
+        video: Optional prepared source video path.
+        webcam: Optional live input frame publisher.
+        keep_backlog: Whether the provider retains queued source frames.
+        pointer_active: Whether pointer control starts active.
+        pointer_x: Normalized horizontal pointer position.
+        pointer_y: Normalized vertical pointer position.
+        publication: Owned source video publisher.
+
+    """
 
     video: Path | None = None
-    webcam: WebcamFrames | None = None
+    webcam: FramePublisher | None = None
     keep_backlog: bool = False
     pointer_active: bool = False
     pointer_x: float = DEFAULT_POINTER_POSITION

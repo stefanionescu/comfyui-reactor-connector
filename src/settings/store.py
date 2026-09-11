@@ -5,15 +5,15 @@ import hashlib
 import threading
 from pathlib import Path
 from ..language import translate
-from .state import ExecutionConfiguration
 from .conflict import SettingsConflictError
+from .execution import ExecutionConfiguration
 from ..errors import ErrorCode, ConnectorError
 from .execution import ConfigurationGeneration
 from .settings import Settings, parse_settings
 from ...config.security import MAX_CREDENTIAL_CHARACTERS
 from ..serialization import Json, parse_json, mapping_value
 from ..storage import atomic_write, read_private, private_directory
-from ...config.settings import MAX_SETTINGS_FILE_BYTES, INTEGER_SETTINGS
+from ...config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
 from ..credentials import Credential, read_credential, save_credential, credential_source
 
 EDITABLE_SETTINGS = frozenset(Settings().to_json())
@@ -54,7 +54,6 @@ class ConfigurationStore:
         """Describe effective settings and key presence without returning secret values."""
         settings = read_settings(self.directory)
         source = credential_source(self.directory)
-        editable = list[Json](sorted(EDITABLE_SETTINGS))
         return {
             "settings": settings.to_json(),
             "integer_settings": {
@@ -67,9 +66,7 @@ class ConfigurationStore:
             },
             "credential_limit": MAX_CREDENTIAL_CHARACTERS,
             "revision": settings_revision(settings),
-            "credential": {"source": source, "configured": source != "missing", "verified": False},
-            "editable_settings": editable,
-            "catalog_available": True,
+            "credential": {"source": source},
         }
 
     def update_settings(self, changes: dict[str, Json], revision: str) -> dict[str, Json]:

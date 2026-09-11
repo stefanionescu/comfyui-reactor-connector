@@ -9,8 +9,9 @@ from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...media.webcam import WebcamFrames
 from ...execution.x2.request import X2Request
+from ...comfy.interaction import build_live_options
 from ....config.generation.prompts import DEFAULT_PROMPTS
-from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.nodes import (
     MAX_VARIATION,
     MIN_VARIATION,
@@ -83,9 +84,9 @@ class X2Webcam(io.ComfyNode):
             try:
                 image = None if reference_image is None else await owned_io(partial(image_png, reference_image))
                 request = X2Request(prompt, duration_seconds, 0, image=image, webcam=camera)
-                return await execute_video(
+                return await generate_video(
                     request,
-                    controls=request.live_options(webcam=camera),
+                    controls=build_live_options(request, webcam=camera),
                     node_id=cls.define_schema().node_id,
                 )
             finally:

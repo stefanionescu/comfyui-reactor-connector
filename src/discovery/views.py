@@ -2,9 +2,9 @@
 
 from .contracts import Snapshot
 from ..serialization import Json
+from ..model_registry import MODELS
 from ...config.models.nodes import NODE_MODELS
 from ...config.discovery import GUIDE_URL_FORMAT
-from ...config.models.identities import MODELS
 
 
 def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
@@ -32,7 +32,6 @@ def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
             "observed": price.observed if price else False,
             "support": "available" if node_ids else "adapter_required",
             "node_ids": node_ids,
-            "availability": "unknown",
         }
         models.append(model)
     models.extend(
@@ -46,7 +45,6 @@ def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
             "observed": guide.observed,
             "support": "adapter_required",
             "node_ids": [],
-            "availability": "unknown",
         }
         for guide in sorted(guides.values(), key=lambda item: item.slug)
         if guide.slug not in associated and not guide.slug.startswith("happy-oyster")

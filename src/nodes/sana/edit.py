@@ -11,8 +11,8 @@ from ...settings.store import read_settings
 from ...media.video.input import prepared_video
 from ...execution.sana.request import SanaRequest
 from ..controls import live_control, video_outputs, generation_controls
-from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
-from ....config.generation.video import DEFAULT_ANCHOR_INTERVAL, MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
+from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
+from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
 class SanaEditVideo(io.ComfyNode):
@@ -82,7 +82,7 @@ async def _edit(
     """Prepare source frames within the input limits and close them after the edit."""
     settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
     async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
-        return await execute_video(
+        return await generate_video(
             replace(request, video=video),
             interactive=interactive,
             node_id=node_id,

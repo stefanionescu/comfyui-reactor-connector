@@ -3,20 +3,25 @@
 import json
 from typing import ClassVar
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
 from ...settings.settings import Settings
 from .storyboard import Shot, parse_storyboard
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
 
 
 @dataclass(frozen=True, slots=True)
 class LongLiveRequest(VideoInputs):
-    """Stage a complete shot sequence before starting the shared video capture."""
+    """Stage a complete shot sequence before starting the shared video capture.
+
+    Attributes:
+        shots: Ordered shots to stage before generation.
+
+    """
 
     shots: tuple[Shot, ...] = ()
     model_name: ClassVar[str] = MODELS["longlive-v2"].connection_name

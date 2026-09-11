@@ -1,25 +1,29 @@
 """Check shared video inputs and recording limits before starting a session."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 from ..language import translate
-from ..live.state import LiveOptions
 from .transport import Transport
 from dataclasses import dataclass
 from ...config.nodes import MAX_SEED
+from .operation import ControlValues
 from ..settings.settings import Settings
 from ..errors import ErrorCode, ConnectorError
 from ...config.media.video import DEFAULT_FRAME_RATE
+from ..media.units import convert_mebibytes_to_bytes
 from ...config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
-
-if TYPE_CHECKING:
-    from ..media.webcam import WebcamFrames
 
 
 @dataclass(frozen=True, slots=True)
 class VideoInputs:
-    """Shared capture inputs; adapters add their own model restrictions."""
+    """Shared capture inputs; adapters add their own model restrictions.
+
+    Attributes:
+        prompt: Opening text sent to the model.
+        duration_seconds: Requested recording length in seconds.
+        seed: Random seed sent to the model.
+        image: Optional encoded opening image.
+
+    """
 
     prompt: str
     duration_seconds: float
@@ -29,9 +33,14 @@ class VideoInputs:
     fallback_fps: ClassVar[int] = DEFAULT_FRAME_RATE
     requires_audio: ClassVar[bool] = False
 
-    def live_options(self, *, webcam: WebcamFrames | None = None) -> LiveOptions:
-        """Return the standard live values for this operation."""
-        return LiveOptions(self.model_name, self.prompt, webcam)
+    def build_control_values(self) -> ControlValues:
+        """Return the standard browser-control values for this operation."""
+        return ControlValues(
+            self.prompt,
+            is_passthrough_enabled=False,
+            audio_prompt="",
+            is_audio_enabled=False,
+        )
 
     async def release(self, transport: Transport) -> None:
         """Models without held controls rely on the session owner's disconnect."""
@@ -44,7 +53,7 @@ class VideoInputs:
         if self.image is not None and (
             type(self.image) is not bytes
             or not self.image
-            or len(self.image) > settings.max_upload_megabytes * 1_048_576
+            or len(self.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.imageUploadLimit"))
 

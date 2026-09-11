@@ -7,7 +7,7 @@ from comfy_api.latest import io, Input
 from ...execution.helios.request import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
 from ..controls import video_outputs, generation_controls
-from ...comfy.execution import execute_video, operation_fingerprint
+from ...comfy.execution import generate_video, operation_fingerprint
 
 
 class HeliosSequence(io.ComfyNode):
@@ -57,7 +57,7 @@ class HeliosSequence(io.ComfyNode):
         del variation
         prompts = parse_sequence(sequence)
         encoded = await asyncio.to_thread(image_png, image) if image is not None else None
-        return await execute_video(
+        return await generate_video(
             HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts),
             node_id=cls.define_schema().node_id,
         )

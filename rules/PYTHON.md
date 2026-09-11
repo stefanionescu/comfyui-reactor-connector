@@ -159,9 +159,9 @@ local standard for this repository.
 | Topic                        | Local decision                                                                                                                                                                                                           |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Style authority              | Project rules and local tooling win over generic source guides.                                                                                                                                                          |
-| Formatter line length        | Ruff is configured with `line-length = 120`; use that local limit for Python code.                                                                                                                                       |
-| Standard-library line length | PEP 8's 79-character code limit and 72-character comment/docstring limit describe the Python standard library, not this repository.                                                                                      |
-| Google line length           | Google's 80-character default is useful guidance for docstring summaries and comments, but local Ruff formatting is authoritative.                                                                                       |
+| Formatter line length        | Follow the line-length policy in the local Ruff configuration.                                                                                                                                                           |
+| Standard-library line length | PEP 8's standard-library limits do not define this repository's line length.                                                                                                                                             |
+| Google line length           | Google's default does not override the local Ruff configuration.                                                                                                                                                         |
 | Formatter                    | Ruff format is the local formatter. Do not hand-format against a different style.                                                                                                                                        |
 | Linter                       | Ruff lint, BasedPyright, import-linter, and custom `quality/` scripts are local policy. Pylint guidance from Google maps to these local tools.                                                                           |
 | Runtime                      | The project requires Python 3.12. Use Python 3.12 syntax when it improves clarity.                                                                                                                                       |
@@ -172,8 +172,8 @@ local standard for this repository.
 | `__all__`                    | Keep `__all__` at the bottom of modules. This local rule overrides PEP 8's normal module-dunder placement for `__all__`.                                                                                                 |
 | Other module dunders         | Put dunders such as `__version__` after the module docstring and future imports, before ordinary imports.                                                                                                                |
 | License boilerplate          | Do not invent license boilerplate. Add it only if the project defines the exact boilerplate.                                                                                                                             |
-| Function length              | Custom lint limits functions to 60 counted code lines by default. Keep functions smaller when practical.                                                                                                                 |
-| File length                  | Custom lint limits Python files to 300 counted code lines by default, except barrel `__init__.py` files.                                                                                                                 |
+| Function length              | Follow the function-size policy configured in `quality/`. Keep functions smaller when practical.                                                                                                                        |
+| File length                  | Follow the file-size policy configured in `quality/`.                                                                                                                                                                    |
 | Function typing              | Annotate function and method parameters and return values as required by the local Ruff configuration.                                                                                                                   |
 | Typing style                 | Use modern union syntax, built-in generics, `type` statements for real type aliases, `Annotated` for typed metadata, `object` for values that can be any object, and protocols for structural interfaces.              |
 | Argument and return types    | Prefer abstract input types and concrete return types for concrete implementations. Avoid union return types that force caller-side type branching.                                                                      |
@@ -211,9 +211,8 @@ Rules:
 Current local tooling constraints include:
 
 - Python source under configured directories uses snake_case `.py` filenames.
-- Keep Python files under 300 counted code lines, except barrel `__init__.py`
-  files.
-- Keep functions and methods under 60 counted code lines.
+- Follow the configured Python file-size policy.
+- Follow the configured Python function-size policy.
 - Runtime modules must not use local imports inside function, method, or class
   bodies.
 - Runtime modules must not use lazy module loading, module-level lazy export
@@ -545,7 +544,7 @@ if (
 
 Rules:
 
-- Local Python code uses the Ruff limit of 120 characters.
+- Follow the line-length limit in the local Ruff configuration.
 - Prefer shorter lines when they are naturally readable.
 - Keep docstring summary lines concise and on one physical line.
 - Wrap long expressions with implicit continuation inside parentheses, brackets,
@@ -1573,7 +1572,7 @@ Rules:
 Rules:
 
 - Keep functions small and focused.
-- Custom lint limits functions and methods to 60 counted code lines by default.
+- Follow the function-size limit configured in `quality/`.
 - If a function approaches the limit, consider extracting real sub-operations.
 - Do not split a function into meaningless helpers only to satisfy the count.
 - Extract helpers when the extracted operation has a clear name and contract.

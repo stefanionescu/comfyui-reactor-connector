@@ -44,11 +44,6 @@ CAMERA_AXES = {
     "look_vertical": LOOK_VERTICAL_VALUES,
 }
 
-WORLD_AXES = {
-    "lingbot": LINGBOT_CAMERA_AXES,
-    "lingbot-world-2": LINGBOT_WORLD_CAMERA_AXES,
-}
-
 __all__ = [
     "CAMERA_AXES",
     "DEFAULT_LATERAL",
@@ -68,6 +63,5 @@ __all__ = [
     "OPTIONS_LOOK_HORIZONTAL",
     "OPTIONS_LOOK_VERTICAL",
     "STEP_ROTATION_DEGREES",
-    "WORLD_AXES",
     "WORLD_FRAME_RATE",
 ]

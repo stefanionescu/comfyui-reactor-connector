@@ -3,7 +3,7 @@
 from comfy_api.latest import io
 from ..schema import translate_schema
 from ...execution.longlive.request import LongLiveRequest
-from ...comfy.execution import execute_video, operation_fingerprint
+from ...comfy.execution import generate_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
 
@@ -39,7 +39,7 @@ class LongLiveGenerate(io.ComfyNode):
         """Generate a LongLive video with optional live prompt changes."""
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
-        return await execute_video(
+        return await generate_video(
             LongLiveRequest(prompt, duration_seconds, seed),
             interactive=interactive,
             node_id=cls.define_schema().node_id,

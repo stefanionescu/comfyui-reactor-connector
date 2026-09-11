@@ -6,11 +6,19 @@ import asyncio
 import threading
 from collections import deque
 from ..language import translate
-from .state import AdmissionTicket
+from dataclasses import dataclass
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from ..errors import ErrorCode, ConnectorError
 from ...config.generation.session import MAX_SESSION_CAPACITY, DEFAULT_SESSION_CAPACITY
+
+
+@dataclass(eq=False, slots=True)
+class _AdmissionTicket:
+    """A wake-up event owned only by the loop that requested admission."""
+
+    loop: asyncio.AbstractEventLoop
+    changed: asyncio.Event
 
 
 class SessionAdmission:
@@ -21,10 +29,10 @@ class SessionAdmission:
         if type(capacity) is not int or not 1 <= capacity <= MAX_SESSION_CAPACITY:
             msg = translate("main", "errors.sessionCapacity")
             raise ValueError(msg)
-        self.capacity = capacity
+        self._capacity = capacity
         self._lock = threading.Lock()
-        self._waiting: deque[AdmissionTicket] = deque()
-        self._active: set[AdmissionTicket] = set()
+        self._waiting: deque[_AdmissionTicket] = deque()
+        self._active: set[_AdmissionTicket] = set()
         self._blocked_until = 0.0
 
     def block_for(self, seconds: float) -> None:
@@ -41,10 +49,10 @@ class SessionAdmission:
 
     def _notify(self) -> None:
         """Wake eligible waiters on their owning event loops while holding the queue lock."""
-        for ticket in list(self._waiting)[: self.capacity - len(self._active)]:
+        for ticket in list(self._waiting)[: self._capacity - len(self._active)]:
             ticket.loop.call_soon_threadsafe(ticket.changed.set)
 
-    def _claim(self, ticket: AdmissionTicket) -> bool:
+    def _claim(self, ticket: _AdmissionTicket) -> bool:
         """Admit the first waiter when capacity and the cleanup deadline allow it."""
         with self._lock:
             remaining = self._blocked_until - time.monotonic()
@@ -53,7 +61,7 @@ class SessionAdmission:
                     ErrorCode.CLEANUP,
                     translate("main", "errors.terminationWait", seconds=math.ceil(remaining)),
                 )
-            if self._waiting[0] is ticket and len(self._active) < self.capacity:
+            if self._waiting[0] is ticket and len(self._active) < self._capacity:
                 self._waiting.popleft()
                 self._active.add(ticket)
                 self._notify()
@@ -64,7 +72,7 @@ class SessionAdmission:
     @asynccontextmanager
     async def slot(self, timeout_seconds: float) -> AsyncGenerator[None, None]:
         """Acquire before client construction and release after all session cleanup."""
-        ticket = AdmissionTicket(asyncio.get_running_loop(), asyncio.Event())
+        ticket = _AdmissionTicket(asyncio.get_running_loop(), asyncio.Event())
         with self._lock:
             self._waiting.append(ticket)
         try:
@@ -84,3 +92,6 @@ class SessionAdmission:
                     self._waiting.remove(ticket)
                 self._active.discard(ticket)
                 self._notify()
+
+
+__all__ = ["SessionAdmission"]

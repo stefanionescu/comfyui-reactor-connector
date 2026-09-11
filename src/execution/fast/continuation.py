@@ -1,12 +1,12 @@
 """Chain a chosen number of Fast H3 clips in one session and save their sound."""
 
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
 from ....config.nodes import MAX_SEED
+from ..operation import RecordingWindow
 from ...settings.settings import Settings
 from .generate import FastGenerateRequest
 from ...errors import ErrorCode, ConnectorError
@@ -25,7 +25,14 @@ from ....config.generation.fast import (
 
 @dataclass(frozen=True, slots=True)
 class FastContinueRequest(FastGenerateRequest):
-    """A sequence of Fast H3 clips linked by their final frames."""
+    """A sequence of Fast H3 clips linked by their final frames.
+
+    Attributes:
+        clip_seconds: Duration of each generated clip.
+        clip_count: Number of clips to generate.
+        later_prompts: Prompts for subsequent clips.
+
+    """
 
     clip_seconds: float = DEFAULT_CLIP_SECONDS
     clip_count: int = DEFAULT_CLIP_COUNT

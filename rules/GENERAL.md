@@ -94,7 +94,8 @@ Keep one clear implementation for each concept.
 
 Name files, directories, and declarations for what they do. Use consistent domain
 terms and the casing required by the language. Keep required host API names exact.
-Retain the naming, folder, file-size, function-size, and import-spacing policies.
+Follow the configured naming, folder, file-size, function-size, and import-spacing
+policies.
 Keep a blank line after the complete import block, including before comments.
 
 ## Abstractions

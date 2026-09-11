@@ -12,13 +12,14 @@ from ..events import SessionEvents
 from .state import SessionResources
 from ...media.output import owned_io
 from ..cleanup import finish_session
-from ..operation import RecordingWindow, VideoOperation
 from ..diagnostics import FailureReport
 from ...media.state import CaptureResult
 from ...media.capture import VideoCapture
 from ..interaction import SessionInteraction
 from ...errors import ErrorCode, ConnectorError
-from ...settings.state import ExecutionConfiguration
+from ...media.units import convert_mebibytes_to_bytes
+from ..operation import VideoOperation, RecordingWindow
+from ...settings.execution import ExecutionConfiguration
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
 from ....config.generation.session import CAPTURE_DRAIN_SECONDS
@@ -36,7 +37,7 @@ def _video_track(transport: Transport) -> Track:
     return tracks[0]
 
 
-async def _generate(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
+async def _capture_generation(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
     """Connect, configure the model, and capture the requested video and recording."""
     recording_window = RecordingWindow(0, session.request.duration_seconds)
     await session.capture.ready.wait()
@@ -73,7 +74,7 @@ async def _generate(session: SessionResources) -> tuple[CaptureResult, Recording
             "recording",
             session.transport.save_recording(
                 session.capture.path.with_suffix(".recording.mp4"),
-                maximum_bytes=session.settings.max_capture_megabytes * 1_048_576,
+                maximum_bytes=convert_mebibytes_to_bytes(session.settings.max_capture_megabytes),
                 timeout_seconds=session.settings.max_session_seconds,
                 on_window=session.events.on_recording_window,
             ),
@@ -125,18 +126,18 @@ def session_failure(events: SessionEvents, error: BaseException | None) -> Failu
     return diagnostic
 
 
-async def _run(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
+async def _capture_session(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
     """Own capture and event listeners through generation, failure, and cleanup."""
     try:
         session.events.attach()
         async with asyncio.timeout(session.settings.max_session_seconds):
-            return await session.events.guard(_generate(session))
+            return await session.events.guard(_capture_generation(session))
     finally:
         session.outcome.diagnostic = session_failure(session.events, sys.exception())
         await finish_session(session, sys.exception())
 
 
-async def run_video(
+async def capture_video(
     request: VideoOperation,
     configuration: ExecutionConfiguration,
     destination: Path,
@@ -144,14 +145,13 @@ async def run_video(
     outcome: SessionOutcome | None = None,
     interaction: SessionInteraction | None = None,
 ) -> CaptureResult:
-    """Validate before billing and clean up after every execution outcome."""
+    """Capture an already validated operation and clean up every outcome."""
     settings = configuration.settings
-    request.validate(settings)
     capture = VideoCapture(
         destination,
         request.duration_seconds,
-        settings.max_queue_megabytes * 1_048_576,
-        settings.max_capture_megabytes * 1_048_576,
+        convert_mebibytes_to_bytes(settings.max_queue_megabytes),
+        convert_mebibytes_to_bytes(settings.max_capture_megabytes),
         fallback_fps=request.fallback_fps,
     )
     try:
@@ -167,7 +167,7 @@ async def run_video(
             outcome=outcome or SessionOutcome(),
             interaction=interaction,
         )
-        result, recording_window = await _run(session)
+        result, recording_window = await _capture_session(session)
         if request.requires_audio:
             result = await prepare_recording(
                 destination.with_suffix(".recording.mp4"),

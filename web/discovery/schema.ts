@@ -107,13 +107,6 @@ const modelListSchema = v.pipe(
   }),
 );
 
-const errorDocumentSchema = v.object({ error: v.optional(v.unknown()) });
-const errorTextSchema = v.pipe(
-  v.string(),
-  v.minLength(1),
-  v.maxLength(browserLimits.maxErrorCharacters),
-);
-
 export type Model = v.InferOutput<typeof modelSchema>;
 export type ModelList = v.InferOutput<typeof modelListSchema>;
 
@@ -126,16 +119,4 @@ export function parseModelList(value: unknown): ModelList {
   const result = v.safeParse(modelListSchema, value);
   if (!result.success) throw new Error(translate('models.invalidResponse'));
   return result.output;
-}
-
-/**
- * Read a bounded public error from a failed discovery response.
- * @param value - The untrusted JSON response.
- * @returns The server message, or undefined when the error field is unusable.
- */
-export function parseModelError(value: unknown): string | undefined {
-  const document = v.safeParse(errorDocumentSchema, value);
-  if (!document.success) throw new Error(translate('models.invalidResponse'));
-  const error = v.safeParse(errorTextSchema, document.output.error);
-  return error.success ? error.output : undefined;
 }

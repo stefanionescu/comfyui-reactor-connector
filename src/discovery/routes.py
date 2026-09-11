@@ -31,30 +31,30 @@ class ModelRoutes:
         self.fetcher = fetcher
         self.checker = checker
 
-    def _check_status(self, result: dict[str, Json]) -> dict[str, Json]:
-        """Add scheduled-check status to the model list response."""
+    def _add_route_fields(self, result: dict[str, Json]) -> dict[str, Json]:
+        """Add catalog permissions and scheduled-check status to one response."""
+        result["mutation_allowed"] = not self.multi_user
         if self.checker:
             result["automatic_check"] = self.checker.status(str(result["revision"]))
         return result
 
     async def status(self, _request: web.Request) -> dict[str, Json]:
         """Read the saved model list without blocking the host event loop."""
-        return self._check_status(await asyncio.to_thread(self.store.status))
+        return self._add_route_fields(await asyncio.to_thread(self.store.status))
 
     async def refresh(self, request: web.Request) -> dict[str, Json]:
         """Refresh public metadata and return the newly saved model list."""
         if request.can_read_body:
             raise web.HTTPBadRequest(text=translate("main", "errors.refreshBody"))
         result = await self.store.refresh(self.fetcher)
-        result["refreshing"] = False
-        return self._check_status(result)
+        return self._add_route_fields(result)
 
     async def rollback(self, request: web.Request) -> dict[str, Json]:
         """Restore the previous snapshot only if the caller still has the current revision."""
         body = await read_document(request)
         if body.keys() != {"revision"} or not isinstance(body["revision"], str):
             raise web.HTTPBadRequest(text=translate("main", "errors.modelRevisionRequired"))
-        return self._check_status(await asyncio.to_thread(self.store.rollback, body["revision"]))
+        return self._add_route_fields(await asyncio.to_thread(self.store.rollback, body["revision"]))
 
     def register(self, routes: web.RouteTableDef) -> None:
         """Register model routes with local-owner and mutation guards."""

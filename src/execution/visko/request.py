@@ -3,22 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ...language import translate
-from ...live.state import LiveOptions
-from ..transport import Transport
 from dataclasses import dataclass
-from typing import cast, ClassVar
-from ..events import SessionEvents
-from ...settings.settings import Settings
+from ...model_registry import MODELS
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
+from typing import cast, ClassVar, TYPE_CHECKING
+from ..operation import ControlValues, RecordingWindow
 from ....config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
 
 if TYPE_CHECKING:
-    from ...media.webcam import WebcamFrames
+    from ..transport import Transport
+    from ..events import SessionEvents
+    from ...settings.settings import Settings
 
 
 class ViskoStart:
@@ -65,7 +62,15 @@ class ViskoStart:
 
 @dataclass(frozen=True, slots=True)
 class ViskoStableRequest(VideoInputs):
-    """Generate synchronized video and audio using the provider's recording clock."""
+    """Generate synchronized video and audio using the provider's recording clock.
+
+    Attributes:
+        audio_prompt: Text describing the requested sound.
+        resolution: Requested provider resolution.
+        audio_enabled: Whether sound generation is enabled.
+        prompt_passthrough: Whether prompt changes pass through immediately.
+
+    """
 
     audio_prompt: str = ""
     resolution: str = ""
@@ -84,15 +89,13 @@ class ViskoStableRequest(VideoInputs):
         if type(self.audio_enabled) is not bool or type(self.prompt_passthrough) is not bool:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.soundOptionType"))
 
-    def live_options(self, *, webcam: WebcamFrames | None = None) -> LiveOptions:
+    def build_control_values(self) -> ControlValues:
         """Return sound and passthrough values selected for live controls."""
-        return LiveOptions(
-            self.model_name,
+        return ControlValues(
             self.prompt,
-            webcam,
-            passthrough=self.prompt_passthrough,
+            is_passthrough_enabled=self.prompt_passthrough,
             audio_prompt=self.audio_prompt,
-            audio_enabled=self.audio_enabled,
+            is_audio_enabled=self.audio_enabled,
         )
 
     async def configure(

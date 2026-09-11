@@ -18,6 +18,8 @@ export type Configuration = {
 
 const unknownRecordSchema = v.record(v.string(), v.unknown());
 
+const settingNameSchema = v.pipe(v.string(), v.regex(browserPatterns.settingName));
+
 const settingDefinitionSchema = v.object({
   label: v.pipe(v.string(), v.minLength(1), v.maxLength(browserLimits.maxTextCharacters)),
   minimum: v.pipe(v.number(), v.safeInteger()),
@@ -37,8 +39,6 @@ const configurationDocumentSchema = v.object({
 
 const checkSettingsSchema = v.object({ catalog_auto_check: v.boolean() });
 const credentialLimitSchema = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
-const errorDocumentSchema = v.object({ error: v.optional(v.unknown()) });
-const errorTextSchema = v.pipe(v.string(), v.maxLength(browserLimits.maxErrorCharacters));
 
 /**
  * Read the settings fields and ranges supplied by the backend.
@@ -53,10 +53,8 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
   }
   const definitions = new Map<string, SettingDefinition>();
   for (const [name, raw] of Object.entries(document.output)) {
-    const field = v.safeParse(unknownRecordSchema, raw);
-    if (!field.success) throw new Error(translate('settings.invalidResponse'));
-    const validName = v.safeParse(v.pipe(v.string(), v.regex(browserPatterns.settingName)), name);
-    const definition = v.safeParse(settingDefinitionSchema, field.output);
+    const validName = v.safeParse(settingNameSchema, name);
+    const definition = v.safeParse(settingDefinitionSchema, raw);
     if (
       !validName.success ||
       !definition.success ||
@@ -105,16 +103,4 @@ export function parseConfiguration(value: unknown): Configuration {
     definitions,
     settings: document.settings as Configuration['settings'],
   };
-}
-
-/**
- * Read a bounded public error from a failed settings response.
- * @param value - The untrusted JSON response.
- * @returns The server message, or undefined when the error field is unusable.
- */
-export function parseSettingsError(value: unknown): string | undefined {
-  const document = v.safeParse(errorDocumentSchema, value);
-  if (!document.success) throw new Error(translate('settings.invalidResponse'));
-  const error = v.safeParse(errorTextSchema, document.output.error);
-  return error.success ? error.output : undefined;
 }

@@ -3,14 +3,15 @@
 import json
 from typing import ClassVar
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
-from ..events import SessionEvents
 from dataclasses import dataclass
+from ..events import SessionEvents
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
+from ...media.units import convert_mebibytes_to_bytes
 from .clip import seconds, FastClip, FastClipEvents, message_payload
 from ....config.generation.fast import (
     FRAME_RATE,
@@ -24,7 +25,13 @@ from ....config.generation.fast import (
 
 @dataclass(frozen=True, slots=True)
 class FastGenerateRequest(VideoInputs):
-    """A Fast H3 request with its image endpoints, aspect ratio, and recording interval."""
+    """A Fast H3 request with its image endpoints, aspect ratio, and recording interval.
+
+    Attributes:
+        aspect: Requested output aspect ratio.
+        ending_image: Optional encoded ending image.
+
+    """
 
     aspect: str = DEFAULT_ASPECT
     ending_image: bytes | None = None
@@ -43,7 +50,7 @@ class FastGenerateRequest(VideoInputs):
         if self.ending_image is not None and (
             type(self.ending_image) is not bytes
             or not self.ending_image
-            or len(self.ending_image) > settings.max_upload_megabytes * 1_048_576
+            or len(self.ending_image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.endingImageUploadLimit"))
 
@@ -95,9 +102,7 @@ class FastGenerateRequest(VideoInputs):
         await events.command_reply("play", {"clip_id": tail.clip_id})
         return RecordingWindow(start_seconds, clip.seconds)
 
-    async def _queue_clip(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> FastClip:
+    async def _queue_clip(self, transport: Transport, events: SessionEvents, max_capture_seconds: float) -> FastClip:
         """Upload selected endpoint images and queue a clip within the capture limit."""
         payload: dict[str, object] = {
             "prompt": self.prompt,

@@ -1,13 +1,9 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
+import { parsePublicError } from '#web/schema.ts';
 import { browserRoutes } from '#config/web/routes.ts';
 import { browserLimits } from '#config/web/browser.ts';
-
-import {
-  parseConfiguration,
-  parseSettingsError,
-  type Configuration,
-} from '#web/settings/schema.ts';
+import { parseConfiguration, type Configuration } from '#web/settings/schema.ts';
 
 /**
  * Read or change settings through the local ComfyUI server.
@@ -49,7 +45,7 @@ export async function requestConfiguration(
     throw new Error(translate('settings.unreadableResponse'));
   }
   if (!response.ok) {
-    throw new Error(parseSettingsError(document) ?? translate('settings.saveFailed'));
+    throw new Error(parsePublicError(document) ?? translate('settings.saveFailed'));
   }
   return parseConfiguration(document);
 }

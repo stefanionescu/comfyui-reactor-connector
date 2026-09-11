@@ -4,9 +4,10 @@ from comfy_api.latest import io
 from ..schema import translate_schema
 from ...media.webcam import WebcamFrames
 from ...execution.sana.request import SanaRequest
+from ...comfy.interaction import build_live_options
 from ..controls import video_outputs, generation_controls
-from ...comfy.execution import execute_video, operation_fingerprint
-from ....config.generation.video import DEFAULT_ANCHOR_INTERVAL, MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
+from ...comfy.execution import generate_video, operation_fingerprint
+from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
 class SanaWebcam(io.ComfyNode):
@@ -46,9 +47,9 @@ class SanaWebcam(io.ComfyNode):
         camera = WebcamFrames()
         try:
             request = SanaRequest(prompt, duration_seconds, seed, webcam=camera, anchor_interval=anchor_interval)
-            return await execute_video(
+            return await generate_video(
                 request,
-                controls=request.live_options(webcam=camera),
+                controls=build_live_options(request, webcam=camera),
                 node_id=cls.define_schema().node_id,
             )
         finally:

@@ -7,7 +7,7 @@ from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...execution.ltx.request import LtxSpeakRequest
-from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.speech import (
     DEFAULT_SCRIPT,
     MAX_WORDS_PER_MINUTE,
@@ -74,7 +74,7 @@ class LtxSpeak(io.ComfyNode):
         async def generate() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             encoded = await owned_io(lambda: image_png(image))
-            return await execute_video(
+            return await generate_video(
                 LtxSpeakRequest(
                     prompt,
                     duration_seconds,

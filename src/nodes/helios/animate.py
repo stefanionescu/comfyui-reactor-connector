@@ -5,7 +5,7 @@ from ...media.images import image_png
 from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...execution.helios.request import HeliosRequest
-from ...comfy.execution import execute_video, operation_fingerprint
+from ...comfy.execution import generate_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
 
@@ -49,7 +49,7 @@ class HeliosAnimate(io.ComfyNode):
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
         encoded = await asyncio.to_thread(image_png, image)
-        return await execute_video(
+        return await generate_video(
             HeliosRequest(prompt, duration_seconds, seed, image=encoded),
             interactive=interactive,
             node_id=cls.define_schema().node_id,

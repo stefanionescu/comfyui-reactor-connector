@@ -13,6 +13,7 @@ from .contracts import rows, Guide, Price, invalid, Snapshot
 from ...config.discovery import (
     INDEX_URL,
     PRICING_URL,
+    FORMAT_VERSION,
     NAVIGATION_URL,
     MAX_SOURCE_BYTES,
     SOURCE_USER_AGENT,
@@ -62,7 +63,7 @@ def parse_sources(
         guides.extend(guide.to_json() for guide in navigation_guides(navigation_text) if guide.slug not in indexed)
     return Snapshot.parse(
         {
-            "version": 1,
+            "version": FORMAT_VERSION,
             "retrieved_at": retrieved_at,
             "credits_per_dollar": conversion,
             "prices": prices,

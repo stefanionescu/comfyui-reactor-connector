@@ -3,28 +3,36 @@
 import asyncio
 from pathlib import Path
 from ...language import translate
-from ..operation import RecordingWindow
 from ..transport import Transport
 from .contract import source_mode
 from typing import cast, ClassVar
 from ..events import SessionEvents
-from ...media.webcam import WebcamFrames
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
+from ..interaction import FramePublisher
 from dataclasses import field, dataclass
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
 from ...media.video.publish import VideoPublication
 from ..inputs import VideoInputs, validate_capture_inputs
 from ....config.generation.session import MAX_PROMPT_CHARACTERS
-from ....config.generation.video import DEFAULT_ANCHOR_INTERVAL, MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
+from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
 @dataclass(frozen=True, slots=True)
 class SanaRequest(VideoInputs):
-    """Edit an uploaded clip; source acceptance is separate from upload completion."""
+    """Edit an uploaded clip; source acceptance is separate from upload completion.
+
+    Attributes:
+        video: Optional prepared source video path.
+        webcam: Optional live input frame publisher.
+        anchor_interval: Number of chunks between anchors.
+        publication: Owned source video publisher.
+
+    """
 
     video: Path | None = None
-    webcam: WebcamFrames | None = None
+    webcam: FramePublisher | None = None
     anchor_interval: int = DEFAULT_ANCHOR_INTERVAL
     model_name: ClassVar[str] = MODELS["sana-streaming"].connection_name
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)

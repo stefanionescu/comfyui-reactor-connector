@@ -6,24 +6,21 @@ other planned change sequence.
 
 ## Contents
 
-- [Complete change content](#complete-change-content)
+- [Concrete change descriptions](#concrete-change-descriptions)
 - [No automated tests or unrequested checks](#no-automated-tests-or-unrequested-checks)
 - [Implementation order](#implementation-order)
 - [Plan detail level](#plan-detail-level)
 
-## Complete change content
+## Concrete change descriptions
 
-A plan must contain the complete content of every change it proposes.
+A plan must identify every change it proposes.
 
 Rules:
 
-- Include a complete code diff or text diff for every code, configuration,
-  documentation, data, script, and text change.
-- Do not summarize a change when the exact diff can be shown.
-- Do not describe a future edit without including the exact patch that makes the
-  edit.
-- Include every new file's full contents.
-- Include every deleted file's full removed contents or the full deletion diff.
+- Identify the affected files, declarations, configuration keys, and behavior.
+- Include short code or text examples only when they resolve an implementation
+  decision that names and prose cannot express clearly.
+- Identify new and deleted files and explain their purpose.
 - Include every command needed to create, transform, move, rename, resize,
   regenerate, or delete an artifact.
 - Include changes to generated files when the plan expects generated files to
@@ -32,37 +29,10 @@ Rules:
   exact source path, output path, and operation.
 - Also list the dimensions or metadata changes and the command or tool needed to
   reproduce the result.
-- If a binary diff cannot be represented as text, include enough exact
-  reproduction detail that the asset change is part of the plan rather than an
-  implied follow-up.
+- Describe binary asset changes through their source, output, and reproduction
+  steps.
 
-Bad:
-
-```text
-Change workflow generation and regenerate the documented workflow.
-```
-
-Good:
-
-```diff
-diff --git a/src/settings/settings.py b/src/settings/settings.py
---- a/src/settings/settings.py
-+++ b/src/settings/settings.py
-@@
--duration_seconds = requested_seconds
-+duration_seconds = min(requested_seconds, maximum_seconds)
-```
-
-```bash
-mise run workflows:build
-```
-
-```text
-Artifact change:
-- Path: workflows/
-- Operation: generate the documented workflow JSON
-- Command: mise run workflows:build
-```
+For a generated artifact, name the source, output, and generation command.
 
 ## No automated tests or unrequested checks
 
@@ -88,7 +58,7 @@ Rules:
 - Put cleanup after all call sites have moved.
 - Keep each step concrete enough that another agent can execute it without
   inventing missing decisions.
-- State which files, symbols, assets, commands, and diffs belong to each step.
+- State which files, symbols, assets, commands, and behavior belong to each step.
 - Do not hide multiple unrelated edits inside one broad step.
 
 Bad:
@@ -101,15 +71,15 @@ Bad:
 Good:
 
 ```text
-1. Add the new `ModelSettings` field shown in the diff.
-2. Update `build_settings` to populate the field using the exact diff.
-3. Replace runtime and workflow call sites using the exact diff.
-4. Remove the old derived-value helper using the exact deletion diff.
+1. Add the named `ModelSettings` field and define its value source.
+2. Update `build_settings` to populate the field.
+3. Replace the identified runtime and workflow call sites.
+4. Remove the named derived-value helper after its callers move.
 ```
 
 ## Plan detail level
 
-Plans must be extensive and detailed enough to be directly executable.
+Plans must explain the intended changes clearly enough to implement.
 
 Rules:
 
@@ -124,5 +94,5 @@ Rules:
   requested work.
 - Do not leave placeholders such as "update as needed", "adjust imports", or
   "fix any errors".
-- Do not rely on the implementer to infer omitted code, omitted commands, or
-  omitted asset operations.
+- State the required behavior, contracts, commands, and asset operations. Leave
+  routine coding details to implementation.

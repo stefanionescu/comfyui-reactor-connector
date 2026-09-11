@@ -11,14 +11,8 @@ const invitationEntries = {
   allow_empty_prompt: v.boolean(),
 } as const;
 
-type InvitationDocument = {
-  lease: v.InferOutput<(typeof invitationEntries)['lease']>;
-  capability: v.InferOutput<(typeof invitationEntries)['capability']>;
-  model_title: v.InferOutput<(typeof invitationEntries)['model_title']>;
-  duration_seconds: v.InferOutput<(typeof invitationEntries)['duration_seconds']>;
-  prompt_kind: v.InferOutput<(typeof invitationEntries)['prompt_kind']>;
-  allow_empty_prompt: v.InferOutput<(typeof invitationEntries)['allow_empty_prompt']>;
-};
+const invitationSchema = v.object(invitationEntries);
+type InvitationDocument = v.InferOutput<typeof invitationSchema>;
 
 function buildInvitation(document: InvitationDocument, axes: Record<string, string[]>) {
   const identity = { lease: document.lease, capability: document.capability };
@@ -42,7 +36,7 @@ const axesSchema = v.record(v.string(), axisChoicesSchema);
 
 const sceneInvitationSchema = v.pipe(
   v.object({
-    ...invitationEntries,
+    ...invitationSchema.entries,
     ...promptEntries,
     axes: axesSchema,
   }),
@@ -69,7 +63,7 @@ const sceneInvitationSchema = v.pipe(
 
 const controlsInvitationSchema = v.pipe(
   v.object({
-    ...invitationEntries,
+    ...invitationSchema.entries,
     ...promptEntries,
     webcam: v.boolean(),
     pointer: v.boolean(),

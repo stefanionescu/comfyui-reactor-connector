@@ -8,7 +8,7 @@ from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ..controls import live_control, generation_controls
 from ...execution.visko.request import ViskoStableRequest
-from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 
 
 class ViskoStableGenerate(io.ComfyNode):
@@ -84,7 +84,7 @@ class ViskoStableGenerate(io.ComfyNode):
             """Prepare media inside the owned task before starting the Reactor session."""
             source_image = image
             encoded = None if source_image is None else await owned_io(lambda: image_png(source_image))
-            return await execute_video(
+            return await generate_video(
                 cls.request_type(
                     prompt,
                     duration_seconds,

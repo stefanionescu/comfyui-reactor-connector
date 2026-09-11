@@ -3,14 +3,14 @@
 import math
 from typing import ClassVar
 from ..inputs import VideoInputs
-from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
+from ...model_registry import MODELS
+from ..operation import RecordingWindow
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import MODELS
 from ....config.generation.world import (
     CAMERA_AXES,
     DEFAULT_LATERAL,
@@ -27,7 +27,16 @@ from ....config.generation.world import (
 
 @dataclass(frozen=True, slots=True)
 class LingBotRequest(VideoInputs):
-    """Generate from an image while holding the selected camera controls."""
+    """Generate from an image while holding the selected camera controls.
+
+    Attributes:
+        movement: Selected camera movement.
+        look_horizontal: Horizontal camera direction.
+        look_vertical: Vertical camera direction.
+        rotation_speed_deg: Camera rotation speed in degrees per second.
+        movement_values: Movement commands accepted by this model.
+
+    """
 
     movement: str = DEFAULT_MOVEMENT
     look_horizontal: str = DEFAULT_LOOK_HORIZONTAL
@@ -92,7 +101,12 @@ class LingBotRequest(VideoInputs):
 
 @dataclass(frozen=True, slots=True)
 class LingBotWorldRequest(LingBotRequest):
-    """Keep longitudinal and lateral movement independent for World 2."""
+    """Keep longitudinal and lateral movement independent for World 2.
+
+    Attributes:
+        lateral: Independent lateral camera movement.
+
+    """
 
     lateral: str = DEFAULT_LATERAL
     model_name: ClassVar[str] = MODELS["lingbot-world-2"].connection_name

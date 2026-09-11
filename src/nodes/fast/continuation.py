@@ -8,7 +8,7 @@ from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...execution.fast.continuation import FastContinueRequest
-from ...comfy.execution import execute_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.fast import (
     DEFAULT_ASPECT,
     MAX_CLIP_COUNT,
@@ -105,6 +105,6 @@ class FastContinue(io.ComfyNode):
                 clip_count=clip_count,
                 later_prompts=tuple(later_prompts.splitlines()),
             )
-            return await execute_video(request, node_id=cls.define_schema().node_id)
+            return await generate_video(request, node_id=cls.define_schema().node_id)
 
         return await wait_for_execution(asyncio.create_task(generate()))

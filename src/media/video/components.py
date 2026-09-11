@@ -12,6 +12,7 @@ from ...language import translate
 from ..process import EncoderProcess
 from ...settings.settings import Settings
 from comfy_api.latest import Input, InputImpl
+from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ....config.media.capture import FRAME_HEADER_FORMAT
 from ....config.media.images import RGB_CHANNELS, BATCH_IMAGE_DIMENSIONS
@@ -52,7 +53,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         or not MIN_FRAME_DIMENSION <= height <= MAX_FRAME_DIMENSION
         or width % 2
         or height % 2
-        or width * height * 3 > settings.max_queue_megabytes * 1_048_576
+        or width * height * 3 > convert_mebibytes_to_bytes(settings.max_queue_megabytes)
     ):
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceDimensions"))
     count = min(total, math.ceil(settings.max_capture_seconds * rate))
@@ -77,8 +78,8 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
             "capture",
             str(destination),
             str(settings.max_capture_seconds * 1_000_000),
-            str(settings.max_queue_megabytes * 1_048_576),
-            str(settings.max_upload_megabytes * 1_048_576),
+            str(convert_mebibytes_to_bytes(settings.max_queue_megabytes)),
+            str(convert_mebibytes_to_bytes(settings.max_upload_megabytes)),
             str(round(rate)),
         ]
     )

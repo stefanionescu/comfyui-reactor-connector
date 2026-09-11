@@ -1,9 +1,10 @@
 import type { Fetcher } from '#web/http.ts';
+import { parsePublicError } from '#web/schema.ts';
 import { browserRoutes } from '#config/web/routes.ts';
 import { browserLimits } from '#config/web/browser.ts';
 import { translate, formatDate } from '#web/language.ts';
 import { message, type Message } from '#web/localization.ts';
-import { parseModelError, parseModelList, type ModelList } from '#web/discovery/schema.ts';
+import { parseModelList, type ModelList } from '#web/discovery/schema.ts';
 
 type ModelAction = 'read' | 'refresh' | 'rollback';
 
@@ -61,7 +62,7 @@ export async function requestModels(
     throw new Error(translate('models.invalidResponse'));
   }
   if (!response.ok) {
-    throw new Error(parseModelError(body) ?? translate('models.requestFailed'));
+    throw new Error(parsePublicError(body) ?? translate('models.requestFailed'));
   }
   return parseModelList(body);
 }
