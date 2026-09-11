@@ -30,10 +30,9 @@ TOKEN_TEXT = re.compile(JWT_PATTERN_TEXT)
 
 @dataclass(frozen=True, slots=True, repr=False)
 class SessionToken:
-    """A private session token and its provider-confirmed expiry time."""
+    """A private session token with a validated provider expiry."""
 
     value: str = field(repr=False)
-    expires_at: float
 
     def __repr__(self) -> str:
         """Hide the token from object representations."""
@@ -102,6 +101,6 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
             or expires < time.time() + session_seconds + MIN_EXPIRY_MARGIN_SECONDS
         ):
             raise authentication_error()
-        return SessionToken(token, float(expires))
+        return SessionToken(token)
     except (aiohttp.ClientError, TimeoutError, UnicodeError, ConnectorError):
         raise authentication_error() from None

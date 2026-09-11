@@ -9,8 +9,8 @@ from pathlib import Path
 from ..output import owned_io
 from functools import partial
 from ...language import translate
-from ..process import EncoderProcess
-from ...settings.settings import Settings
+from ..process import MediaProcess
+from ...settings.schema import Settings
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
@@ -70,7 +70,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
             await writer.drain()
         writer.write_eof()
 
-    worker = EncoderProcess(
+    worker = MediaProcess(
         [
             sys.executable,
             "-I",

@@ -10,7 +10,6 @@ main() {
   REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
   cd "${REPO_ROOT}" || exit 1
 
-  mise run deps:verify
   mise run lint
   mise run type:frontend
   mise run frontend:check

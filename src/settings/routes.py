@@ -14,10 +14,10 @@ from collections.abc import Callable, Awaitable
 class ConfigurationRoutes:
     """Register routes once during the host's extension load phase."""
 
-    def __init__(self, store: ConfigurationStore, *, multi_user: bool = False) -> None:
+    def __init__(self, store: ConfigurationStore, *, is_multi_user: bool = False) -> None:
         """Bind the configuration store and the host's multi-user access policy."""
         self.store = store
-        self.multi_user = multi_user
+        self.is_multi_user = is_multi_user
 
     async def status(self, _request: web.Request) -> dict[str, Json]:
         """Return effective settings and whether the current host permits changes."""
@@ -50,18 +50,18 @@ class ConfigurationRoutes:
 
     def _add_mutation_permission(self, result: dict[str, Json]) -> dict[str, Json]:
         """Add the settings editor permission to one configuration response."""
-        result["mutation_allowed"] = not self.multi_user
+        result["mutation_allowed"] = not self.is_multi_user
         return result
 
     def _guard(
-        self, callback: Callable[[web.Request], Awaitable[dict[str, Json]]], *, mutation: bool
+        self, callback: Callable[[web.Request], Awaitable[dict[str, Json]]], *, is_mutation: bool
     ) -> Callable[[web.Request], Awaitable[web.Response]]:
         """Apply the host access policy to one configuration route."""
-        return local_route(callback, mutation=mutation, multi_user=self.multi_user)
+        return local_route(callback, is_mutation=is_mutation, is_multi_user=self.is_multi_user)
 
     def register(self, routes: web.RouteTableDef) -> None:
         """Register guarded status, settings, key-save, and key-removal endpoints."""
-        routes.get(SETTINGS_PREFIX + "/status")(self._guard(self.status, mutation=False))
-        routes.patch(SETTINGS_PREFIX + "/settings")(self._guard(self.settings, mutation=True))
-        routes.put(SETTINGS_PREFIX + "/credential")(self._guard(self.credential, mutation=True))
-        routes.delete(SETTINGS_PREFIX + "/credential")(self._guard(self.clear_credential, mutation=True))
+        routes.get(SETTINGS_PREFIX + "/status")(self._guard(self.status, is_mutation=False))
+        routes.patch(SETTINGS_PREFIX + "/settings")(self._guard(self.settings, is_mutation=True))
+        routes.put(SETTINGS_PREFIX + "/credential")(self._guard(self.credential, is_mutation=True))
+        routes.delete(SETTINGS_PREFIX + "/credential")(self._guard(self.clear_credential, is_mutation=True))

@@ -8,7 +8,7 @@ from typing import ClassVar, Protocol, TYPE_CHECKING
 if TYPE_CHECKING:
     from .transport import Transport
     from .events import SessionEvents
-    from ..settings.settings import Settings
+    from ..settings.schema import Settings
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,13 +47,13 @@ class VideoOperation(Protocol):
     """Own model commands while the session owns connection and media lifetime.
 
     Attributes:
-        model_name: Provider connection name.
+        connection_name: Provider connection name.
         fallback_fps: Frame rate used when the provider supplies no timing.
         requires_audio: Whether to save the provider recording with audio.
 
     """
 
-    model_name: ClassVar[str]
+    connection_name: ClassVar[str]
 
     @property
     def prompt(self) -> str:
@@ -76,7 +76,7 @@ class VideoOperation(Protocol):
         """Reject inputs that violate the model contract or configured execution limits."""
         raise NotImplementedError
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Start generation and return the provider recording interval to save."""

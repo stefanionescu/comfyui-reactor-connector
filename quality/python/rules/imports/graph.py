@@ -193,13 +193,6 @@ def cycle_components(graph: dict[str, set[str]]) -> list[list[str]]:
     return [component for component in components if len(component) > 1]
 
 
-def cycle_errors(graph: dict[str, set[str]]) -> list[str]:
-    """Return stable text representations of graph cycles."""
-    errors = [format_cycle_component(component, graph) for component in cycle_components(graph)]
-    errors.extend(f"self-cycle: {module}" for module, targets in sorted(graph.items()) if module in targets)
-    return errors
-
-
 def format_cycle_component(component: list[str], edges: dict[str, set[str]]) -> str:
     """Render one cycle component."""
     ordered = sorted(component)

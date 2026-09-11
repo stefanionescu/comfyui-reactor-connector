@@ -2,14 +2,14 @@
 
 import json
 from typing import ClassVar
+from ...models import MODELS
 from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
-from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ...media.units import convert_mebibytes_to_bytes
 from .clip import seconds, FastClip, FastClipEvents, message_payload
@@ -35,7 +35,7 @@ class FastGenerateRequest(VideoInputs):
 
     aspect: str = DEFAULT_ASPECT
     ending_image: bytes | None = None
-    model_name: ClassVar[str] = MODELS["fast-h3"].connection_name
+    connection_name: ClassVar[str] = MODELS["fast-h3"].connection_name
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
@@ -54,7 +54,7 @@ class FastGenerateRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.endingImageUploadLimit"))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Generate and play one clip, then close its recording with trailing media."""

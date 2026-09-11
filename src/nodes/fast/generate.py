@@ -3,8 +3,8 @@
 import asyncio
 from functools import partial
 from ...media.output import owned_io
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...execution.fast.generate import FastGenerateRequest
@@ -83,8 +83,8 @@ class FastGenerate(io.ComfyNode):
 
         async def generate() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
-            first = await owned_io(partial(image_png, image)) if image is not None else None
-            last = await owned_io(partial(image_png, ending_image)) if ending_image is not None else None
+            first = await owned_io(partial(encode_png, image)) if image is not None else None
+            last = await owned_io(partial(encode_png, ending_image)) if ending_image is not None else None
             return await generate_video(
                 FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last),
                 node_id=cls.define_schema().node_id,

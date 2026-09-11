@@ -13,7 +13,9 @@ other planned change sequence.
 
 ## Concrete change descriptions
 
-A plan must identify every change it proposes.
+A plan must identify every change it proposes at the level needed to settle
+real implementation decisions. Scale the detail to the change; a small edit
+does not need the machinery of a multi-stage migration.
 
 Rules:
 
@@ -21,31 +23,26 @@ Rules:
 - Include short code or text examples only when they resolve an implementation
   decision that names and prose cannot express clearly.
 - Identify new and deleted files and explain their purpose.
-- Include every command needed to create, transform, move, rename, resize,
-  regenerate, or delete an artifact.
+- Include exact commands or tool operations when their arguments determine the
+  result, safety, or reproducibility. Routine text edits do not need a transcript
+  of editor operations.
 - Include changes to generated files when the plan expects generated files to
   change.
 - For generated results, binary assets, and other non-text artifacts, list the
   exact source path, output path, and operation.
-- Also list the dimensions or metadata changes and the command or tool needed to
-  reproduce the result.
-- Describe binary asset changes through their source, output, and reproduction
-  steps.
-
-For a generated artifact, name the source, output, and generation command.
+- For those artifacts, include dimensions or metadata changes when relevant
+  and the command or tool needed to reproduce the result.
 
 ## No automated tests or unrequested checks
 
-Do not create or run automated tests. Do not include test files or test commands
-in plans.
-
-Include linting, formatting, type checks, security scans, builds, or manual
-verification only when the user explicitly requests that verification. Keep
-requested checks limited to the affected behavior.
+Follow [GENERAL.md](GENERAL.md#verification-scope). Do not include automated
+test files or test commands in plans. Include other verification only within
+the explicitly requested scope.
 
 ## Implementation order
 
-Plans must define the exact order of implementation.
+Plans must define the implementation order where steps depend on one another.
+Identify independent steps without inventing an ordering dependency.
 
 Rules:
 
@@ -84,9 +81,9 @@ Plans must explain the intended changes clearly enough to implement.
 Rules:
 
 - Include the reasoning needed to understand why the steps are ordered that way.
-- Include file paths for every planned edit.
-- Include exact names for new files, functions, types, commands, assets, and
-  configuration keys.
+- Use the concrete file, declaration, configuration, and artifact details
+  specified in [concrete change descriptions](#concrete-change-descriptions).
+  State them once in the step that owns the change.
 - Include expected intermediate states when a sequence temporarily changes
   contracts, generated outputs, or asset files.
 - Include all constraints, assumptions, and dependencies that affect execution.

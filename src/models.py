@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         guide_slug: str
         connection_name: str
         title: str
-        prompt_limit: int
+        max_prompt_characters: int
         prompt_kind: Literal["scene", "edit"]
         is_empty_prompt_allowed: bool
         camera_axes: tuple[str, ...]
@@ -33,7 +33,7 @@ class ModelDefinition:
         guide_slug: Public guide name used to build documentation links.
         connection_name: Provider connection selected for execution.
         title: Human-readable model name shown in connector interfaces.
-        prompt_limit: Maximum prompt characters accepted during a live session.
+        max_prompt_characters: Maximum prompt characters accepted during a live session.
         prompt_kind: Prompt editor language used by the live panel.
         is_empty_prompt_allowed: Whether a live prompt may contain only whitespace.
         camera_axes: Camera axes exposed by an interactive world model.
@@ -47,7 +47,7 @@ class ModelDefinition:
     guide_slug: str
     connection_name: str
     title: str
-    prompt_limit: int
+    max_prompt_characters: int
     prompt_kind: Literal["scene", "edit"] = "scene"
     is_empty_prompt_allowed: bool = False
     camera_axes: tuple[str, ...] = ()

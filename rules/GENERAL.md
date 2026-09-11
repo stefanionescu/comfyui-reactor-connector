@@ -15,7 +15,7 @@ from another component, process, or service.
 - [Naming](#naming)
 - [Abstractions](#abstractions)
     - [Prefer duplication over the wrong abstraction](#prefer-duplication-over-the-wrong-abstraction)
-    - [Do not abstract for one caller](#do-not-abstract-for-one-caller)
+    - [Extract meaningful operations](#extract-meaningful-operations)
     - [Keep unrelated behavior separate](#keep-unrelated-behavior-separate)
     - [Inline the wrong abstraction](#inline-the-wrong-abstraction)
     - [Make the change easy](#make-the-change-easy)
@@ -84,7 +84,9 @@ Keep one clear implementation for each concept.
 - Do not create multiple functions, services, types, or wrappers that do nearly the same thing.
 - Put validation, policy, and transformations in the module that owns the operation.
   Do not add forwarding wrappers.
-- Do not add an abstraction for one call site or one concept.
+- Do not add forwarding layers or abstractions solely for hypothetical reuse.
+  Extract a meaningful operation when its name, contract, or ownership makes
+  the calling code clearer, even when it has one caller.
 - Before adding a new helper, find the owner of the behavior and put the logic
   there.
 - When touching duplicated logic in the same area, collapse it into the owner
@@ -112,9 +114,11 @@ the code proves it.
 - Do not build reusable code before the code is usable.
 - Do not preserve an abstraction because of sunk cost.
 
-### Do not abstract for one caller
+### Extract meaningful operations
 
-- Do not introduce an abstraction for one caller.
+- A single caller does not justify an abstraction by itself. A helper must own
+  a meaningful operation, invariant, resource lifetime, or external boundary;
+  merely forwarding arguments does not qualify.
 - Do not introduce an abstraction for hypothetical future reuse.
 
 ### Keep unrelated behavior separate
@@ -194,7 +198,7 @@ and browser or manual checks only when the user explicitly requests them.
 An implementation or documentation change does not itself request verification.
 
 Use the existing local tools when checks are requested. Do not add hosted Git
-workflows or inference deployment tooling.
+workflows or deployment tooling.
 
 ## Verification commands
 
@@ -202,8 +206,9 @@ When verification is requested, use the existing command for the affected files
 or behavior. Do not expand it to unrelated areas or reference projects. Report
 what ran, what failed, and what was not checked.
 
-For requested runtime checks, use the installed package in Comfy Desktop.
-Source inspection and static checks do not prove that a workflow runs.
+For requested runtime checks, use the actual installed distribution in its
+supported runtime. Source inspection and static checks do not prove that the
+application or workflow runs.
 
 ## Code style
 
@@ -268,8 +273,12 @@ docstring requirements. Explain constraints that names and types cannot express.
 
 #### Required comments
 
-Keep required Python docstrings and shell function comments. Do not add comments
-that merely repeat the code.
+Keep Python docstrings required by the configured documentation coverage and
+the function summaries required by the Bash guide. Coverage requirements still
+apply to obvious or private declarations; they do not require filler. State the
+operation's purpose or contract concisely. Do not paraphrase each statement,
+repeat the signature, or add empty sections. Add details only when they explain
+behavior that names and types do not express.
 
 #### Always comment
 
@@ -334,8 +343,9 @@ update affected callers, schemas, examples, and stored data together. Migrate
 required stored data directly; do not retain old IDs, aliases, forwarding
 wrappers, dual paths, or deprecated implementations.
 
-Keep names imposed by the current ComfyUI and Reactor APIs exact. Protect user
-graphs, media, and credentials. Do not discard user data to avoid a migration.
+Keep names imposed by current framework and external APIs exact. Protect user
+documents, saved workflows, media, and credentials. Do not discard user data
+to avoid a migration.
 
 ## Working with uncommitted changes
 

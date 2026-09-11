@@ -9,7 +9,7 @@ from ..errors import ErrorCode, ConnectorError
 from ...config.media.images import RGB_CHANNELS, MAX_IMAGE_DIMENSION, BATCH_IMAGE_DIMENSIONS
 
 
-def image_png(image: Input.Image) -> bytes:
+def encode_png(image: Input.Image) -> bytes:
     """Encode a finite, single RGB image as PNG for the provider upload."""
     if image.ndim != BATCH_IMAGE_DIMENSIONS or image.shape[0] != 1 or image.shape[3] != RGB_CHANNELS:
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.singleImageRequired"))

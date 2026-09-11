@@ -4,8 +4,8 @@ import asyncio
 from functools import partial
 from ...media.output import owned_io
 from ..controls import video_outputs
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...media.webcam import WebcamFrames
 from ...execution.x2.request import X2Request
@@ -82,7 +82,7 @@ class X2Webcam(io.ComfyNode):
             """Prepare media inside the owned task before starting the Reactor session."""
             camera = WebcamFrames()
             try:
-                image = None if reference_image is None else await owned_io(partial(image_png, reference_image))
+                image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))
                 request = X2Request(prompt, duration_seconds, 0, image=image, webcam=camera)
                 return await generate_video(
                     request,

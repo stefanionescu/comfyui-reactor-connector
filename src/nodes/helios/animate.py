@@ -1,8 +1,8 @@
 """Task-specific Helios nodes with native ComfyUI media sockets."""
 
 import asyncio
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...execution.helios.request import HeliosRequest
 from ...comfy.execution import generate_video, operation_fingerprint
@@ -48,7 +48,7 @@ class HeliosAnimate(io.ComfyNode):
         """Animate the starting image with Helios and optional live changes."""
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
-        encoded = await asyncio.to_thread(image_png, image)
+        encoded = await asyncio.to_thread(encode_png, image)
         return await generate_video(
             HeliosRequest(prompt, duration_seconds, seed, image=encoded),
             interactive=interactive,

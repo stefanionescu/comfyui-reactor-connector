@@ -7,11 +7,11 @@ from ..output import owned_io
 from functools import partial
 from ...language import translate
 from ..state import CaptureResult
-from ...settings.settings import Settings
+from ...settings.schema import Settings
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
+from ..process import close_input, MediaProcess
 from ....config.media.video import MAX_FRAME_RATE
-from ..process import close_input, EncoderProcess
 from ....config.media.workers import RECORDING_TIMEOUT_SECONDS
 from ....config.media.audio import SAMPLE_RATE, MAX_CHANNELS, MIN_CHANNELS
 
@@ -26,7 +26,7 @@ async def prepare_recording(
 ) -> CaptureResult:
     """Keep decoding terminable and remove both outputs after any failure."""
     audio = destination.with_suffix(".wav")
-    worker = EncoderProcess(
+    worker = MediaProcess(
         [
             sys.executable,
             "-I",

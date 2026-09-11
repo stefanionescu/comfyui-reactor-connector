@@ -2,15 +2,15 @@
 
 from pathlib import Path
 from typing import ClassVar
+from ...models import MODELS
 from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
 from ..interaction import FramePublisher
 from dataclasses import field, dataclass
-from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ...media.video.publish import VideoPublication
 from ...serialization import mapping_value, validate_json
@@ -39,7 +39,7 @@ class X2Request(VideoInputs):
     pointer_active: bool = False
     pointer_x: float = DEFAULT_POINTER_POSITION
     pointer_y: float = DEFAULT_POINTER_POSITION
-    model_name: ClassVar[str] = MODELS["x2"].connection_name
+    connection_name: ClassVar[str] = MODELS["x2"].connection_name
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
     def validate(self, settings: Settings) -> None:
@@ -57,7 +57,7 @@ class X2Request(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerCoordinates"))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Verify X2 commands, set the reference and pointer, and publish the source video."""

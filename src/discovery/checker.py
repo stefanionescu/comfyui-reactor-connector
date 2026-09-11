@@ -8,8 +8,8 @@ from .contracts import Snapshot
 from ..language import translate
 from ..serialization import Json
 from datetime import UTC, datetime
+from ..settings.schema import Settings
 from .sources import read_public_models
-from ..settings.settings import Settings
 from ...config.settings import INTEGER_SETTINGS
 from collections.abc import Callable, Awaitable, AsyncIterator
 from ...config.discovery import CHECK_POLL_SECONDS, CHECK_TIMEOUT_SECONDS
@@ -81,7 +81,7 @@ class ModelChecker:
         finally:
             self.running = False
 
-    async def run(self) -> None:
+    async def poll_updates(self) -> None:
         """Poll settings and check for updates only when the configured interval expires."""
         while True:
             await self.tick()
@@ -89,7 +89,7 @@ class ModelChecker:
 
     async def lifecycle(self, _app: web.Application) -> AsyncIterator[None]:
         """Start with aiohttp and await cancellation before the host shuts down."""
-        task = asyncio.create_task(self.run(), name="reactor-catalog-check")
+        task = asyncio.create_task(self.poll_updates(), name="reactor-catalog-check")
         try:
             yield
         finally:

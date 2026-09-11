@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+from ...models import MODELS
 from ..inputs import VideoInputs
 from ...language import translate
 from dataclasses import dataclass
-from ...model_registry import MODELS
 from ...errors import ErrorCode, ConnectorError
 from typing import cast, ClassVar, TYPE_CHECKING
 from ..operation import ControlValues, RecordingWindow
@@ -15,7 +15,7 @@ from ....config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PR
 if TYPE_CHECKING:
     from ..transport import Transport
     from ..events import SessionEvents
-    from ...settings.settings import Settings
+    from ...settings.schema import Settings
 
 
 class ViskoStart:
@@ -76,7 +76,7 @@ class ViskoStableRequest(VideoInputs):
     resolution: str = ""
     audio_enabled: bool = True
     prompt_passthrough: bool = False
-    model_name: ClassVar[str] = MODELS["visko-orbis-stable"].connection_name
+    connection_name: ClassVar[str] = MODELS["visko-orbis-stable"].connection_name
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
@@ -98,7 +98,7 @@ class ViskoStableRequest(VideoInputs):
             is_audio_enabled=self.audio_enabled,
         )
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Set image and sound options, start generation, and confirm the accepted settings."""
@@ -146,4 +146,4 @@ class ViskoStableRequest(VideoInputs):
 class ViskoDynamicRequest(ViskoStableRequest):
     """Keep Dynamic's canonical identity separate from Stable's saved workflows."""
 
-    model_name: ClassVar[str] = MODELS["visko-orbis-dynamic"].connection_name
+    connection_name: ClassVar[str] = MODELS["visko-orbis-dynamic"].connection_name

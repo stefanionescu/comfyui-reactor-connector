@@ -3,8 +3,8 @@
 import asyncio
 from typing import ClassVar
 from ...media.output import owned_io
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import live_control, generation_controls
 from ...execution.visko.request import ViskoStableRequest
@@ -83,7 +83,7 @@ class ViskoStableGenerate(io.ComfyNode):
         async def generate() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             source_image = image
-            encoded = None if source_image is None else await owned_io(lambda: image_png(source_image))
+            encoded = None if source_image is None else await owned_io(lambda: encode_png(source_image))
             return await generate_video(
                 cls.request_type(
                     prompt,

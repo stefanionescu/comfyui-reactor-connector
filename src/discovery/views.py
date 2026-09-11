@@ -1,8 +1,8 @@
 """Join observed metadata to reviewed connector identities without guessing support."""
 
+from ..models import MODELS
 from .contracts import Snapshot
 from ..serialization import Json
-from ..model_registry import MODELS
 from ...config.models.nodes import NODE_MODELS
 from ...config.discovery import GUIDE_URL_FORMAT
 

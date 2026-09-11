@@ -9,11 +9,11 @@ if TYPE_CHECKING:
     from asyncio import Task
     from ..events import SessionEvents
     from ..operation import VideoOperation
+    from ...settings.schema import Settings
     from ..diagnostics import FailureReport
     from ...media.state import CaptureResult
     from ..transport import Track, Transport
     from ...media.capture import VideoCapture
-    from ...settings.settings import Settings
     from ..interaction import SessionInteraction
 
 

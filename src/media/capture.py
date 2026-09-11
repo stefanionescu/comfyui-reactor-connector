@@ -10,7 +10,7 @@ import threading
 import numpy as np
 from pathlib import Path
 from ..language import translate
-from .process import EncoderProcess
+from .process import MediaProcess
 from typing import cast, TYPE_CHECKING
 from .state import VideoFrame, CaptureResult
 from ..errors import ErrorCode, ConnectorError
@@ -40,8 +40,6 @@ class VideoCapture:
         self.path = path
         self.duration_us = round(duration_seconds * 1_000_000)
         self.queue_bytes = queue_bytes
-        self.output_bytes = output_bytes
-        self.fallback_fps = fallback_fps
         self.first_frame = asyncio.Event()
         self.ready = asyncio.Event()
         self.complete = asyncio.Event()
@@ -54,10 +52,8 @@ class VideoCapture:
         self.lock = threading.Lock()
         self.held_bytes = 0
         self.failure: ConnectorError | None = None
-        self.frame_count = 0
-        self.timestamp_mode = "sender"
         self._first_received = False
-        self.encoder = EncoderProcess(
+        self.encoder = MediaProcess(
             [
                 sys.executable,
                 "-I",
@@ -110,7 +106,6 @@ class VideoCapture:
         frames, mode = result.get("frames"), result.get("timestamp_mode")
         if type(frames) is not int or frames < 1 or mode not in ("sender", "fallback_fps"):
             raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderMetadata"))
-        self.frame_count, self.timestamp_mode = frames, str(mode)
         return CaptureResult(self.path, frames, str(mode))
 
     def fail(self, message: str) -> None:

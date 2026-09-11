@@ -7,8 +7,8 @@ import asyncio
 from pathlib import Path
 from typing import BinaryIO
 from ...language import translate
+from ...settings.schema import Settings
 from tempfile import TemporaryDirectory
-from ...settings.settings import Settings
 from ..output import owned_io, FileOutput
 from .components import prepare_components
 from collections.abc import AsyncGenerator
@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
-from ..process import close_input, EncoderProcess
+from ..process import close_input, MediaProcess
 from ....config.media.video import MIN_SOURCE_FRAMES
 from ....config.media.workers import INPUT_TIMEOUT_SECONDS
 
@@ -103,7 +103,7 @@ async def _prepare_file(
     if not all(math.isfinite(value) and value >= 0 for value in (start, duration)):
         raise input_error()
     duration = min(duration or settings.max_capture_seconds, settings.max_capture_seconds)
-    worker = EncoderProcess(
+    worker = MediaProcess(
         [
             sys.executable,
             "-I",

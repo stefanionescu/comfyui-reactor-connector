@@ -1,7 +1,7 @@
 """Identify effective execution changes without exposing a secret-derived value."""
 
 import secrets
-from .settings import Settings
+from .schema import Settings
 from ..credentials import Credential
 from dataclasses import field, dataclass
 

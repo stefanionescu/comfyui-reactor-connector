@@ -6,10 +6,10 @@ import threading
 from pathlib import Path
 from ..language import translate
 from .conflict import SettingsConflictError
+from .schema import Settings, parse_settings
 from .execution import ExecutionConfiguration
 from ..errors import ErrorCode, ConnectorError
 from .execution import ConfigurationGeneration
-from .settings import Settings, parse_settings
 from ...config.security import MAX_CREDENTIAL_CHARACTERS
 from ..serialization import Json, parse_json, mapping_value
 from ..storage import atomic_write, read_private, private_directory

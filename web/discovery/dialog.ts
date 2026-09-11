@@ -1,8 +1,8 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import { formatDate } from '#web/language.ts';
-import { modelRow } from '#web/discovery/row.ts';
 import type { Message } from '#web/localization.ts';
+import { buildModelRow } from '#web/discovery/row.ts';
 import { browserLimits } from '#config/web/browser.ts';
 import type { ModelList } from '#web/discovery/schema.ts';
 import { requestModels, metadataStatus } from '#web/discovery/api.ts';
@@ -154,7 +154,7 @@ class ModelDialog {
     for (const model of this.modelList?.models ?? []) {
       if (nodeId && !model.nodeIds.includes(nodeId)) continue;
       const label = `${model.modelSlug} ${model.title} ${model.connectionName ?? ''}`;
-      if (label.toLowerCase().includes(query)) rows.appendChild(modelRow(model, seconds));
+      if (label.toLowerCase().includes(query)) rows.appendChild(buildModelRow(model, seconds));
     }
     const visible = rows.childElementCount;
     this.list.replaceChildren();

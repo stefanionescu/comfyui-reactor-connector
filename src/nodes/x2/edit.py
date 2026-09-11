@@ -6,8 +6,8 @@ from pathlib import Path
 from dataclasses import replace
 from ...runtime import get_runtime
 from ...media.output import owned_io
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...settings.store import read_settings
 from ...execution.x2.request import X2Request
@@ -153,7 +153,7 @@ async def _edit(
 ) -> io.NodeOutput:
     """Prepare source frames within the input limits and close them after the edit."""
     settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
-    image = None if reference_image is None else await owned_io(lambda: image_png(reference_image))
+    image = None if reference_image is None else await owned_io(lambda: encode_png(reference_image))
     async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
         return await generate_video(
             replace(request, image=image, video=video),

@@ -2,13 +2,13 @@
 
 import json
 from typing import ClassVar
+from ...models import MODELS
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
-from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ...media.units import convert_mebibytes_to_bytes
 from ..inputs import VideoInputs, validate_capture_inputs
@@ -35,7 +35,7 @@ class LtxSpeakRequest(VideoInputs):
 
     script: str = ""
     words_per_minute: int = DEFAULT_WORDS_PER_MINUTE
-    model_name: ClassVar[str] = MODELS["ltx2"].connection_name
+    connection_name: ClassVar[str] = MODELS["ltx2"].connection_name
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
@@ -59,7 +59,7 @@ class LtxSpeakRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.portraitUploadLimit"))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Upload the portrait and script, validate the offered speech pace, and start speech."""

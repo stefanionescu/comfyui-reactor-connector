@@ -1,6 +1,5 @@
 import { isImportLike } from '#shared/eslint/plugin/imports.js';
 
-const blankLinePattern = /\n\s*\n/u;
 const whitespaceOnlyPattern = /^\s*$/u;
 
 /**
@@ -80,7 +79,6 @@ const buildEntries = (importNodes, segmentStarts, blockEnd, sourceCode) => {
       start,
       end,
       text,
-      importText,
       sortText,
       sortLength: sortText.length,
       lineSpan: importNode.loc.end.line - importNode.loc.start.line + 1,
@@ -245,10 +243,7 @@ export const importLayout = {
             .getText()
             .slice(entries[0].start, entries.at(-1).end)
             .trim();
-          const hasBlankLineMismatch =
-            blankLinePattern.test(currentText) !== blankLinePattern.test(replacementText);
-
-          if (currentText === replacementText && !hasBlankLineMismatch) {
+          if (currentText === replacementText) {
             continue;
           }
 

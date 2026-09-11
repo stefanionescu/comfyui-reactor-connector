@@ -2,14 +2,14 @@
 
 import math
 from typing import ClassVar
+from ...models import MODELS
 from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
-from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ....config.generation.world import (
     CAMERA_AXES,
@@ -42,7 +42,7 @@ class LingBotRequest(VideoInputs):
     look_horizontal: str = DEFAULT_LOOK_HORIZONTAL
     look_vertical: str = DEFAULT_LOOK_VERTICAL
     rotation_speed_deg: float = DEFAULT_ROTATION_DEGREES
-    model_name: ClassVar[str] = MODELS["lingbot"].connection_name
+    connection_name: ClassVar[str] = MODELS["lingbot"].connection_name
     movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES["movement"]
 
     def axes(self) -> tuple[tuple[str, str], ...]:
@@ -75,7 +75,7 @@ class LingBotRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.rotationSpeed"))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Upload the starting image, set camera controls, and start the scene."""
@@ -109,7 +109,7 @@ class LingBotWorldRequest(LingBotRequest):
     """
 
     lateral: str = DEFAULT_LATERAL
-    model_name: ClassVar[str] = MODELS["lingbot-world-2"].connection_name
+    connection_name: ClassVar[str] = MODELS["lingbot-world-2"].connection_name
     fallback_fps: ClassVar[int] = WORLD_FRAME_RATE
     movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES["move_longitudinal"]
 

@@ -2,8 +2,8 @@
 
 import asyncio
 from ...media.output import owned_io
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...execution.ltx.request import LtxSpeakRequest
@@ -73,7 +73,7 @@ class LtxSpeak(io.ComfyNode):
 
         async def generate() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
-            encoded = await owned_io(lambda: image_png(image))
+            encoded = await owned_io(lambda: encode_png(image))
             return await generate_video(
                 LtxSpeakRequest(
                     prompt,

@@ -5,7 +5,7 @@ runtime code, and CLI modules. They also apply to generated Python examples and
 committed Python snippets.
 
 Use this file together with [`GENERAL.md`](GENERAL.md), [`NAMING.md`](NAMING.md),
-and the local tooling configured in `pyproject.toml` and `quality/`.
+and the project's configured language and structural tooling.
 
 Examples isolate the rule being explained. An abbreviated example does not
 create an exception to the annotation, docstring, import, naming, or structure
@@ -81,10 +81,10 @@ rules in this guide.
 - [Files and stateful resources](#files-and-stateful-resources)
 - [Main programs and top-level code](#main-programs-and-top-level-code)
 - [Packages and Architecture](#packages-and-architecture)
-    - [src Layout and Import Path](#src-layout-and-import-path)
+    - [Package layout and import path](#package-layout-and-import-path)
 - [Power features](#power-features)
 - [Threading and concurrency](#threading-and-concurrency)
-- [ComfyUI and Reactor boundaries](#comfyui-and-reactor-boundaries)
+- [External integration boundaries](#external-integration-boundaries)
 - [Manual verification](#manual-verification)
 - [Verification commands](#verification-commands)
 - [Review checklist](#review-checklist)
@@ -156,46 +156,42 @@ def get_instance():
 These rules adapt PEP 8, PEP 257, and the Google Python Style Guide into one
 local standard for this repository.
 
-| Topic                        | Local decision                                                                                                                                                                                                           |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Style authority              | Project rules and local tooling win over generic source guides.                                                                                                                                                          |
-| Formatter line length        | Follow the line-length policy in the local Ruff configuration.                                                                                                                                                           |
-| Standard-library line length | PEP 8's standard-library limits do not define this repository's line length.                                                                                                                                             |
-| Google line length           | Google's default does not override the local Ruff configuration.                                                                                                                                                         |
-| Formatter                    | Ruff format is the local formatter. Do not hand-format against a different style.                                                                                                                                        |
-| Linter                       | Ruff lint, BasedPyright, import-linter, and custom `quality/` scripts are local policy. Pylint guidance from Google maps to these local tools.                                                                           |
-| Runtime                      | The project requires Python 3.12. Use Python 3.12 syntax when it improves clarity.                                                                                                                                       |
-| Future imports               | Prefer `from __future__ import annotations` in Python modules.                                                                                                                                                           |
-| Quotes                       | Ruff format uses double quotes. Use double quotes for ordinary strings unless another quote avoids escaping. Docstrings always use triple double quotes.                                                                 |
-| Imports                      | Use explicit relative imports within the custom-node package. Use absolute imports for external packages and isolated worker entrypoints.                                                                                |
-| Class/function imports       | Direct imports of public classes, functions, and constants are allowed when they keep call sites readable. Import typing and `collections.abc` symbols directly.                                                         |
-| `__all__`                    | Keep `__all__` at the bottom of modules. This local rule overrides PEP 8's normal module-dunder placement for `__all__`.                                                                                                 |
-| Other module dunders         | Put dunders such as `__version__` after the module docstring and future imports, before ordinary imports.                                                                                                                |
-| License boilerplate          | Do not invent license boilerplate. Add it only if the project defines the exact boilerplate.                                                                                                                             |
-| Function length              | Follow the function-size policy configured in `quality/`. Keep functions smaller when practical.                                                                                                                        |
-| File length                  | Follow the file-size policy configured in `quality/`.                                                                                                                                                                    |
-| Function typing              | Annotate function and method parameters and return values as required by the local Ruff configuration.                                                                                                                   |
-| Typing style                 | Use modern union syntax, built-in generics, `type` statements for real type aliases, `Annotated` for typed metadata, `object` for values that can be any object, and protocols for structural interfaces.              |
-| Argument and return types    | Prefer abstract input types and concrete return types for concrete implementations. Avoid union return types that force caller-side type branching.                                                                      |
-| Logging                      | Modules create `logging.getLogger(__name__)`; application entrypoints configure handlers and levels. Library modules do not configure handlers except `NullHandler`.                                                     |
-| Project layout               | Keep runtime code under `src/`, static configuration under root `config/`, and the host entrypoint at the root. Do not patch `sys.path`.                                                                                  |
-| Inheritance                  | Prefer composition for code sharing, protocols for interfaces, and subclassing only for true specialization.                                                                                                             |
-| Package installs             | Follow the shared host-environment policy below. Use `uv.lock` for development and do not replace host-owned dependencies.                                                                                               |
-| Verification                 | Do not create or run automated tests. Run other checks only when the user explicitly requests them.                                                                                                                      |
+| Topic                        | Local decision                                                                                                                                                                            |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Style authority              | Project rules and local tooling win over generic source guides.                                                                                                                           |
+| Formatter line length        | Follow the line-length policy in the configured formatter.                                                                                                                                |
+| Standard-library line length | PEP 8's standard-library limits do not define this repository's line length.                                                                                                              |
+| Google line length           | Google's default does not override the configured line-length policy.                                                                                                                     |
+| Formatter                    | Use the project's configured formatter. Do not hand-format against a different style.                                                                                                     |
+| Linter                       | Use the configured linter, type checker, and structural checks. Map source-guide recommendations to those tools.                                                                          |
+| Runtime                      | Use syntax supported by the project's declared minimum Python version.                                                                                                                    |
+| Future imports               | Prefer `from __future__ import annotations` in Python modules.                                                                                                                            |
+| Quotes                       | Use double quotes for ordinary strings unless another quote avoids escaping. Docstrings always use triple double quotes.                                                                  |
+| Imports                      | Use explicit relative imports within a package. Use absolute imports for external packages and isolated worker entrypoints.                                                               |
+| Class/function imports       | Direct imports of public classes, functions, and constants are allowed when they keep call sites readable. Import typing and `collections.abc` symbols directly.                          |
+| `__all__`                    | Keep `__all__` at the bottom of modules. This local rule overrides PEP 8's normal module-dunder placement for `__all__`.                                                                  |
+| Other module dunders         | Put dunders such as `__version__` after the module docstring and future imports, before ordinary imports.                                                                                 |
+| License boilerplate          | Do not invent license boilerplate. Add it only if the project defines the exact boilerplate.                                                                                              |
+| Function length              | Follow the configured function-size policy. Keep functions smaller when practical.                                                                                                        |
+| File length                  | Follow the configured file-size policy.                                                                                                                                                   |
+| Function typing              | Annotate function and method parameters and return values as required by this guide and the configured checks.                                                                            |
+| Typing style                 | Within the supported runtime, use modern unions, built-in generics, explicit type aliases, Annotated for metadata, object for arbitrary objects, and protocols for structural interfaces. |
+| Argument and return types    | Prefer abstract input types and concrete return types for concrete implementations. Avoid union return types that force caller-side type branching.                                       |
+| Logging                      | Modules create `logging.getLogger(__name__)`; application entrypoints configure handlers and levels. Library modules do not configure handlers except `NullHandler`.                      |
+| Project layout               | Respect the project's package structure; separate runtime code, declarative configuration, and development tooling. Do not patch `sys.path`.                                              |
+| Inheritance                  | Prefer composition for code sharing, protocols for interfaces, and subclassing only for true specialization.                                                                              |
+| Package installs             | Follow the shared host-environment policy below. Use the project lockfile for development and do not replace host-owned dependencies.                                                     |
+| Verification                 | Follow [GENERAL.md](GENERAL.md#verification-scope).                                                                                                                                       |
 
 When editing an existing file, follow the surrounding style where the source
 guides allow a choice. When creating new code, use the decisions in this table.
 
 ## Local tooling authority
 
-The local Python quality stack is:
-
-- Ruff format.
-- Ruff lint.
-- BasedPyright.
-- import-linter.
-- Custom structural linters in `quality/`.
-- Naming checks described in [`NAMING.md`](NAMING.md).
+Use the project's configured formatter, linter, type checker, import-boundary
+checks, and structural checks. Tools such as Ruff, BasedPyright, and
+import-linter may implement these policies; their configuration belongs to the
+project. [NAMING.md](NAMING.md) owns naming decisions.
 
 Rules:
 
@@ -205,8 +201,8 @@ Rules:
 - Do not copy an existing per-file ignore into new files.
 - Do not broaden an existing exception to make unrelated code pass.
 - Do not disable a rule when a clear code change can satisfy it.
-- Do not run verification commands unless the user asks. When asked, run only
-  the requested or necessary scoped command.
+- Follow [verification scope](GENERAL.md#verification-scope) and use the
+  configured commands for the requested scope.
 
 Current local tooling constraints include:
 
@@ -219,10 +215,8 @@ Current local tooling constraints include:
   hooks, or dynamic imports.
 - Runtime modules must not use lazy singleton patterns.
 - Runtime modules must not create import cycles.
-- Flatten packages that contain `__init__.py` and exactly one non-init module,
-  except for the configured folder-policy exceptions.
-- Do not put multiple `.py` files with the same underscore-delimited prefix in
-  one directory.
+- Apply [NAMING.md](NAMING.md#files-and-directories) for single-module
+  packages, sibling filename prefixes, and configured structural exceptions.
 - `__all__` must appear at the bottom of each module.
 - Python logic must live in Python modules. Shell scripts must call it with
   `python -m`; do not embed inline Python in shell scripts.
@@ -231,7 +225,11 @@ Current local tooling constraints include:
 
 Rules:
 
-- Use Python 3.12 syntax.
+- Use syntax supported by the project's declared minimum Python version.
+  Examples using version-specific features apply only when that runtime is
+  supported; do not raise the minimum version merely to copy an example.
+  This runtime constraint also governs the modern typing syntax recommended
+  throughout this guide. Use its supported equivalent when necessary.
 - Store source files as UTF-8.
 - Do not add an encoding declaration unless a tool or runtime requires it.
 - Use LF line endings.
@@ -269,9 +267,9 @@ Rules:
 - Read environment variables at a configuration or application boundary, not
   throughout business logic.
 - Parse and validate environment-derived values once before passing them inward.
-- Keep Python files under root `config/` declarative. Do not put classes,
+- Keep static configuration modules declarative. Do not put classes,
   dataclasses, function calls, or comprehensions there. Put typed runtime
-  representations and derived indexes under `src/`.
+  representations and derived indexes with their runtime owner.
 - Store secrets in environment variables or a secret manager, never in source
   code, documentation examples, or checked-in configuration.
 - Do not use a real-looking default for a secret. Fail at startup or command
@@ -282,7 +280,7 @@ Rules:
   environment to resolve imports.
 - Do not commit virtual environment directories or generated package caches.
 
-Good runtime representation under `src/`:
+Good runtime representation:
 
 ```python
 @dataclass(frozen=True)
@@ -308,14 +306,15 @@ def list_items() -> list[Item]:
 
 ## Package installation security
 
-ComfyUI owns a shared Python environment. Use its interpreter for installation.
-Keep compatible runtime dependency constraints in `pyproject.toml` and generate
-`requirements.txt` from them. Do not replace host-owned dependencies with a
-standalone environment.
+When a package runs inside another application's shared Python environment,
+use the host's interpreter for installation and respect host-owned dependencies.
+Keep compatible runtime constraints in the authoritative package metadata.
+Generate any secondary dependency manifests from that source. Use the project's
+configured environment for standalone applications.
 
 Rules:
 
-- Use the committed `uv.lock` for the development environment.
+- Use the project's committed lockfile for the development environment.
 - Install dependencies through the existing project task when installation is
   requested. Run dependency checks only when explicitly requested.
 - Review dependency and lock changes. Do not bypass a resolver conflict or copy
@@ -381,8 +380,8 @@ Rules:
 - Put a blank line after each completed import block.
 - Use one import per line for ordinary imports.
 - Import typing and `collections.abc` symbols directly.
-- Use explicit relative imports within the custom-node package, including
-  imports between runtime and root configuration packages.
+- Use explicit relative imports within a package, consistent with the
+  supported entrypoint loading contract.
 - Use absolute imports for external packages and isolated worker entrypoints.
 - Never use implicit relative imports.
 - Never use wildcard imports.
@@ -404,8 +403,7 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 from ..language import translate
-from comfy_api.latest import Input
-from ..errors import ErrorCode, ConnectorError
+from ..errors import ErrorCode, RequestError
 from collections.abc import Iterable, Sequence
 ```
 
@@ -427,7 +425,7 @@ and typing symbols when they make the call site clearer:
 from pathlib import Path
 from typing import Literal
 from dataclasses import dataclass
-from ..errors import ErrorCode, ConnectorError
+from ..errors import ErrorCode, RequestError
 ```
 
 Use module imports when the module prefix makes ownership clearer:
@@ -446,13 +444,9 @@ Do not import a module only to hide a vague name:
 from storage.file_system import options as fs_options
 ```
 
-Use aliases only when:
-
-- two imported modules have the same final name;
-- an imported module conflicts with a local top-level name;
-- the original module name is inconveniently long;
-- the alias is a standard abbreviation, such as `np` for NumPy;
-- the alias disambiguates a generic module name.
+Follow [NAMING.md](NAMING.md#python-modules-and-imports) for alias permissions.
+Length or a vague exported name alone does not justify an alias; improve names
+you own instead of hiding them behind another name.
 
 ## Public and internal interfaces
 
@@ -522,14 +516,20 @@ result = long_function_name(first_argument, second_argument, third_argument)
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 result = long_function_name(first_argument,
     second_argument,
     third_argument)
 ```
 
+<!-- fmt: on -->
+
 Long conditionals may use extra indentation to distinguish the condition from
 the body:
+
+<!-- fmt: off -->
 
 ```python
 if (
@@ -539,6 +539,8 @@ if (
 ):
     use_tabs()
 ```
+
+<!-- fmt: on -->
 
 ### Line length and wrapping
 
@@ -559,6 +561,8 @@ Rules:
 
 Good:
 
+<!-- fmt: off -->
+
 ```python
 income = (
     gross_wages
@@ -569,7 +573,11 @@ income = (
 )
 ```
 
+<!-- fmt: on -->
+
 Bad:
+
+<!-- fmt: off -->
 
 ```python
 income = (gross_wages +
@@ -579,7 +587,11 @@ income = (gross_wages +
           student_loan_interest)
 ```
 
+<!-- fmt: on -->
+
 Good:
+
+<!-- fmt: off -->
 
 ```python
 message = (
@@ -588,12 +600,18 @@ message = (
 )
 ```
 
+<!-- fmt: on -->
+
 Bad:
+
+<!-- fmt: off -->
 
 ```python
 message = "This long string is split with an explicit continuation " \
     "character."
 ```
+
+<!-- fmt: on -->
 
 ### Blank lines
 
@@ -656,6 +674,8 @@ if value is not None:
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 spam( ham[ 1 ], { "eggs" : 2 } )
 x         = 1
@@ -663,6 +683,8 @@ long_name = 2
 if value == None:
     return value
 ```
+
+<!-- fmt: on -->
 
 For slices, treat the colon like a low-priority binary operator when both sides
 are complex. Omit spaces when an endpoint is omitted.
@@ -678,11 +700,15 @@ items[: upper_fn(x) : step_fn(x)]
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 items[1: 9]
 items[lower + offset:upper + offset]
 items[ : upper]
 ```
+
+<!-- fmt: on -->
 
 ### Trailing commas
 
@@ -716,10 +742,14 @@ return first, second
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 if (is_ready):
     return (value)
 ```
+
+<!-- fmt: on -->
 
 ### String quotes
 
@@ -743,34 +773,26 @@ doc = """One multiline string."""
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 name = 'example'
 doc = '''A docstring-like string.'''
 ```
 
+<!-- fmt: on -->
+
 ## Naming
 
 Follow [`NAMING.md`](NAMING.md) for all naming choices.
 
-Python-specific rules from the source guides:
-
-- Packages and modules use short, lowercase names. Use underscores when they
-  improve readability.
-- Classes use `PascalCase`.
-- Exceptions use `PascalCase` and end with `Error` when they represent errors.
-- Functions, methods, parameters, local variables, and instance variables use
-  lowercase words separated by underscores.
-- Constants use uppercase words separated by underscores.
-- Type aliases use `PascalCase`, with one leading underscore for internal
-  aliases.
-- Private unconstrained type variables may use `_T` and `_P`.
-- Avoid single-character names except for the uses allowed by
-  [`NAMING.md`](NAMING.md) and private unconstrained type variables.
-- Never use `l`, `O`, or `I` as single-character names.
-- Use `self` for instance methods and `cls` for class methods.
-- If a parameter would conflict with a keyword, append one trailing underscore.
+The [Python naming rules](NAMING.md#python) cover case, exception and type
+names, private names, conventional method parameters, and keyword collisions.
+The examples below illustrate those rules.
 
 Good:
+
+<!-- fmt: off -->
 
 ```python
 class RuntimeConfig:
@@ -785,7 +807,11 @@ MAX_EXAMPLES = 1000
 class_: str
 ```
 
+<!-- fmt: on -->
+
 Bad:
+
+<!-- fmt: off -->
 
 ```python
 class runtime_config:
@@ -798,6 +824,8 @@ def buildExamples(data):
 maxExamples = 1000
 clss = "value"
 ```
+
+<!-- fmt: on -->
 
 ## Comments and docstrings
 
@@ -924,8 +952,9 @@ Rules:
 
 Rules:
 
-- All functions and methods require docstrings under the local documentation
-  checks.
+- Apply the configured documentation coverage described under
+  [docstrings](#docstrings) and the
+  [required-comment standard](GENERAL.md#required-comments).
 - Functions that mutate an argument must say so.
 - Generator functions use `Yields:` instead of `Returns:`.
 - `Returns:` may be omitted when the one-line summary already fully describes
@@ -945,7 +974,8 @@ def build_engine_settings(engine, path, tokens):
 
 Rules:
 
-- All classes require docstrings under the local documentation checks.
+- Apply the configured documentation coverage described under
+  [docstrings](#docstrings).
 - A class docstring starts with a one-line summary describing what an instance
   represents.
 - Public attributes, excluding properties, are documented in an `Attributes:`
@@ -1074,8 +1104,9 @@ Rules:
 - Use `Any` only when the type is genuinely unconstrained or cannot be
   expressed clearly.
 - Do not add obsolete `# type:` comments.
-- Prefer modern Python 3.12 shorthand syntax over older `typing.Union`,
-  `typing.Optional`, `typing.List`, `typing.Dict`, and `typing.Type` aliases.
+- Where the supported runtime permits it, prefer modern shorthand over
+  `typing.Union`, `typing.Optional`, `typing.List`, `typing.Dict`, and
+  `typing.Type` aliases.
 
 Private helpers follow the same annotation rule:
 
@@ -1221,8 +1252,8 @@ Rules:
 - Prefer `collections.abc` abstract containers for input types.
 - Prefer built-in generic types such as `list[str]`, `dict[str, int]`, and
   `tuple[str, ...]`.
-- Do not use `typing.List`, `typing.Dict`, or `typing.Tuple` in new Python 3.12
-  code.
+- Do not use `typing.List`, `typing.Dict`, or `typing.Tuple` in new code when
+  the supported runtime permits built-in generic types.
 - Do not use `typing.Type`; use built-in `type`.
 - Do not use `typing.Union` or `typing.Optional`; use `|`.
 - Do not use `typing.Text` in new code.
@@ -1231,6 +1262,8 @@ Rules:
   or binary type.
 
 Good:
+
+<!-- fmt: off -->
 
 ```python
 from typing import Any, Literal
@@ -1241,7 +1274,11 @@ def transform(rows: Sequence[tuple[str, int]]) -> Mapping[str, int]:
     ...
 ```
 
+<!-- fmt: on -->
+
 Bad:
+
+<!-- fmt: off -->
 
 ```python
 from typing import Dict, List, Type, Tuple
@@ -1254,6 +1291,8 @@ def transform(rows: List[Tuple[str, int]]) -> Dict[str, int]:
 def build(cls: Type[ModelConfig]) -> ModelConfig:
     ...
 ```
+
+<!-- fmt: on -->
 
 ### None and optional values
 
@@ -1276,6 +1315,8 @@ def read_examples(path: Path | None = None) -> list[PromptExample]:
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 def normalize(value: None | str) -> str:
     ...
@@ -1284,6 +1325,8 @@ def normalize(value: None | str) -> str:
 def read_examples(path: Path = None) -> list[PromptExample]:
     path = path or DEFAULT_INPUT_PATH
 ```
+
+<!-- fmt: on -->
 
 ### Generic types
 
@@ -1296,19 +1339,29 @@ Rules:
 
 Good:
 
+<!-- fmt: off -->
+
 ```python
 def get_names(employee_ids: Sequence[int]) -> Mapping[int, str]:
     ...
 ```
 
+<!-- fmt: on -->
+
 Bad:
+
+<!-- fmt: off -->
 
 ```python
 def get_names(employee_ids: Sequence) -> Mapping:
     ...
 ```
 
+<!-- fmt: on -->
+
 Good when preserving the key type:
+
+<!-- fmt: off -->
 
 ```python
 _T = TypeVar("_T")
@@ -1318,14 +1371,16 @@ def get_names(employee_ids: Sequence[_T]) -> Mapping[_T, str]:
     ...
 ```
 
+<!-- fmt: on -->
+
 ### Type aliases
 
 Rules:
 
 - Use type aliases for complex repeated types.
-- Type alias names use `PascalCase`.
-- Internal type aliases use one leading underscore.
-- Use Python 3.12 `type` statements for type aliases.
+- Follow [NAMING.md](NAMING.md#python-case-rules) for type alias names.
+- Use `type` statements for aliases when the declared minimum runtime supports
+  them. Otherwise use explicit alias syntax supported by that runtime.
 - Do not use `TypeAlias` for ordinary value, module, class, function, constant,
   or path aliases.
 
@@ -1380,8 +1435,8 @@ Rules:
 
 - Prefer `from __future__ import annotations` for forward references.
 - Do not remove `from __future__ import annotations` only because newer Python
-  versions defer annotation evaluation. This repository still targets Python
-  3.12 and keeps future annotations as the local convention.
+  versions defer annotation evaluation. Check the supported runtime versions
+  and runtime annotation consumers before changing this convention.
 - Use string annotations only when future annotations are not available or when
   needed for a type-checking-only import pattern.
 - Avoid type-only circular imports. They are design pressure to move shared
@@ -1400,6 +1455,8 @@ class Node:
 
 Acceptable when avoiding a runtime import strictly for typing:
 
+<!-- fmt: off -->
+
 ```python
 from typing import TYPE_CHECKING
 
@@ -1410,6 +1467,8 @@ if TYPE_CHECKING:
 def build(value: "ExternalType") -> str:
     ...
 ```
+
+<!-- fmt: on -->
 
 ### Protocols and interfaces
 
@@ -1431,6 +1490,8 @@ Rules:
 
 Good:
 
+<!-- fmt: off -->
+
 ```python
 class Reader(Protocol):
     def read(self) -> str:
@@ -1440,6 +1501,8 @@ class Reader(Protocol):
 def print_reader(reader: Reader) -> None:
     print(reader.read())
 ```
+
+<!-- fmt: on -->
 
 Good implementation:
 
@@ -1451,6 +1514,8 @@ class FileReader:
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 class BaseReader(abc.ABC):
     def read_and_print(self) -> None:
@@ -1460,6 +1525,8 @@ class BaseReader(abc.ABC):
     def read(self) -> str:
         ...
 ```
+
+<!-- fmt: on -->
 
 ### Variable annotations
 
@@ -1479,10 +1546,14 @@ label_by_name: dict[str, int] = {}
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 examples:list[PromptExample] = []
 label_by_name : dict[str, int]={}
 ```
+
+<!-- fmt: on -->
 
 ### Ignoring type errors
 
@@ -1512,9 +1583,8 @@ Rules:
 
 - Module constants are allowed and encouraged when the module owns the value.
 - Put static defaults, limits, patterns, and configurable values in the
-  declarative root configuration package.
-- Constants use uppercase names with underscores.
-- Internal constants use one leading underscore.
+  declarative configuration owner.
+- Follow [NAMING.md](NAMING.md#python) for constant names and visibility.
 - Avoid mutable global state.
 - Do not use lazy singleton state.
 - Do not create module-level `STATE`, `_STATE`, `INSTANCE`, `_INSTANCE`, or
@@ -1548,10 +1618,14 @@ def build_client(config: ClientConfig) -> Client:
 
 Do not hide process-wide state behind lifecycle helpers:
 
+<!-- fmt: off -->
+
 ```python
 def get_instance() -> Client:
     ...
 ```
+
+<!-- fmt: on -->
 
 ## Functions and methods
 
@@ -1572,7 +1646,7 @@ Rules:
 Rules:
 
 - Keep functions small and focused.
-- Follow the function-size limit configured in `quality/`.
+- Follow the configured function-size limit.
 - If a function approaches the limit, consider extracting real sub-operations.
 - Do not split a function into meaningless helpers only to satisfy the count.
 - Extract helpers when the extracted operation has a clear name and contract.
@@ -1591,6 +1665,8 @@ def _trim_history_messages(
 
 Bad extraction:
 
+<!-- fmt: off -->
+
 ```python
 def _part_one(data):
     ...
@@ -1599,6 +1675,8 @@ def _part_one(data):
 def _part_two(data):
     ...
 ```
+
+<!-- fmt: on -->
 
 ### Default arguments
 
@@ -1632,17 +1710,25 @@ def collect_labels(labels: list[str] = []) -> list[str]:
 
 Good formatting:
 
+<!-- fmt: off -->
+
 ```python
 def resize(width: int = 0, height: int = 0) -> None:
     ...
 ```
 
+<!-- fmt: on -->
+
 Bad formatting:
+
+<!-- fmt: off -->
 
 ```python
 def resize(width: int=0, height: int=0) -> None:
     ...
 ```
+
+<!-- fmt: on -->
 
 ### Return statements
 
@@ -1724,12 +1810,16 @@ Rules:
 
 Good:
 
+<!-- fmt: off -->
+
 ```python
 def double(value: int) -> int:
     return value * 2
 
 sorted_items = sorted(items, key=lambda item: item.name)
 ```
+
+<!-- fmt: on -->
 
 Bad:
 
@@ -1781,6 +1871,8 @@ names = [user.name for user in users if user is not None]
 
 Good with a long expression:
 
+<!-- fmt: off -->
+
 ```python
 valid_examples = [
     transform_example(example)
@@ -1788,6 +1880,8 @@ valid_examples = [
     if is_valid_example(example)
 ]
 ```
+
+<!-- fmt: on -->
 
 Bad:
 
@@ -1895,6 +1989,8 @@ class Point:
 
 Bad:
 
+<!-- fmt: off -->
+
 ```python
 class Point:
     def __init__(self, database_row):
@@ -1903,6 +1999,8 @@ class Point:
 
 point = Point(**row.attributes)
 ```
+
+<!-- fmt: on -->
 
 ### Dataclasses
 
@@ -2667,38 +2765,34 @@ Rules:
 - Do not use package `__init__.py` files to hide expensive imports.
 - Keep `__init__.py` files small and import-stable.
 - Barrel `__init__.py` files may contain imports and `__all__`.
-- Respect import-linter contracts configured in `pyproject.toml`.
+- Respect the dependency contracts enforced by the configured import checks.
 - Keep lower-level packages independent of higher-level workflow packages.
 
-### src layout and import path
+### Package layout and import path
 
 Rules:
 
-- Keep connector runtime behavior under `src/` and runtime settings under
-  `src/settings/`.
-- Keep static defaults, limits, patterns, and configurable values in root
-  `config/`, grouped by purpose. Include that package in the distribution.
-- Keep the root ComfyUI entrypoint and development packages outside `src/`.
-  Runtime code must not import development packages.
-- ComfyUI imports the repository as a custom-node package. Use explicit relative
-  imports between its runtime and root configuration packages.
+- Respect the project's package structure. Keep runtime behavior and runtime
+  settings separate from development tooling; runtime code must not import
+  development packages.
+- Group static defaults, limits, patterns, and configurable values by purpose.
+  Include required configuration in the distribution.
+- Keep application or framework entrypoints small. Follow the package's
+  supported loading contract when choosing relative and absolute imports.
 - Run Python entrypoints through the configured environment or `python -m`
   with the intended package context.
 - Do not mutate `sys.path` or depend on the current working directory to make
   imports work.
-- Isolated media workers use the selected host interpreter and an explicit
-  import path supplied by their launcher.
+- Isolated workers use an explicitly selected interpreter and an entrypoint
+  their launcher can resolve independently of the current working directory.
+- Enforce the project's declared dependency contracts. Lower-level settings,
+  data, and discovery owners must not acquire dependencies on higher-level
+  execution or integration code merely for convenience.
 
-Import-linter keeps runtime code independent of development tools. Discovery and
-settings remain independent of execution and ComfyUI integration. Discovery also
-remains independent of media processing. The exact contracts live in
-`pyproject.toml`.
-
-Keep cohesive modules together. A folder with only one implementation file is
-allowed only where the repository folder policy names an explicit exception.
-The model folders for LingBot, LTX, Visko, and X2 execution, and the LTX node,
-use those exceptions to keep model ownership consistent. Do not add empty files
-or split cohesive code merely to satisfy the folder count.
+Keep cohesive modules together. Apply the single-module package policy in
+[NAMING.md](NAMING.md#files-and-directories), including only explicit configured
+exceptions. Do not add empty files or split cohesive code merely to satisfy a
+folder count.
 
 ## Power features
 
@@ -2742,79 +2836,65 @@ Rules:
 - Keep shared mutable state small and explicit.
 - Document concurrency, cancellation, and isolation behavior when present.
 
-## ComfyUI and Reactor boundaries
+## External integration boundaries
 
-- Keep registration small and free of network activity. Use documented ComfyUI
-  node APIs and native image, audio, and video types.
+- Keep registration small and free of network activity. Use documented
+  framework APIs and native interchange types for supported data.
 - Keep host- and provider-required identifiers exact. For requested changes to
-  project-owned node IDs, saved keys, or settings, update affected callers and
-  examples together and migrate required stored data directly. Do not keep
+  project-owned registration IDs, saved keys, or settings, update affected
+  callers and examples together and migrate required stored data directly. Do not keep
   compatibility aliases or discard user data. A label-only edit changes no
   saved keys.
-- Keep host imports at their boundary. Isolated media workers run by file path
-  with the selected host interpreter; do not add imports that require the
-  repository working directory or mutate `sys.path`.
+- Keep host imports at their boundary. Follow the isolated-worker and import
+  requirements in [package layout](#package-layout-and-import-path).
 - Validate decoded JSON at entry. Keep SDK typing uncertainty at the transport
-  boundary; do not spread `Any` or blanket ignores into node code.
+  boundary; do not spread `Any` or blanket ignores into application code.
 - Keep blocking file and media work off the host event loop. Bound queues,
   threads, memory, session duration, and cleanup time. Own, cancel, and await
   every created task; propagate cancellation after cleanup.
-- Use verified model command schemas and track names. Discovery lists models;
-  it does not prove that a model has a working node adapter.
+- Use verified external command schemas and resource names. Discovery lists
+  available resources; it does not prove that each resource has a working
+  application adapter.
 - Validate refreshed discovery records separately and replace them atomically.
   Refresh must not execute provider text, install code, or open paid sessions.
 - Own connection, upload, commands, recording, and teardown. Never retry session
   creation or a state-changing command after an ambiguous response.
 - A dropped connection or paused track does not prove billing stopped. Preserve
   uncertain cleanup in private state and report a clear recovery action.
-- Exclude HappyOyster. Do not add its nodes, dependencies, routes, or workflows.
 - Keep credentials out of widgets, saved workflows, logs, and public files.
   Use the private credential store or environment configuration.
-- Do not buy credits, enable top-ups, change billing, or query the user's Reactor
-  dashboard or balance. Keep manual run records private.
-- Use Comfy Desktop for manual workflow checks. Preserve user graphs, media,
-  unrelated node packs, and browser tabs. Other web work uses a separate Chrome
-  session.
+- Keep paid operations and billing changes within the explicitly authorized
+  scope. A runtime check does not authorize buying credits, enabling top-ups,
+  or changing account settings. Keep manual run records private.
+- Preserve user documents, saved workflows, media, unrelated extensions, and
+  browser tabs during manual checks. Use a separate browser session for
+  unrelated web work.
 
 ## Manual verification
 
-Do not create or run automated tests. Run static checks, builds, and manual
-checks only when the user explicitly requests verification. A code change does
-not itself request those checks.
-
-For requested runtime checks, use the installed package in Comfy Desktop.
-Exercise the affected behavior with real inputs. Include cancellation and
-cleanup when relevant. Keep results private and report only what was checked.
+Follow [GENERAL.md](GENERAL.md#verification-scope) for authorization and scope.
+For requested runtime checks, use the installed distribution in its supported
+runtime. Exercise the affected behavior with real inputs. Include cancellation
+and cleanup when relevant. Keep results private and report only what was checked.
 
 ## Verification commands
 
-Do not run verification commands unless the user asks.
+Follow [GENERAL.md](GENERAL.md#verification-commands). Find the project's actual
+commands in its task configuration and package metadata before invoking them;
+do not assume a task name, optional dependency group, source directory, or CLI
+flag from another project.
 
-When verification is requested, the local Python verification stack is:
+For requested Python verification:
 
-```bash
-mise run lint:python
-```
-
-For narrower verification, use the specific requested tool or file scope when
-available:
-
-```bash
-uv run ruff format --config pyproject.toml --check src
-uv run ruff check --config pyproject.toml src
-uv run --extra local basedpyright
-PYTHONPATH="${PWD}" uv run --extra local lint-imports --cache-dir .artifacts/import-linter
-uv run python -m quality.python.runner --root "${PWD}"
-```
-
-Rules:
-
-- Do not create or run automated tests. Run Python formatting, linting, type
-  checking, import checks, or security scans only when requested.
-- If the user asks for linting, prefer the project command unless a narrower
-  command is clearly requested.
-- If a verification command fails, report the command and the relevant failure.
-- Do not broaden verification into unrelated areas.
+- Use the configured formatter and linter for formatting and code policy.
+- Use the configured type checker for type contracts.
+- Use the configured import and structural checks for dependency boundaries,
+  module layout, naming, and documentation coverage.
+- Prefer the project command for the requested category unless the user asks
+  for a narrower tool or file scope.
+- Use the configured environment and supported command arguments. Do not invent
+  dependency groups, rewrite import paths, or bypass the package loading contract
+  merely to make a check run.
 
 ## Review checklist
 
@@ -2846,8 +2926,8 @@ Before finishing Python changes, review the diff for these points:
   narrate code?
 - Is `__all__` explicit and at the bottom when public exports exist?
 - Are package boundaries and import-linter contracts respected?
-- Is importable code under `src/` without `sys.path` mutation?
-- Did you avoid automated tests and run other checks only when requested?
+- Does importable code respect the package layout without `sys.path` mutation?
+- Does verification follow [GENERAL.md](GENERAL.md#verification-scope)?
 
 ## Anti-patterns
 
@@ -2870,10 +2950,14 @@ def format_value(value: Any) -> str:
     return str(value)
 ```
 
+<!-- fmt: off -->
+
 ```python
 def read_lines(path: None | Path) -> list[str]:
     ...
 ```
+
+<!-- fmt: on -->
 
 ```python
 _Rows = list[dict[str, object]]
@@ -2883,10 +2967,14 @@ _Rows = list[dict[str, object]]
 Path: TypeAlias = pathlib.Path
 ```
 
+<!-- fmt: off -->
+
 ```python
 def f(value=[]):
     ...
 ```
+
+<!-- fmt: on -->
 
 ```python
 if value == None:
@@ -2928,10 +3016,14 @@ logger.exception("Upload failed")
 STATE = {"instance": None}
 ```
 
+<!-- fmt: off -->
+
 ```python
 def get_instance():
     ...
 ```
+
+<!-- fmt: on -->
 
 ```python
 def build():
@@ -2964,15 +3056,23 @@ python setup.py develop
 easy_install example-package
 ```
 
+<!-- fmt: off -->
+
 ```python
 def __getattr__(name: str) -> object:
     ...
 ```
 
+<!-- fmt: on -->
+
+<!-- fmt: off -->
+
 ```python
 class TrainingManager:
     ...
 ```
+
+<!-- fmt: on -->
 
 ```python
 class Point:
@@ -3013,9 +3113,13 @@ if name[:4] == "test":
     ...
 ```
 
+<!-- fmt: off -->
+
 ```python
 def main():
     ...
 
 main()
 ```
+
+<!-- fmt: on -->

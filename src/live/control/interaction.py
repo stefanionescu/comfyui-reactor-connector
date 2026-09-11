@@ -68,7 +68,7 @@ class ControlInteraction(CameraInteraction):
         else:
             definition = self.control_lease.definition
             if definition.has_prompt_passthrough:
-                payload = {**payload, "passthrough": self.control_lease.options.passthrough}
+                payload = {**payload, "passthrough": self.control_lease.options.is_passthrough_enabled}
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
                 await events.command_reply(definition.prompt_command, dict(payload))
 

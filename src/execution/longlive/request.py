@@ -2,14 +2,14 @@
 
 import json
 from typing import ClassVar
+from ...models import MODELS
 from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
-from ...settings.settings import Settings
 from .storyboard import Shot, parse_storyboard
 from ...errors import ErrorCode, ConnectorError
 
@@ -24,7 +24,7 @@ class LongLiveRequest(VideoInputs):
     """
 
     shots: tuple[Shot, ...] = ()
-    model_name: ClassVar[str] = MODELS["longlive-v2"].connection_name
+    connection_name: ClassVar[str] = MODELS["longlive-v2"].connection_name
 
     def validate(self, settings: Settings) -> None:
         """Check capture inputs and shot order; reject unsupported image input."""
@@ -33,7 +33,7 @@ class LongLiveRequest(VideoInputs):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.longliveImagesUnsupported"))
         parse_storyboard(json.dumps([shot.to_dict() for shot in self.shots]))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Schedule the opening shot and later transitions, then start generation."""

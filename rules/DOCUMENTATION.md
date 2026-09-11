@@ -28,9 +28,9 @@ Choose the sections for the document or problem you are working on:
 ## Apply the rules to the reader's task
 
 Apply the relevant guidance to the document being changed. Do not create extra documents or
-review unrelated material to satisfy a checklist. Run formatting, lint, link checks, rendering,
-or other verification commands only when explicitly requested. No additional reviewer or approval
-is required by this guide.
+review unrelated material to satisfy a checklist. Follow
+[verification scope](GENERAL.md#verification-scope) for commands and rendered
+checks. No additional reviewer or approval is required by this guide.
 
 Use these rules for developers, contributors, operators, and product users. State
 what a reader needs to know before following instructions. Keep required access,
@@ -630,8 +630,8 @@ Use "you" when it makes a condition or result clearer.
 
 ### Describe the present state
 
-Documentation describes current behavior. Do not narrate refactors, renamed
-variables, removed systems, or previous implementations.
+Apply [the present-state rule](GENERAL.md#present-state-only) to documentation.
+These examples show how it affects descriptions of behavior:
 
 Use:
 
@@ -927,6 +927,8 @@ could interpret the symbol differently.
 
 Use title case for the document title at the top of every Markdown file. This rule applies to an H1
 title and to a front-matter title that the publishing system renders as the H1.
+Use title case for project-authored, user-visible component names, workflow
+titles, and note titles as well. Preserve exact externally owned labels.
 
 Capitalize the first and last word and every major word, including nouns, pronouns, verbs,
 adjectives, and adverbs. Keep minor words lowercase unless they are the first or last word. Minor
@@ -958,7 +960,8 @@ Do not use sentence case for the document title:
 ```
 
 Use sentence case for H2 and lower headings, table headers, alert content, and labels written by the
-documentation author.
+documentation author. Use sentence case for parameter and input labels, buttons,
+tooltips, status messages, and note body text.
 
 Match the exact capitalization of:
 
@@ -1808,13 +1811,13 @@ Avoid repeated `cd` commands when one working-directory statement is clearer.
 Use uppercase angle-bracket placeholders:
 
 ```shell
-mise run comfy:install -- --host <COMFYUI_DIRECTORY>
+python -m venv "<ENVIRONMENT_DIRECTORY>"
 ```
 
 Explain the values:
 
 ```text
-Replace `<COMFYUI_DIRECTORY>` with the ComfyUI installation directory.
+Replace `<ENVIRONMENT_DIRECTORY>` with the directory for the new virtual environment.
 ```
 
 Do not mix placeholder styles such as `YOUR_PROJECT`, `{project}`, and
@@ -1900,9 +1903,8 @@ Do not rely on a warning after the command.
 Prefer examples that can be exercised by automated documentation checks or by a
 normal project workflow.
 
-Read important examples for accuracy. Run example commands or other checks only
-when the user explicitly requests verification. Follow
-[GENERAL.md](GENERAL.md#verification-scope) for verification scope.
+Read important examples for accuracy. Follow
+[GENERAL.md](GENERAL.md#verification-scope) before running examples or checks.
 
 Do not pin volatile output unless the exact output is part of the public
 contract.
@@ -3074,10 +3076,12 @@ Do not defer a required documentation update as optional cleanup.
 
 ### Keep comments and guides aligned
 
-Update only existing documentation that the requested change makes inaccurate.
-This may include a comment, guide, example, or diagram. Do not create new
-documentation layers, generated references, troubleshooting pages, or diagrams
-to complete a checklist.
+Update documentation affected by the requested change. This may include a
+comment, guide, example, or diagram. Add a maintained explanation when new or
+changed public behavior has no adequate documentation, using the existing
+documentation surfaces where possible. Do not create unrelated documentation
+layers, generated references, troubleshooting pages, or diagrams merely to
+complete a checklist.
 
 Keep descriptions of the changed behavior consistent.
 
@@ -3165,8 +3169,9 @@ cover:
 Automation does not prove factual accuracy or usability. Read the changed text for correctness;
 this does not require another reviewer or approval.
 
-Run documentation checks or add automation only when explicitly requested. Limit requested checks
-to the affected material.
+Follow [GENERAL.md](GENERAL.md#verification-scope) for running checks. Adding
+automation also requires an explicit request; do not introduce automated tests
+under the name of documentation checks.
 
 ## Check the text with its readers
 
@@ -3676,8 +3681,8 @@ reader.
 
 ### Stale comments and historical narration
 
-Do not say what was removed, renamed, or refactored in guides that describe current behavior.
-Use version control.
+Apply [the present-state rule](GENERAL.md#present-state-only). Keep historical
+records in version control.
 
 ### Unverified examples
 
@@ -3753,12 +3758,13 @@ Warnings must appear before the risky action.
 
 ### Duplicated values that change often
 
-Do not copy defaults, version lists, or option tables across several pages.
-Generate them or keep one owner.
+Apply [the single-source guidance](#integrated-documentation-surfaces) to
+defaults, version lists, and option tables; link or generate repeated displays.
 
 ### Future promises
 
-Do not document proposals as committed features.
+Apply [the future-behavior rule](#do-not-promise-future-behavior) when discussing
+proposals or planned features.
 
 ### Documentation that depends on images or external hosts
 
@@ -3794,41 +3800,44 @@ The final standard is practical: a reader can understand the project, decide
 whether it fits, complete the documented goal safely, and find deeper
 information without inspecting implementation source.
 
-## ComfyUI documentation surfaces
+## Integrated documentation surfaces
 
-Keep README.md focused on installation, the first workflow, normal use, and
-essential limits. Keep ADVANCED.md for detailed controls, settings, recordings,
-recovery, and concise build commands. Do not add a contribution guide, changelog,
-root model inventory, or a separate documentation site.
+Keep README.md focused on installation, first successful use, normal operation,
+and essential limits. Keep ADVANCED.md for detailed controls, configuration,
+resource handling, recovery, and concise build commands. Add another guide or
+publishing surface only for a distinct reader task; keep the authored content
+in one place and link or generate other presentations from it.
 
-Every public node has one authored guide under `web/docs/`, native help, useful
-tooltips, and a workflow example. Generate installed help from that source.
-The workflow index lives beside the grouped examples. Preserve sample rights
-information and links when consolidating text.
+For applications with registered user-facing components, give each public
+component one authored guide, integrated help, useful tooltips, and an example
+where those surfaces apply. Generate installed help from the authored source;
+do not mandate a particular source directory. Keep an example index beside
+related examples. Preserve sample rights information and links when
+consolidating text.
 
-Document each node's purpose, inputs and units, outputs, prerequisites, example,
-limits, saving, cancellation, and recovery. Keep shared explanations in the
-advanced guide and link to them. Node schemas own exact socket and widget names.
+Document each component's purpose, inputs and units, outputs, prerequisites,
+example, limits, saving, cancellation, and recovery where applicable. Keep
+shared explanations in the advanced guide and link to them. Interface schemas
+own exact input and control names.
 
-Use title case for document H1 titles and for the main part of node, workflow,
-and note titles. Preserve the required lowercase extension suffix on node
-titles. Use sentence case for lower headings, parameter display labels,
-buttons, note body text, and table heads.
-Preserve proper names, model spellings, API identifiers, and quoted host labels.
-Use the node titles actually visible in each workflow's instructions.
+Follow this guide's casing rules for document titles, component and workflow
+titles, headings, labels, and body text. Preserve proper names, API identifiers,
+and quoted interface labels. Use the titles actually visible in the interface
+when writing instructions.
 
-Keep workflow notes compact and close to the action they explain. Size notes to
-the rendered text, align related nodes, leave gaps above title bars, and keep
-cables and widgets visible. Do not use a giant note as a graph background.
-When visual verification is explicitly requested, inspect the affected workflows
-and help in Comfy Desktop. Do not expand a text edit into a review of every surface.
+For visual workflows, keep notes compact and close to the action they explain.
+Size notes to the rendered text, align related components, leave gaps above
+title bars, and keep connections and controls visible. Do not use a giant note
+as a workflow background.
 
-Keep credentials, private machine paths, run records, acceptance status, and
-implementation journals out of public guides, examples, and workflow notes.
+Follow [GENERAL.md](GENERAL.md#verification-scope) for visual and distribution
+checks. When requested, inspect the affected help and workflows in the actual
+installed application and supported runtime. Keep the review limited to the
+changed behavior.
+
+Apply [WRITING.md](WRITING.md) and the privacy rules in this guide to public
+guides, examples, and workflow notes. Keep credentials, private machine paths,
+run records, acceptance status, and implementation journals out of them.
 Describe concrete actions such as recording a video or moving the camera.
-Do not invent abstract names for ordinary actions.
-
-When distribution verification is explicitly requested, use the actual installed
-package in Comfy Desktop and check the affected behavior. Do not create or run
-automated tests. Keep results private and describe only available behavior in
-product documentation.
+Do not invent abstract names for ordinary actions. Keep verification results
+private and describe only available behavior in product documentation.

@@ -52,7 +52,7 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
     track.on_frame(session.capture.receive)
     if session.interaction is not None:
         await session.interaction.connected(session.transport, track, session.events)
-    recording_window = await session.request.configure(
+    recording_window = await session.request.begin_generation(
         session.transport,
         session.events,
         session.settings.max_capture_seconds,
@@ -142,7 +142,7 @@ async def capture_video(
     configuration: ExecutionConfiguration,
     destination: Path,
     *,
-    outcome: SessionOutcome | None = None,
+    outcome: SessionOutcome,
     interaction: SessionInteraction | None = None,
 ) -> CaptureResult:
     """Capture an already validated operation and clean up every outcome."""
@@ -155,7 +155,7 @@ async def capture_video(
         fallback_fps=request.fallback_fps,
     )
     try:
-        transport = SessionTransport(request.model_name, configuration.credential, settings.max_session_seconds)
+        transport = SessionTransport(request.connection_name, configuration.credential, settings.max_session_seconds)
         events = SessionEvents(transport)
         session = SessionResources(
             request=request,
@@ -164,7 +164,7 @@ async def capture_video(
             capture=capture,
             events=events,
             worker=asyncio.create_task(capture.encode()),
-            outcome=outcome or SessionOutcome(),
+            outcome=outcome,
             interaction=interaction,
         )
         result, recording_window = await _capture_session(session)

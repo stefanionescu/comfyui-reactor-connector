@@ -16,7 +16,6 @@ BASH_PREFIX_COLLISION_THRESHOLD = 2
 SHELL_CONFIG_GUARD_PATTERN = r"^\[\[ -n \$\{(?P<name>_CFG_[A-Z][A-Z0-9_]*_READY):-\} \]\] && return 0$"
 
 SHELL_ARCHITECTURE_PREFIXES = (".mise/tasks/", ".githooks/", "quality/")
-SHELL_RUNTIME_HEADER = "# Runtime: Bash 3.2+, macOS and Linux."
 
 SHELL_ACTION_PREFIXES = {
     "acquire",

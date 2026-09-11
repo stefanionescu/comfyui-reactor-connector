@@ -3,8 +3,8 @@
 import asyncio
 from functools import partial
 from ...media.output import owned_io
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...execution.fast.continuation import FastContinueRequest
@@ -94,7 +94,7 @@ class FastContinue(io.ComfyNode):
 
         async def generate() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
-            encoded = None if image is None else await owned_io(partial(image_png, image))
+            encoded = None if image is None else await owned_io(partial(encode_png, image))
             request = FastContinueRequest(
                 prompt,
                 clip_seconds * clip_count,

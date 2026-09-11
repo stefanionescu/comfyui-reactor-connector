@@ -6,7 +6,7 @@ from .transport import Transport
 from dataclasses import dataclass
 from ...config.nodes import MAX_SEED
 from .operation import ControlValues
-from ..settings.settings import Settings
+from ..settings.schema import Settings
 from ..errors import ErrorCode, ConnectorError
 from ...config.media.video import DEFAULT_FRAME_RATE
 from ..media.units import convert_mebibytes_to_bytes
@@ -29,7 +29,7 @@ class VideoInputs:
     duration_seconds: float
     seed: int
     image: bytes | None = None
-    model_name: ClassVar[str]
+    connection_name: ClassVar[str]
     fallback_fps: ClassVar[int] = DEFAULT_FRAME_RATE
     requires_audio: ClassVar[bool] = False
 

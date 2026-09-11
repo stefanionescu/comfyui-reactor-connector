@@ -13,21 +13,21 @@ from ..runtime import get_runtime
 from ..media.output import owned_io
 from ..live.state import LiveOptions
 from ..media.audio import read_audio
+from ..settings.schema import Settings
 from ..media.state import CaptureResult
 from ..execution.report import RunReport
-from ..settings.settings import Settings
 from comfy_api.latest import io, InputImpl
 from .interaction import prepare_interaction
 from ..errors import ErrorCode, ConnectorError
 from ..execution.diagnostics import save_failure
 from ..execution.operation import VideoOperation
 from ..live.interaction import CameraInteraction
-from ..media.metadata.read import read_recording
 from ..execution.session.state import SessionOutcome
 from ..media.units import convert_mebibytes_to_bytes
 from contextlib import suppress, asynccontextmanager
 from ..execution.session.capture import capture_video
 from ..settings.execution import ExecutionConfiguration
+from ..media.metadata.read import read_recording_metadata
 from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
 from ...config.generation.session import CANCELLATION_POLL_SECONDS
@@ -109,7 +109,7 @@ async def recording_report(
     """Combine saved media facts with the execution and live-control report."""
     facts = report.to_json()
     recording = await wait_for_execution(
-        asyncio.create_task(read_recording(result, convert_mebibytes_to_bytes(settings.max_capture_megabytes)))
+        asyncio.create_task(read_recording_metadata(result, convert_mebibytes_to_bytes(settings.max_capture_megabytes)))
     )
     facts.update(recording)
     if interaction_summary is not None:
@@ -177,7 +177,7 @@ async def generate_video(
     configuration = get_runtime().configuration
     snapshot = await asyncio.to_thread(configuration.execution_snapshot)
     request.validate(snapshot.settings)
-    report = await owned_io(lambda: RunReport.prepare(node_id, request.model_name, request.duration_seconds))
+    report = await owned_io(lambda: RunReport.prepare(node_id, request.connection_name, request.duration_seconds))
     try:
         async with _temporary_video() as destination:
             task = asyncio.create_task(

@@ -38,10 +38,10 @@ def register_configuration() -> None:
         show_index=False,
         follow_symlinks=False,
     )
-    ConfigurationRoutes(store, multi_user=args.multi_user).register(PromptServer.instance.routes)
-    LiveRoutes(get_runtime().browsers, multi_user=args.multi_user).register(PromptServer.instance.routes)
+    ConfigurationRoutes(store, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
+    LiveRoutes(get_runtime().browsers, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
     checker = ModelChecker(get_runtime().discovery, lambda: read_settings(directory))
     PromptServer.instance.app.cleanup_ctx.append(checker.lifecycle)
-    ModelRoutes(get_runtime().discovery, multi_user=args.multi_user, checker=checker).register(
+    ModelRoutes(get_runtime().discovery, is_multi_user=args.multi_user, checker=checker).register(
         PromptServer.instance.routes
     )

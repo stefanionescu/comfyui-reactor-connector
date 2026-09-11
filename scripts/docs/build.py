@@ -55,7 +55,9 @@ def main() -> int:
     if not issues:
         pages = HelpPages(root)
         generated = pages.build()
-        generated.update({output / guide.relative_to(source): pages.markdown(guide) for guide in source.rglob("*.md")})
+        generated.update(
+            {output / guide.relative_to(source): pages.build_markdown(guide) for guide in source.rglob("*.md")}
+        )
         issues.extend(build_help(root, generated, check=args.check))
     for issue in issues:
         sys.stdout.write(issue + "\n")

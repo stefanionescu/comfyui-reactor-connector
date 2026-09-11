@@ -24,10 +24,10 @@ from ...config.live import (
 class LiveRoutes:
     """Authenticated local routes for preview frames, webcam input, and editing controls."""
 
-    def __init__(self, registry: BrowserRegistry, *, multi_user: bool = False) -> None:
+    def __init__(self, registry: BrowserRegistry, *, is_multi_user: bool = False) -> None:
         """Bind the live-session registry and host access policy."""
         self.registry = registry
-        self.multi_user = multi_user
+        self.is_multi_user = is_multi_user
 
     async def exchange(self, request: web.Request) -> dict[str, Json]:
         """Read a size-limited request and exchange state with its owning session."""
@@ -80,11 +80,11 @@ class LiveRoutes:
     def register(self, routes: web.RouteTableDef) -> None:
         """Register live routes with the local mutation and host access guards."""
         routes.post(SETTINGS_PREFIX + "/live/exchange")(
-            local_route(self.exchange, mutation=True, multi_user=self.multi_user)
+            local_route(self.exchange, is_mutation=True, is_multi_user=self.is_multi_user)
         )
         routes.post(SETTINGS_PREFIX + "/live/action")(
-            local_route(self.action, mutation=True, multi_user=self.multi_user)
+            local_route(self.action, is_mutation=True, is_multi_user=self.is_multi_user)
         )
         routes.post(SETTINGS_PREFIX + "/live/camera")(
-            local_route(self.camera, mutation=True, multi_user=self.multi_user)
+            local_route(self.camera, is_mutation=True, is_multi_user=self.is_multi_user)
         )

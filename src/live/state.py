@@ -32,12 +32,12 @@ class CameraChange:
 class LiveOptions:
     """Model-specific prompts, sound options, and optional webcam input for a live session."""
 
-    model: str
+    connection_name: str
     prompt: str
     webcam: WebcamFrames | None = None
-    passthrough: bool = False
+    is_passthrough_enabled: bool = False
     audio_prompt: str = ""
-    audio_enabled: bool = False
+    is_audio_enabled: bool = False
 
 
 __all__ = ["BrowserInput", "CameraChange", "LiveOptions"]

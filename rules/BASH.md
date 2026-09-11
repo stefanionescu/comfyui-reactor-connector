@@ -1,7 +1,7 @@
 # Working on Bash
 
-These rules apply to Git hooks, mise task files, committed Bash scripts, and
-sourced libraries in this single-project repository.
+These rules apply to Git hooks, task-runner entrypoints, committed Bash scripts,
+and sourced libraries in projects that use Bash.
 
 Use [NAMING.md](NAMING.md) for names and [GENERAL.md](GENERAL.md) for working rules.
 Use the existing commands for the affected scripts.
@@ -13,12 +13,12 @@ Choose the section that matches the work you are doing:
 | Task                                 | Sections                                                                                                                                                                              |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Choose where script logic belongs    | [Use Bash for command tasks](#use-bash-for-command-tasks), [when to use Bash](#when-to-use-bash)                                                                                      |
-| Create a hook, task, or script       | [File types and invocation](#file-types-and-invocation), [script structure](#script-structure), [module ownership](#module-ownership-and-visibility), [functions](#functions)           |
+| Create a hook, task, or script       | [File types and invocation](#file-types-and-invocation), [script structure](#script-structure), [module ownership](#module-ownership-and-visibility), [functions](#functions)         |
 | Handle failures                      | [Shell options](#shell-options), [output and errors](#output-logging-and-errors), [pipelines](#pipelines-and-redirection)                                                             |
 | Pass arguments and read input        | [Quoting](#quoting-and-expansion), [arrays](#arrays-and-argument-lists), [loops](#loops-and-input), [delimiters](#delimited-data-and-ifs)                                             |
 | Compare or calculate values          | [Conditionals](#conditionals), [arithmetic](#arithmetic), [variables](#variables-and-constants)                                                                                       |
 | Read or replace files                | [Paths](#paths-globs-and-file-names), [command substitution](#command-substitution), [temporary files](#temporary-files-locks-and-cleanup)                                            |
-| Call tools and manage processes      | [Calling commands](#calling-commands), [process management](#process-management), [network commands](#network-commands)                                                             |
+| Call tools and manage processes      | [Calling commands](#calling-commands), [process management](#process-management), [network commands](#network-commands)                                                               |
 | Handle sensitive or structured input | [Structured data](#text-json-and-structured-data), [secrets](#secrets-and-environment), [security rules](#security-rules)                                                             |
 | Support developer machines           | [Portability](#portability-rules), [local tasks and hooks](#local-tasks-and-hooks)                                                                                                    |
 | Review or repair a script            | [Comments](#comments-and-documentation), [linting](#linting-and-formatting), [verification](#verification-scope), [debugging](#debugging-bash), [review checklist](#review-checklist) |
@@ -52,14 +52,15 @@ Rules:
 - ShellCheck warnings are design feedback. Fix them unless there is a documented
   reason not to.
 - `set -euo pipefail` is not a substitute for checking dangerous commands.
-- Keep mise tasks and hooks focused on calling the commands they need.
+- Keep task-runner entrypoints and hooks focused on calling the commands they need.
   Put more complex behavior in the module responsible for it.
 - Keep structured-data parsing and source-code analysis in their existing owner
   modules.
 - If logic is too complex for Bash, put it in its existing application or tooling
   module. Do not add another scripting runtime or put a Node program inline in a shell task.
 
-A Git hook entry point forwards its arguments to the existing mise task:
+This Git hook example checks staged whitespace with Git's built-in command.
+Use the project's configured hook command when one exists:
 
 ```bash
 #!/usr/bin/env bash
@@ -75,7 +76,7 @@ main() {
 
   repo_root="$(git rev-parse --show-toplevel)" || return 1
   cd "${repo_root}" || return 1
-  mise run hook:pre-commit
+  git diff --cached --check "$@"
 }
 
 main "$@"
@@ -118,7 +119,8 @@ Do not use Bash for:
 
 If a workflow needs nested maps, large arrays, complex validation, or domain
 rules, implement that behavior in the owning application or quality module.
-Keep mise tasks and Git hooks focused on calling those modules and forwarding arguments.
+Keep task-runner entrypoints and Git hooks focused on calling those modules
+and forwarding arguments.
 
 ## File types and invocation
 
@@ -149,10 +151,11 @@ Shebang rules:
 Use this for repository scripts that may run on macOS, Linux, or developer
 machines.
 
-Repository scripts target Bash 3.2. Do not use `mapfile`, `readarray`,
-associative arrays, `globstar`, namerefs, case-conversion expansion, `coproc`,
-`BASH_XTRACEFD`, `wait -n`, or `shopt -s lastpipe`. Do not rely on
-process-substitution behavior that has not been verified on the target system.
+Select the interpreter for the project's declared minimum Bash version and
+supported platforms. Follow [portability rules](#portability-rules) for
+version-dependent syntax; an `env bash` shebang alone does not establish a
+minimum version. Example headers state the example's contract, not a universal
+version requirement.
 
 ```bash
 #!/bin/bash
@@ -602,7 +605,7 @@ EOF
 ## Comments and documentation
 
 For a substantive Bash script, put a short purpose comment after the shebang.
-Keep existing brief hook and mise entry points consistent with the project policy:
+Keep existing brief hook and task-runner entrypoints consistent with the project policy:
 
 ```bash
 #!/usr/bin/env bash
@@ -611,9 +614,11 @@ Keep existing brief hook and mise entry points consistent with the project polic
 # Runtime: Bash 3.2+, macOS and Linux.
 ```
 
-Document every function immediately above its declaration. Use the required
-`# function_name - description` form. `main` needs this summary but does not
-need the full contract block:
+Document every function immediately above its declaration using
+`# function_name - description`. Apply the
+[required-comment standard](GENERAL.md#required-comments): describe the purpose
+or contract rather than restating the function name. `main` needs this summary
+but does not need the full contract block:
 
 ```bash
 # _normalize_env_name - Converts an environment alias to the configured name.
@@ -643,7 +648,7 @@ runtime_remove_owned_path() {
 
 Rules:
 
-- Document behavior, not history.
+- Follow [the present-state rule](GENERAL.md#present-state-only).
 - Comments explain why a shell pattern is needed when the code is not obvious.
 - Do not comment every line.
 - TODOs must include `TODO(identifier):`.
@@ -759,11 +764,10 @@ current_branch() {
 }
 ```
 
-Use `main` for every executable entry point. Executable files expose only
-`main`; prefix every other function with `_`. Follow the configured shell file
-and function limits. Every function needs a `# function_name - description`
-summary. Sourced public functions and risky functions other than `main` also
-need the full contract block shown above.
+Apply [file types and invocation](#file-types-and-invocation) for entrypoints
+and visibility, and [comments and documentation](#comments-and-documentation)
+for required function summaries and contract blocks. Follow the configured
+shell file and function limits.
 
 When an entry point needs several steps, use this structure:
 
@@ -1750,18 +1754,16 @@ runtime_remove_owned_path "${REPO_ROOT}" "${build_dir}"
 
 ## Security rules
 
+Apply [forbidden syntax](#forbidden-syntax) and
+[quoting and expansion](#quoting-and-expansion) to every command boundary.
+
 Never:
 
-- use `eval`;
-- use `ERR` traps as a substitute for explicit status checks;
 - build shell command strings from user input;
-- invoke `bash -c` or `bash -lc`;
 - parse untrusted arithmetic expressions with `(( ... ))`;
 - use unsanitized values as variable names, associative array keys in arithmetic
   contexts or remote shell fragments;
-- use unquoted variables in paths or arguments;
 - run destructive commands against unchecked variables;
-- parse `ls`;
 - use `find -exec sh -c '...'` with `{}` embedded in the script string;
 - use `xargs` without `-0` for filenames;
 - pipe unverified network data to an interpreter;
@@ -1793,11 +1795,17 @@ into code.
 
 Rules:
 
-- Default to Bash 3.2-compatible syntax unless runtime support is checked.
+- Target the project's declared minimum Bash version and supported platforms.
+  If the project has not declared them, establish that contract before adding
+  version-dependent syntax.
 - Every file header declares the supported platform and minimum Bash version.
-- The declared contract and syntax must agree. Bash 4+ features such as
-  `mapfile`, `readarray`, associative arrays, and `${value,,}` require a
-  checked Bash 4+ entry boundary; otherwise they are forbidden.
+- The declared contract and syntax must agree. Features such as `mapfile`,
+  `readarray`, associative arrays, `globstar`, namerefs, case-conversion
+  expansion, `coproc`, `BASH_XTRACEFD`, `wait -n`, and `shopt -s lastpipe`
+  require an entry boundary that establishes support for the exact feature and
+  options used. Do not assume all newer features share one minimum version.
+- Do not rely on process-substitution behavior that is unsupported or has not
+  been established on the target system.
 - Account for macOS/BSD and GNU differences in `sed`, `date`, `readlink`,
   `mktemp`, `stat`, `xargs`, and `grep`.
 - Prefer project-provided wrappers for platform-specific behavior.
@@ -1823,7 +1831,8 @@ small verified Bash helper or product-owned application code.
 
 Rules:
 
-- Run the owning project's shell lint command only when linting is explicitly requested.
+- Follow [verification scope](GENERAL.md#verification-scope) and use the owning
+  project's shell lint command for requested linting.
 - Fix ShellCheck findings in the touched scope.
 - Use the existing formatter when formatting is explicitly requested.
 - Do not add broad lint suppressions.
@@ -1835,7 +1844,7 @@ Expected tools:
 
 - ShellCheck for correctness and safety.
 - shfmt for formatting when the script family uses it.
-- Semgrep or CodeQL only when the user explicitly requests the check.
+- Semgrep or CodeQL when they are the configured tool for a requested scan.
 
 Run requested checks from the location expected by the project.
 
@@ -1852,11 +1861,9 @@ causes the warning. Avoid suppressing a warning for the whole file.
 
 ## Verification scope
 
-Run syntax checks, ShellCheck, shfmt, naming checks, or other verification commands only when the
-user explicitly requests verification. Keep requested checks limited to the affected scripts.
-
-Do not create or run Bash tests. Never run a destructive command merely to
-check syntax.
+Follow [GENERAL.md](GENERAL.md#verification-scope) for authorization and scope
+of syntax checks, ShellCheck, shfmt, naming checks, and other verification.
+Never run a destructive command merely to check syntax.
 
 ## Debugging Bash
 
@@ -1948,7 +1955,8 @@ When fixing or refactoring Bash:
 1. Do not convert a large script in one pass unless the task is explicitly a
    script cleanup.
 1. Use the configured Bash runtime. Change shebangs only when the requested implementation needs it.
-1. Run lint or formatting only when explicitly requested, limited to the affected scripts.
+1. Follow [verification scope](GENERAL.md#verification-scope) for requested
+   linting or formatting.
 
 When a script is too complex:
 

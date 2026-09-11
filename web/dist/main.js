@@ -2397,7 +2397,7 @@ function formatCreditSummary(model, seconds) {
 }
 
 // web/discovery/row.ts
-function modelRow(model, seconds) {
+function buildModelRow(model, seconds) {
   const row = element("li");
   row.append(element("h3", model.title), element("code", model.modelSlug));
   const support = model.support === "available" ? message("models.nodesAvailable") : message("models.nodeUnavailable");
@@ -2692,7 +2692,7 @@ var ModelDialog = class {
     for (const model of this.modelList?.models ?? []) {
       if (nodeId2 && !model.nodeIds.includes(nodeId2)) continue;
       const label = `${model.modelSlug} ${model.title} ${model.connectionName ?? ""}`;
-      if (label.toLowerCase().includes(query)) rows.appendChild(modelRow(model, seconds));
+      if (label.toLowerCase().includes(query)) rows.appendChild(buildModelRow(model, seconds));
     }
     const visible = rows.childElementCount;
     this.list.replaceChildren();

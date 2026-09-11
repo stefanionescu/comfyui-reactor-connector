@@ -107,7 +107,7 @@
             "is_excluded": true
         },
         {
-            "path_regexes": ["^src/settings/settings\\.py$"],
+            "path_regexes": ["^src/settings/schema\\.py$"],
             "languages": ["python"],
             "categories": ["variables"],
             "names": ["catalog_interval_hours", "catalog_auto_check"],

@@ -59,7 +59,7 @@ class HelpPages:
             path /= "README.md"
         self.require_public_source(path)
         if path in self.sources:
-            self.page(path)
+            self.build_page(path)
             name = self.sources[path]
         else:
             relative = path.relative_to(self.root)
@@ -73,7 +73,7 @@ class HelpPages:
         url = HELP_PREFIX + name.as_posix() if native else self.relative_url(source, name)
         return url + ("?" + parts.query if parts.query else "") + ("#" + parts.fragment if parts.fragment else "")
 
-    def markdown(self, source: Path) -> bytes:
+    def build_markdown(self, source: Path) -> bytes:
         """Resolve native Info links against the installed extension, not the canvas URL."""
         self.require_public_source(source)
         text = re.sub(
@@ -95,7 +95,7 @@ class HelpPages:
             msg = "Help pages must come from public repository files."
             raise ValueError(msg)
 
-    def page(self, source: Path) -> None:
+    def build_page(self, source: Path) -> None:
         """Render one canonical guide with local links, heading anchors, and navigation."""
         self.require_public_source(source)
         if source not in self.sources:
@@ -151,7 +151,7 @@ class HelpPages:
     def build(self) -> dict[Path, bytes]:
         """Render every canonical guide and return the complete output file mapping."""
         for source in self.sources:
-            self.page(source)
+            self.build_page(source)
         self.files[self.output / "docs.css"] = (self.root / "web/styles/docs.css").read_bytes()
         languages = {
             node_id: [self.languages[source] for source in self.sources if node_id in {source.stem, source.parent.name}]

@@ -7,14 +7,14 @@ from ...language import translate
 from ...serialization import Json
 from ..state import CaptureResult
 from ...errors import ErrorCode, ConnectorError
-from ..process import close_input, EncoderProcess
+from ..process import close_input, MediaProcess
 from ....config.media.workers import METADATA_TIMEOUT_SECONDS
 from ....config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
 
 
-async def read_recording(result: CaptureResult, maximum_bytes: int) -> dict[str, Json]:
+async def read_recording_metadata(result: CaptureResult, maximum_bytes: int) -> dict[str, Json]:
     """Bound header reading and return only documented numeric and Boolean fields."""
-    worker = EncoderProcess(
+    worker = MediaProcess(
         [
             sys.executable,
             "-I",

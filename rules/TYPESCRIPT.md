@@ -44,20 +44,20 @@ a rule explicitly when the standard itself needs to change.
 
 Enable these compiler settings:
 
-| Setting                            | What it checks                                                                           |
-| ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| `strict`                           | Enables TypeScript's strict type checks, including null checks and implicit `any` checks |
-| `noUncheckedIndexedAccess`         | Includes `undefined` when an indexed read can refer to a missing value                   |
-| `exactOptionalPropertyTypes`       | Distinguishes an absent optional property from a property set to `undefined`             |
+| Setting                      | What it checks                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------- |
+| `strict`                     | Enables TypeScript's strict type checks, including null checks and implicit `any` checks |
+| `noUncheckedIndexedAccess`   | Includes `undefined` when an indexed read can refer to a missing value                   |
+| `exactOptionalPropertyTypes` | Distinguishes an absent optional property from a property set to `undefined`             |
 
 Match module resolution and import extensions to the configured compiler and
 runtime. Do not impose an import style from another runtime.
 
 Keep the exact ESLint rule configuration with the lint tooling. Apply the
-language standards in this file consistently. Use explicit type-only imports
-and exports. Use `type` aliases for object shapes. Validate external input at
-runtime, narrow types safely, and follow the naming conventions below. Keep
-TypeScript enums out of application code.
+sections below for [imports](#import-and-export-modules),
+[type declarations](#place-type-declarations),
+[external input](#validate-external-input), [narrowing](#infer-and-narrow-types),
+and [naming](#name-declarations).
 
 ## Organize source files
 
@@ -116,7 +116,6 @@ and framework exceptions. Apply the configured naming checks for the source you 
 
 Represent values explicitly so a reader can tell how input becomes application data.
 
-- Use `const` for bindings that are not reassigned.
 - Use literal unions or `as const` objects for fixed sets of values. Do not use TypeScript enums.
 - Parse strings, numbers, booleans, and dates explicitly when they enter through user input,
   environment variables, or provider responses.
@@ -185,7 +184,7 @@ Keep public APIs explicit and let TypeScript infer local values. For an untruste
   fields available in each variant.
 - Give type aliases a clear purpose. Avoid aliases that only rename another type without explaining
   a distinct use or relationship.
-- Use `type` aliases for object shapes.
+- Follow [type declaration rules](#place-type-declarations) for object shapes.
 
 ## Represent missing values
 
@@ -239,8 +238,8 @@ Explain what callers need to know to use an API correctly.
 - Explain invariants, access checks, concurrency behavior, and runtime assumptions that callers need
   to preserve. An invariant is a condition that stays true before and after an operation.
 - Put type information in TypeScript declarations rather than repeating it in JSDoc.
-- Keep comments about behavior and purpose. Remove comments that repeat the code or record its
-  change history.
+- Follow [GENERAL.md](GENERAL.md#documentation-requirements) for comment
+  coverage and [present-state wording](GENERAL.md#present-state-only).
 - Give every ESLint disable directive a specific explanation.
 
 Use JSDoc for public API behavior, assumptions, and caller obligations. Keep descriptions close to

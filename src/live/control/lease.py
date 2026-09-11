@@ -7,8 +7,8 @@ from ...language import translate
 from ...serialization import Json
 from ..lease import unavailable, BrowserLease
 from ...errors import ErrorCode, ConnectorError
+from ...models import ModelDefinition, MODELS_BY_CONNECTION
 from ....config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
-from ...model_registry import ModelDefinition, MODELS_BY_CONNECTION
 from ....config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
 from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
 
@@ -26,7 +26,7 @@ class ControlLease(BrowserLease):
         """Create an owner-authorized live-action queue with model-specific options."""
         super().__init__(choices or {})
         self.options = options
-        self.definition: ModelDefinition = MODELS_BY_CONNECTION[options.model]
+        self.definition: ModelDefinition = MODELS_BY_CONNECTION[options.connection_name]
         self.actions: deque[tuple[str, dict[str, Json], float]] = deque()
         self.action_sequence = -1
         self.started = started
@@ -40,11 +40,11 @@ class ControlLease(BrowserLease):
             allow_empty_prompt=self.definition.is_empty_prompt_allowed,
             audio_prompt_limit=MAX_AUDIO_PROMPT_CHARACTERS,
             prompt=self.options.prompt,
-            prompt_limit=self.definition.prompt_limit,
+            prompt_limit=self.definition.max_prompt_characters,
             webcam=self.options.webcam is not None,
             pointer=self.definition.has_pointer,
             audio_prompt=self.options.audio_prompt,
-            sound=self.definition.has_audio_prompt and self.options.audio_enabled,
+            sound=self.definition.has_audio_prompt and self.options.is_audio_enabled,
         )
         return result
 
@@ -92,13 +92,13 @@ class ControlLease(BrowserLease):
                 payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
                 and (bool(prompt.strip()) or self.definition.is_empty_prompt_allowed)
-                and len(prompt) <= self.definition.prompt_limit
+                and len(prompt) <= self.definition.max_prompt_characters
             )
         elif name == "audio_prompt":
             prompt = payload.get("prompt")
             valid = (
                 self.definition.has_audio_prompt
-                and self.options.audio_enabled
+                and self.options.is_audio_enabled
                 and payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
                 and len(prompt) <= MAX_AUDIO_PROMPT_CHARACTERS

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 from quality.lib.diagnostics import diagnostic
 
@@ -23,14 +22,6 @@ class ShellFunction(TypedDict):
 FUNCTION_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\(\) \{$")
 FUNCTION_END_RE = re.compile(r"^}$")
 IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
-
-
-def collect_shell_files(directory: str) -> list[str]:
-    """Recursively collect shell scripts by extension."""
-    root = Path(directory)
-    if not root.exists():
-        return []
-    return sorted(path.as_posix() for path in root.rglob("*.sh"))
 
 
 def strip_shell_comments(line: str) -> str:

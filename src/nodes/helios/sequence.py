@@ -1,8 +1,8 @@
 """Generate a Helios video from connected, scheduled prompts."""
 
 import asyncio
-from ...media.images import image_png
 from ..schema import translate_schema
+from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...execution.helios.request import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
@@ -56,7 +56,7 @@ class HeliosSequence(io.ComfyNode):
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
         prompts = parse_sequence(sequence)
-        encoded = await asyncio.to_thread(image_png, image) if image is not None else None
+        encoded = await asyncio.to_thread(encode_png, image) if image is not None else None
         return await generate_video(
             HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts),
             node_id=cls.define_schema().node_id,

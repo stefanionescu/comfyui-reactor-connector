@@ -6,8 +6,8 @@ from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
 from ....config.nodes import MAX_SEED
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
-from ...settings.settings import Settings
 from .generate import FastGenerateRequest
 from ...errors import ErrorCode, ConnectorError
 from .clip import seconds, FastClip, FastClipEvents, message_payload
@@ -56,7 +56,7 @@ class FastContinueRequest(FastGenerateRequest):
                 translate("main", "errors.continuationPrompts"),
             )
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Play linked clips and enough trailing media to finish the saved recording."""
@@ -82,10 +82,7 @@ class FastContinueRequest(FastGenerateRequest):
         current = await self._enqueue(events, None, 0)
         self._validate_recording_limit(current, max_capture_seconds)
         await events.call("clip_build", clips.wait_ready(current))
-        state = await self._state(transport, events)
-        if state.get("playing") is not False:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sequencePlaybackOrder"))
-        start_seconds = seconds(state.get("seconds_sent"))
+        start_seconds = await self._read_playback_start(transport, events)
         await events.command_reply("set_autoplay", {"enabled": True})
         # Queue one continuation ahead. Each clip opens from the previous clip's last frame.
         for index in range(1, self.clip_count):
@@ -106,6 +103,13 @@ class FastContinueRequest(FastGenerateRequest):
         await events.call("recording_tail_build", clips.wait_ready(tail))
         await events.command_reply("play", {"clip_id": tail.clip_id})
         return RecordingWindow(start_seconds, duration)
+
+    async def _read_playback_start(self, transport: Transport, events: SessionEvents) -> float:
+        """Read the recording position only while automatic playback is stopped."""
+        state = await self._state(transport, events)
+        if state.get("playing") is not False:
+            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sequencePlaybackOrder"))
+        return seconds(state.get("seconds_sent"))
 
     def _validate_recording_limit(self, clip: FastClip, max_capture_seconds: float) -> None:
         """Reject an accepted clip length that would exceed the configured capture limit."""

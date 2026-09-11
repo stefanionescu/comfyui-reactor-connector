@@ -10,7 +10,7 @@
                 "reason": "Invalidates a private generation token after credential changes; callers do not access the stored snapshot."
             },
             {
-                "path": "src/settings/settings.py",
+                "path": "src/settings/schema.py",
                 "names": ["Settings.to_json"],
                 "reason": "Defines the public settings response and keeps dataclass serialization inside its owner."
             },

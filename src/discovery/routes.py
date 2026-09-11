@@ -21,19 +21,19 @@ class ModelRoutes:
         self,
         store: ModelStore,
         *,
-        multi_user: bool = False,
+        is_multi_user: bool = False,
         fetcher: Callable[[], Awaitable[Snapshot]] = read_public_models,
         checker: ModelChecker | None = None,
     ) -> None:
         """Bind the model store, public fetcher, and optional scheduled checker."""
         self.store = store
-        self.multi_user = multi_user
+        self.is_multi_user = is_multi_user
         self.fetcher = fetcher
         self.checker = checker
 
     def _add_route_fields(self, result: dict[str, Json]) -> dict[str, Json]:
         """Add catalog permissions and scheduled-check status to one response."""
-        result["mutation_allowed"] = not self.multi_user
+        result["mutation_allowed"] = not self.is_multi_user
         if self.checker:
             result["automatic_check"] = self.checker.status(str(result["revision"]))
         return result
@@ -58,9 +58,9 @@ class ModelRoutes:
 
     def register(self, routes: web.RouteTableDef) -> None:
         """Register model routes with local-owner and mutation guards."""
-        for method, path, callback, mutation in (
+        for method, path, callback, is_mutation in (
             (routes.get, MODELS_PREFIX, self.status, False),
             (routes.post, MODELS_PREFIX + "/refresh", self.refresh, True),
             (routes.post, MODELS_PREFIX + "/rollback", self.rollback, True),
         ):
-            method(path)(local_route(callback, mutation=mutation, multi_user=self.multi_user))
+            method(path)(local_route(callback, is_mutation=is_mutation, is_multi_user=self.is_multi_user))

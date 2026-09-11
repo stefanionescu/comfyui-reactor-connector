@@ -57,7 +57,7 @@ def read_import_policy(root: Path) -> ImportPolicy:
         },
         context=IMPORT_POLICY_PATH,
     )
-    require_version(payload["version"], IMPORT_POLICY_PATH)
+    version = require_version(payload["version"], IMPORT_POLICY_PATH)
     package_roots = require_string_list(
         payload["package_roots"], f"{IMPORT_POLICY_PATH}.package_roots", is_nonempty=True
     )
@@ -65,7 +65,6 @@ def read_import_policy(root: Path) -> ImportPolicy:
         if not (root / package_root).is_dir():
             message = f"{IMPORT_POLICY_PATH}.package_roots references missing directory {package_root}"
             raise JsonConfigError(message)
-    require_bool(payload["are_relative_imports_allowed"], f"{IMPORT_POLICY_PATH}.are_relative_imports_allowed")
     late_import_paths = require_string_list(
         payload["allow_imports_after_statements"],
         f"{IMPORT_POLICY_PATH}.allow_imports_after_statements",
@@ -74,9 +73,8 @@ def read_import_policy(root: Path) -> ImportPolicy:
         if not (root / relative_path).is_file():
             message = f"{IMPORT_POLICY_PATH}.allow_imports_after_statements references missing file {relative_path}"
             raise JsonConfigError(message)
-    require_bool(payload["are_dynamic_imports_banned"], f"{IMPORT_POLICY_PATH}.are_dynamic_imports_banned")
     return {
-        "version": require_int(payload["version"], f"{IMPORT_POLICY_PATH}.version", minimum=1),
+        "version": version,
         "package_roots": package_roots,
         "are_relative_imports_allowed": require_bool(
             payload["are_relative_imports_allowed"],
@@ -104,7 +102,7 @@ def read_package_policy(root: Path) -> PackagePolicy:
         },
         context=PACKAGE_POLICY_PATH,
     )
-    require_version(payload["version"], PACKAGE_POLICY_PATH)
+    version = require_version(payload["version"], PACKAGE_POLICY_PATH)
     max_package_exports = require_int(
         payload["max_package_exports"],
         f"{PACKAGE_POLICY_PATH}.max_package_exports",
@@ -121,7 +119,7 @@ def read_package_policy(root: Path) -> PackagePolicy:
             raise JsonConfigError(message)
         validated_pairs.append(values)
     return {
-        "version": require_int(payload["version"], f"{PACKAGE_POLICY_PATH}.version", minimum=1),
+        "version": version,
         "max_package_exports": max_package_exports,
         "allow_package_api_imports": validated_pairs,
         "allow_export_only_files": require_string_list(
@@ -135,8 +133,10 @@ def read_package_policy(root: Path) -> PackagePolicy:
     }
 
 
-def require_version(value: object, context: str) -> None:
-    """Require the supported policy schema version."""
-    if require_int(value, f"{context}.version", minimum=1) != POLICY_SCHEMA_VERSION:
+def require_version(value: object, context: str) -> int:
+    """Return the validated policy schema version."""
+    version = require_int(value, f"{context}.version", minimum=1)
+    if version != POLICY_SCHEMA_VERSION:
         message = f"{context}.version must be {POLICY_SCHEMA_VERSION}"
         raise JsonConfigError(message)
+    return version

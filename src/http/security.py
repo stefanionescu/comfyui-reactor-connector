@@ -56,7 +56,7 @@ def _is_same_origin(origin: str, target: SplitResult, port: int) -> bool:
     )
 
 
-def require_local_request(request: web.Request, *, mutation: bool, multi_user: bool) -> None:
+def require_local_request(request: web.Request, *, is_mutation: bool, is_multi_user: bool) -> None:
     """Reject remote peers, rebinding hosts, cross-origin requests, and unsafe writes."""
     forbidden = web.HTTPForbidden(text=translate("main", "errors.localConnectionRequired"))
     try:
@@ -71,7 +71,7 @@ def require_local_request(request: web.Request, *, mutation: bool, multi_user: b
             raise forbidden
         if request.headers.get("Sec-Fetch-Site") in {"cross-site", "same-site"}:
             raise forbidden
-        if mutation and (multi_user or request.headers.get("X-Reactor-Comfy") != "1"):
+        if is_mutation and (is_multi_user or request.headers.get("X-Reactor-Comfy") != "1"):
             raise forbidden
     except ValueError:
         raise forbidden from None

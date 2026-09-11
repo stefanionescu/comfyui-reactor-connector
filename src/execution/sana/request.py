@@ -2,16 +2,16 @@
 
 import asyncio
 from pathlib import Path
+from ...models import MODELS
 from ...language import translate
 from ..transport import Transport
 from .contract import source_mode
 from typing import cast, ClassVar
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
 from ..interaction import FramePublisher
 from dataclasses import field, dataclass
-from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
 from ...media.video.publish import VideoPublication
 from ..inputs import VideoInputs, validate_capture_inputs
@@ -34,7 +34,7 @@ class SanaRequest(VideoInputs):
     video: Path | None = None
     webcam: FramePublisher | None = None
     anchor_interval: int = DEFAULT_ANCHOR_INTERVAL
-    model_name: ClassVar[str] = MODELS["sana-streaming"].connection_name
+    connection_name: ClassVar[str] = MODELS["sana-streaming"].connection_name
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
     def validate(self, settings: Settings) -> None:
@@ -50,7 +50,7 @@ class SanaRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.anchorInterval"))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Prepare the source using the declared model contract and start video editing."""

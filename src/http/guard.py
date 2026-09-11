@@ -13,8 +13,8 @@ from ..settings.conflict import SettingsConflictError
 def local_route(
     callback: Callable[[web.Request], Awaitable[dict[str, Json]]],
     *,
-    mutation: bool,
-    multi_user: bool,
+    is_mutation: bool,
+    is_multi_user: bool,
     response_key: str | None = None,
 ) -> Callable[[web.Request], Awaitable[web.Response]]:
     """Wrap a route with local-owner checks, safe errors, and private response headers."""
@@ -23,7 +23,7 @@ def local_route(
         """Authorize the request and return only the route's public result or safe error."""
         with language_scope(request.headers.get("Accept-Language", "en")):
             try:
-                require_local_request(request, mutation=mutation, multi_user=multi_user)
+                require_local_request(request, is_mutation=is_mutation, is_multi_user=is_multi_user)
                 result = await callback(request)
                 return web.json_response(result[response_key] if response_key else result, headers=PRIVATE_HEADERS)
             except SettingsConflictError as error:

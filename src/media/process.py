@@ -11,7 +11,7 @@ from ..serialization import Json, parse_json, mapping_value
 from ...config.media.workers import MAX_REPORT_BYTES, SHUTDOWN_TIMEOUT_SECONDS
 
 
-class EncoderProcess:
+class MediaProcess:
     """Run one isolated worker and reap it on success, failure, or cancellation."""
 
     def __init__(self, command: Sequence[str], shutdown_seconds: float = SHUTDOWN_TIMEOUT_SECONDS) -> None:

@@ -2,13 +2,13 @@
 
 import json
 from typing import ClassVar
+from ...models import MODELS
 from ..inputs import VideoInputs
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
-from ...model_registry import MODELS
+from ...settings.schema import Settings
 from ..operation import RecordingWindow
-from ...settings.settings import Settings
 from .prompts import parse_sequence, ScheduledPrompt
 
 
@@ -22,14 +22,14 @@ class HeliosRequest(VideoInputs):
     """
 
     prompts: tuple[ScheduledPrompt, ...] = ()
-    model_name: ClassVar[str] = MODELS["helios"].connection_name
+    connection_name: ClassVar[str] = MODELS["helios"].connection_name
 
     def validate(self, settings: Settings) -> None:
         """Check the capture inputs and every scheduled prompt."""
         VideoInputs.validate(self, settings)
         parse_sequence(json.dumps([prompt.to_dict() for prompt in self.prompts]))
 
-    async def configure(
+    async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
     ) -> RecordingWindow:
         """Set the initial image or prompt, schedule later prompts, and start generation."""

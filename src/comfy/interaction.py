@@ -8,10 +8,10 @@ from server import PromptServer
 from ..language import translate
 from ..runtime import get_runtime
 from ..live.state import LiveOptions
+from ..models import MODELS_BY_CONNECTION
 from ..live.control.lease import ControlLease
 from ..errors import ErrorCode, ConnectorError
 from typing import cast, Protocol, TYPE_CHECKING
-from ..model_registry import MODELS_BY_CONNECTION
 from ...config.generation.world import CAMERA_AXES
 from comfy_execution.utils import get_executing_context
 from ..live.control.interaction import ControlInteraction
@@ -70,7 +70,7 @@ async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> Non
 async def _prepare_camera(options: LiveOptions, duration_seconds: float) -> CameraInteraction:
     """Invite the prompt owner to camera controls and await its connection."""
     client, node = _owner()
-    axes = MODELS_BY_CONNECTION[options.model].camera_axes
+    axes = MODELS_BY_CONNECTION[options.connection_name].camera_axes
     if not axes:
         raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveCameraUnsupported"))
     choices = {axis: tuple(CAMERA_AXES[axis]) for axis in axes}
@@ -113,7 +113,7 @@ async def prepare_interaction(
         interaction = await _prepare_controls(controls, request.duration_seconds)
     elif interactive:
         options = build_live_options(request)
-        if MODELS_BY_CONNECTION[request.model_name].camera_axes:
+        if MODELS_BY_CONNECTION[request.connection_name].camera_axes:
             interaction = await _prepare_camera(options, request.duration_seconds)
         else:
             interaction = await _prepare_controls(options, request.duration_seconds)
@@ -124,12 +124,12 @@ def build_live_options(request: VideoOperation, *, webcam: WebcamFrames | None =
     """Translate execution-owned control values into live-session options."""
     values = request.build_control_values()
     return LiveOptions(
-        request.model_name,
+        request.connection_name,
         values.prompt,
         webcam,
-        passthrough=values.is_passthrough_enabled,
+        is_passthrough_enabled=values.is_passthrough_enabled,
         audio_prompt=values.audio_prompt,
-        audio_enabled=values.is_audio_enabled,
+        is_audio_enabled=values.is_audio_enabled,
     )
 
 

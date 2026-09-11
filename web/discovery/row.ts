@@ -9,7 +9,7 @@ import { formatCreditSummary } from '#web/discovery/pricing.ts';
  * @param seconds - Optional total session time for a credit calculation.
  * @returns One model list item.
  */
-export function modelRow(model: Model, seconds: number | undefined): HTMLElement {
+export function buildModelRow(model: Model, seconds: number | undefined): HTMLElement {
   const row = element('li');
   row.append(element('h3', model.title), element('code', model.modelSlug));
   const support =
