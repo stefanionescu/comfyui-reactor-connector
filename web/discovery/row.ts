@@ -1,6 +1,6 @@
 import { element } from '#web/dom.ts';
 import { message } from '#web/localization.ts';
-import type { Model } from '#web/discovery/api.ts';
+import type { Model } from '#web/discovery/schema.ts';
 import { formatCreditSummary } from '#web/discovery/pricing.ts';
 
 /**

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
-from ...config.models.identities import MODEL_PROMPT_LIMITS
 
 if TYPE_CHECKING:
     from ..media.webcam import WebcamFrames
@@ -38,12 +37,7 @@ class LiveOptions:
     webcam: WebcamFrames | None = None
     passthrough: bool = False
     audio_prompt: str = ""
-    audio_enabled: bool = True
-
-    @property
-    def prompt_limit(self) -> int:
-        """Return the prompt character limit for the selected model."""
-        return MODEL_PROMPT_LIMITS[self.model]
+    audio_enabled: bool = False
 
 
 __all__ = ["BrowserInput", "CameraChange", "LiveOptions"]

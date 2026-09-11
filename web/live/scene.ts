@@ -1,4 +1,5 @@
 import type { Fetcher } from '#web/http.ts';
+import { exchange } from '#web/live/api.ts';
 import { pause } from '#web/live/polling.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
@@ -7,13 +8,7 @@ import { sendAction } from '#web/live/commands.ts';
 import { browserLimits } from '#config/web/browser.ts';
 import { CameraInput, cameraKeys } from '#web/live/input.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
-
-import {
-  type SceneInvitation,
-  exchange,
-  parseSceneInvitation,
-  type LiveStatus,
-} from '#web/live/api.ts';
+import { type SceneInvitation, parseSceneInvitation, type LiveStatus } from '#web/live/schema.ts';
 
 const panels = new Set<string>();
 
@@ -101,7 +96,7 @@ class ScenePanel {
       control.disabled = true;
       this.controls.append(control);
     }
-    this.states = new CameraStates(owner.model.endsWith('world-2'));
+    this.states = new CameraStates(Object.hasOwn(owner.axes, 'move_longitudinal'));
     const input = new CameraInput(
       this.surface,
       this.controls,

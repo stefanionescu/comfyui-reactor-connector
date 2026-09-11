@@ -1,7 +1,10 @@
 """Check shared video inputs and recording limits before starting a session."""
 
-from typing import ClassVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, ClassVar
 from ..language import translate
+from ..live.state import LiveOptions
 from .transport import Transport
 from dataclasses import dataclass
 from ...config.nodes import MAX_SEED
@@ -9,6 +12,9 @@ from ..settings.settings import Settings
 from ..errors import ErrorCode, ConnectorError
 from ...config.media.video import DEFAULT_FRAME_RATE
 from ...config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
+
+if TYPE_CHECKING:
+    from ..media.webcam import WebcamFrames
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,18 +25,13 @@ class VideoInputs:
     duration_seconds: float
     seed: int
     image: bytes | None = None
+    model_name: ClassVar[str]
     fallback_fps: ClassVar[int] = DEFAULT_FRAME_RATE
     requires_audio: ClassVar[bool] = False
 
-    @property
-    def recording_start_seconds(self) -> float:
-        """Start the saved interval at the beginning of the recording."""
-        return 0
-
-    @property
-    def recording_duration_seconds(self) -> float:
-        """Return the requested recording duration."""
-        return self.duration_seconds
+    def live_options(self, *, webcam: WebcamFrames | None = None) -> LiveOptions:
+        """Return the standard live values for this operation."""
+        return LiveOptions(self.model_name, self.prompt, webcam)
 
     async def release(self, transport: Transport) -> None:
         """Models without held controls rely on the session owner's disconnect."""

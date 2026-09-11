@@ -40,5 +40,8 @@
     },
     "overrides": {
         "smol-toml": "1.8.0"
+    },
+    "dependencies": {
+        "valibot": "1.5.0"
     }
 }

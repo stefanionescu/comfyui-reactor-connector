@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import ClassVar
 from ..inputs import VideoInputs
+from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
@@ -10,7 +11,7 @@ from ...media.webcam import WebcamFrames
 from dataclasses import field, dataclass
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES
+from ....config.models.identities import MODELS
 from ...media.video.publish import VideoPublication
 from ...serialization import mapping_value, validate_json
 from ....config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
@@ -27,7 +28,7 @@ class X2Request(VideoInputs):
     pointer_active: bool = False
     pointer_x: float = DEFAULT_POINTER_POSITION
     pointer_y: float = DEFAULT_POINTER_POSITION
-    model_name: ClassVar[str] = IDENTITIES["x2"][1]
+    model_name: ClassVar[str] = MODELS["x2"].connection_name
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
     def validate(self, settings: Settings) -> None:
@@ -45,8 +46,11 @@ class X2Request(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerCoordinates"))
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Verify X2 commands, set the reference and pointer, and publish the source video."""
+        del max_capture_seconds
         if self.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         schema = await events.call("schema", transport.request_schema())
@@ -68,6 +72,7 @@ class X2Request(VideoInputs):
         elif self.video is not None:
             await self.publication.begin(self.video, track, events.on_error)
         self.publication.resume()
+        return RecordingWindow(0, self.duration_seconds)
 
     async def release(self, transport: Transport) -> None:
         """Stop source publication and release the active pointer while connected."""

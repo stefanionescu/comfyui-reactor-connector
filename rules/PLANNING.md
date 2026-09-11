@@ -6,12 +6,12 @@ other planned change sequence.
 
 ## Contents
 
-- [Complete Change Content](#complete-change-content)
-- [No Unrequested Testing or Linting](#no-unrequested-testing-or-linting)
-- [Implementation Order](#implementation-order)
-- [Plan Detail Level](#plan-detail-level)
+- [Complete change content](#complete-change-content)
+- [No automated tests or unrequested checks](#no-automated-tests-or-unrequested-checks)
+- [Implementation order](#implementation-order)
+- [Plan detail level](#plan-detail-level)
 
-## Complete Change Content
+## Complete change content
 
 A plan must contain the complete content of every change it proposes.
 
@@ -28,10 +28,10 @@ Rules:
   regenerate, or delete an artifact.
 - Include changes to generated files when the plan expects generated files to
   change.
-- Include changes to model checkpoints, generated evaluation results, binary
-  assets, and other non-text artifacts by listing the exact source path, output
-  path, operation, dimensions or metadata changes, and command or tool invocation
-  needed to reproduce the result.
+- For generated results, binary assets, and other non-text artifacts, list the
+  exact source path, output path, and operation.
+- Also list the dimensions or metadata changes and the command or tool needed to
+  reproduce the result.
 - If a binary diff cannot be represented as text, include enough exact
   reproduction detail that the asset change is part of the plan rather than an
   implied follow-up.
@@ -60,21 +60,20 @@ mise run workflows:build
 ```text
 Artifact change:
 - Path: workflows/
-- Operation: generate the documented ComfyUI workflow JSON
+- Operation: generate the documented workflow JSON
 - Command: mise run workflows:build
 ```
 
-## No Unrequested Testing or Linting
+## No automated tests or unrequested checks
 
-Do not create or run automated tests, or include test files or test commands in
-plans. Include lint, formatting, type checks, security scans, builds, or manual
-verification only when the user explicitly requests that verification.
+Do not create or run automated tests. Do not include test files or test commands
+in plans.
 
-Keep requested checks scoped to the affected behavior. Use the installed package
-in Comfy Desktop only when runtime verification is requested. Do not run checks
-in reference projects.
+Include linting, formatting, type checks, security scans, builds, or manual
+verification only when the user explicitly requests that verification. Keep
+requested checks limited to the affected behavior.
 
-## Implementation Order
+## Implementation order
 
 Plans must define the exact order of implementation.
 
@@ -83,8 +82,7 @@ Rules:
 - Break the work into sequential steps.
 - Put dependency discovery before edits that depend on that discovery.
 - Put shared contract or type changes before callers that use them.
-- Put data shape changes before runtime, workflow, or
-  publishing surfaces that consume the data.
+- Put data shape changes before runtime, workflow, or publishing surfaces that consume the data.
 - Put ownership moves before import or call-site updates.
 - Put generated output after the source change that produces it.
 - Put cleanup after all call sites have moved.
@@ -109,7 +107,7 @@ Good:
 4. Remove the old derived-value helper using the exact deletion diff.
 ```
 
-## Plan Detail Level
+## Plan detail level
 
 Plans must be extensive and detailed enough to be directly executable.
 

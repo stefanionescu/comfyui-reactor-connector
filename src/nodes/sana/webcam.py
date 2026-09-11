@@ -1,7 +1,6 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
 from comfy_api.latest import io
-from ...live.state import LiveOptions
 from ..schema import translate_schema
 from ...media.webcam import WebcamFrames
 from ...execution.sana.request import SanaRequest
@@ -49,7 +48,7 @@ class SanaWebcam(io.ComfyNode):
             request = SanaRequest(prompt, duration_seconds, seed, webcam=camera, anchor_interval=anchor_interval)
             return await execute_video(
                 request,
-                controls=LiveOptions(request.model_name, prompt, camera),
+                controls=request.live_options(webcam=camera),
                 node_id=cls.define_schema().node_id,
             )
         finally:

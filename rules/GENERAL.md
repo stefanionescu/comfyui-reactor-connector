@@ -36,7 +36,6 @@ from another component, process, or service.
     - [Documentation maintenance](#documentation-maintenance)
 - [Protected files](#protected-files)
 - [Language discipline](#language-discipline)
-- [No backward compatibility](#no-backward-compatibility)
 - [Working with uncommitted changes](#working-with-uncommitted-changes)
 
 ## Thinking before coding
@@ -49,12 +48,14 @@ and ownership boundaries. Then think through your approach:
 - Does this change affect other parts of the system? Trace the call chain.
 - Will someone reading this code in six months understand what it does and why?
 
-When you rename or move a file, audit the entire codebase for references and update them immediately. Stale imports and broken references are worse than the original problem.
+When you rename or move a file, audit the entire codebase for references and
+update them immediately. Stale imports and broken references are worse than the
+original problem.
 
 Before adding a new module, directory, or helper, identify the correct owner for
 the behavior. Do not create parallel implementations for a concept that has an
-owner. If a new file is needed, be ready to explain why the owning module should
-grow that way.
+owner. If a new file is needed, be ready to explain why that file belongs with
+the owning module.
 
 ## Scope discipline
 
@@ -66,9 +67,13 @@ grow that way.
 
 Do not invent defensive logic for scenarios that are not part of the real contract.
 
-- Do not add guards, fallbacks, retries, optional handling, defaults, or wrappers for states that cannot occur under the real contract.
-- Handle known failure modes at real boundaries: user input, network calls, persistence, permissions, and external services.
-- Trust internal invariants after they are established. If an invariant is unclear, trace the code and clarify the contract instead of adding speculative protection.
+- Do not add guards, fallbacks, retries, optional handling, defaults, or wrappers
+  for states that cannot occur under the real contract.
+- Handle known failure modes at real boundaries: user input, network calls,
+  persistence, permissions, and external services.
+- Trust internal invariants after they are established. If an invariant is
+  unclear, trace the code and clarify the contract instead of adding speculative
+  protection.
 - Do not pad the codebase with logic meant to protect against hypothetical future failures.
 
 ## Keep one implementation
@@ -77,7 +82,7 @@ Keep one clear implementation for each concept.
 
 - Do not create multiple functions, services, types, or wrappers that do nearly the same thing.
 - Put validation, policy, and transformations in the module that owns the operation.
-  Do not add forwarding wrappers or compatibility layers.
+  Do not add forwarding wrappers.
 - Do not add an abstraction for one call site or one concept.
 - Before adding a new helper, find the owner of the behavior and put the logic
   there.
@@ -150,16 +155,20 @@ the code proves it.
 ## Secrets and sensitive data
 
 - Never hardcode API keys, tokens, passwords, or secrets anywhere in the codebase.
-- Never log sensitive data, including tokens, passwords, personal information, or request bodies with authentication headers.
-- Use environment variables or the private credential store for secrets. Access them through the configuration boundary, not directly in node or browser code.
+- Never log sensitive data, including tokens, passwords, personal information,
+  or request bodies with authentication headers.
+- Use environment variables or the private credential store for secrets. Access
+  them through the configuration boundary, not directly in node or browser code.
 
 ## Error messages
 
 Error messages visible to users, command-line callers, node help, or
 logs must not leak internal system details.
 
-Local development checks may report source paths and line numbers needed to
-locate a failure. Keep credentials and private account values out of diagnostics.
+These restrictions apply to runtime and user-facing output. Local development
+checks may report source paths, line numbers, declaration names, and rule
+identifiers needed to locate a failure. Keep credentials and private account
+values out of all diagnostics.
 
 **Never include in error messages:**
 
@@ -182,8 +191,7 @@ Run formatting, linting, type checks, builds, dependency checks, security scans,
 and browser or manual checks only when the user explicitly requests them.
 An implementation or documentation change does not itself request verification.
 
-Use the existing local tools when checks are requested. Do not add hosted Git
-workflows, Docker configuration, or inference deployment tooling.
+Use the existing local tools when checks are requested.
 
 ## Verification commands
 
@@ -198,7 +206,9 @@ Source inspection and static checks do not prove that a workflow runs.
 
 ### Present state only
 
-Comments and documentation describe what the code does right now. Never mention what was removed, deleted, renamed, refactored, or how the code used to work. No changelogs in comments.
+Comments and documentation describe what the code does now. Never mention what
+was removed, deleted, renamed, or refactored, or how the code used to work. Do
+not put changelogs in comments.
 
 Bad: `# Replaced the old recording download.`
 Good: `# Reject redirects before downloading a recording.`
@@ -214,26 +224,38 @@ useful for the task.
 
 ### Punctuation
 
-Do not use em dashes or double hyphens. Use a space, comma, or colon instead.
+Do not use em dashes or double hyphens as prose punctuation. Use a space, comma,
+or colon instead. Keep double hyphens when exact syntax requires them, such as
+command options and suppression directives.
 
 Bad: `The server handles requests - including retries - before responding.`
 Good: `The server handles requests, including retries, before responding.`
 
 ### Table of contents
 
-Long documentation files use a `## Contents` section with accurate anchor links to the sections readers need most. Keep it up to date whenever headings change.
+Long documentation files use a `## Contents` section with accurate anchor links
+to the sections readers need most. Keep it current when headings change.
 
 ### Comments
 
-Keep comments concise and focused on intent ("why"), not narration ("what"). Do not embed default values in comments; they drift when code changes. Reference concept names, not file paths.
+Keep comments concise and focused on intent ("why"), not narration ("what"). Do
+not put default values in comments because they drift when code changes. Refer
+to concept names, not file paths.
 
-Comments and doc comments must never contain:
+Comments and doc comments must not contain these details unless a rule requires
+them for a tool or the reference is essential for understanding:
 
-- **Code change history.** No "changed X to Y", "replaced old Z", "updated to use W", "refactored from". Git tracks history.
-- **What was done to variables or code.** No "added this field", "moved this constant", "renamed from oldName". Describe the present purpose.
-- **File or variable locations.** Do not say "defined in X.ts" or "see the value in config.Y" unless the reference is essential for understanding. Code is searchable; stale path references are not.
+- **Code change history.** No "changed X to Y", "replaced old Z", "updated to
+  use W", or "refactored from". Git tracks history.
+- **What was done to variables or code.** No "added this field", "moved this
+  constant", or "renamed from oldName". Describe the present purpose.
+- **File or variable locations.** Do not say "defined in X.ts" or "see the value
+  in config.Y" without that concrete need. Code is searchable; stale path
+  references are not.
 
-Good doc comments describe what a function does, what its parameters mean, and what it returns. They do not narrate how the function came to exist or what it replaced.
+Good doc comments describe what a function does, what its parameters mean, and
+what it returns. They do not narrate how the function came to exist or what it
+replaced.
 
 ### Documentation requirements
 
@@ -293,32 +315,14 @@ Use direct, concrete language in code, comments, filenames, and documentation.
 
 If code uses vague language, improve it when touching that code.
 
-## No backward compatibility
-
-Do not add compatibility layers, forwarding wrappers, aliases for renamed
-symbols, or deprecated implementations. Replace the old interface directly.
-
-When something is replaced or renamed:
-
-- Delete the old implementation entirely.
-- Update every call site to use the new version.
-- Remove unused files, functions, types, and variables.
-
-Keep only the current implementation. For a requested rename or replacement,
-update affected callers, schemas, examples, and stored data together. Migrate
-required stored data directly; do not retain old IDs, aliases, forwarding
-wrappers, dual paths, or deprecated implementations.
-
-Keep names imposed by the current ComfyUI and Reactor APIs exact. Protect user
-graphs, media, and credentials. Do not discard user data to avoid a migration.
-
 ## Working with uncommitted changes
 
-When `git status` or the worktree shows changes you did not make, do not panic. Other agents or contributors may be working in parallel.
+When `git status` or the worktree shows changes you did not make, do not panic.
+Other agents or contributors may be working in parallel.
 
 - Do not revert, stash, clean, or overwrite changes you did not make.
 - Continue when your changes do not conflict with existing work.
 - Ask only when the requested change conflicts with existing work and you cannot
   determine how to complete it without overwriting that work.
-- Build on top of uncommitted changes, or commit your own changes alongside them.
+- Build on top of uncommitted changes without altering unrelated changes.
 - If another agent is known to be committing those changes separately, leave them alone.

@@ -10,7 +10,6 @@ from ....config.live import INPUT_POLL_SECONDS
 from ...errors import ErrorCode, ConnectorError
 from ...execution.transport import Track, Transport
 from ....config.nodes import DEFAULT_POINTER_POSITION
-from ....config.models.identities import MODEL_PROMPT_COMMANDS, PROMPT_PASSTHROUGH_MODELS
 from ....config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
 
 
@@ -67,11 +66,11 @@ class ControlInteraction(CameraInteraction):
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
                 await events.command_reply("set_audio_prompt", dict(payload))
         else:
-            model = self.control_lease.options.model
-            if model in PROMPT_PASSTHROUGH_MODELS:
+            definition = self.control_lease.definition
+            if definition.supports_prompt_passthrough:
                 payload = {**payload, "passthrough": self.control_lease.options.passthrough}
             async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-                await events.command_reply(MODEL_PROMPT_COMMANDS.get(model, "set_prompt"), dict(payload))
+                await events.command_reply(definition.prompt_command, dict(payload))
 
     async def _pointer(self, events: SessionEvents, payload: dict[str, Json]) -> None:
         """Track a possible press before sending it so cleanup covers a missing reply."""

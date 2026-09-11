@@ -1,6 +1,7 @@
 """Chain a chosen number of Fast H3 clips in one session and save their sound."""
 
 from ..inputs import VideoInputs
+from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
@@ -47,9 +48,10 @@ class FastContinueRequest(FastGenerateRequest):
                 ErrorCode.INVALID_INPUT,
                 translate("main", "errors.continuationPrompts"),
             )
-        self.recording.maximum_seconds = settings.max_capture_seconds
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Play linked clips and enough trailing media to finish the saved recording."""
         if not any(
             track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
@@ -71,30 +73,40 @@ class FastContinueRequest(FastGenerateRequest):
                 translate("main", "errors.clipDurationUnsupported"),
             )
         current = await self._enqueue(events, None, 0)
+        self._validate_recording_limit(current, max_capture_seconds)
         await events.call("clip_build", clips.wait_ready(current))
         state = await self._state(transport, events)
         if state.get("playing") is not False:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sequencePlaybackOrder"))
-        self.recording.start_seconds = seconds(state.get("seconds_sent"))
+        start_seconds = seconds(state.get("seconds_sent"))
         await events.command_reply("set_autoplay", {"enabled": True})
         # Queue one continuation ahead. Each clip opens from the previous clip's last frame.
         for index in range(1, self.clip_count):
             following = await self._enqueue(events, current, index)
+            self._validate_recording_limit(following, max_capture_seconds)
             await events.call("clip_playback", clips.wait_finished(current))
             current = following
-        duration = await events.call("clip_playback", clips.wait_finished(current)) - self.recording.start_seconds
+        duration = await events.call("clip_playback", clips.wait_finished(current)) - start_seconds
         await events.command_reply("set_autoplay", {"enabled": False})
-        if not 0 < duration <= self.recording.maximum_seconds:
+        if not 0 < duration <= max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
                 (translate("main", "errors.sequenceCaptureLimit")),
             )
-        self.recording.duration_seconds = duration
-        events.model_timing.update(saved_start_seconds=self.recording.start_seconds, saved_duration_seconds=duration)
+        events.model_timing.update(saved_start_seconds=start_seconds, saved_duration_seconds=duration)
         # The recorder needs later media to close its final fragment.
         tail = await self._enqueue(events, current, self.clip_count, duration=maximum)
         await events.call("recording_tail_build", clips.wait_ready(tail))
         await events.command_reply("play", {"clip_id": tail.clip_id})
+        return RecordingWindow(start_seconds, duration)
+
+    def _validate_recording_limit(self, clip: FastClip, max_capture_seconds: float) -> None:
+        """Reject an accepted clip length that would exceed the configured capture limit."""
+        if clip.seconds * self.clip_count > max_capture_seconds:
+            raise ConnectorError(
+                ErrorCode.INVALID_INPUT,
+                translate("main", "errors.acceptedSequenceLimit"),
+            )
 
     async def _enqueue(
         self,
@@ -119,10 +131,4 @@ class FastContinueRequest(FastGenerateRequest):
                 events.transport.upload_file(self.image, name="input.png", mime_type="image/png"),
             )
         reply = await events.command_reply("enqueue", payload)
-        clip = FastClip.read(message_payload(reply, "clip_queued"))
-        if duration is None and clip.seconds * self.clip_count > self.recording.maximum_seconds:
-            raise ConnectorError(
-                ErrorCode.INVALID_INPUT,
-                translate("main", "errors.acceptedSequenceLimit"),
-            )
-        return clip
+        return FastClip.read(message_payload(reply, "clip_queued"))

@@ -1,95 +1,55 @@
 # Writing Project Documentation
 
-These rules apply to READMEs, advanced guides, node help, workflow notes, tutorials, task guides,
-reference documentation, troubleshooting, API and command documentation, configuration
-documentation, screenshots, diagrams, and documentation examples.
+Write documentation that helps its intended readers make a decision or complete a
+task. Include the information they need, make it easy to find, explain it clearly,
+and show how to use it. Apply [WRITING.md](WRITING.md) to all project text.
 
-Documentation is part of the product. A project is not fully usable when its
-behavior exists only in source code, issue discussions, chat messages, or the
-memory of a maintainer.
-
-Apply ISO 24495-1:2023: include what readers need, organize it so they can find
-it, use language they can understand, and make the next action clear. A passing
-linter does not establish conformity.
-
-Apply review guidance to the text affected by the task. Do not create unrelated pages,
-require a separate reviewer, or run checks unless the user asks for that work.
-Code and command examples illustrate documentation patterns; they do not impose
-repository tooling, approval, or deployment requirements.
+These rules apply to READMEs, guides, references, examples, and the text accompanying
+screenshots or diagrams. Use [GENERAL.md](GENERAL.md) for working and verification
+rules, and [NAMING.md](NAMING.md) for identifiers in examples.
 
 ## Contents
 
-- [Authority and scope](#authority-and-scope)
-- [Core documentation standard](#core-documentation-standard)
-- [Documentation as the single source of truth](#documentation-as-the-single-source-of-truth)
-- [Write for a defined reader](#write-for-a-defined-reader)
-- [Organize the documentation set](#organize-the-documentation-set)
-- [Split a README and an advanced guide deliberately](#split-a-readme-and-an-advanced-guide-deliberately)
-- [Order information by reader need](#order-information-by-reader-need)
-- [Choose the correct topic type](#choose-the-correct-topic-type)
-- [Plan documentation before writing](#plan-documentation-before-writing)
-- [Voice and tone](#voice-and-tone)
-- [Write clear and translatable language](#write-clear-and-translatable-language)
-- [Use inclusive and respectful language](#use-inclusive-and-respectful-language)
-- [Respect source licensing and legal content](#respect-source-licensing-and-legal-content)
-- [Ground every claim in evidence](#ground-every-claim-in-evidence)
-- [Protect secrets and personal information](#protect-secrets-and-personal-information)
-- [Use portable markdown](#use-portable-markdown)
-- [Structure pages predictably](#structure-pages-predictably)
-- [Format text by meaning](#format-text-by-meaning)
-- [Write useful code examples](#write-useful-code-examples)
-- [Write procedures that people can complete](#write-procedures-that-people-can-complete)
-- [Use lists for scannable information](#use-lists-for-scannable-information)
-- [Use tables only for real comparisons](#use-tables-only-for-real-comparisons)
-- [Create durable and descriptive links](#create-durable-and-descriptive-links)
-- [Use alerts sparingly](#use-alerts-sparingly)
-- [Document user interfaces precisely](#document-user-interfaces-precisely)
-- [Document keyboard input consistently](#document-keyboard-input-consistently)
-- [Use illustrations only when they add meaning](#use-illustrations-only-when-they-add-meaning)
-- [Make all documentation accessible](#make-all-documentation-accessible)
-- [Document specialized technical surfaces](#document-specialized-technical-surfaces)
-- [Maintain documentation continuously](#maintain-documentation-continuously)
-- [Review documentation systematically](#review-documentation-systematically)
-- [Reusable templates](#reusable-templates)
-- [Documentation anti-patterns](#documentation-anti-patterns)
-- [Definition of done](#definition-of-done)
-- [ComfyUI documentation surfaces](#comfyui-documentation-surfaces)
+Choose the sections for the document or problem you are working on:
 
-## Authority and scope
+| Task                                         | Sections                                                                                                                                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identify the reader and required information | [Reader needs](#write-for-a-defined-reader), [plain-language review](#check-the-text-with-its-readers)                                                                                                             |
+| Create or reorganize a guide                 | [Where information belongs](#organize-the-documentation-set), [README and advanced guide](#split-a-readme-and-an-advanced-guide-deliberately), [put essential information first](#put-essential-information-first) |
+| Choose a page structure                      | [Topic types](#choose-the-correct-topic-type), [headings and navigation](#structure-pages-predictably), [templates](#reusable-templates)                                                                           |
+| Improve wording                              | [Voice and tone](#voice-and-tone), [clear language](#write-clear-and-translatable-language), [consistent terms](#keep-names-and-terminology-consistent)                                                            |
+| Check accuracy and sensitive information     | [Evidence](#ground-every-claim-in-evidence), [secrets](#protect-secrets-and-personal-information), [source licensing](#respect-source-licensing-and-legal-content)                                                 |
+| Write instructions or examples               | [Procedures](#write-procedures-that-people-can-complete), [code examples](#write-useful-code-examples), [interface instructions](#document-user-interfaces-precisely)                                              |
+| Format a page                                | [Markdown](#use-portable-markdown), [lists](#use-lists-for-scannable-information), [tables](#use-tables-only-for-real-comparisons), [links](#write-descriptive-links-that-stay-useful)                             |
+| Add images or accessible alternatives        | [Illustrations](#use-illustrations-only-when-they-add-meaning), [accessibility](#make-all-documentation-accessible), [keyboard input](#document-keyboard-input-consistently)                                       |
+| Document an interface                        | [Commands, APIs, and configuration](#document-commands-apis-and-configuration)                                                                                                                          |
+| Maintain or review documentation             | [Keep it current](#maintain-documentation-continuously), [review checklist](#review-documentation-systematically), [common problems](#common-documentation-problems), [completion criteria](#completion-criteria)  |
 
-Apply this file to documentation written for developers, operators, users,
-reviewers, maintainers, security teams, and contributors.
+## Apply the rules to the reader's task
 
-The rules cover:
+Apply the relevant guidance to the document being changed. Do not create extra documents or
+review unrelated material to satisfy a checklist. Run formatting, lint, link checks, rendering,
+or other verification commands only when explicitly requested. No additional reviewer or approval
+is required by this guide.
 
-- Repository and subproject `README.md` files.
-- Optional `ADVANCED.md` guides.
-- Documentation under a dedicated documentation directory.
-- Architecture and decision documentation.
-- Command-line interface, API, configuration, and library reference material.
-- Tutorials, how-to guides, migration guides, and troubleshooting topics.
-- Current limitations and recovery instructions.
-- Markdown examples embedded in issues, pull requests, and templates when those
-  examples are intended to become durable project guidance.
-- Images, diagrams, video links, and other media used by documentation.
+Use these rules for developers, contributors, operators, and product users. State
+what a reader needs to know before following instructions. Keep required access,
+limitations, and consequences visible before the relevant action.
 
-Project-specific documentation rules may add requirements for a static site
-generator, front matter, shortcodes, link syntax, or generated references.
-Those local requirements override portable formatting defaults only where the
-renderer requires it.
+The repository's plain-language requirement follows
+[ISO 24495-1:2023](https://www.iso.org/standard/78907.html). Check the text from the
+reader's perspective: is the necessary information present, easy to find,
+understandable, and usable? The review process below applies those questions to
+project documentation.
 
-The following requirements never become optional:
+Formatting choices such as title case, list markers, and file names are repository
+conventions. They do not replace a review of whether the text works for its readers.
+Passing a formatter or linter alone does not establish ISO conformity.
 
-- Accuracy.
-- Security.
-- Accessibility.
-- Clear ownership.
-- Present-state descriptions.
-- Honest limitations.
-- Runnable or explicitly illustrative examples.
-
-Do not copy a provider-specific shortcode, Liquid tag, HTML component, or
-front-matter field into a different project unless that project supports it.
+Use only syntax supported by the renderer that displays the document. A site-specific
+tag or component must not make essential instructions disappear in another supported
+view. Keep accuracy, privacy, accessibility, and clear responsibility for updates in
+all versions.
 
 ## Core documentation standard
 
@@ -121,7 +81,7 @@ Documentation must be:
 - Concise: Every sentence contributes new information.
 - Honest: Limitations, destructive effects, prerequisites, and uncertainty are
   visible before they affect the reader.
-- Maintainable: The content has a clear owner and does not duplicate volatile
+- Maintainable: The content has a clear owner and does not duplicate frequently changing
   facts without a reason.
 - Accessible: Text carries the essential meaning, and formatting does not
   exclude readers who use assistive technology.
@@ -136,9 +96,9 @@ without removing information required for correct and safe use.
 Documentation defines the supported public contract. If users must inspect the
 implementation to learn routine usage, the abstraction is incomplete.
 
-## Documentation as the single source of truth
+## Keep one maintained explanation
 
-Durable product information belongs in the documentation set. Do not leave the
+Information readers will need again belongs in maintained documentation. Do not leave the
 only explanation in:
 
 - A pull request description.
@@ -151,20 +111,19 @@ only explanation in:
 
 When a recurring question has no documented answer:
 
-1. Identify the canonical page that owns the answer.
+1. Identify the page that provides the maintained answer.
 1. Add the missing information to that page.
 1. Link to the page when answering the question elsewhere.
 
-Prefer linking to canonical documentation over repeatedly paraphrasing it in
-support conversations. Repeated paraphrases drift and create competing
-contracts.
+Prefer linking to maintained documentation over repeatedly paraphrasing it in
+support conversations. Repeated explanations can fall out of date and contradict each other.
 
 Single source of truth does not mean that every sentence may appear only once.
 Small, intentional duplication can help readers complete a task without jumping
 between pages. Duplicate information only when all of these conditions hold:
 
 - The repeated fact is necessary in both contexts.
-- One location remains the canonical owner.
+- One page remains the main source to update when the fact changes.
 - The duplicate is short.
 - The maintenance cost is understood.
 - A change to the fact has an obvious way to find every copy.
@@ -192,7 +151,7 @@ Write for the least specialized reader who can reasonably complete the task.
 Do not assume every reader knows internal project vocabulary, deployment
 architecture, framework conventions, or organizational history.
 
-Use progressive disclosure:
+Put common tasks before specialist details:
 
 - Give all readers the broad purpose and normal path first.
 - Give active users setup and routine tasks next.
@@ -233,20 +192,21 @@ The second example is inaccurate if most readers lack the required role.
 
 ## Organize the documentation set
 
-Give each kind of information a clear owner.
+Choose one main document for each kind of information. Add another document only
+when readers need a separate explanation or procedure.
 
-| Document | Primary purpose |
-|----------|-----------------|
-| Root README | Explain the whole repository, provide the shortest successful path, and route readers to owned subprojects. |
-| Subproject README | Explain one independently usable component, its normal setup, common commands, and routine operation. |
-| Advanced guide | Hold substantial specialist material that would obstruct the normal README path. |
-| Architecture guide | Explain system boundaries, ownership, data flow, important constraints, and architectural reasoning. |
-| API reference | Define endpoints, authentication, requests, responses, errors, limits, and examples. |
-| CLI reference | Define commands, arguments, options, output, exit status, and examples. |
-| Configuration reference | Define keys, types, defaults, allowed values, scope, precedence, and restart requirements. |
-| Troubleshooting guide | Map observable symptoms to diagnosis, cause, resolution, and recovery. |
-| Security policy | Define supported versions, private reporting channels, response expectations, and disclosure policy. |
-| License | State the legal terms for use and distribution. |
+| Document                   | Primary purpose                                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Root README                | Explain this application, show how to set it up and use it, and link to further guidance.             |
+| Component guide            | Explain one independently usable component, its normal setup, common commands, and routine operation. |
+| Advanced guide             | Hold substantial specialist material that would obstruct the normal README path.                      |
+| Architecture guide         | Explain system boundaries, ownership, data flow, important constraints, and architectural reasoning.  |
+| API reference              | Define endpoints, authentication, requests, responses, errors, limits, and examples.                  |
+| CLI reference              | Define commands, arguments, options, output, exit status, and examples.                               |
+| Configuration reference    | Define keys, types, defaults, allowed values, scope, precedence, and restart requirements.            |
+| Troubleshooting guide      | Map observable symptoms to diagnosis, cause, resolution, and recovery.                                |
+| Security policy            | Define supported versions, private reporting channels, response expectations, and disclosure policy.  |
+| License                    | State the legal terms for use and distribution.                                                       |
 
 Do not use `ADVANCED.md` as a substitute for:
 
@@ -255,20 +215,20 @@ Do not use `ADVANCED.md` as a substitute for:
 - A collection of architectural decisions.
 - Generated reference documentation.
 
-Create subproject documentation at real ownership boundaries. Do not add a
+Create a component guide only when readers use or operate that component separately. Do not add a
 README to every directory. A directory README is justified when the directory
 represents an independently operated component, has a distinct workflow, or
 needs orientation that cannot remain clear in the parent guide.
 
 Avoid navigation chains that force a reader through several index pages before
-reaching useful content. A link should move the reader closer to the goal.
+reaching useful content. Make each link move the reader closer to the goal.
 
 Use standard repository filenames with their established capitalization:
 
 - `README.md`
 - `ADVANCED.md`
 - `SECURITY.md`
-- `LICENSE.md`
+- `LICENSE`
 
 Do not create variants such as `ReadMe.md` or `advanced-guide.md` when the
 standard name already describes the document's role.
@@ -287,18 +247,18 @@ traffic.
 
 ## Split a README and an advanced guide deliberately
 
-The default structure for a substantial project or subproject is:
+The default structure for a substantial project is:
 
 - `README.md` for evaluation, first success, routine use, essential caveats, and
   navigation.
 - `ADVANCED.md` only when specialist material is large enough to disrupt that
   path.
 
-The split is a tool, not a quota. Small components need only a focused README.
+Do not create a second guide unless it helps readers. A small component may need only a README.
 
 ### What belongs in the README
 
-The README is the primary entry point. A reader should not need the advanced
+The README is the primary entry point. A reader must not need the advanced
 guide to decide whether the project fits, install it, complete the first useful
 action, or understand normal operation.
 
@@ -324,7 +284,7 @@ Keep exhaustive internals out of the opening path.
 ### Never add project layout sections
 
 Project layout sections are prohibited in every README, advanced guide,
-contributor guide, architecture guide, and other project documentation file.
+architecture guide, and other project documentation file.
 Do not add or preserve a section whose purpose is to inventory the repository's
 directories or files.
 
@@ -337,9 +297,10 @@ This prohibition includes:
 - Lists or diagrams that walk readers through the repository hierarchy.
 - Renamed equivalents that provide the same directory inventory.
 
-Do not add a project layout section even when the repository is large, the
-directory boundaries seem durable, or an older document already contains one.
-Remove an existing layout section instead of revising or preserving it.
+Do not add a project layout section even when the repository is large or the
+directory names seem stable. When the requested documentation work includes an
+existing layout section, remove that section instead of revising or preserving
+it.
 
 Document behavior, workflows, commands, architecture concepts, and ownership
 boundaries without cataloging the source tree. Mention a path inline only when
@@ -348,7 +309,7 @@ task.
 
 ### What belongs in an advanced guide
 
-Create `ADVANCED.md` for coherent, substantial material such as:
+Create `ADVANCED.md` for related specialist topics that need detailed explanations, such as:
 
 - Detailed architecture and ownership boundaries.
 - Internal orchestration and lifecycle behavior.
@@ -387,22 +348,22 @@ Keep everything in the README when:
 If a README becomes long, fix its structure before splitting it. Remove
 repetition, move true reference material to its owner, shorten oversized
 examples, and group related sections. Split only when the remaining advanced
-content has a coherent audience and purpose.
+content has a single audience and related purpose.
 
-### Content placement matrix
+### Choose where each detail belongs
 
-| Information | README | Advanced guide | Different owner |
-|-------------|:------:|:--------------:|-----------------|
-| One-line purpose | Yes | No | None |
-| Minimal runnable example | Yes | No | Example file may also own runnable code |
-| Basic prerequisites and setup | Yes | No | None |
-| Routine commands | Yes | Optional summary | CLI reference for exhaustive options |
-| Essential limitations | Yes | More detail if useful | None |
-| Architecture overview | Yes | Detailed model | Architecture guide for large systems |
-| Rare tuning options | Short link only | Yes | Configuration reference if exhaustive |
-| Destructive recovery | Warning and route | Full procedure | Operations runbook when access is restricted |
-| Public API overview | Yes | Optional internals | API reference owns the contract |
-| Security reporting | Short route | No | Security policy |
+| Information                   |      README       |    Advanced guide     | Different owner                              |
+| ----------------------------- | :---------------: | :-------------------: | -------------------------------------------- |
+| One-line purpose              |        Yes        |          No           | None                                         |
+| Minimal runnable example      |        Yes        |          No           | Example file may also own runnable code      |
+| Basic prerequisites and setup |        Yes        |          No           | None                                         |
+| Routine commands              |        Yes        |   Optional summary    | CLI reference for exhaustive options         |
+| Essential limitations         |        Yes        | More detail if useful | None                                         |
+| Architecture overview         |        Yes        |    Detailed model     | Architecture guide for large systems         |
+| Rare tuning options           |  Short link only  |          Yes          | Configuration reference if exhaustive        |
+| Destructive recovery          | Warning and route |    Full procedure     | Operations runbook when access is restricted |
+| Public API overview           |        Yes        |  Optional internals   | API reference owns the contract              |
+| Security reporting            |    Short route    |          No           | Security policy                              |
 
 ### Link the two guides
 
@@ -425,15 +386,14 @@ At the top of the advanced guide, state its audience and relationship to the
 README. Do not repeat the README introduction, setup procedure, or routine
 command list.
 
-### Keep the advanced guide coherent
+### Keep the advanced guide focused
 
-An advanced guide is not a junk drawer. Every section must support the same
-specialist audience.
+Every section of an advanced guide must help the same specialist audience.
+Move unrelated topics to the document that explains them.
 
 Move content elsewhere when it has a different owner:
 
 - Put exact endpoint schemas in API reference documentation.
-- Keep development history out of public guides.
 - Put isolated design decisions in decision records.
 - Put incident-only commands in a restricted runbook when publishing them would
   be unsafe.
@@ -441,12 +401,12 @@ Move content elsewhere when it has a different owner:
 Delete the advanced guide and merge its unique material back into the README if
 the guide becomes small or no longer serves a distinct audience.
 
-## Order information by reader need
+## Put essential information first
 
 Order information from broad and widely relevant to narrow and specialized.
 This structure helps readers decide quickly whether to continue.
 
-The first screen of a README should usually answer:
+At the start of a README, answer:
 
 - What is this?
 - Who is it for?
@@ -468,16 +428,16 @@ A practical README order is:
 1. Architecture overview.
 1. Common problems.
 1. Deeper documentation.
-1. Contribution and license.
+1. License.
 
 Change the order when reader risk demands it. Put an incompatible license,
 unsupported status, destructive default, security limitation, or platform
 restriction near the top if it can immediately rule out use.
 
-Do not optimize the README to maximize adoption. Optimize it to help the right
-reader decide quickly and the wrong reader leave confidently.
+Help readers decide whether the project fits their needs. Make reasons not to use
+it as clear as reasons to use it.
 
-Readers should gain progressively deeper knowledge as they continue. Do not
+Give readers progressively deeper knowledge as they continue. Do not
 open with implementation internals, a complete option table, or a long project
 history before explaining the purpose.
 
@@ -532,7 +492,7 @@ Use reference topics for:
 - Supported values.
 
 Reference content favors completeness, consistent field order, tables for real
-matrices, and small examples. It should not require narrative reading to find a
+matrices, and small examples. It must not require narrative reading to find a
 single value.
 
 ### Tutorial
@@ -582,15 +542,15 @@ Do not turn a landing page into a duplicate guide.
 ### Combining topic types
 
 A README can contain several topic types because it is an entry document.
-Keep each section internally consistent. A setup section should read as a task,
-an options section as reference, and an architecture section as a concept.
+Keep each section internally consistent. Write a setup section as a task, an
+options section as reference, and an architecture section as a concept.
 
 Do not alternate between narrative, steps, and reference fields without clear
 headings.
 
 ## Plan documentation before writing
 
-For non-trivial documentation work:
+For complex documentation work:
 
 1. Inspect the implementation, configuration, user interface, and existing
    documentation that define the behavior.
@@ -601,7 +561,7 @@ For non-trivial documentation work:
 1. List the claims that require evidence.
 1. Identify security, permission, compatibility, and data-loss caveats.
 1. Choose the smallest example that proves normal use.
-1. Put purpose and common tasks before reference details and unusual cases.
+1. Put the reader's immediate questions first, followed by details needed later.
 1. Identify links, images, and examples that need maintenance ownership.
 
 Do not create a new page for one paragraph that belongs naturally on an
@@ -610,9 +570,8 @@ existing page.
 Do not begin by copying source comments, tickets, or implementation notes.
 Translate verified behavior into a reader-focused explanation.
 
-A documentation plan must include the complete text diff for every proposed
-change, the affected paths, and the exact commands needed to generate artifacts.
-Keep the steps in implementation order and do not leave edits implied.
+Keep a requested documentation plan concrete: identify the pages and behavior affected.
+Include an exact text diff when the user requests one. Planning alone does not authorize edits.
 
 ## Voice and tone
 
@@ -643,7 +602,7 @@ The request is retried three times by the worker.
 ```
 
 Passive voice is useful when the result matters more than the actor or the
-actor is genuinely unknown.
+actor is unknown.
 
 Use:
 
@@ -674,9 +633,6 @@ Use "you" when it makes a condition or result clearer.
 Documentation describes current behavior. Do not narrate refactors, renamed
 variables, removed systems, or previous implementations.
 
-Use private change records for implementation history when
-history has a durable reader need.
-
 Use:
 
 ```text
@@ -693,12 +649,6 @@ The client now sends audio directly instead of routing it through the API.
 
 Start with the subject, not the page.
 
-Use:
-
-```text
-Deployment uses immutable container images.
-```
-
 Avoid:
 
 ```text
@@ -708,11 +658,11 @@ This page explains how deployment works.
 Use a brief scope sentence only when a reader needs it to distinguish this page
 from a nearby topic.
 
-### Avoid marketing language
+### Avoid unsupported promotional language
 
 Documentation is not sales copy.
 
-Do not use:
+Do not use these words as unsupported judgments or promotional claims:
 
 - Easy.
 - Easily.
@@ -725,8 +675,9 @@ Do not use:
 - Revolutionary.
 - Seamless.
 
-These words do not explain the work, and they can make a struggling reader feel
-at fault.
+When these words describe a defined reader outcome, name that outcome and provide
+the context needed to assess it. Unsupported judgments can make a struggling
+reader feel at fault.
 
 State measurable effects instead.
 
@@ -813,75 +764,6 @@ Avoid:
 Request a new one when it has expired.
 ```
 
-### Do not write sausage sentences
-
-A sausage sentence chains many independent claims, capabilities, modes, or
-operational concerns into one comma-separated sentence. The sentence can be
-grammatically correct and still be unreadable. Treat this structure as a
-documentation defect, not as concise writing.
-
-Avoid:
-
-```text
-The server provides streaming generation, persona prompts, imported history,
-cancellation, rate limits, health checks, telemetry, installation packages, and host
-deployment automation.
-```
-
-This sentence fails because it:
-
-- Compresses nine distinct capabilities into one claim.
-- Mixes request behavior, runtime controls, observability, packaging, and
-  deployment.
-- Gives every item the same apparent importance.
-- Hides the relationships and boundaries among the capabilities.
-- Forces the reader to retain the entire inventory before understanding its
-  structure.
-- Sounds like a feature dump instead of explaining how the system helps the
-  reader.
-
-Use separate sentences, paragraphs, or lists to expose the structure:
-
-```markdown
-The server supports these generation workflows:
-
-- Stream generated text.
-- Apply a persona prompt.
-- Import conversation history.
-- Cancel an active response.
-
-Runtime operations have separate controls:
-
-- Rate limits control request volume.
-- Health checks report service availability.
-- Telemetry reports runtime behavior.
-
-Deployment tooling includes installation packages and host automation.
-```
-
-Apply these rules:
-
-- Keep one primary claim in each prose sentence.
-- Keep an inline list only when its items are short, tightly related, and part
-  of the same reader concern.
-- Convert an inline list into bullets when readers need to scan, compare, or
-  remember the items independently.
-- Split content into separate paragraphs when it crosses conceptual levels,
-  such as request behavior, runtime operations, and deployment.
-- Explain a capability near its important condition, limitation, or effect.
-  Do not bury those details behind a broad inventory sentence.
-- Treat four or more independent capabilities in one sentence as a strong
-  signal that the sentence needs restructuring.
-- Do not disguise the same problem with semicolons, parentheses, repeated
-  conjunctions, or phrases such as "as well as."
-- Do not replace one sausage sentence with several disconnected one-sentence
-  paragraphs. Group related claims under a clear lead-in or heading.
-
-Sentence length alone does not determine whether a sentence is a sausage
-sentence. A longer sentence can remain clear when every clause supports one
-claim. A shorter sentence can still fail when it compresses unrelated concepts
-into a feature inventory.
-
 ### Avoid hidden subjects
 
 Avoid opening with "there is" or "there are" when a concrete subject exists.
@@ -914,7 +796,7 @@ Avoid:
 Project integration custom settings
 ```
 
-### Prefer verbs over nominalizations
+### Use verbs to describe actions
 
 Use:
 
@@ -1061,15 +943,18 @@ Use:
 
 ```markdown
 # Writing Project Documentation
+
 # Working on the API
-# Yap iOS Advanced Guide
+
+# Application Advanced Guide
 ```
 
 Do not use sentence case for the document title:
 
 ```markdown
 # Writing project documentation
-# Yap iOS advanced guide
+
+# Application advanced guide
 ```
 
 Use sentence case for H2 and lower headings, table headers, alert content, and labels written by the
@@ -1105,18 +990,6 @@ first use. Follow the capitalization used by the authoritative owner.
 
 Avoid possessive forms for product and organization names when a noun phrase is
 clearer.
-
-Use:
-
-```text
-The ComfyUI command-line interface
-```
-
-Avoid:
-
-```text
-ComfyUI's command-line interface
-```
 
 Ending a sentence with a preposition is acceptable when the alternative would
 sound unnatural or overly formal. Clarity matters more than a mechanical
@@ -1157,7 +1030,7 @@ experience levels.
 Use "person" or a specific role when describing people. Use "user" when it is a
 defined product or system role.
 
-Examples should use varied, fictional names. Use `example.com` addresses:
+Use varied, fictional names in examples. Use `example.com` addresses:
 
 ```text
 Alex Garcia
@@ -1227,8 +1100,6 @@ Verify claims against the sources that own them:
 - Configuration for supported values and defaults.
 - Migration state for database behavior.
 - User interface code or a current product build for labels and navigation.
-- Tests for demonstrated scenarios, without treating test fixtures as the
-  public contract by themselves.
 - Provider documentation for external requirements.
 - Release configuration for version and platform support.
 
@@ -1251,13 +1122,13 @@ Do not fill gaps with plausible behavior.
 
 ### Distinguish guarantees from observations
 
-Use language that matches the contract.
+Distinguish promised behavior from what happened in a particular test or observation.
 
 ```text
 The request times out after 30 seconds.
 ```
 
-This sentence is appropriate only when 30 seconds is a defined contract.
+Use this sentence only if the project guarantees completion within 30 seconds.
 
 ```text
 In the current load test, the request completed within 30 seconds.
@@ -1275,10 +1146,10 @@ behavior is not universal.
 
 Use "version 3.2 or later," not "version 3.2 or above."
 
-Do not put temporary version details into a timeless conceptual explanation
+Do not put temporary version details into a general explanation
 without marking their scope.
 
-### Review ai-assisted content
+### Review AI-assisted content
 
 Treat AI-generated documentation as an untrusted draft.
 
@@ -1370,13 +1241,14 @@ Before adding a screenshot:
 
 1. Replace names, email addresses, IDs, and tokens with example data.
 1. Remove irrelevant browser tabs, notifications, and account details.
-1. Inspect the image for metadata that should not be published.
-1. Confirm that blurring cannot be reversed. Prefer replacing the source text.
+1. Inspect the image for metadata that must not be published.
+1. Replace sensitive text before capture. Do not rely on blur to remove information.
+   Inspect the final image and its metadata before publishing it.
 
-Examples that mutate or delete data must use an obviously isolated resource and
+Examples that mutate or delete data must use a clearly isolated resource and
 must place the risk before the command.
 
-## Use portable markdown
+## Use portable Markdown
 
 Use CommonMark and GitHub Flavored Markdown as the portable baseline unless the
 project renderer defines a different supported subset.
@@ -1391,7 +1263,7 @@ Prefer Markdown over HTML because Markdown is:
 
 Use HTML only when:
 
-- Standard Markdown cannot express the required semantic element.
+- Standard Markdown cannot express the needed structure or accessible label.
 - The project renderer supports the element.
 - The element remains responsive and accessible.
 - The source stays readable.
@@ -1411,7 +1283,8 @@ Do not add custom CSS or layout HTML to routine Markdown pages.
 
 ### Source line length
 
-Wrap prose at approximately 100 characters.
+Follow the root Prettier configuration for prose wrapping and indentation.
+Do not introduce a separate Markdown width limit; long links and tables can exceed the configured width.
 
 Do not split:
 
@@ -1450,13 +1323,13 @@ Delete obsolete content. Git already preserves history.
 
 ### Platform extensions
 
-Use shortcodes, Liquid tags, alerts, tabs, cards, and generated macros only when
-the page's renderer supports them.
+Shortcodes, Liquid tags, custom alerts, tab components, cards, and generated
+macros are acceptable only when the documentation platform owns and tests them.
 
 For each extension:
 
-- Use only extensions supported by the renderer for the affected page.
-- Use ordinary Markdown when an extension would require a compatibility layer.
+- Confirm it renders in every supported documentation surface.
+- Provide a useful fallback when a secondary renderer does not support it.
 - Keep essential meaning in text.
 - Avoid nesting components unless the platform documents that combination.
 - Do not use a component only for visual decoration.
@@ -1473,9 +1346,9 @@ For tabs:
 - Make each tab's procedure complete.
 - Do not put headings, other tabs, or essential cross-tab instructions inside
   a tab unless the renderer explicitly supports them.
-- Do not link directly to one tab unless the platform guarantees a durable
-  target.
-- Use ordinary headings and sections when the target renderer does not support tabs.
+- Do not link directly to one tab unless the platform provides a stable
+  link target.
+- Confirm that unsupported renderers show a usable linear fallback.
 
 Use collapsible panels only for optional secondary detail. Do not hide:
 
@@ -1524,7 +1397,7 @@ Titles must:
 - Avoid unexplained acronyms.
 - Avoid decorative punctuation.
 - Avoid links.
-- Remain stable enough to support durable anchors.
+- Remain stable so links to the heading keep working.
 
 For tasks, prefer an imperative verb:
 
@@ -1593,7 +1466,7 @@ Configuring notification preferences
 
 ### Introductions
 
-The introduction should orient the reader in one or two short paragraphs.
+Orient the reader in one or two short introductory paragraphs.
 
 State:
 
@@ -1645,6 +1518,7 @@ Avoid:
 
 ```markdown
 ## Configure authentication
+
 #### Workload identity
 ```
 
@@ -1717,7 +1591,7 @@ makes related ideas harder to follow.
 
 ## Format text by meaning
 
-Formatting communicates semantics. Do not use formatting only to make a page
+Formatting shows how information is organized and what it means. Do not use formatting only to make a page
 look more interesting.
 
 ### Bold
@@ -1863,7 +1737,7 @@ let message = "Hello"
 ```
 ````
 
-Use `plaintext` when no more specific language applies.
+Use `text` when no more specific language applies.
 
 Leave one blank line before and after every code block.
 
@@ -1872,13 +1746,14 @@ code fences.
 
 ### Keep code blocks readable
 
-Aim for code lines of approximately 80 characters when the language permits.
-Avoid horizontal scrolling.
+Use the project formatter for code examples. Break long expressions at valid
+points when that makes the rendered example easier to read. Avoid horizontal
+scrolling where practical.
 
 Do not distort idiomatic or valid syntax solely to meet a line target.
 
 Put explanations before the block. Use comments inside the example only when a
-comment is part of the code a reader should keep.
+comment is part of the code a reader must keep.
 
 ### Do not include command prompts
 
@@ -1888,11 +1763,7 @@ Use:
 git status
 ```
 
-Avoid:
-
-```shell
-$ git status
-```
+Avoid including a prompt such as `$` before `git status`.
 
 Prompts interfere with copy and paste.
 
@@ -1961,8 +1832,8 @@ Use:
 
 ```yaml
 service:
-  logging:
-    level: debug
+    logging:
+        level: debug
 ```
 
 Avoid:
@@ -1976,7 +1847,7 @@ context when a reader needs it to run the snippet.
 
 ### Keep examples focused
 
-One example should teach one primary idea.
+Use one example to teach one primary idea.
 
 Do not combine:
 
@@ -2032,9 +1903,9 @@ Do not rely on a warning after the command.
 Prefer examples that can be exercised by automated documentation checks or by a
 normal project workflow.
 
-Read examples for accuracy as part of editing them. Run example commands, lint,
-formatting, or other checks only when the user explicitly requests verification.
-Do not create or run automated tests.
+Read important examples for accuracy. Run example commands or other checks only
+when the user explicitly requests verification. Follow
+[GENERAL.md](GENERAL.md#verification-scope) for verification scope.
 
 Do not pin volatile output unless the exact output is part of the public
 contract.
@@ -2073,8 +1944,8 @@ Each step must contain an action.
 
 ### Keep one main action per step
 
-A step can include a reason, location, action, and expected result, but it
-should not contain several independent actions hidden in a paragraph.
+A step can include a reason, location, action, and expected result. Do not hide
+several independent actions in one step.
 
 Use this order when each part is needed:
 
@@ -2129,7 +2000,7 @@ The status changes to `Ready`.
 ```
 
 Do not add empty confirmation phrases such as "for the changes to take effect"
-unless the action genuinely triggers a delayed apply, restart, or reload.
+unless the action applies a pending change, restarts a component, or reloads configuration.
 
 ### Separate alternatives
 
@@ -2257,16 +2128,16 @@ The independent sentences translate more reliably.
 
 Avoid more than two levels of nested lists.
 
-For unordered lists, indent nested content by two spaces:
+Let Prettier set list indentation. Keep each nested block inside its parent item:
 
 ````markdown
 - Parent item
 
-  Additional context for the parent.
+    Additional context for the parent.
 
-  ```text
-  Nested example
-  ```
+    ```text
+    Nested example
+    ```
 ````
 
 For ordered lists, indent nested blocks to align with the first character after
@@ -2275,9 +2146,9 @@ the list marker:
 ````markdown
 1. Run the command:
 
-   ```shell
-   tool start
-   ```
+    ```shell
+    tool start
+    ```
 ````
 
 If nesting becomes complex, create a heading instead.
@@ -2323,12 +2194,12 @@ Use a list instead when each item has only one short description.
 - Provide row-header markup when the publishing system supports it and the first
   column identifies each row.
 
-### Format markdown tables consistently
+### Format Markdown tables consistently
 
 ```markdown
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `region`  | `auto`  | Selects the nearest supported region. |
+| Parameter | Default | Description                                |
+| --------- | ------- | ------------------------------------------ |
+| `region`  | `auto`  | Selects the nearest supported region.      |
 | `retries` | `3`     | Limits attempts after a transient failure. |
 ```
 
@@ -2340,7 +2211,7 @@ Requirements:
 - Left-align text by default.
 - Center-align only truly compact symbolic columns.
 - Do not use raw HTML tables unless Markdown cannot represent required
-  accessibility semantics and the renderer supports the HTML.
+  accessible structure and the renderer supports the HTML.
 
 Alignment spaces are optional when a wide description column would create a
 large diff.
@@ -2353,15 +2224,15 @@ Before adding a column, ask whether:
 
 - The attribute is required for comparison.
 - The value can move to a linked reference.
-- The table should become several smaller tables.
+- The table would be clearer as several smaller tables.
 - A list would be clearer.
 
 Do not put paragraphs, large code blocks, or nested lists in table cells.
 
 ### Minimize maintenance-only diffs
 
-When one row changes, do not realign every row solely for visual source
-alignment. Rendered Markdown does not require padded columns.
+Let Prettier align table source. Do not manually repad unrelated tables for visual
+alignment. The rendered table does not depend on extra alignment spaces.
 
 ### Use footnotes sparingly
 
@@ -2373,19 +2244,11 @@ Use a footnote only when:
 - Inline content would make the table unreadable.
 - The note is secondary but necessary.
 
-Prefer Markdown-native footnotes when the renderer supports them:
-
-```markdown
-Recording needs enough free disk space.[^recording]
-
-[^recording]: Check the destination before starting a long recording.
-```
-
 Do not use footnotes for safety information or required steps.
 
-## Create durable and descriptive links
+## Write descriptive links that stay useful
 
-Every link should help the reader understand or complete the current goal.
+Make every link help the reader understand or complete the current goal.
 
 ### Link only when useful
 
@@ -2427,7 +2290,7 @@ Do not:
 - Put links in headings.
 - Break link text or its destination across source lines.
 
-### Prefer inline markdown links
+### Prefer inline Markdown links
 
 Use:
 
@@ -2496,9 +2359,8 @@ Use a call to action only when:
 Use action-oriented text such as "Create a repository" or "Start the tutorial."
 Do not use vague promotional text.
 
-Calls to action in product documentation should lead to project-owned or
-explicitly trusted destinations. Do not disguise an advertisement as a task
-step.
+Direct calls to action in product documentation to project-owned or explicitly
+trusted destinations. Do not disguise an advertisement as a task step.
 
 ### Use stable source-code links
 
@@ -2506,26 +2368,6 @@ When linking to exact lines in a hosted repository, use a commit permalink.
 Branch line numbers move as the file changes.
 
 Use branch links when the reader needs the current file as a whole.
-
-### Link to the version in use
-
-Use current project pages for internal navigation. Link to external API or tool
-documentation for the version the project uses. Name the version when the
-destination could otherwise confuse the reader. Do not maintain parallel project
-guides or redirect layers for obsolete versions.
-
-### Update heading links
-
-Changing a heading changes its generated anchor on most platforms.
-
-Before changing a published heading:
-
-- Search the repository for links to the old anchor.
-- Update every owned link.
-- Use the current heading and update affected links.
-- Do not retain old anchors or add redirect aliases for backward compatibility.
-
-Do not put step numbers or volatile version labels in headings unless needed.
 
 ### Do not link inaccessible content
 
@@ -2843,7 +2685,7 @@ relationships that are difficult to understand from prose.
 Prefer Mermaid when the renderer supports it because the source is searchable,
 reviewable, and versioned with the text.
 
-Use an editable SVG from the project's diagram tool when Mermaid cannot
+Use an editable SVG created by an approved diagram tool when Mermaid cannot
 produce a clear layout. Store the editable diagram definition with the asset.
 
 Diagram rules:
@@ -2923,7 +2765,7 @@ Name the state or action in text.
 
 Every meaningful image needs alt text.
 
-Alt text should:
+Write alt text that:
 
 - Express the image's purpose in the current context.
 - Include the most relevant state or relationship.
@@ -2982,7 +2824,7 @@ Do not omit the alt attribute accidentally.
 Use general verbs such as "select" unless a specific device action matters.
 Do not assume every reader uses a mouse, touchscreen, or physical keyboard.
 
-### Check cognitive accessibility
+### Check that instructions are easy to follow
 
 - Keep steps short.
 - Put prerequisites first.
@@ -2992,9 +2834,10 @@ Do not assume every reader uses a mouse, touchscreen, or physical keyboard.
 - Avoid surprise navigation.
 - Keep warnings close to the risky action.
 
-## Document specialized technical surfaces
+## Document commands, APIs, and configuration
 
-Different technical surfaces need additional contract details.
+Commands, APIs, configuration, and libraries need different details. Include the
+applicable fields below so readers can use each interface without guessing.
 
 ### Command-line interfaces
 
@@ -3018,8 +2861,7 @@ For each command, document:
 Use command invocations and output, not screenshots of a terminal.
 
 Keep a short common-command list in the README. Put exhaustive command details
-in CLI reference documentation or the advanced guide when the surface is small
-and specialist.
+in CLI reference documentation or the advanced guide when only specialists need those command details.
 
 ### APIs
 
@@ -3045,7 +2887,7 @@ For each endpoint or operation, document:
 - Version availability.
 - One valid request and response example.
 
-Use exact field names and values from the contract owner.
+Use the exact field names and values defined by the API schema or implementation.
 
 Do not expose internal table names, stack traces, service topology, or other
 implementation details through error examples.
@@ -3055,7 +2897,7 @@ log, or API contract.
 
 ### Libraries and modules
 
-A library README should include:
+A library README must include:
 
 - One-line purpose.
 - Installation.
@@ -3101,7 +2943,7 @@ For each configuration key, document:
 - Example.
 
 Do not duplicate default values in several narrative sections. Keep one
-reference owner and link to it.
+reference page and link to it.
 
 Show parent keys in YAML, TOML, or JSON examples so placement is unambiguous.
 
@@ -3136,7 +2978,7 @@ ignored.
 
 ### Architecture
 
-Architecture documentation should explain:
+Architecture documentation must explain:
 
 - System boundaries.
 - Component ownership.
@@ -3155,8 +2997,8 @@ Explain why a boundary exists when the reason is not obvious from the model.
 
 Do not list source directories or classes as an architecture overview. The
 prohibition on project layout sections applies to architecture documentation.
-Describe durable concepts and responsibilities without inventorying the source
-tree.
+Explain the components and their responsibilities without listing every source
+file and directory.
 
 Use diagrams only when they make relationships clearer than prose.
 
@@ -3235,12 +3077,12 @@ Do not defer a required documentation update as optional cleanup.
 
 ### Keep comments and guides aligned
 
-When public behavior changes, update the existing material that describes the
-affected behavior. This may include a guide, comment, reference, example,
-troubleshooting entry, or diagram. Do not create missing documentation layers
-or revise unrelated material to satisfy a checklist.
+Update only existing documentation that the requested change makes inaccurate.
+This may include a comment, guide, example, or diagram. Do not create new
+documentation layers, generated references, troubleshooting pages, or diagrams
+to complete a checklist.
 
-Do not describe the same behavior differently at each layer.
+Keep descriptions of the changed behavior consistent.
 
 ### Delete stale content
 
@@ -3253,8 +3095,7 @@ Do not:
 - Keep obsolete commands for historical interest.
 - Preserve screenshots that show a removed interface.
 
-Document the current implementation. Remove obsolete instructions instead of
-maintaining parallel guides for older versions.
+Document the current behavior.
 
 ### Maintain external links
 
@@ -3266,8 +3107,8 @@ Prefer stable authoritative sources. Replace or remove:
 - Private destinations.
 - Pages that no longer support the claim.
 
-Do not inline all external information to avoid link rot. Copying creates a
-different form of drift. Keep essential project instructions local and link to
+Do not copy all external information just to avoid broken links. Copies can also
+fall out of date. Keep essential project instructions local and link to
 authoritative external contracts.
 
 ### Maintain duplicated facts
@@ -3310,25 +3151,46 @@ When changing translated documentation:
 - Do not embed text in images when the text carries essential meaning.
 - Allow user interface strings room to expand in translated products.
 
-### Automate durable checks
+### Automate repeatable checks
 
-Repositories should automate, when appropriate:
+When the user explicitly requests documentation automation, the checks can
+cover:
 
 - Markdown syntax and style.
 - Broken internal links.
 - Broken image references.
 - Spelling and terminology.
-- Generated reference drift.
+- Generated references that no longer match their source.
 - Runnable examples.
 - Front-matter schemas.
 - Accessibility rules that tools can detect.
 
-Automation does not prove factual accuracy or usability. Read the changed text
-for both; do not require a separate reviewer or approval.
+Automation does not prove factual accuracy or usability. Read the changed text for correctness;
+this does not require another reviewer or approval.
 
-Add automation or run checks only when explicitly requested. Do not add tests
-or hosted workflows. The list above describes possible checks, not a required
-set of tools.
+Run documentation checks or add automation only when explicitly requested. Limit requested checks
+to the affected material.
+
+## Check the text with its readers
+
+Review the document as a reader would use it, rather than only checking individual
+sentences. For a guide, read the steps from the stated starting point. For a
+reference, find the needed value without reading the whole page. Execute steps
+only when the user explicitly requests manual verification.
+
+1. Needed information: Can the intended reader complete the task with the
+   prerequisites, instructions, and limits provided?
+1. Finding information: Can the reader identify the relevant section from its
+   heading or link label? Are required details visible before the action?
+1. Understanding: Can the reader explain what to do and why? Define unfamiliar
+   terms and resolve ambiguous pronouns or instructions.
+1. Use: Can the reader perform the action, recognize success, and recover from
+   an expected failure?
+
+Keep technical terms that the audience needs, and explain them where necessary.
+Do not replace familiar names with unusual synonyms or remove a required detail just
+to shorten a sentence. Word counts, sentence lengths, and readability scores can
+help find problems; they do not decide whether a document works.
 
 ## Review documentation systematically
 
@@ -3358,13 +3220,13 @@ Review from the reader's perspective, not only line by line.
 ### Structure review
 
 - Does the page use the correct topic type?
-- Does information move from broad to specific?
+- Does the page answer the reader's immediate questions before giving specialist detail?
 - Is the README useful without the advanced guide?
-- Is `ADVANCED.md` justified by coherent specialist content?
+- Is `ADVANCED.md` justified by related specialist topics?
 - Does every heading describe its content?
 - Are heading levels sequential?
 - Is the contents list accurate?
-- Is repeated content owned in one canonical place?
+- Does repeated information have one main source that is updated when it changes?
 
 ### Language review
 
@@ -3372,8 +3234,7 @@ Review from the reader's perspective, not only line by line.
 - Does each sentence add information?
 - Is active voice used where the actor matters?
 - Are pronouns unambiguous?
-- Are idioms, noun stacks, and nominalizations removed?
-- Are sausage sentences split into structured, related claims?
+- Are idioms and long strings of nouns replaced with clear descriptions and action verbs?
 - Are terms and capitalization consistent?
 - Are acronyms expanded where needed?
 - Are dates and numbers unambiguous?
@@ -3387,8 +3248,8 @@ Review from the reader's perspective, not only line by line.
 - Are blank lines present around blocks?
 - Do code fences name a language?
 - Are lists parallel and consistently punctuated?
-- Are tables genuinely tabular?
-- Are links descriptive and durable?
+- Do tables help readers compare related values?
+- Do link labels explain their destinations, and do the links still work?
 - Is HTML necessary and supported?
 - Are line wraps readable in source?
 
@@ -3418,8 +3279,8 @@ Review from the reader's perspective, not only line by line.
 
 ### Maintenance review
 
-- Does the content have a clear owner?
-- Can volatile values be reduced or generated?
+- Is it clear who maintains the content or which source generates it?
+- Can values that change often be reduced or generated?
 - Are important examples reusable or checkable?
 - Are external links authoritative?
 - Will a heading change break known anchors?
@@ -3450,11 +3311,10 @@ Review from the reader's perspective, not only line by line.
 - [ ] The guide serves a distinct specialist audience.
 - [ ] The opening states the assumed README baseline.
 - [ ] The content is too substantial for the normal README path.
-- [ ] Sections form a coherent advanced subject.
+- [ ] Sections form a related specialist subject.
 - [ ] Basic setup is not duplicated.
 - [ ] Essential caveats remain visible in the README.
-- [ ] API, CLI, and security content stay with their
-      proper owners.
+- [ ] API, CLI, and security content stay with their proper owners.
 - [ ] Deep procedures still include their own prerequisites and risks.
 - [ ] The guide is linked once with a descriptive summary from the README.
 
@@ -3521,13 +3381,13 @@ ROUTINE_COMMAND
 
 ## Configuration
 
-| Key | Required | Default | Description |
-|-----|:--------:|---------|-------------|
-| `KEY` | Yes | None | DESCRIPTION |
+| Key   | Required | Default | Description |
+| ----- | :------: | ------- | ----------- |
+| `KEY` |   Yes    | None    | DESCRIPTION |
 
 ## Architecture
 
-Describe durable components, ownership, and primary data flow.
+Describe the main components, their responsibilities, and how data moves between them.
 
 ## Common problems
 
@@ -3552,7 +3412,7 @@ For a small project:
 
 ### Advanced-guide template
 
-````markdown
+```markdown
 # PROJECT_NAME Advanced Guide
 
 This guide covers SPECIALIST_SCOPE for readers familiar with the project
@@ -3586,13 +3446,13 @@ Document permissions, prerequisites, risks, success signals, and recovery.
 ## Deep troubleshooting
 
 Organize topics by observable symptoms.
-````
+```
 
-Delete sections that do not form part of the coherent advanced scope.
+Delete sections that do not form part of the guide's specialist subject.
 
 ### Task template
 
-````markdown
+```markdown
 # ACTION_GOAL
 
 State the outcome and when to use the task.
@@ -3620,11 +3480,11 @@ State the diagnostic check, cause, and resolution.
 ## Next steps
 
 - [DESCRIPTIVE_DESTINATION](RELATIVE_LINK)
-````
+```
 
 ### Concept template
 
-````markdown
+```markdown
 # CONCEPT_NAME
 
 Define the concept and explain why it matters.
@@ -3645,7 +3505,7 @@ Describe responsibilities and dependency direction.
 ## Related tasks
 
 - [DESCRIPTIVE_TASK](RELATIVE_LINK)
-````
+```
 
 ### Reference template
 
@@ -3662,9 +3522,9 @@ SYNTAX
 
 ## Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|:--------:|---------|-------------|
-| `NAME` | `TYPE` | Yes | None | DESCRIPTION |
+| Parameter | Type   | Required | Default | Description |
+| --------- | ------ | :------: | ------- | ----------- |
+| `NAME`    | `TYPE` |   Yes    | None    | DESCRIPTION |
 
 ## Output
 
@@ -3672,8 +3532,8 @@ Define the result and side effects.
 
 ## Errors
 
-| Error | Condition | Resolution |
-|-------|-----------|------------|
+| Error        | Condition | Resolution |
+| ------------ | --------- | ---------- |
 | `ERROR_CODE` | CONDITION | RESOLUTION |
 
 ## Examples
@@ -3729,21 +3589,21 @@ Permissions: REQUIRED_ACCESS.
 
 Headers:
 
-| Header | Required | Description |
-|--------|:--------:|-------------|
-| `Authorization` | Yes | Bearer token with REQUIRED_SCOPE. |
+| Header          | Required | Description                       |
+| --------------- | :------: | --------------------------------- |
+| `Authorization` |   Yes    | Bearer token with REQUIRED_SCOPE. |
 
 Path parameters:
 
-| Parameter | Type | Required | Description |
-|-----------|------|:--------:|-------------|
-| `id` | `string` | Yes | RESOURCE_IDENTIFIER. |
+| Parameter | Type     | Required | Description          |
+| --------- | -------- | :------: | -------------------- |
+| `id`      | `string` |   Yes    | RESOURCE_IDENTIFIER. |
 
 Request body:
 
 ```json
 {
-  "field": "value"
+    "field": "value"
 }
 ```
 
@@ -3753,15 +3613,15 @@ Success status: `200 OK`.
 
 ```json
 {
-  "status": "ok"
+    "status": "ok"
 }
 ```
 
 ### Errors
 
-| Status | Code | Condition |
-|--------|------|-----------|
-| `400` | `INVALID_REQUEST` | The request does not match the schema. |
+| Status | Code              | Condition                              |
+| ------ | ----------------- | -------------------------------------- |
+| `400`  | `INVALID_REQUEST` | The request does not match the schema. |
 
 ### Example
 
@@ -3772,7 +3632,7 @@ curl --request METHOD \
 ```
 ````
 
-## Documentation anti-patterns
+## Common documentation problems
 
 Do not accept these patterns.
 
@@ -3788,9 +3648,9 @@ and license information.
 
 ### README as complete internal manual
 
-Do not force every reader through exhaustive internals before setup. Use
-a reading order based on the reader's task and create an advanced guide only when the depth is
-substantial.
+Do not force every reader through exhaustive internals before setup. Put essential
+information first. Create an advanced guide only when specialist detail interrupts
+routine setup and use.
 
 ### Advanced guide as overflow storage
 
@@ -3799,18 +3659,18 @@ long. Find the correct owner.
 
 ### One page per tiny fact
 
-Excessive splitting harms search and navigation. Add a section to the canonical
+Excessive splitting harms search and navigation. Add a section to the main
 page when the new content shares its audience and purpose.
 
 ### Giant undifferentiated page
 
-Use headings, topic types, and ownership boundaries. Split only at a coherent
+Use headings, topic types, and ownership boundaries. Split only at a single
 reader goal.
 
 ### Source-code narration
 
 Do not list classes and methods in implementation order. Explain public behavior,
-durable ownership, and meaningful relationships.
+component responsibilities, and the relationships readers need to understand.
 
 ### Copying tickets into docs
 
@@ -3819,8 +3679,8 @@ reader.
 
 ### Stale comments and historical narration
 
-Do not say what was removed, renamed, or refactored in evergreen documentation.
-Use version control for implementation history.
+Do not say what was removed, renamed, or refactored in guides that describe current behavior.
+Use version control.
 
 ### Unverified examples
 
@@ -3877,12 +3737,13 @@ layout.
 ### Deep heading hierarchies
 
 More than four heading levels signals that the page needs a clearer scope or a
-coherent split.
+split based on reader goals.
 
 ### Real data in examples
 
-Never publish real names, email addresses, tokens, IDs, URLs, or customer
-payloads.
+Never publish personal names, private email addresses, credentials, customer IDs,
+private URLs, or customer payloads as example data. Official public links and
+required attribution remain appropriate.
 
 ### Hidden prerequisites
 
@@ -3893,7 +3754,7 @@ procedure.
 
 Warnings must appear before the risky action.
 
-### Duplicated volatile values
+### Duplicated values that change often
 
 Do not copy defaults, version lists, or option tables across several pages.
 Generate them or keep one owner.
@@ -3911,7 +3772,7 @@ Keep essential knowledge in text and store critical assets with the repository.
 Generated output must identify its source and regeneration workflow. Do not edit
 generated output by hand unless the project explicitly owns that process.
 
-## Definition of done
+## Completion criteria
 
 Documentation work is complete when:
 
@@ -3919,17 +3780,18 @@ Documentation work is complete when:
 - The chosen document and topic type fit the reader's goal.
 - Every claim is grounded in an authoritative source.
 - The README supports evaluation and normal use.
-- An advanced guide exists only when specialist depth justifies it.
+- An advanced guide exists only when readers need a separate specialist explanation.
 - Required prerequisites, permissions, limits, and risks are visible.
 - Procedures are complete and ordered.
 - Examples are valid, safe, and appropriately scoped.
-- Markdown is semantic, portable, and readable in source.
-- Links are descriptive and durable.
+- Markdown uses headings, lists, and tables for their intended purposes and works in
+  the supported renderers.
+- Link labels explain their destinations, and the links work.
 - Images and diagrams add meaning and have accessible alternatives.
 - Secrets and personal information are absent.
 - The content describes the present state.
 - Related documentation remains consistent.
-- No stale, duplicated, or placeholder content remains.
+- No stale content, unnecessary duplicates, or unexplained placeholders remain.
 
 The final standard is practical: a reader can understand the project, decide
 whether it fits, complete the documented goal safely, and find deeper
@@ -3951,9 +3813,10 @@ Document each node's purpose, inputs and units, outputs, prerequisites, example,
 limits, saving, cancellation, and recovery. Keep shared explanations in the
 advanced guide and link to them. Node schemas own exact socket and widget names.
 
-Use title case for document H1 titles and for node, workflow, and note titles.
-Use sentence case for lower headings, parameter display labels, buttons, note
-body text, and table heads.
+Use title case for document H1 titles and for the main part of node, workflow,
+and note titles. Preserve the required lowercase extension suffix on node
+titles. Use sentence case for lower headings, parameter display labels,
+buttons, note body text, and table heads.
 Preserve proper names, model spellings, API identifiers, and quoted host labels.
 Use the node titles actually visible in each workflow's instructions.
 

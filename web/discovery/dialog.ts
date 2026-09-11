@@ -4,8 +4,9 @@ import { formatDate } from '#web/language.ts';
 import { modelRow } from '#web/discovery/row.ts';
 import type { Message } from '#web/localization.ts';
 import { browserLimits } from '#config/web/browser.ts';
+import type { ModelList } from '#web/discovery/schema.ts';
+import { requestModels, metadataStatus } from '#web/discovery/api.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
-import { type ModelList, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
 let current: ModelDialog | undefined;
 

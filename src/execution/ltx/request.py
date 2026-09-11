@@ -3,12 +3,13 @@
 import json
 from typing import ClassVar
 from ...language import translate
+from ..operation import RecordingWindow
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES
+from ....config.models.identities import MODELS
 from ..inputs import VideoInputs, validate_capture_inputs
 from ....config.generation.speech import (
     MIN_SPEECH_SECONDS,
@@ -27,7 +28,7 @@ class LtxSpeakRequest(VideoInputs):
 
     script: str = ""
     words_per_minute: int = DEFAULT_WORDS_PER_MINUTE
-    model_name: ClassVar[str] = IDENTITIES["ltx2"][1]
+    model_name: ClassVar[str] = MODELS["ltx2"].connection_name
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
@@ -51,8 +52,11 @@ class LtxSpeakRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.portraitUploadLimit"))
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Upload the portrait and script, validate the offered speech pace, and start speech."""
+        del max_capture_seconds
         audio = [
             track
             for track in transport.tracks
@@ -105,3 +109,4 @@ class LtxSpeakRequest(VideoInputs):
         if self.prompt.strip():
             await events.command_reply("set_prompt", {"prompt": self.prompt})
         await events.command_reply("start", {})
+        return RecordingWindow(0, self.duration_seconds)

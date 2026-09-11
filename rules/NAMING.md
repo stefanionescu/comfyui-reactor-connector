@@ -1,10 +1,11 @@
 # Naming
 
 This is the single source of truth for naming in this repository. It covers
-general naming principles plus Python, Bash, TypeScript, JavaScript, CSS,
-ComfyUI node contracts, and Reactor model identifiers.
+general naming principles plus Python, Bash, TypeScript, ComfyUI extensions,
+external providers, and user-visible content.
 
-Use names that make the purpose and scope clear without reading the implementation.
+Use this file together with the automated checks. This document explains how to
+choose names. The local tooling enforces the concrete policy.
 
 ## Contents
 
@@ -16,27 +17,40 @@ Use names that make the purpose and scope clear without reading the implementati
 - [Files and directories](#files-and-directories)
 - [Python](#python)
 - [Bash](#bash)
-- [JavaScript](#javascript)
+- [TypeScript](#typescript)
 - [HTML, CSS, and content](#html-css-and-content)
 - [Data, models, and external boundaries](#data-models-and-external-boundaries)
 - [Review checklist](#review-checklist)
 
 ## Authority and local enforcement
 
-Apply these naming rules to files, directories, declarations, CLI flags,
-environment variables, workflow examples, and documentation examples.
+Naming decisions must satisfy both this guide and the local quality tooling.
 
-- Keep the existing naming, folder, file-size, and function-size limits.
-- Do not weaken a check or hide a name in a string key or alias to bypass policy.
-- Keep exact names required by the current host or provider API at that boundary.
-  Use domain names for code owned by this project.
-- When a guide and a checker disagree, report the conflict. Change the checker
-  only when the user requests a tooling change.
-- Running naming checks requires an explicit verification request.
+Rules:
+
+- Follow this file when naming files, directories, modules, packages, classes,
+  dataclasses, functions, methods, parameters, variables, and constants.
+- Also follow it when naming CLI flags, environment variables, data examples,
+  and documentation examples.
+- Also follow `ruff` naming checks configured in `pyproject.toml`.
+- Also follow the structural naming checks in
+  `quality/python/rules/prefix_collisions.py`,
+  `quality/python/rules/single_file_folders.py`, and
+  `quality/python/rules/imports/layout.py`.
+- Also follow the repository-wide structural naming authority under
+  `quality/repository/naming/` and the language policies under
+  `quality/config/naming/`.
+- Treat local lint failures as authoritative. If this guide and tooling disagree,
+  fix the disagreement instead of working around it locally.
+- Do not bypass naming policy by hiding bad names in string keys, aliases,
+  generated wrappers, or CLI flags.
+- Provider-owned names may keep provider spelling when the applicable language
+  policy records the boundary. Hand-written wrappers around them must follow
+  this guide.
 
 ## General naming rules
 
-Names are a design tool. A name should let a reader understand the concept,
+Names are a design tool. A name lets a reader understand the concept,
 scope, role, and expected value without reading the implementation first.
 
 Rules:
@@ -47,7 +61,7 @@ Rules:
 - Use English unless representing an external identifier that must keep another
   spelling.
 - Prefer the shortest name that is still clear at the use site.
-- Add qualifiers only when the unqualified name is ambiguous.
+- Add qualifiers only when the unqualified name is genuinely ambiguous.
 - Avoid private shorthand that only the original author understands.
 - Avoid contractions created by deleting letters from a word.
 - Do not duplicate context already supplied by the enclosing module, directory,
@@ -59,34 +73,16 @@ Rules:
 - Use role words when primitive or weak types do not carry enough meaning.
 - Preserve required external names at boundaries, but translate them into domain
   names before they move inward.
-- Do not use banned generic verbs or role words in local names. These include `load`, `loader`,
-  `loaded`, `loading`, `resolve`, `resolving`, `resolution`, `manager`, `handler`,
-  `helper`, `util`, `utils`, `processor`, `service`, `common`, `core`, and
-  `data`. Use precise verbs such as `read`, `choose`, `derive`, `build`, `create`,
-  `parse`, `validate`, `sanitize`, or `format` only when the verb describes the
-  real operation.
-
-Bad:
-
-```python
-string = "reactor/helios"
-array = examples
-data = build_examples()
-tmp = choose_duration(settings, source, requested)
-```
-
-Good:
-
-```python
-model_name = "reactor/helios"
-recording_jobs = jobs
-request_messages = parse_messages(payload)
-duration_seconds = choose_duration(settings, source, requested_seconds)
-```
+- Do not use the banned terms in `quality/config/naming/terms.json` for local
+  names. The language policies under `quality/config/naming/` define the narrow
+  exceptions.
+- Use a precise verb such as `read`, `choose`, `derive`, `build`, `create`,
+  `parse`, `validate`, `sanitize`, or `format` only when it describes the real
+  operation.
 
 ### Role instead of type
 
-Names should explain what the value means in the domain.
+Names explain what the value means in the domain.
 
 Bad:
 
@@ -171,9 +167,10 @@ paths.py
 latency_stats.py
 ```
 
-Avoid `Helper`, `Helpers`, `Utility`, `Utilities`, `Util`, `Utils`, `Common`,
-`Shared`, `Base`, `Core`, `Manager`, and `Processor` unless the name is a
-platform term or the role is truly exact.
+The banned-terms file includes `Helper`, `Helpers`, `Utility`, `Utilities`,
+`Util`, `Utils`, `Common`, `Shared`, `Base`, `Core`, `Manager`, and `Processor`.
+Use one of these terms only when the applicable language policy contains an
+explicit exception for that name and location.
 
 ## Vocabulary and role words
 
@@ -182,44 +179,51 @@ kind of boundary or owner they are looking at.
 
 Use these meanings consistently:
 
-| Role word   | Use when                                          |
-| ----------- | ------------------------------------------------- |
-| `Config`    | Configuration for one area.                       |
-| `Example`   | One documented workflow or sample input.          |
-| `Model`     | A supported model name or its public metadata.    |
-| `Variant`   | A documented version of a Reactor model.          |
-| `Client`    | A caller at an external API or platform boundary. |
-| `Parser`    | Converts raw input into structured values.        |
-| `Validator` | Checks a value and reports invalidity.            |
-| `Formatter` | Converts a value into display, log, or wire text. |
-| `Runner`    | Owns a top-level command.                         |
-| `Result`    | A completed operation's structured output.        |
-| `Stats`     | Aggregated measurements or counters.              |
+| Role word    | Use when                                                            |
+| ------------ | ------------------------------------------------------------------- |
+| `Config`     | A value or module owns configuration for a cohesive area.           |
+| `Example`    | One concrete example in documentation or sample input.              |
+| `Model`      | A model object, supported model name, or artifact.                   |
+| `Variant`    | A documented version of a provider model.                           |
+| `Client`     | External API, software development kit, filesystem, or platform boundary. |
+| `Parser`     | Converts raw input into structured data.                            |
+| `Validator`  | Checks a value and returns or raises validation failure.            |
+| `Formatter`  | Converts a value into display, log, or wire text.                    |
+| `Runner`     | Owns a top-level command workflow.                                  |
+| `Result`     | A completed operation's structured output.                          |
+| `Stats`      | Aggregated measurements or counters.                                |
 
-Do not use a suffix just because a name feels too short. If the role is not
+`Runner` is a role for the owner of a top-level command workflow. It does not
+make `run` an acceptable generic function name.
+
+Do not use a suffix only because a name feels too short. If the role is not
 real, rename the symbol to the concrete domain concept.
 
 Bad:
 
 ```python
-class RuntimeManager: ...
+class RuntimeManager:
+    ...
 
 
-def process(data): ...
+def process(data):
+    ...
 ```
 
 Good:
 
 ```python
-class RecordingSession: ...
+class RecordingSession:
+    ...
 
 
-def build_examples(source_items): ...
+def build_examples(source_items):
+    ...
 ```
 
 ## Functions and methods
 
-Function and method names should describe the action and the domain item being
+Function and method names describe the action and the domain item being
 acted on without repeating context already supplied by the owner.
 
 Rules:
@@ -250,25 +254,27 @@ Rules:
 Bad:
 
 ```python
-def process(value): ...
+def process(value):
+    ...
 
 
-def handle_data(data): ...
+def handle_data(data):
+    ...
 
 
-def run(model_name, output_dir): ...
+def run(model_name, output_dir):
+    ...
 ```
 
 Good:
 
 ```python
-def validate_prompt(text, max_length): ...
+def validate_prompt(text, max_length):
+    ...
 
 
-def build_examples(source_items): ...
-
-
-def record_video(model_name, output_dir): ...
+def build_examples(source_items):
+    ...
 ```
 
 ### One concept per function name
@@ -279,16 +285,19 @@ the function may own too many concepts.
 Bad:
 
 ```python
-def validate_and_upload_image(image, session): ...
+def validate_and_upload_image(image, session):
+    ...
 ```
 
 Good:
 
 ```python
-def validate_image(image): ...
+def validate_image(image):
+    ...
 
 
-def upload_image(image, session): ...
+def upload_image(image, session):
+    ...
 ```
 
 ### Boundary names
@@ -298,16 +307,19 @@ At boundaries, name the conversion explicitly.
 Bad:
 
 ```python
-def transform(item): ...
+def transform(item):
+    ...
 ```
 
 Good:
 
 ```python
-def build_example(raw_item): ...
+def build_example(raw_item):
+    ...
 
 
-def parse_model_name(candidate): ...
+def parse_model_name(candidate):
+    ...
 ```
 
 ## Booleans and predicates
@@ -319,8 +331,9 @@ Rules:
 - Use `is_` for state or characteristics.
 - Use `has_` for possession or presence.
 - Use `can_` for capability.
-- Do not introduce `should_` in new local names unless an external framework owns
-  that spelling.
+- Do not introduce `should_` in local names. Preserve that spelling at an
+  external framework boundary only when the applicable language policy records
+  the exception.
 - Avoid negative names such as `is_not_ready` when the positive form is clearer.
 - Do not name booleans like nouns that could be non-boolean values.
 - Prefer the boolean name that matches the branch without double negation.
@@ -346,7 +359,7 @@ Bad:
 ```bash
 ready='false'
 if [[ "${ready}" != 'true' ]]; then
-  fail 'not ready'
+  fail 'Not ready'
 fi
 ```
 
@@ -355,7 +368,7 @@ Good:
 ```bash
 is_ready='false'
 if [[ "${is_ready}" != 'true' ]]; then
-  fail 'not ready'
+  fail 'Not ready'
 fi
 ```
 
@@ -370,17 +383,14 @@ Rules:
   `__init__.py` and `__main__.py`.
 - Python sibling filename prefixes must be unique unless the quality policy
   explicitly configures an exception.
-- Shell scripts use lowercase `.sh` names. Mise tasks and Git hooks keep their
-  extensionless entrypoint names.
 - Bash files in the same directory must not share the first filename component
   before `_` or `-`.
 - Related script families own a subdirectory instead of accumulating prefixed
   sibling files.
-- Source modules under `src/` are named for cohesive capabilities:
-  configuration, discovery, execution, live controls, media, and host nodes.
-- Name development-check modules for the rule or workflow they enforce.
+- Quality modules under `quality/python/rules/`, `quality/repository/`, and
+  `quality/security/` are named for the rule or workflow they enforce.
 - Do not create catch-all files or directories for unrelated code.
-- Do not move code into shared locations just because a future caller might
+- Do not move code into shared locations only because a future caller might
   appear.
 - Promote shared code only when there is a repeated concept and a stable owner.
 - A directory named by a broad layer is acceptable only when the project
@@ -396,18 +406,10 @@ src/misc.py
 scripts/do_stuff.sh
 ```
 
-Good:
-
-```text
-src/media/capture.py
-src/discovery/store.py
-src/execution/helios/request.py
-.mise/tasks/docs/build
-```
-
 ## Python
 
-Use the Python casing and structure rules below.
+Python naming follows PEP 8 where it fits this repository, with local rules from
+`pyproject.toml` and `quality/config/naming/policy.json`.
 
 ### Python case rules
 
@@ -417,36 +419,39 @@ Rules:
 - Functions, methods, variables, and parameters use `snake_case`.
 - Classes, dataclasses, and exception types use `PascalCase`.
 - Constants use `UPPER_SNAKE_CASE`.
-- CLI flags use lowercase kebab case, such as `--model-name` and
+- CLI flags use lowercase `kebab-case`, such as `--model-name` and
   `--output-dir`.
 - Environment variables use `UPPER_SNAKE_CASE`.
-- Avoid one-letter names except tiny conventional scopes such as `i` in a short
-  loop.
-- Preserve provider capitalization in external names such as `REACTOR_API_KEY` and
-  Reactor model IDs.
+- Avoid one-letter names except conventional uses covered by the naming policy,
+  such as `i`, `j`, or `k` in a short loop and `x` or `y` for coordinates.
+- Preserve provider capitalization in external names.
 
 Bad:
 
 ```python
-class recording_details: ...
+class tool_dataset:
+    ...
 
 
 MAXLEN = 512
 
 
-def BuildExamples(data): ...
+def BuildExamples(data):
+    ...
 ```
 
 Good:
 
 ```python
-class ExecutionConfig: ...
+class RuntimeConfig:
+    ...
 
 
 MAX_LENGTH = 512
 
 
-def build_examples(source_items): ...
+def build_examples(source_items):
+    ...
 ```
 
 ### Python modules and imports
@@ -458,19 +463,18 @@ Rules:
 - Named imports keep their exported name unless a collision forces an alias.
 - If aliasing is required, use a domain or module component that explains the
   collision.
-- Do not create package-level re-export layers only to preserve old names.
 - Keep `__all__` names accurate and ordered according to local lint rules.
 
 Bad:
 
 ```python
-from src.settings.settings import Settings as Thing
+from src.runtime.config import ModelSettings as Thing
 ```
 
 Good:
 
 ```python
-from src.settings.settings import Settings
+from src.runtime.config import ModelSettings
 ```
 
 ### Python types and dataclasses
@@ -491,18 +495,18 @@ Bad:
 
 ```python
 @dataclass
-class WorkflowExample:
-    workflow_example_text: str
-    workflow_example_result: str
+class EvalExample:
+    eval_example_text: str
+    eval_example_result: str
 ```
 
 Good:
 
 ```python
 @dataclass
-class WorkflowExample:
+class EvalExample:
     text: str
-    output: str
+    prediction: str
 ```
 
 ### Python boundary names
@@ -512,33 +516,14 @@ Rules:
 - Keep raw provider or CLI names at the boundary.
 - Translate external names into domain names before passing values inward when
   the external name is not the domain concept.
-- Keep Reactor credential lookup inside the credential boundary.
+- Keep provider credential lookup inside the credential boundary.
 - Keep path construction in config/path owners rather than rebuilding paths in
   business logic.
 - Name functions that cross boundaries for the operation they perform.
 
-Bad:
-
-```python
-def data(value): ...
-
-
-token = os.environ["REACTOR_API_KEY"]
-```
-
-Good:
-
-```python
-def build_workflow(model_name, prompt, duration_seconds): ...
-
-
-token = read_token(cli_token)
-```
-
 ## Bash
 
-Bash naming follows Google shell guidance where it fits this repository, with
-local overrides for mise tasks and Git hooks.
+Bash naming follows Google shell guidance where it fits this repository.
 
 ### Bash case rules
 
@@ -546,7 +531,7 @@ Rules:
 
 - Shell source file stems use lowercase words separated by hyphens or
   underscores.
-- Mise tasks and Git hooks keep the names their tools require.
+- Mise tasks and Git hooks keep the extensionless names required by their tools.
 - Other executable shell scripts use `.sh`.
 - Sourced libraries use `.sh` and are not executable.
 - Functions and mutable variables use `lower_snake_case`.
@@ -554,14 +539,6 @@ Rules:
 - Constants, readonly values, exported environment variables, and externally
   configured values use `UPPER_SNAKE_CASE`.
 - Do not use the `function` keyword for new functions. Use `name() { ...; }`.
-
-Bad:
-
-```text
-TrainScript.sh
-build-script.sh
-helpers.sh
-```
 
 Good:
 
@@ -572,18 +549,10 @@ quality.sh
 report.sh
 ```
 
-Bad:
-
-```bash
-function Train() {
-  local TMP="$1"
-}
-```
-
 Good:
 
 ```bash
-recording_prepare() {
+package_prepare() {
   local output_dir="$1"
 }
 ```
@@ -638,8 +607,8 @@ Rules:
 - Entrypoint-local functions are private except for `main`.
 - Within the owner namespace, function names use verb phrases when the function
   has side effects.
-- Functions that print data to STDOUT should be named for the data printed.
-- Functions that validate should return status and log errors deliberately.
+- Name functions that print to standard output for the data they print.
+- Validation functions return a status and log errors deliberately.
 - Do not name scripts or functions after shell builtins or common commands.
 - Do not make function names so generic that logs and stack traces lose context.
 
@@ -666,11 +635,11 @@ venv_python() {
   ...
 }
 
-recording_prepare() {
+package_prepare() {
   ...
 }
 
-validate_model_dir() {
+model_validate_dir() {
   ...
 }
 ```
@@ -702,53 +671,59 @@ export COMFYUI_PATH="${COMFYUI_PATH}"
 
 env_name="$1"
 if [[ ! "${env_name}" =~ ^[A-Z_][A-Z0-9_]*$ ]]; then
-  printf 'error: invalid environment variable name\n' >&2
+  printf 'Error: invalid environment variable name\n' >&2
   return 1
 fi
 printf '%s\n' "${!env_name}"
 ```
 
-## JavaScript
+## TypeScript
 
-TypeScript owns the ComfyUI browser extension. JavaScript owns build commands,
-configuration, and quality tooling. These naming rules apply to both languages.
+These naming rules apply to TypeScript source and tooling.
 
-### JavaScript case rules
+### TypeScript case rules
 
 Rules:
 
-- Functions, parameters, mutable variables, and normal constants use `lowerCamelCase`.
+- Functions, parameters, mutable variables, and normal constants use
+  `lowerCamelCase`.
 - Classes use `PascalCase` only when instance identity is real.
-- Static constant properties and environment-owned names may use `UPPER_SNAKE_CASE`.
-- Object properties use `lowerCamelCase` unless they mirror an external contract.
+- Static constant properties and environment-owned names may use
+  `UPPER_SNAKE_CASE`.
+- Object properties use `lowerCamelCase` unless they mirror an external
+  contract.
 - Unused parameters start with `_`.
-- Do not use leading underscores for privacy. Keep private values local to the module.
-- Do not use all-caps variables for ordinary local constants.
+- Do not use leading underscores for privacy. Keep private values local to the
+  module.
+- Do not use all-capital names for ordinary local constants.
 
 Bad:
 
-```js
+```typescript
 const SETTINGS = readSettings();
-function Build_Dialog(settings_value) {}
+function Build_Dialog(settings_value: Settings): void {}
 const _privateValue = true;
 ```
 
 Good:
 
-```js
+```typescript
 const settings = readSettings();
-function buildDialog(settings) {}
+function buildDialog(settings: Settings): void {}
 const isEnabled = true;
 ```
 
-### JavaScript files
+### TypeScript files
 
 Rules:
 
 - Name module files for the concept they own.
-- Prefer nouns for data/config modules and verbs for small executable scripts only when the file is command-like.
-- Avoid generic file names such as `helpers.js`, `utils.js`, `index.js`, `common.js`, and `misc.js`.
-- Keep settings, live controls, help rendering, discovery, and build paths in their existing owners.
+- Prefer nouns for data and configuration modules. Use verbs for small
+  executable scripts only when the file acts as a command.
+- Do not use generic filenames such as `helpers.ts`, `utils.ts`, `index.ts`,
+  `common.ts`, and `misc.ts`.
+- Keep settings, live controls, help rendering, discovery, and build paths in
+  their existing owners.
 
 Bad:
 
@@ -756,7 +731,6 @@ Bad:
 web/utils.ts
 web/shared/helpers.ts
 web/settings/helpers.ts
-src/misc/index.js
 ```
 
 Good:
@@ -765,48 +739,52 @@ Good:
 web/help/links.ts
 web/settings/api.ts
 web/live/controls.ts
-quality/web/links/check.mjs
 ```
 
-### JavaScript functions
+### TypeScript functions
 
 Rules:
 
-- Use verbs for functions that perform work: `build`, `copy`, `display`, `validate`, `write`.
-- Use nouns for values returned by functions only when the function name still reads as an action, such as `readPackageName`.
+- Use verbs for functions that perform work: `build`, `copy`, `display`,
+  `validate`, and `write`.
+- Use nouns for returned values only when the function name still reads as an
+  action, such as `readPackageName`.
 - Use `is`, `has`, or `can` for boolean-returning functions.
-- Name boundary functions by the boundary they own: `readSettings`, `buildHelp`, `sendCommand`.
+- Name boundary functions for the boundary they own, such as `readSettings`,
+  `buildHelp`, or `sendCommand`.
 - Avoid pass-through names that only restate another function.
 
 Bad:
 
-```js
-function doStuff(input) {}
-function process(data) {}
-function check(value) {}
+```typescript
+function doStuff(input: Input): void {}
+function process(data: Data): void {}
+function check(value: Value): void {}
 ```
 
 Good:
 
-```js
-function buildHelp(page) {}
-function buildNodeHelp(markdown) {}
-function isConnected(session) {}
+```typescript
+function buildHelp(page: Page): void {}
+function buildNodeHelp(markdown: string): void {}
+function isConnected(session: Session): boolean {
+    return session.connected;
+}
 ```
 
-### JavaScript modules and exports
+### TypeScript modules and exports
 
 Rules:
 
 - Prefer named exports for reusable module code.
-- Avoid default exports in repo-owned modules unless a tool requires one.
+- Avoid default exports in project-owned modules unless a tool requires one.
 - Do not create namespace objects only to group functions.
 - Do not export mutable variables as a module contract.
 - Import the owning leaf module instead of a broad barrel.
 
 Bad:
 
-```js
+```typescript
 export default {
     buildPage() {},
 };
@@ -814,23 +792,25 @@ export default {
 
 Good:
 
-```js
-export function buildPage(page) {
+```typescript
+export function buildPage(page: Page): Page {
     return page;
 }
 ```
 
 ## HTML, CSS, and content
 
-Name ComfyUI controls, styles, and help files for the component or task they describe.
+Name ComfyUI extension controls, styles, and help files for the component or task
+they describe.
 
 Rules:
 
 - Data attributes use kebab-case because they are HTML attributes.
-- CSS classes should describe the component or state they style.
-- CSS custom properties use kebab-case and should identify the value's role.
+- CSS classes describe the component or state they style.
+- CSS custom properties use kebab-case and identify the value's role.
 - Node help filenames use the exact registered node ID.
-- Do not hide user-visible copy in variable names or comments. Put copy in the owning component, localization file, or authored guide.
+- Do not hide user-visible copy in variable names or comments. Put copy in the
+  owning component, localization file, or authored guide.
 
 Bad:
 
@@ -846,46 +826,28 @@ Good:
 
 ## Data, models, and external boundaries
 
-Keep identifiers required by the current ComfyUI and Reactor APIs exact.
-Project-owned node IDs, saved keys, routes, and settings may change as part of a
-requested replacement. Update affected callers and examples together and migrate
-required stored data directly. Do not keep old aliases or discard user data.
+Keep identifiers required by ComfyUI and provider APIs exact.
 
 Rules:
 
-- Keep Reactor model identifiers and provider spellings exact.
-- Prefix public node IDs with `ReactorInc`; display names start with `Reactor`.
-  Do not derive stable IDs from mutable display labels.
+- Keep provider model identifiers and provider spellings exact.
+- Give public node IDs a stable extension namespace prefix. Do not derive stable
+  IDs from mutable display labels.
+- End visible node titles with the extension name in lowercase parentheses. Do
+  not repeat the extension name as a title prefix.
 - Keep ComfyUI callback names and required provider method names exact.
-- Use title case for node names, workflow titles, and note titles. Capitalize
-  major words and preserve model names and acronyms, such as
-  `Reactor Helios: Generate Video`. Use sentence case for parameters, sockets,
-  buttons, tooltips, status messages, and note body text.
-- Keep visible labels in schemas, `locales/en/nodeDefs.json`, and workflow notes
-  consistent. A label-only change must not alter saved keys or output positions.
-  Change stored structures only when the requested behavior requires it.
+- Use title case for the main part of node names, workflow titles, and note
+  titles. Keep the required lowercase extension suffix unchanged. Use sentence
+  case for parameters, sockets, buttons, tooltips, status messages, and note
+  body text.
+- Keep visible labels in schemas, localization files, and workflow notes
+  consistent.
 - Name example workflows for the model and the user task. When renaming an
   example, update its links and affected connections in the same change.
 - Add units where needed, such as `duration_seconds` and `timestamp_us`.
 - Never include prompts, tokens, private identifiers, or machine paths in public
   artifact names.
-- Keep narrow, documented exceptions for names imposed by ComfyUI or Reactor.
-
-Bad:
-
-```python
-model_key = "myNewThing"
-workflow_name = "example_1"
-result_field = "thing"
-```
-
-Good:
-
-```python
-model_name = "reactor/helios"
-workflow_name = "text-to-video"
-result_field = "duration_seconds"
-```
+- Keep narrow, documented exceptions for names imposed by ComfyUI or a provider.
 
 ## Review checklist
 
@@ -894,11 +856,12 @@ Before accepting a new name, ask:
 - Does the name describe the role or domain concept instead of the type shape?
 - Is the name clear at the call site?
 - Is context supplied by the owner omitted from the local name?
-- Does the name avoid vague role words unless the role is real?
-- Does the name use the correct Python, Bash, or frontend case rule?
+- Does the name avoid banned role words unless the naming policy configures an
+  exception?
+- Does the name use the correct language case rule?
 - Does the file or directory name describe ownership?
-- Does the function name describe the action and domain item?
+- Does the function name name the action and domain item?
 - Does each boolean read as a positive assertion?
 - Are external names isolated to boundary modules?
 - Are model, data, and result names treated as contracts?
-- Does the name meet the casing, vocabulary, prefix, and folder rules?
+- Does the name satisfy `pyproject.toml` and the local quality rules under `quality/`?

@@ -3,6 +3,7 @@
 import asyncio
 from pathlib import Path
 from ...language import translate
+from ..operation import RecordingWindow
 from ..transport import Transport
 from .contract import source_mode
 from typing import cast, ClassVar
@@ -11,7 +12,7 @@ from ...media.webcam import WebcamFrames
 from dataclasses import field, dataclass
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES
+from ....config.models.identities import MODELS
 from ...media.video.publish import VideoPublication
 from ..inputs import VideoInputs, validate_capture_inputs
 from ....config.generation.session import MAX_PROMPT_CHARACTERS
@@ -25,7 +26,7 @@ class SanaRequest(VideoInputs):
     video: Path | None = None
     webcam: WebcamFrames | None = None
     anchor_interval: int = DEFAULT_ANCHOR_INTERVAL
-    model_name: ClassVar[str] = IDENTITIES["sana-streaming"][1]
+    model_name: ClassVar[str] = MODELS["sana-streaming"].connection_name
     publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
 
     def validate(self, settings: Settings) -> None:
@@ -41,8 +42,11 @@ class SanaRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.anchorInterval"))
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Prepare the source using the declared model contract and start video editing."""
+        del max_capture_seconds
         if self.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         schema = await events.call("schema", transport.request_schema())
@@ -65,6 +69,7 @@ class SanaRequest(VideoInputs):
                 await self.publication.begin(self.video, track, events.on_error)
         await events.command_reply("start", {})
         self.publication.resume()
+        return RecordingWindow(0, self.duration_seconds)
 
     async def release(self, transport: Transport) -> None:
         """Stop source publication and close any webcam input."""

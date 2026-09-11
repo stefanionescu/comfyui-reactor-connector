@@ -1,16 +1,24 @@
 """Prepare image and sound settings before starting a Visko recording."""
 
+from __future__ import annotations
+
 import asyncio
+from typing import TYPE_CHECKING
 from ..inputs import VideoInputs
+from ..operation import RecordingWindow
 from ...language import translate
+from ...live.state import LiveOptions
 from ..transport import Transport
 from dataclasses import dataclass
 from typing import cast, ClassVar
 from ..events import SessionEvents
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES
+from ....config.models.identities import MODELS
 from ....config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
+
+if TYPE_CHECKING:
+    from ...media.webcam import WebcamFrames
 
 
 class ViskoStart:
@@ -63,7 +71,7 @@ class ViskoStableRequest(VideoInputs):
     resolution: str = ""
     audio_enabled: bool = True
     prompt_passthrough: bool = False
-    model_name: ClassVar[str] = IDENTITIES["visko-orbis-stable"][1]
+    model_name: ClassVar[str] = MODELS["visko-orbis-stable"].connection_name
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
@@ -76,8 +84,22 @@ class ViskoStableRequest(VideoInputs):
         if type(self.audio_enabled) is not bool or type(self.prompt_passthrough) is not bool:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.soundOptionType"))
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    def live_options(self, *, webcam: WebcamFrames | None = None) -> LiveOptions:
+        """Return sound and passthrough values selected for live controls."""
+        return LiveOptions(
+            self.model_name,
+            self.prompt,
+            webcam,
+            passthrough=self.prompt_passthrough,
+            audio_prompt=self.audio_prompt,
+            audio_enabled=self.audio_enabled,
+        )
+
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Set image and sound options, start generation, and confirm the accepted settings."""
+        del max_capture_seconds
         tracks = [
             track
             for track in transport.tracks
@@ -114,10 +136,11 @@ class ViskoStableRequest(VideoInputs):
                 resolution=self.resolution,
             ),
         )
+        return RecordingWindow(0, self.duration_seconds)
 
 
 @dataclass(frozen=True, slots=True)
 class ViskoDynamicRequest(ViskoStableRequest):
     """Keep Dynamic's canonical identity separate from Stable's saved workflows."""
 
-    model_name: ClassVar[str] = IDENTITIES["visko-orbis-dynamic"][1]
+    model_name: ClassVar[str] = MODELS["visko-orbis-dynamic"].connection_name

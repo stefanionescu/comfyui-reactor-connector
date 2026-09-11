@@ -1,15 +1,16 @@
 import type { Fetcher } from '#web/http.ts';
+import { exchange } from '#web/live/api.ts';
 import { Webcam } from '#web/live/webcam.ts';
 import { pause } from '#web/live/polling.ts';
 import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
 import { SoundControls } from '#web/live/sound.ts';
+import { sendAction } from '#web/live/commands.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
 import { browserLimits } from '#config/web/browser.ts';
 import { DragInput, type Pointer } from '#web/live/drag.ts';
-import { exchange, type LiveStatus } from '#web/live/api.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
-import { sendAction, type Controls, parseControlsInvitation } from '#web/live/commands.ts';
+import { type Controls, type LiveStatus, parseControlsInvitation } from '#web/live/schema.ts';
 
 const panels = new Set<string>();
 
@@ -108,11 +109,7 @@ class ControlPanel {
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
     const label = element(
       'label',
-      message(
-        this.owner.model === 'xmax/x2' || this.owner.model === 'reactor/sana-streaming'
-          ? 'live.editPrompt'
-          : 'live.scenePrompt',
-      ),
+      message(this.owner.promptKind === 'edit' ? 'live.editPrompt' : 'live.scenePrompt'),
     );
     label.append(this.prompt);
     this.dialog.append(label, this.update);
@@ -137,7 +134,7 @@ class ControlPanel {
       }
     });
     this.update.addEventListener('click', () => {
-      if (!this.prompt.value.trim() && this.owner.model !== 'reactor/sana-streaming') {
+      if (!this.prompt.value.trim() && !this.owner.allowEmptyPrompt) {
         setText(this.status, message('controls.emptyPrompt'));
         return;
       }

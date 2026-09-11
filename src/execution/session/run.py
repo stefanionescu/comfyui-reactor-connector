@@ -12,7 +12,7 @@ from ..events import SessionEvents
 from .state import SessionResources
 from ...media.output import owned_io
 from ..cleanup import finish_session
-from ..operation import VideoOperation
+from ..operation import RecordingWindow, VideoOperation
 from ..diagnostics import FailureReport
 from ...media.state import CaptureResult
 from ...media.capture import VideoCapture
@@ -36,11 +36,12 @@ def _video_track(transport: Transport) -> Track:
     return tracks[0]
 
 
-async def _generate(session: SessionResources) -> CaptureResult:
+async def _generate(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
     """Connect, configure the model, and capture the requested video and recording."""
+    recording_window = RecordingWindow(0, session.request.duration_seconds)
     await session.capture.ready.wait()
     if session.worker.done():
-        return await session.worker
+        return await session.worker, recording_window
     async with asyncio.timeout(session.settings.connect_timeout_seconds):
         session.outcome.is_connection_attempted = True
         await session.events.call("connect", session.transport.connect())
@@ -50,7 +51,11 @@ async def _generate(session: SessionResources) -> CaptureResult:
     track.on_frame(session.capture.receive)
     if session.interaction is not None:
         await session.interaction.connected(session.transport, track, session.events)
-    await session.request.configure(session.transport, session.events)
+    recording_window = await session.request.configure(
+        session.transport,
+        session.events,
+        session.settings.max_capture_seconds,
+    )
     if session.interaction is not None:
         session.interaction.configured(video_started=session.capture.first_frame.is_set())
     session.events.phase = "capture"
@@ -73,7 +78,7 @@ async def _generate(session: SessionResources) -> CaptureResult:
                 on_window=session.events.on_recording_window,
             ),
         )
-    return result
+    return result, recording_window
 
 
 async def _capture_until_end(capture: VideoCapture, events: SessionEvents) -> None:
@@ -120,7 +125,7 @@ def session_failure(events: SessionEvents, error: BaseException | None) -> Failu
     return diagnostic
 
 
-async def _run(session: SessionResources) -> CaptureResult:
+async def _run(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
     """Own capture and event listeners through generation, failure, and cleanup."""
     try:
         session.events.attach()
@@ -162,14 +167,14 @@ async def run_video(
             outcome=outcome or SessionOutcome(),
             interaction=interaction,
         )
-        result = await _run(session)
+        result, recording_window = await _run(session)
         if request.requires_audio:
             result = await prepare_recording(
                 destination.with_suffix(".recording.mp4"),
                 destination,
-                request.recording_duration_seconds,
+                recording_window.duration_seconds,
                 settings,
-                start_seconds=request.recording_start_seconds,
+                start_seconds=recording_window.start_seconds,
             )
     except asyncio.CancelledError:
         raise

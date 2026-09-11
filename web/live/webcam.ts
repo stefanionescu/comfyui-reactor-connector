@@ -1,6 +1,6 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
-import type { Controls } from '#web/live/commands.ts';
+import type { Controls } from '#web/live/schema.ts';
 import { browserRoutes } from '#config/web/routes.ts';
 import { translate, type MessageKey } from '#web/language.ts';
 import { browserInput, browserLimits } from '#config/web/browser.ts';

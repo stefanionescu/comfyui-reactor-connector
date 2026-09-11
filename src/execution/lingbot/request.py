@@ -3,13 +3,14 @@
 import math
 from typing import ClassVar
 from ..inputs import VideoInputs
+from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from dataclasses import dataclass
 from ..events import SessionEvents
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES
+from ....config.models.identities import MODELS
 from ....config.generation.world import (
     CAMERA_AXES,
     DEFAULT_LATERAL,
@@ -32,7 +33,7 @@ class LingBotRequest(VideoInputs):
     look_horizontal: str = DEFAULT_LOOK_HORIZONTAL
     look_vertical: str = DEFAULT_LOOK_VERTICAL
     rotation_speed_deg: float = DEFAULT_ROTATION_DEGREES
-    model_name: ClassVar[str] = IDENTITIES["lingbot"][1]
+    model_name: ClassVar[str] = MODELS["lingbot"].connection_name
     movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES["movement"]
 
     def axes(self) -> tuple[tuple[str, str], ...]:
@@ -65,8 +66,11 @@ class LingBotRequest(VideoInputs):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.rotationSpeed"))
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Upload the starting image, set camera controls, and start the scene."""
+        del max_capture_seconds
         if self.image is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.startingImageRequired"))
         await events.command_reply("set_seed", {"seed": self.seed})
@@ -77,6 +81,7 @@ class LingBotRequest(VideoInputs):
         for axis, value in self.axes():
             await events.command_reply(f"set_{axis}", {axis: value})
         await events.command_reply("start", {})
+        return RecordingWindow(0, self.duration_seconds)
 
     async def release(self, transport: Transport) -> None:
         """Release held axes before disconnect; disconnect still runs if release fails."""
@@ -90,7 +95,7 @@ class LingBotWorldRequest(LingBotRequest):
     """Keep longitudinal and lateral movement independent for World 2."""
 
     lateral: str = DEFAULT_LATERAL
-    model_name: ClassVar[str] = IDENTITIES["lingbot-world-2"][1]
+    model_name: ClassVar[str] = MODELS["lingbot-world-2"].connection_name
     fallback_fps: ClassVar[int] = WORLD_FRAME_RATE
     movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES["move_longitudinal"]
 

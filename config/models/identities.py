@@ -1,110 +1,125 @@
-"""Match public model names to Reactor identities and live capabilities."""
+"""Describe reviewed Reactor model identities and live capabilities."""
 
+from dataclasses import dataclass
+from typing import Literal
+
+from ..generation.fast import MAX_PROMPT_CHARACTERS as MAX_FAST_PROMPT_CHARACTERS
 from ..generation.session import MAX_PROMPT_CHARACTERS
 from ..generation.video import MAX_EDIT_PROMPT_CHARACTERS
-from ..generation.fast import MAX_PROMPT_CHARACTERS as MAX_FAST_PROMPT_CHARACTERS
 from ..generation.world import LINGBOT_CAMERA_AXES, LINGBOT_WORLD_CAMERA_AXES, MAX_WORLD_PROMPT_CHARACTERS
 
 
-FAST_H3_CONNECTION = "reactor/fast-h3"
-VISKO_STABLE_CONNECTION = "reactor/visko-orbis-stable"
-VISKO_DYNAMIC_CONNECTION = "reactor/visko-orbis-dynamic"
-HELIOS_CONNECTION = "reactor/helios"
-LINGBOT_CONNECTION = "reactor/lingbot"
-LINGBOT_WORLD_CONNECTION = "reactor/lingbot-world-2"
-LONGLIVE_CONNECTION = "reactor/longlive-v2"
-SANA_CONNECTION = "reactor/sana-streaming"
-LTX_CONNECTION = "reactor/ltx2"
-X2_CONNECTION = "xmax/x2"
+@dataclass(frozen=True, slots=True)
+class ModelDefinition:
+    """One reviewed model identity and its static live-control policy.
 
-IDENTITIES = {
-    "fast-h3": ("fast-h3", FAST_H3_CONNECTION),
-    "visko-orbis-stable": ("visko-orbis-stable", VISKO_STABLE_CONNECTION),
-    "visko-orbis-dynamic": ("visko-orbis-dynamic", VISKO_DYNAMIC_CONNECTION),
-    "helios": ("helios", HELIOS_CONNECTION),
-    "lingbot": ("lingbot", LINGBOT_CONNECTION),
-    "lingbot-world-2": ("lingbot-world-2", LINGBOT_WORLD_CONNECTION),
-    "longlive-v2": ("longlive-v2", LONGLIVE_CONNECTION),
-    "sana-streaming": ("sana-streaming", SANA_CONNECTION),
-    "ltx2": ("ltx", LTX_CONNECTION),
-    "x2": ("x2", X2_CONNECTION),
+    Attributes:
+        guide_slug: Public guide name used to build documentation links.
+        connection_name: Provider connection selected for execution.
+        title: Human-readable model name shown in connector interfaces.
+        prompt_limit: Maximum prompt characters accepted during a live session.
+        prompt_kind: Prompt editor language used by the live panel.
+        allow_empty_prompt: Whether a live prompt may contain only whitespace.
+        camera_axes: Camera axes exposed by an interactive world model.
+        prompt_command: Provider command used to update the main prompt.
+        supports_audio_prompt: Whether live sound prompting is available.
+        supports_pointer: Whether live pointer controls are available.
+        supports_prompt_passthrough: Whether prompt updates retain passthrough mode.
+    """
+
+    guide_slug: str
+    connection_name: str
+    title: str
+    prompt_limit: int
+    prompt_kind: Literal["scene", "edit"] = "scene"
+    allow_empty_prompt: bool = False
+    camera_axes: tuple[str, ...] = ()
+    prompt_command: str = "set_prompt"
+    supports_audio_prompt: bool = False
+    supports_pointer: bool = False
+    supports_prompt_passthrough: bool = False
+
+
+MODELS: dict[str, ModelDefinition] = {
+    "fast-h3": ModelDefinition(
+        guide_slug="fast-h3",
+        connection_name="reactor/fast-h3",
+        title="Fast H3",
+        prompt_limit=MAX_FAST_PROMPT_CHARACTERS,
+    ),
+    "visko-orbis-stable": ModelDefinition(
+        guide_slug="visko-orbis-stable",
+        connection_name="reactor/visko-orbis-stable",
+        title="Visko Stable",
+        prompt_limit=MAX_PROMPT_CHARACTERS,
+        supports_audio_prompt=True,
+        supports_prompt_passthrough=True,
+    ),
+    "visko-orbis-dynamic": ModelDefinition(
+        guide_slug="visko-orbis-dynamic",
+        connection_name="reactor/visko-orbis-dynamic",
+        title="Visko Dynamic",
+        prompt_limit=MAX_PROMPT_CHARACTERS,
+        supports_audio_prompt=True,
+        supports_prompt_passthrough=True,
+    ),
+    "helios": ModelDefinition(
+        guide_slug="helios",
+        connection_name="reactor/helios",
+        title="Helios",
+        prompt_limit=MAX_PROMPT_CHARACTERS,
+    ),
+    "lingbot": ModelDefinition(
+        guide_slug="lingbot",
+        connection_name="reactor/lingbot",
+        title="LingBot",
+        prompt_limit=MAX_WORLD_PROMPT_CHARACTERS,
+        camera_axes=LINGBOT_CAMERA_AXES,
+    ),
+    "lingbot-world-2": ModelDefinition(
+        guide_slug="lingbot-world-2",
+        connection_name="reactor/lingbot-world-2",
+        title="LingBot World 2",
+        prompt_limit=MAX_WORLD_PROMPT_CHARACTERS,
+        camera_axes=LINGBOT_WORLD_CAMERA_AXES,
+    ),
+    "longlive-v2": ModelDefinition(
+        guide_slug="longlive-v2",
+        connection_name="reactor/longlive-v2",
+        title="LongLive",
+        prompt_limit=MAX_PROMPT_CHARACTERS,
+        prompt_command="set_shot",
+    ),
+    "sana-streaming": ModelDefinition(
+        guide_slug="sana-streaming",
+        connection_name="reactor/sana-streaming",
+        title="SANA",
+        prompt_limit=MAX_PROMPT_CHARACTERS,
+        prompt_kind="edit",
+        allow_empty_prompt=True,
+    ),
+    "ltx2": ModelDefinition(
+        guide_slug="ltx",
+        connection_name="reactor/ltx2",
+        title="LTX",
+        prompt_limit=MAX_PROMPT_CHARACTERS,
+    ),
+    "x2": ModelDefinition(
+        guide_slug="x2",
+        connection_name="xmax/x2",
+        title="X2",
+        prompt_limit=MAX_EDIT_PROMPT_CHARACTERS,
+        prompt_kind="edit",
+        supports_pointer=True,
+    ),
 }
 
-MODEL_TITLES = {
-    "helios": "Helios",
-    "lingbot": "LingBot",
-    "lingbot-world-2": "LingBot World 2",
-    "longlive-v2": "LongLive",
-    "sana-streaming": "SANA",
-    "ltx2": "LTX",
-    "x2": "X2",
-    "fast-h3": "Fast H3",
-    "visko-orbis-stable": "Visko Stable",
-    "visko-orbis-dynamic": "Visko Dynamic",
+MODELS_BY_CONNECTION: dict[str, ModelDefinition] = {
+    definition.connection_name: definition for definition in MODELS.values()
 }
-
-CONNECTION_TITLES = {
-    FAST_H3_CONNECTION: "Fast H3",
-    VISKO_STABLE_CONNECTION: "Visko Stable",
-    VISKO_DYNAMIC_CONNECTION: "Visko Dynamic",
-    HELIOS_CONNECTION: "Helios",
-    LINGBOT_CONNECTION: "LingBot",
-    LINGBOT_WORLD_CONNECTION: "LingBot World 2",
-    LONGLIVE_CONNECTION: "LongLive",
-    SANA_CONNECTION: "SANA",
-    LTX_CONNECTION: "LTX",
-    X2_CONNECTION: "X2",
-}
-
-MODEL_PROMPT_LIMITS = {
-    FAST_H3_CONNECTION: MAX_FAST_PROMPT_CHARACTERS,
-    VISKO_STABLE_CONNECTION: MAX_PROMPT_CHARACTERS,
-    VISKO_DYNAMIC_CONNECTION: MAX_PROMPT_CHARACTERS,
-    HELIOS_CONNECTION: MAX_PROMPT_CHARACTERS,
-    LINGBOT_CONNECTION: MAX_WORLD_PROMPT_CHARACTERS,
-    LINGBOT_WORLD_CONNECTION: MAX_WORLD_PROMPT_CHARACTERS,
-    LONGLIVE_CONNECTION: MAX_PROMPT_CHARACTERS,
-    SANA_CONNECTION: MAX_PROMPT_CHARACTERS,
-    LTX_CONNECTION: MAX_PROMPT_CHARACTERS,
-    X2_CONNECTION: MAX_EDIT_PROMPT_CHARACTERS,
-}
-
-MODEL_CAMERA_AXES = {
-    LINGBOT_CONNECTION: LINGBOT_CAMERA_AXES,
-    LINGBOT_WORLD_CONNECTION: LINGBOT_WORLD_CAMERA_AXES,
-}
-
-MODEL_PROMPT_COMMANDS = {
-    LONGLIVE_CONNECTION: "set_shot",
-}
-
-AUDIO_PROMPT_MODELS = (VISKO_STABLE_CONNECTION, VISKO_DYNAMIC_CONNECTION)
-
-POINTER_MODELS = (X2_CONNECTION,)
-
-EMPTY_PROMPT_MODELS = (SANA_CONNECTION,)
-
-PROMPT_PASSTHROUGH_MODELS = (VISKO_STABLE_CONNECTION, VISKO_DYNAMIC_CONNECTION)
 
 __all__ = [
-    "AUDIO_PROMPT_MODELS",
-    "CONNECTION_TITLES",
-    "EMPTY_PROMPT_MODELS",
-    "FAST_H3_CONNECTION",
-    "HELIOS_CONNECTION",
-    "IDENTITIES",
-    "LINGBOT_CONNECTION",
-    "LINGBOT_WORLD_CONNECTION",
-    "LONGLIVE_CONNECTION",
-    "LTX_CONNECTION",
-    "MODEL_CAMERA_AXES",
-    "MODEL_PROMPT_COMMANDS",
-    "MODEL_PROMPT_LIMITS",
-    "MODEL_TITLES",
-    "POINTER_MODELS",
-    "PROMPT_PASSTHROUGH_MODELS",
-    "SANA_CONNECTION",
-    "VISKO_DYNAMIC_CONNECTION",
-    "VISKO_STABLE_CONNECTION",
-    "X2_CONNECTION",
+    "MODELS",
+    "MODELS_BY_CONNECTION",
+    "ModelDefinition",
 ]

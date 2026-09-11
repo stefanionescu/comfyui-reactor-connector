@@ -2,23 +2,26 @@
 
 from .storage import state_directory
 from .discovery.store import ModelStore
-from dataclasses import field, dataclass
 from .live.registry import BrowserRegistry
 from .settings.store import ConfigurationStore
 from .execution.admission import SessionAdmission
 
 
-@dataclass(slots=True)
 class Runtime:
     """State shared by this connector's nodes across executor event loops."""
 
-    sessions: SessionAdmission = field(default_factory=SessionAdmission)
-    browsers: BrowserRegistry = field(default_factory=BrowserRegistry)
-    configuration: ConfigurationStore = field(default_factory=lambda: ConfigurationStore(state_directory()))
-    discovery: ModelStore = field(init=False)
+    __slots__ = ("browsers", "configuration", "discovery", "sessions")
 
-    def __post_init__(self) -> None:
-        """Place model metadata beside the connector's private configuration."""
+    sessions: SessionAdmission
+    browsers: BrowserRegistry
+    configuration: ConfigurationStore
+    discovery: ModelStore
+
+    def __init__(self) -> None:
+        """Create process-wide services and place their state under one private directory."""
+        self.sessions = SessionAdmission()
+        self.browsers = BrowserRegistry()
+        self.configuration = ConfigurationStore(state_directory())
         self.discovery = ModelStore(self.configuration.directory / "catalog")
 
 

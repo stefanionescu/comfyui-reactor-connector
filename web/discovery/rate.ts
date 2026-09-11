@@ -6,8 +6,9 @@ import { bindWidgetLabel } from '#web/nodes/labels.ts';
 import { browserLimits } from '#config/web/browser.ts';
 import type { ReactorNode } from '#web/nodes/contracts.ts';
 import { formatCreditSummary } from '#web/discovery/pricing.ts';
+import type { Model, ModelList } from '#web/discovery/schema.ts';
+import { requestModels, metadataStatus } from '#web/discovery/api.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
-import { type Model, type ModelList, requestModels, metadataStatus } from '#web/discovery/api.ts';
 
 /**
  * Read the requested video length only when it is known in the editor.

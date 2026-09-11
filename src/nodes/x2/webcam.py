@@ -4,7 +4,6 @@ import asyncio
 from functools import partial
 from ...media.output import owned_io
 from ..controls import video_outputs
-from ...live.state import LiveOptions
 from ...media.images import image_png
 from ..schema import translate_schema
 from comfy_api.latest import io, Input
@@ -86,7 +85,7 @@ class X2Webcam(io.ComfyNode):
                 request = X2Request(prompt, duration_seconds, 0, image=image, webcam=camera)
                 return await execute_video(
                     request,
-                    controls=LiveOptions(request.model_name, prompt, camera),
+                    controls=request.live_options(webcam=camera),
                     node_id=cls.define_schema().node_id,
                 )
             finally:

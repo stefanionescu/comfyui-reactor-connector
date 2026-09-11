@@ -10,12 +10,7 @@ from ...errors import ErrorCode, ConnectorError
 from ....config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
 from ....config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
 from ....config.nodes import DEFAULT_POINTER_POSITION, MAX_POINTER_POSITION, MIN_POINTER_POSITION
-from ....config.models.identities import (
-    POINTER_MODELS,
-    CONNECTION_TITLES,
-    AUDIO_PROMPT_MODELS,
-    EMPTY_PROMPT_MODELS,
-)
+from ....config.models.identities import MODELS_BY_CONNECTION, ModelDefinition
 
 
 class ControlLease(BrowserLease):
@@ -31,6 +26,7 @@ class ControlLease(BrowserLease):
         """Create an owner-authorized live-action queue with model-specific options."""
         super().__init__(choices or {})
         self.options = options
+        self.definition: ModelDefinition = MODELS_BY_CONNECTION[options.model]
         self.actions: deque[tuple[str, dict[str, Json], float]] = deque()
         self.action_sequence = -1
         self.started = started
@@ -39,14 +35,16 @@ class ControlLease(BrowserLease):
         """Add supported live controls to the invitation sent to the owning client."""
         result = super().invitation()
         result.update(
-            model_title=CONNECTION_TITLES[self.options.model],
+            model_title=self.definition.title,
+            prompt_kind=self.definition.prompt_kind,
+            allow_empty_prompt=self.definition.allow_empty_prompt,
             audio_prompt_limit=MAX_AUDIO_PROMPT_CHARACTERS,
             prompt=self.options.prompt,
-            prompt_limit=self.options.prompt_limit,
+            prompt_limit=self.definition.prompt_limit,
             webcam=self.options.webcam is not None,
-            pointer=self.options.model in POINTER_MODELS,
+            pointer=self.definition.supports_pointer,
             audio_prompt=self.options.audio_prompt,
-            sound=self.options.model in AUDIO_PROMPT_MODELS and self.options.audio_enabled,
+            sound=self.definition.supports_audio_prompt and self.options.audio_enabled,
         )
         return result
 
@@ -93,19 +91,19 @@ class ControlLease(BrowserLease):
             valid = (
                 payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
-                and (bool(prompt.strip()) or self.options.model in EMPTY_PROMPT_MODELS)
-                and len(prompt) <= self.options.prompt_limit
+                and (bool(prompt.strip()) or self.definition.allow_empty_prompt)
+                and len(prompt) <= self.definition.prompt_limit
             )
         elif name == "audio_prompt":
             prompt = payload.get("prompt")
             valid = (
-                self.options.model in AUDIO_PROMPT_MODELS
+                self.definition.supports_audio_prompt
                 and self.options.audio_enabled
                 and payload.keys() == {"prompt"}
                 and isinstance(prompt, str)
                 and len(prompt) <= MAX_AUDIO_PROMPT_CHARACTERS
             )
-        elif name == "pointer" and self.options.model in POINTER_MODELS:
+        elif name == "pointer" and self.definition.supports_pointer:
             valid = (
                 payload.keys() == {"x", "y", "active"}
                 and type(payload.get("active")) is bool

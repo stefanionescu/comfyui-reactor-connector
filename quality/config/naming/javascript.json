@@ -67,18 +67,55 @@
             "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
         },
         {
-            "pathRegexes": ["^web/live/commands\\.ts$"],
+            "pathRegexes": ["^web/discovery/schema\\.ts$"],
             "categories": ["properties"],
-            "names": ["prompt_limit", "audio_prompt"],
+            "names": [
+                "automatic_check",
+                "can_rollback",
+                "checked_at",
+                "connect_name",
+                "credits_per_second",
+                "documentation_url",
+                "interval_hours",
+                "mutation_allowed",
+                "node_ids",
+                "retrieved_at",
+                "update_available"
+            ],
             "caseNames": ["snake"],
-            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
+            "reason": "These fields are deserialized from the local ComfyUI API and must keep their wire names."
         },
         {
-            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "pathRegexes": ["^web/live/schema\\.ts$"],
             "categories": ["properties"],
-            "names": ["catalog_auto_check", "catalog_interval_hours"],
+            "names": [
+                "allow_empty_prompt",
+                "audio_prompt",
+                "audio_prompt_limit",
+                "controls_ready",
+                "duration_seconds",
+                "elapsed_seconds",
+                "model_title",
+                "preview_sequence",
+                "prompt_kind",
+                "prompt_limit",
+                "termination_confirmed"
+            ],
             "caseNames": ["snake"],
-            "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
+            "reason": "These fields are deserialized from private ComfyUI events and must keep their wire names."
+        },
+        {
+            "pathRegexes": ["^web/settings/schema\\.ts$"],
+            "categories": ["properties"],
+            "names": [
+                "catalog_auto_check",
+                "catalog_interval_hours",
+                "credential_limit",
+                "integer_settings",
+                "mutation_allowed"
+            ],
+            "caseNames": ["snake"],
+            "reason": "These fields are deserialized from the local settings API and must keep their wire names."
         },
         {
             "pathRegexes": ["^quality/config/eslint/base\\.mjs$"],
@@ -576,7 +613,7 @@
             "reason": "ComfyUI widgets use this property to control advanced inputs."
         },
         {
-            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "pathRegexes": ["^web/settings/schema\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["catalog_auto_check", "catalog_interval_hours"],
             "allowedViolations": ["banned-term"],

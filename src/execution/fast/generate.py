@@ -3,14 +3,14 @@
 import json
 from typing import ClassVar
 from ..inputs import VideoInputs
-from .state import FastRecording
+from ..operation import RecordingWindow
 from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
-from dataclasses import field, dataclass
+from dataclasses import dataclass
 from ...settings.settings import Settings
 from ...errors import ErrorCode, ConnectorError
-from ....config.models.identities import IDENTITIES
+from ....config.models.identities import MODELS
 from .clip import seconds, FastClip, FastClipEvents, message_payload
 from ....config.generation.fast import (
     FRAME_RATE,
@@ -28,19 +28,8 @@ class FastGenerateRequest(VideoInputs):
 
     aspect: str = DEFAULT_ASPECT
     ending_image: bytes | None = None
-    model_name: ClassVar[str] = IDENTITIES["fast-h3"][1]
+    model_name: ClassVar[str] = MODELS["fast-h3"].connection_name
     requires_audio: ClassVar[bool] = True
-    recording: FastRecording = field(default_factory=FastRecording, repr=False, compare=False)
-
-    @property
-    def recording_start_seconds(self) -> float:
-        """Return the playback start reported for the selected clip."""
-        return self.recording.start_seconds
-
-    @property
-    def recording_duration_seconds(self) -> float:
-        """Return the accepted duration of the selected clip."""
-        return self.recording.duration_seconds
 
     def validate(self, settings: Settings) -> None:
         """Check Fast H3 prompt, duration, aspect ratio, and ending-image limits."""
@@ -57,9 +46,10 @@ class FastGenerateRequest(VideoInputs):
             or len(self.ending_image) > settings.max_upload_megabytes * 1_048_576
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.endingImageUploadLimit"))
-        self.recording.maximum_seconds = settings.max_capture_seconds
 
-    async def configure(self, transport: Transport, events: SessionEvents) -> None:
+    async def configure(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> RecordingWindow:
         """Generate and play one clip, then close its recording with trailing media."""
         audio = [
             t for t in transport.tracks if t.name == "main_audio" and t.kind == "audio" and t.direction == "recvonly"
@@ -80,10 +70,9 @@ class FastGenerateRequest(VideoInputs):
                 ErrorCode.INVALID_INPUT,
                 translate("main", "errors.clipDurationRange"),
             )
-        clip = await self._queue_clip(transport, events)
-        self.recording.duration_seconds = clip.seconds
+        clip = await self._queue_clip(transport, events, max_capture_seconds)
         await events.call("clip_build", clips.wait_ready(clip))
-        await self._play_clip(transport, events, clips, clip)
+        start_seconds = await self._play_clip(transport, events, clips, clip)
         # Later media closes the recording fragment that contains the first clip's end.
         reply = await events.call(
             "recording_tail_queue",
@@ -104,8 +93,11 @@ class FastGenerateRequest(VideoInputs):
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.continuationLength"))
         await events.call("recording_tail_build", clips.wait_ready(tail))
         await events.command_reply("play", {"clip_id": tail.clip_id})
+        return RecordingWindow(start_seconds, clip.seconds)
 
-    async def _queue_clip(self, transport: Transport, events: SessionEvents) -> FastClip:
+    async def _queue_clip(
+        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
+    ) -> FastClip:
         """Upload selected endpoint images and queue a clip within the capture limit."""
         payload: dict[str, object] = {
             "prompt": self.prompt,
@@ -121,7 +113,7 @@ class FastGenerateRequest(VideoInputs):
         events.on_message(reply)
         events.check()
         clip = FastClip.read(message_payload(reply, "clip_queued"))
-        if clip.seconds > self.recording.maximum_seconds:
+        if clip.seconds > max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
                 translate("main", "errors.clipCaptureLimit"),
@@ -130,7 +122,7 @@ class FastGenerateRequest(VideoInputs):
 
     async def _play_clip(
         self, transport: Transport, events: SessionEvents, clips: FastClipEvents, clip: FastClip
-    ) -> None:
+    ) -> float:
         """Play the chosen clip and require a precise recording interval."""
         before = await self._state(transport, events)
         start = seconds(before.get("seconds_sent"))
@@ -147,8 +139,8 @@ class FastGenerateRequest(VideoInputs):
                     {"start_seconds": start, "end_seconds": end, "clip_seconds": clip.seconds}
                 ),
             )
-        self.recording.start_seconds = start
         events.model_timing.update(saved_start_seconds=start, saved_duration_seconds=clip.seconds)
+        return start
 
     async def _state(self, transport: Transport, events: SessionEvents) -> dict[str, object]:
         """Fetch the model state and process any session failure before returning it."""

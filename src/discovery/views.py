@@ -4,7 +4,7 @@ from .contracts import Snapshot
 from ..serialization import Json
 from ...config.models.nodes import NODE_MODELS
 from ...config.discovery import GUIDE_URL_FORMAT
-from ...config.models.identities import IDENTITIES, MODEL_TITLES
+from ...config.models.identities import MODELS
 
 
 def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
@@ -15,7 +15,9 @@ def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
     models: list[dict[str, Json]] = []
     for name in sorted(set(prices) | set(NODE_MODELS.values())):
         price = prices.get(name)
-        guide_slug, connect_name = IDENTITIES.get(name, (name, None))
+        definition = MODELS.get(name)
+        guide_slug = definition.guide_slug if definition else name
+        connect_name = definition.connection_name if definition else None
         guide = guides.get(guide_slug)
         if guide:
             associated.add(guide_slug)
@@ -23,7 +25,7 @@ def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
         model: dict[str, Json] = {
             "key": f"pricing:{price.id}" if price else f"model:{name}",
             "name": name,
-            "title": MODEL_TITLES.get(name, guide.title if guide else name),
+            "title": definition.title if definition else guide.title if guide else name,
             "connect_name": connect_name,
             "documentation_url": guide_url(guide_slug) if guide or connect_name else None,
             "credits_per_second": price.credits_per_second if price else None,

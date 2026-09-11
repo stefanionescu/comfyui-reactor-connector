@@ -590,477 +590,650 @@ function updateBinding(target, binding) {
     target.setAttribute(binding.attribute, binding.rendered);
 }
 
-// web/dom.ts
-function element(tag, text) {
-  const node = document.createElement(tag);
-  if (text !== void 0) node.appendChild(textNode(text));
-  return node;
-}
-function button(text, type = "button") {
-  const node = element("button", text);
-  node.type = type;
-  return node;
-}
-
-// web/live/webcam.ts
-var Webcam = class {
-  /**
-   * Build camera selection and a muted input preview.
-   * @param owner - The validated session invitation.
-   * @param fetcher - ComfyUI's local API client.
-   * @param fail - Request session ending if the camera disconnects.
-   */
-  constructor(owner, fetcher, fail) {
-    this.owner = owner;
-    this.fetcher = fetcher;
-    this.fail = fail;
-    this.view.className = "reactor-webcam";
-    const label = element("label", message("camera.label"));
-    label.append(this.select);
-    const defaultCamera = element("option", message("camera.default"));
-    defaultCamera.value = "";
-    this.select.append(defaultCamera);
-    this.video.muted = true;
-    this.video.autoplay = true;
-    this.video.playsInline = true;
-    this.video.hidden = true;
-    setTextAttribute(this.video, "aria-label", message("camera.preview"));
-    const controls = element("div");
-    controls.append(label, this.enable);
-    this.view.append(controls, this.video, this.status);
-    this.enable.addEventListener("click", () => {
-      this.enable.disabled = true;
-      const selected = this.select.value;
-      void this.start(selected);
-    });
-  }
-  owner;
-  fetcher;
-  fail;
-  view = element("section");
-  video = element("video");
-  enable = button(message("camera.enable"));
-  select = element("select");
-  status = element("p");
-  stream;
-  closed = false;
-  sequence = 0;
-  canvas = element("canvas");
-  upload;
-  controller = new AbortController();
-  async start(selected) {
-    try {
-      if (!await this.openCamera(selected)) return;
-      await this.listCameras();
-      if (this.closed) return;
-      setText(this.enable, message("camera.select"));
-      setText(this.status, message("camera.enabled"));
-    } catch (error) {
-      this.stopCamera();
-      if (this.closed) return;
-      const errors = /* @__PURE__ */ new Map([
-        ["NotAllowedError", "camera.permissionDenied"],
-        ["SecurityError", "camera.browserRequirements"],
-        ["NotFoundError", "camera.notFound"],
-        ["NotReadableError", "camera.busy"],
-        ["OverconstrainedError", "camera.unavailableSelection"]
-      ]);
-      setText(
-        this.status,
-        message(
-          error instanceof Error ? errors.get(error.name) ?? "camera.accessFailed" : "camera.accessFailed"
-        )
-      );
-    } finally {
-      if (!this.closed) this.enable.disabled = false;
-    }
-  }
-  /**
-   * Open the selected camera and release any previous stream.
-   * @param selected - The selected device ID, or an empty string for the default camera.
-   * @returns Whether the camera is ready and the panel is still open.
-   */
-  async openCamera(selected) {
-    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("", "SecurityError");
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        width: { ideal: 640 },
-        height: { ideal: 480 },
-        frameRate: { ideal: 12, max: 24 },
-        ...selected ? { deviceId: { exact: selected } } : {}
-      }
-    });
-    if (this.closed) {
-      for (const track of stream.getTracks()) track.stop();
-      return false;
-    }
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    this.stream = stream;
-    this.video.srcObject = stream;
-    await this.video.play();
-    if (this.closed) return false;
-    this.video.hidden = false;
-    return true;
-  }
-  /**
-   * List cameras after permission reveals their names.
-   * @returns When the available camera choices have been updated.
-   */
-  async listCameras() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    if (this.closed) return;
-    const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
-    const options = document.createDocumentFragment();
-    for (const device of devices) {
-      if (device.kind !== "videoinput") continue;
-      const option = element(
-        "option",
-        device.label || message("camera.number", { number: options.childElementCount + 1 })
-      );
-      option.value = device.deviceId;
-      option.selected = device.deviceId === selected;
-      options.appendChild(option);
-    }
-    this.select.replaceChildren();
-    this.select.appendChild(options);
-  }
-  /**
-   * Upload a camera frame without overlapping uploads.
-   * @returns Whether a camera frame was available to send.
-   */
-  async frame() {
-    if (this.closed || !this.stream || this.video.readyState < 2) return false;
-    for (const track of this.stream.getVideoTracks()) {
-      if (track.readyState === "live") continue;
-      this.fail(translate("camera.disconnected"));
-      return false;
-    }
-    if (this.upload) {
-      await this.upload;
-      return true;
-    }
-    const ratio = Math.min(640 / this.video.videoWidth, 480 / this.video.videoHeight, 1);
-    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
-    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-    this.upload = this.send();
-    try {
-      await this.upload;
-      return true;
-    } finally {
-      this.upload = void 0;
-    }
-  }
-  async send() {
-    const blob = await new Promise((fulfill) => {
-      const context = this.canvas.getContext("2d");
-      if (!context) throw new Error(translate("camera.readFailed"));
-      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      this.canvas.toBlob(fulfill, "image/jpeg", 0.8);
-    });
-    if (this.closed || !blob) return;
-    const response = await this.fetcher("/reactor-inc/v1/live/camera", {
-      method: "POST",
-      cache: "no-store",
-      body: blob,
-      signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(2e3)]),
-      headers: {
-        "Content-Type": "image/jpeg",
-        "X-Reactor-Comfy": "1",
-        "X-Reactor-Lease": this.owner.lease,
-        "X-Reactor-Capability": this.owner.capability,
-        "X-Reactor-Sequence": String(this.sequence++)
-      }
-    });
-    if (!response.ok) throw new Error(translate("camera.uploadFailed"));
-  }
-  /**
-   * Stop the camera, cancel uploads, and clear the capture canvas.
-   */
-  close() {
-    this.closed = true;
-    this.controller.abort();
-    this.stopCamera();
-    this.select.disabled = this.enable.disabled = true;
-    setText(this.status, message("camera.disabled"));
-    this.canvas.width = this.canvas.height = 0;
-  }
-  stopCamera() {
-    this.video.hidden = true;
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    this.stream = void 0;
-    this.video.srcObject = null;
+// config/web/routes.ts
+var browserRoutes = {
+  settings: {
+    status: "/reactor-inc/v1/status",
+    values: "/reactor-inc/v1/settings",
+    credential: "/reactor-inc/v1/credential"
+  },
+  models: {
+    read: "/reactor-inc/v1/catalog",
+    refresh: "/reactor-inc/v1/catalog/refresh",
+    rollback: "/reactor-inc/v1/catalog/rollback"
+  },
+  live: {
+    exchange: "/reactor-inc/v1/live/exchange",
+    action: "/reactor-inc/v1/live/action",
+    camera: "/reactor-inc/v1/live/camera"
   }
 };
 
-// web/live/polling.ts
-async function pause(milliseconds, signal) {
-  if (signal?.aborted) return;
-  await new Promise((fulfill) => {
-    const finish = () => {
-      clearTimeout(timer);
-      signal?.removeEventListener("abort", finish);
-      fulfill();
-    };
-    const timer = setTimeout(finish, milliseconds);
-    signal?.addEventListener("abort", finish);
+// node_modules/valibot/dist/index.mjs
+var store$4;
+var DEFAULT_CONFIG = {
+  lang: void 0,
+  message: void 0,
+  abortEarly: void 0,
+  abortPipeEarly: void 0
+};
+// @__NO_SIDE_EFFECTS__
+function getGlobalConfig(config$1) {
+  if (!config$1 && !store$4) return DEFAULT_CONFIG;
+  return {
+    lang: config$1?.lang ?? store$4?.lang,
+    message: config$1?.message,
+    abortEarly: config$1?.abortEarly ?? store$4?.abortEarly,
+    abortPipeEarly: config$1?.abortPipeEarly ?? store$4?.abortPipeEarly
+  };
+}
+var store$3;
+// @__NO_SIDE_EFFECTS__
+function getGlobalMessage(lang) {
+  return store$3?.get(lang);
+}
+var store$2;
+// @__NO_SIDE_EFFECTS__
+function getSchemaMessage(lang) {
+  return store$2?.get(lang);
+}
+var store$1;
+// @__NO_SIDE_EFFECTS__
+function getSpecificMessage(reference, lang) {
+  return store$1?.get(reference)?.get(lang);
+}
+// @__NO_SIDE_EFFECTS__
+function _stringify(input) {
+  const type = typeof input;
+  if (type === "string") return `"${input}"`;
+  if (type === "number" || type === "bigint" || type === "boolean") return `${input}`;
+  if (type === "object" || type === "function") return (input && Object.getPrototypeOf(input)?.constructor?.name) ?? "null";
+  return type;
+}
+function _addIssue(context, label, dataset, config$1, other) {
+  const input = other && "input" in other ? other.input : dataset.value;
+  const expected = other?.expected ?? context.expects ?? null;
+  const received = other?.received ?? /* @__PURE__ */ _stringify(input);
+  const issue = {
+    kind: context.kind,
+    type: context.type,
+    input,
+    expected,
+    received,
+    message: `Invalid ${label}: ${expected ? `Expected ${expected} but r` : "R"}eceived ${received}`,
+    requirement: context.requirement,
+    path: other?.path,
+    issues: other?.issues,
+    lang: config$1.lang,
+    abortEarly: config$1.abortEarly,
+    abortPipeEarly: config$1.abortPipeEarly
+  };
+  const isSchema = context.kind === "schema";
+  const message$1 = other?.message ?? context.message ?? /* @__PURE__ */ getSpecificMessage(context.reference, issue.lang) ?? (isSchema ? /* @__PURE__ */ getSchemaMessage(issue.lang) : null) ?? config$1.message ?? /* @__PURE__ */ getGlobalMessage(issue.lang);
+  if (message$1 !== void 0) issue.message = typeof message$1 === "function" ? message$1(issue) : message$1;
+  if (isSchema) dataset.typed = false;
+  if (dataset.issues) dataset.issues.push(issue);
+  else dataset.issues = [issue];
+}
+// @__NO_SIDE_EFFECTS__
+function _isValidObjectKey(object$1, key) {
+  return Object.prototype.hasOwnProperty.call(object$1, key) && key !== "__proto__" && key !== "prototype" && key !== "constructor";
+}
+// @__NO_SIDE_EFFECTS__
+function _joinExpects(values$1, separator) {
+  const list = [...new Set(values$1)];
+  if (list.length > 1) return `(${list.join(` ${separator} `)})`;
+  return list[0] ?? "never";
+}
+function _standardSchema(schema) {
+  schema["~standard"] = {
+    version: 1,
+    vendor: "valibot",
+    validate: (value$1) => schema["~run"]({ value: value$1 }, /* @__PURE__ */ getGlobalConfig())
+  };
+  return schema;
+}
+// @__NO_SIDE_EFFECTS__
+function check(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "check",
+    reference: check,
+    async: false,
+    expects: null,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !this.requirement(dataset.value)) _addIssue(this, "input", dataset, config$1);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function finite(message$1) {
+  return {
+    kind: "validation",
+    type: "finite",
+    reference: finite,
+    async: false,
+    expects: null,
+    requirement: Number.isFinite,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !this.requirement(dataset.value)) _addIssue(this, "finite", dataset, config$1);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function gtValue(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "gt_value",
+    reference: gtValue,
+    async: false,
+    expects: `>${requirement instanceof Date ? requirement.toJSON() : /* @__PURE__ */ _stringify(requirement)}`,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !(dataset.value > this.requirement)) _addIssue(this, "value", dataset, config$1, { received: dataset.value instanceof Date ? dataset.value.toJSON() : /* @__PURE__ */ _stringify(dataset.value) });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function includes(requirement, message$1) {
+  const expects = /* @__PURE__ */ _stringify(requirement);
+  return {
+    kind: "validation",
+    type: "includes",
+    reference: includes,
+    async: false,
+    expects,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !dataset.value.includes(this.requirement)) _addIssue(this, "content", dataset, config$1, { received: `!${expects}` });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function maxLength(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "max_length",
+    reference: maxLength,
+    async: false,
+    expects: `<=${requirement}`,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && dataset.value.length > this.requirement) _addIssue(this, "length", dataset, config$1, { received: `${dataset.value.length}` });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function maxValue(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "max_value",
+    reference: maxValue,
+    async: false,
+    expects: `<=${requirement instanceof Date ? requirement.toJSON() : /* @__PURE__ */ _stringify(requirement)}`,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !(dataset.value <= this.requirement)) _addIssue(this, "value", dataset, config$1, { received: dataset.value instanceof Date ? dataset.value.toJSON() : /* @__PURE__ */ _stringify(dataset.value) });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function minLength(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "min_length",
+    reference: minLength,
+    async: false,
+    expects: `>=${requirement}`,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && dataset.value.length < this.requirement) _addIssue(this, "length", dataset, config$1, { received: `${dataset.value.length}` });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function minValue(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "min_value",
+    reference: minValue,
+    async: false,
+    expects: `>=${requirement instanceof Date ? requirement.toJSON() : /* @__PURE__ */ _stringify(requirement)}`,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !(dataset.value >= this.requirement)) _addIssue(this, "value", dataset, config$1, { received: dataset.value instanceof Date ? dataset.value.toJSON() : /* @__PURE__ */ _stringify(dataset.value) });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function regex(requirement, message$1) {
+  return {
+    kind: "validation",
+    type: "regex",
+    reference: regex,
+    async: false,
+    expects: `${requirement}`,
+    requirement,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !this.requirement.test(dataset.value)) _addIssue(this, "format", dataset, config$1);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function safeInteger(message$1) {
+  return {
+    kind: "validation",
+    type: "safe_integer",
+    reference: safeInteger,
+    async: false,
+    expects: null,
+    requirement: Number.isSafeInteger,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && !this.requirement(dataset.value)) _addIssue(this, "safe integer", dataset, config$1);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function transform(operation) {
+  return {
+    kind: "transformation",
+    type: "transform",
+    reference: transform,
+    async: false,
+    operation,
+    "~run"(dataset) {
+      dataset.value = this.operation(dataset.value);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function getFallback(schema, dataset, config$1) {
+  return typeof schema.fallback === "function" ? schema.fallback(dataset, config$1) : schema.fallback;
+}
+// @__NO_SIDE_EFFECTS__
+function getDefault(schema, dataset, config$1) {
+  return typeof schema.default === "function" ? schema.default(dataset, config$1) : schema.default;
+}
+// @__NO_SIDE_EFFECTS__
+function array(item, message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "array",
+    reference: array,
+    expects: "Array",
+    async: false,
+    item,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      const input = dataset.value;
+      if (Array.isArray(input)) {
+        dataset.typed = true;
+        dataset.value = [];
+        for (let key = 0; key < input.length; key++) {
+          const value$1 = input[key];
+          const itemDataset = this.item["~run"]({ value: value$1 }, config$1);
+          if (itemDataset.issues) {
+            const pathItem = {
+              type: "array",
+              origin: "value",
+              input,
+              key,
+              value: value$1
+            };
+            for (const issue of itemDataset.issues) {
+              if (issue.path) issue.path.unshift(pathItem);
+              else issue.path = [pathItem];
+              dataset.issues?.push(issue);
+            }
+            if (!dataset.issues) dataset.issues = itemDataset.issues;
+            if (config$1.abortEarly) {
+              dataset.typed = false;
+              break;
+            }
+          }
+          if (!itemDataset.typed) dataset.typed = false;
+          dataset.value.push(itemDataset.value);
+        }
+      } else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
   });
 }
-
-// web/live/sound.ts
-var SoundControls = class {
-  view = element("fieldset");
-  prompt = element("textarea");
-  apply = button(message("sound.applyPrompt"), "submit");
-  pending;
-  /**
-   * Build the sound prompt controls in their disabled state.
-   * @param initialPrompt - The workflow's starting sound prompt.
-   * @param promptCharacterLimit - The model's maximum sound prompt length.
-   */
-  constructor(initialPrompt, promptCharacterLimit) {
-    this.prompt.value = initialPrompt;
-    this.prompt.maxLength = promptCharacterLimit;
-    this.prompt.rows = 2;
-    const label = element("label", message("sound.prompt"));
-    label.append(this.prompt);
-    const form = element("form");
-    form.append(label, this.apply, element("p", message("sound.promptNotice")));
-    this.view.append(element("legend", message("sound.title")), form);
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      this.pending = this.prompt.value;
-      this.apply.disabled = true;
-    });
-    this.setReady(false);
-  }
-  /**
-   * Enable sound input only when the session accepts changes.
-   * @param ready - Whether the model accepts live controls.
-   */
-  setReady(ready) {
-    this.prompt.disabled = !ready;
-    if (!ready) {
-      this.apply.disabled = true;
-      return;
+// @__NO_SIDE_EFFECTS__
+function boolean(message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "boolean",
+    reference: boolean,
+    expects: "boolean",
+    async: false,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (typeof dataset.value === "boolean") dataset.typed = true;
+      else _addIssue(this, "type", dataset, config$1);
+      return dataset;
     }
-    this.apply.disabled = this.pending !== void 0;
-  }
-  /**
-   * Consume the next sound prompt queued by the user.
-   * @returns The queued prompt, or undefined when none is waiting.
-   */
-  takePrompt() {
-    const value = this.pending;
-    this.pending = void 0;
-    return value;
-  }
-};
-
-// web/live/pointer.ts
-var PointerPreview = class {
-  view = element("div");
-  status = element("p");
-  #marker = element("span");
-  #state = element("span");
-  #position = element("span");
-  #image;
-  #pointer;
-  /**
-   * Show pointer position alongside the output image.
-   * @param image - The model output used for dragging.
-   * @param signal - The panel's listener and observer lifetime.
-   */
-  constructor(image, signal) {
-    this.#image = image;
-    this.view.className = "reactor-pointer-preview";
-    this.#marker.className = "reactor-pointer-marker";
-    this.#marker.hidden = true;
-    this.#marker.setAttribute("aria-hidden", "true");
-    this.#state.setAttribute("role", "status");
-    this.status.hidden = true;
-    this.status.append(this.#state, this.#position);
-    this.view.append(image, this.#marker);
-    const resize = new ResizeObserver(this.#place.bind(this));
-    resize.observe(image);
-    image.addEventListener("blur", this.#place.bind(this), { signal });
-    image.addEventListener("focus", this.#place.bind(this), { signal });
-    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
-  }
-  /**
-   * Move the marker to the user's latest pointer position.
-   * @param pointer - The normalized image coordinates and hold state.
-   */
-  move(pointer) {
-    this.#pointer = pointer;
-    this.status.hidden = false;
-    setText(
-      this.#position,
-      message("pointer.position", {
-        x: Math.round(pointer.x * 100),
-        y: Math.round(pointer.y * 100)
-      })
-    );
-    this.#place();
-  }
-  /**
-   * Announce a hold or release after the server accepts it.
-   * @param pointer - The pointer update accepted by the server.
-   */
-  confirm(pointer) {
-    const key = pointer.active ? "pointer.held" : "pointer.released";
-    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
-  }
-  /**
-   * Hide the marker and announce that pointer input has stopped.
-   */
-  stop() {
-    this.#pointer = void 0;
-    this.#marker.hidden = true;
-    if (!this.status.hidden) setText(this.#state, message("pointer.stopped"));
-  }
-  #place() {
-    const pointer = this.#pointer;
-    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
-    if (this.#marker.hidden || !pointer) return;
-    this.#marker.style.left = `${this.#image.offsetLeft + pointer.x * this.#image.clientWidth}px`;
-    this.#marker.style.top = `${this.#image.offsetTop + pointer.y * this.#image.clientHeight}px`;
-  }
-};
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function nullable(wrapped, default_) {
+  return _standardSchema({
+    kind: "schema",
+    type: "nullable",
+    reference: nullable,
+    expects: `(${wrapped.expects} | null)`,
+    async: false,
+    wrapped,
+    default: default_,
+    "~run"(dataset, config$1) {
+      if (dataset.value === null) {
+        if (this.default !== void 0) dataset.value = /* @__PURE__ */ getDefault(this, dataset, config$1);
+        if (dataset.value === null) {
+          dataset.typed = true;
+          return dataset;
+        }
+      }
+      return this.wrapped["~run"](dataset, config$1);
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function number(message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "number",
+    reference: number,
+    expects: "number",
+    async: false,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (typeof dataset.value === "number" && !isNaN(dataset.value)) dataset.typed = true;
+      else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function object(entries$1, message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "object",
+    reference: object,
+    expects: "Object",
+    async: false,
+    entries: entries$1,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      const input = dataset.value;
+      if (input && typeof input === "object") {
+        dataset.typed = true;
+        dataset.value = {};
+        for (const key in this.entries) {
+          const valueSchema = this.entries[key];
+          if (key in input || (valueSchema.type === "exact_optional" || valueSchema.type === "optional" || valueSchema.type === "nullish") && valueSchema.default !== void 0) {
+            const value$1 = key in input ? input[key] : /* @__PURE__ */ getDefault(valueSchema);
+            const valueDataset = valueSchema["~run"]({ value: value$1 }, config$1);
+            if (valueDataset.issues) {
+              const pathItem = {
+                type: "object",
+                origin: "value",
+                input,
+                key,
+                value: value$1
+              };
+              for (const issue of valueDataset.issues) {
+                if (issue.path) issue.path.unshift(pathItem);
+                else issue.path = [pathItem];
+                dataset.issues?.push(issue);
+              }
+              if (!dataset.issues) dataset.issues = valueDataset.issues;
+              if (config$1.abortEarly) {
+                dataset.typed = false;
+                break;
+              }
+            }
+            if (!valueDataset.typed) dataset.typed = false;
+            dataset.value[key] = valueDataset.value;
+          } else if (valueSchema.fallback !== void 0) dataset.value[key] = /* @__PURE__ */ getFallback(valueSchema);
+          else if (valueSchema.type !== "exact_optional" && valueSchema.type !== "optional" && valueSchema.type !== "nullish") {
+            _addIssue(this, "key", dataset, config$1, {
+              input: void 0,
+              expected: `"${key}"`,
+              path: [{
+                type: "object",
+                origin: "key",
+                input,
+                key,
+                value: input[key]
+              }]
+            });
+            if (config$1.abortEarly) break;
+          }
+        }
+      } else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function optional(wrapped, default_) {
+  return _standardSchema({
+    kind: "schema",
+    type: "optional",
+    reference: optional,
+    expects: `(${wrapped.expects} | undefined)`,
+    async: false,
+    wrapped,
+    default: default_,
+    "~run"(dataset, config$1) {
+      if (dataset.value === void 0) {
+        if (this.default !== void 0) dataset.value = /* @__PURE__ */ getDefault(this, dataset, config$1);
+        if (dataset.value === void 0) {
+          dataset.typed = true;
+          return dataset;
+        }
+      }
+      return this.wrapped["~run"](dataset, config$1);
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function picklist(options, message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "picklist",
+    reference: picklist,
+    expects: /* @__PURE__ */ _joinExpects(options.map(_stringify), "|"),
+    async: false,
+    options,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (this.options.includes(dataset.value)) dataset.typed = true;
+      else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function record(key, value$1, message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "record",
+    reference: record,
+    expects: "Object",
+    async: false,
+    key,
+    value: value$1,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      const input = dataset.value;
+      if (input && typeof input === "object") {
+        dataset.typed = true;
+        dataset.value = {};
+        for (const entryKey in input) if (/* @__PURE__ */ _isValidObjectKey(input, entryKey)) {
+          const entryValue = input[entryKey];
+          const keyDataset = this.key["~run"]({ value: entryKey }, config$1);
+          if (keyDataset.issues) {
+            const pathItem = {
+              type: "object",
+              origin: "key",
+              input,
+              key: entryKey,
+              value: entryValue
+            };
+            for (const issue of keyDataset.issues) {
+              issue.path = [pathItem];
+              dataset.issues?.push(issue);
+            }
+            if (!dataset.issues) dataset.issues = keyDataset.issues;
+            if (config$1.abortEarly) {
+              dataset.typed = false;
+              break;
+            }
+          }
+          const valueDataset = this.value["~run"]({ value: entryValue }, config$1);
+          if (valueDataset.issues) {
+            const pathItem = {
+              type: "object",
+              origin: "value",
+              input,
+              key: entryKey,
+              value: entryValue
+            };
+            for (const issue of valueDataset.issues) {
+              if (issue.path) issue.path.unshift(pathItem);
+              else issue.path = [pathItem];
+              dataset.issues?.push(issue);
+            }
+            if (!dataset.issues) dataset.issues = valueDataset.issues;
+            if (config$1.abortEarly) {
+              dataset.typed = false;
+              break;
+            }
+          }
+          if (!keyDataset.typed || !valueDataset.typed) dataset.typed = false;
+          if (keyDataset.typed) dataset.value[keyDataset.value] = valueDataset.value;
+        }
+      } else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function string(message$1) {
+  return _standardSchema({
+    kind: "schema",
+    type: "string",
+    reference: string,
+    expects: "string",
+    async: false,
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (typeof dataset.value === "string") dataset.typed = true;
+      else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function unknown() {
+  return _standardSchema({
+    kind: "schema",
+    type: "unknown",
+    reference: unknown,
+    expects: "unknown",
+    async: false,
+    "~run"(dataset) {
+      dataset.typed = true;
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function pipe(...pipe$1) {
+  return _standardSchema({
+    ...pipe$1[0],
+    pipe: pipe$1,
+    "~run"(dataset, config$1) {
+      for (const item of pipe$1) if (item.kind !== "metadata") {
+        if (dataset.issues && (item.kind === "schema" || item.kind === "transformation")) {
+          dataset.typed = false;
+          break;
+        }
+        if (!dataset.issues || !config$1.abortEarly && !config$1.abortPipeEarly) dataset = item["~run"](dataset, config$1);
+      }
+      return dataset;
+    }
+  });
+}
+// @__NO_SIDE_EFFECTS__
+function safeParse(schema, input, config$1) {
+  const dataset = schema["~run"]({ value: input }, /* @__PURE__ */ getGlobalConfig(config$1));
+  return {
+    typed: dataset.typed,
+    success: !dataset.issues,
+    output: dataset.value,
+    issues: dataset.issues
+  };
+}
 
 // config/web/browser.ts
 var browserLimits = {
   requestTimeoutMilliseconds: 1e4,
+  discoveryTimeoutMilliseconds: 3e4,
   pollIntervalMilliseconds: 100,
   actionTimeoutMilliseconds: 2e3,
+  inputNudgeMilliseconds: 250,
   maxPendingInputs: 8,
   maxPreviewCharacters: 35e4,
-  maxCalculatorSeconds: 3600
+  maxCalculatorSeconds: 3600,
+  maxTextCharacters: 200,
+  maxErrorCharacters: 1024,
+  maxRetrievalTimeCharacters: 40,
+  maxModelNodeIds: 100,
+  maxModels: 1024
+};
+var browserInput = {
+  pointerCenter: 0.5,
+  pointerMinimum: 0,
+  pointerMaximum: 1,
+  pointerStep: 0.03,
+  cameraWidth: 640,
+  cameraHeight: 480,
+  cameraIdealFrameRate: 12,
+  cameraMaxFrameRate: 24,
+  cameraJpegQuality: 0.8
 };
 var browserPatterns = {
   lease: /^[a-f0-9]{32}$/,
   revision: /^[a-f0-9]{64}$/,
   preview: /^[A-Za-z0-9+/]*={0,2}$/,
-  capability: /^[A-Za-z0-9_-]{43}$/
-};
-
-// web/live/drag.ts
-var DragInput = class {
-  /**
-   * Bind input until the panel's abort signal fires.
-   * @param image - The output image that receives input.
-   * @param signal - The panel's listener lifetime.
-   * @param send - Receive pointer updates in normalized image coordinates.
-   */
-  constructor(image, signal, send) {
-    this.image = image;
-    this.send = send;
-    image.tabIndex = 0;
-    image.draggable = false;
-    image.classList.add("reactor-drag-input");
-    setTextAttribute(image, "aria-label", message("pointer.instructions"));
-    image.addEventListener(
-      "pointerdown",
-      (event) => {
-        if (event.button !== 0 || this.captured !== void 0) return;
-        this.captured = event.pointerId;
-        image.setPointerCapture(this.captured);
-        image.focus();
-        this.position(event);
-      },
-      { signal }
-    );
-    image.addEventListener(
-      "pointermove",
-      (event) => {
-        if (this.captured === event.pointerId) this.position(event);
-      },
-      { signal }
-    );
-    for (const name of ["pointerup", "pointercancel", "lostpointercapture", "blur"])
-      image.addEventListener(name, this.release.bind(this), { signal });
-    image.addEventListener("keydown", this.keydown.bind(this), { signal });
-    image.addEventListener(
-      "keyup",
-      (event) => {
-        if (event.key === " ") {
-          event.preventDefault();
-          event.stopPropagation();
-          this.release();
-        }
-      },
-      { signal }
-    );
-    window.addEventListener("blur", this.release.bind(this), { signal });
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-        if (document.hidden) this.release();
-      },
-      { signal }
-    );
-    signal.addEventListener("abort", this.release.bind(this), { once: true });
-  }
-  image;
-  send;
-  pointer = { x: 0.5, y: 0.5, active: false };
-  captured;
-  /** Stop holding the pointer and release any browser pointer capture. */
-  release() {
-    const wasActive = this.pointer.active;
-    this.pointer = { ...this.pointer, active: false };
-    const previousCapture = this.captured;
-    this.captured = void 0;
-    if (wasActive) this.send(this.pointer);
-    if (previousCapture !== void 0 && this.image.hasPointerCapture(previousCapture))
-      this.image.releasePointerCapture(previousCapture);
-  }
-  /**
-   * Normalize a drag event to the displayed image bounds.
-   * @param event - The captured pointer event.
-   */
-  position(event) {
-    const rect = this.image.getBoundingClientRect();
-    this.pointer = {
-      x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
-      y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)),
-      active: true
-    };
-    this.send(this.pointer);
-  }
-  /**
-   * Move, hold, or release the pointer with the keyboard.
-   * @param event - A key pressed while the preview has focus.
-   */
-  keydown(event) {
-    const offsets = /* @__PURE__ */ new Map([
-      ["ArrowLeft", [-0.03, 0]],
-      ["ArrowRight", [0.03, 0]],
-      ["ArrowUp", [0, -0.03]],
-      ["ArrowDown", [0, 0.03]],
-      [" ", [0, 0]],
-      ["Escape", [0, 0]]
-    ]);
-    const offset = offsets.get(event.key);
-    if (!offset) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.key === "Escape") {
-      this.release();
-      this.image.blur();
-      return;
-    }
-    this.pointer = {
-      x: Math.max(0, Math.min(1, this.pointer.x + offset[0])),
-      y: Math.max(0, Math.min(1, this.pointer.y + offset[1])),
-      active: event.key === " " || this.pointer.active
-    };
-    this.send(this.pointer);
-  }
+  capability: /^[A-Za-z0-9_-]{43}$/,
+  documentation: /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/,
+  nodeId: /^ReactorInc[A-Za-z0-9]+$/,
+  settingName: /^[a-z][a-z_]+$/
 };
 
 // web/live/input.ts
@@ -1206,7 +1379,7 @@ var CameraInput = class {
         const target = event.target;
         if (!(target instanceof HTMLButtonElement) || !target.dataset.key) return;
         if (event.detail !== 0 && this.lastHold?.key === target.dataset.key) return;
-        this.nudge(target.dataset.key, 250);
+        this.nudge(target.dataset.key, browserLimits.inputNudgeMilliseconds);
         this.publish();
       },
       { signal }
@@ -1221,7 +1394,8 @@ var CameraInput = class {
     const started = this.pointerStarted.get(event.pointerId);
     if (event.type === "pointerup" && key && started !== void 0) {
       this.lastHold = { key, milliseconds: performance.now() - started };
-      if (this.lastHold.milliseconds < 250) this.nudge(key, 250 - this.lastHold.milliseconds);
+      if (this.lastHold.milliseconds < browserLimits.inputNudgeMilliseconds)
+        this.nudge(key, browserLimits.inputNudgeMilliseconds - this.lastHold.milliseconds);
     }
     this.pointers.delete(event.pointerId);
     this.pointerStarted.delete(event.pointerId);
@@ -1243,46 +1417,139 @@ var CameraInput = class {
   }
 };
 
-// web/live/api.ts
-function isRecord(value) {
-  if (typeof value !== "object" || value === null) return false;
-  return !Array.isArray(value);
-}
-function axisChoices(value) {
-  if (!Array.isArray(value) || !value.includes("idle")) return;
-  for (const choice of value) {
-    if (typeof choice !== "string") return;
-  }
-  return value;
-}
-function parseSceneInvitation(value) {
-  if (!isRecord(value) || !isRecord(value.axes)) return;
-  if (typeof value.lease !== "string" || !browserPatterns.lease.test(value.lease) || typeof value.capability !== "string" || !browserPatterns.capability.test(value.capability) || typeof value.model !== "string" || typeof value.model_title !== "string" || value.model_title.length < 1 || value.model_title.length > 200 || typeof value.prompt !== "string" || typeof value.prompt_limit !== "number" || !Number.isSafeInteger(value.prompt_limit) || value.prompt_limit < 1 || value.prompt.length > value.prompt_limit || typeof value.duration_seconds !== "number" || !Number.isFinite(value.duration_seconds) || value.duration_seconds <= 0)
-    return;
-  const axes = /* @__PURE__ */ new Map();
-  const offered = new Map(Object.entries(value.axes));
-  const expected = Object.keys(
-    cameraAxes(/* @__PURE__ */ new Set(), Object.hasOwn(value.axes, "move_longitudinal"))
-  );
-  if (offered.size !== expected.length) return;
-  for (const key of expected) {
-    const choices = axisChoices(offered.get(key));
-    if (!choices) return;
-    axes.set(key, choices);
-  }
+// web/live/schema.ts
+var invitationEntries = {
+  lease: pipe(string(), regex(browserPatterns.lease)),
+  capability: pipe(string(), regex(browserPatterns.capability)),
+  model_title: pipe(string(), minLength(1), maxLength(browserLimits.maxTextCharacters)),
+  duration_seconds: pipe(number(), finite(), gtValue(0)),
+  prompt_kind: picklist(["scene", "edit"]),
+  allow_empty_prompt: boolean()
+};
+function buildInvitation(document2, axes) {
+  const identity = { lease: document2.lease, capability: document2.capability };
+  const presentation = { modelTitle: document2.model_title, promptKind: document2.prompt_kind };
   return {
-    lease: value.lease,
-    capability: value.capability,
-    model: value.model,
-    modelTitle: value.model_title,
-    durationSeconds: value.duration_seconds,
-    axes: Object.fromEntries(axes),
-    prompt: value.prompt,
-    promptCharacterLimit: value.prompt_limit
+    ...identity,
+    ...presentation,
+    durationSeconds: document2.duration_seconds,
+    allowEmptyPrompt: document2.allow_empty_prompt,
+    axes
   };
 }
+var promptEntries = {
+  prompt: string(),
+  prompt_limit: pipe(number(), safeInteger(), minValue(1))
+};
+var axisChoicesSchema = pipe(array(string()), includes("idle"));
+var axesSchema = record(string(), axisChoicesSchema);
+var sceneInvitationSchema = pipe(
+  object({
+    ...invitationEntries,
+    ...promptEntries,
+    axes: axesSchema
+  }),
+  check((document2) => {
+    const promptLength = document2.prompt.length;
+    const charactersRemaining = document2.prompt_limit - promptLength;
+    return Number.isSafeInteger(charactersRemaining) && charactersRemaining >= 0;
+  }),
+  check((document2) => {
+    const hasIndependentAxes = Object.hasOwn(document2.axes, "move_longitudinal");
+    const expected = Object.keys(cameraAxes(/* @__PURE__ */ new Set(), hasIndependentAxes));
+    if (Object.keys(document2.axes).length !== expected.length) return false;
+    for (const name of expected) {
+      if (!Object.hasOwn(document2.axes, name)) return false;
+    }
+    return true;
+  }),
+  transform((document2) => {
+    const invitation = buildInvitation(document2, document2.axes);
+    const prompt = { prompt: document2.prompt, promptCharacterLimit: document2.prompt_limit };
+    return { ...invitation, ...prompt };
+  })
+);
+var controlsInvitationSchema = pipe(
+  object({
+    ...invitationEntries,
+    ...promptEntries,
+    webcam: boolean(),
+    pointer: boolean(),
+    sound: boolean(),
+    audio_prompt: string(),
+    audio_prompt_limit: pipe(number(), safeInteger(), minValue(1))
+  }),
+  check((document2) => {
+    if (document2.prompt.length > document2.prompt_limit) return false;
+    return document2.audio_prompt.length <= document2.audio_prompt_limit;
+  }),
+  transform((document2) => {
+    const invitation = buildInvitation(document2, {});
+    const prompt = { prompt: document2.prompt, promptCharacterLimit: document2.prompt_limit };
+    const audioPrompt = {
+      audioPrompt: document2.audio_prompt,
+      audioPromptCharacterLimit: document2.audio_prompt_limit
+    };
+    return {
+      ...invitation,
+      ...prompt,
+      ...audioPrompt,
+      webcam: document2.webcam,
+      pointer: document2.pointer,
+      sound: document2.sound
+    };
+  })
+);
+var liveStatusSchema = pipe(
+  object({
+    closed: boolean(),
+    termination_confirmed: boolean(),
+    failed: boolean(),
+    controls_ready: boolean(),
+    finishing: boolean(),
+    elapsed_seconds: pipe(number(), finite()),
+    preview_sequence: pipe(number(), safeInteger()),
+    preview: pipe(
+      string(),
+      maxLength(browserLimits.maxPreviewCharacters),
+      regex(browserPatterns.preview)
+    )
+  }),
+  transform((status) => {
+    const termination = {
+      closed: status.closed,
+      terminationConfirmed: status.termination_confirmed,
+      failed: status.failed
+    };
+    const progress = { controlsReady: status.controls_ready, finishing: status.finishing };
+    return {
+      ...termination,
+      ...progress,
+      elapsedSeconds: status.elapsed_seconds,
+      previewSequence: status.preview_sequence,
+      preview: status.preview
+    };
+  })
+);
+function parseSceneInvitation(value) {
+  const result = safeParse(sceneInvitationSchema, value);
+  if (!result.success) return;
+  return result.output;
+}
+function parseControlsInvitation(value) {
+  const result = safeParse(controlsInvitationSchema, value);
+  if (!result.success) return;
+  return result.output;
+}
+function parseLiveStatus(value) {
+  const result = safeParse(liveStatusSchema, value);
+  if (!result.success) return;
+  return result.output;
+}
+
+// web/live/api.ts
 async function exchange(fetcher, owner, sequence, axes, end, previewSequence, signal, release = false) {
-  const response = await fetcher("/reactor-inc/v1/live/exchange", {
+  const response = await fetcher(browserRoutes.live.exchange, {
     method: "POST",
     cache: "no-store",
     signal,
@@ -1298,46 +1565,295 @@ async function exchange(fetcher, owner, sequence, axes, end, previewSequence, si
     })
   });
   if (!response.ok) throw new Error(translate("live.unreachable"));
-  const value = await response.json();
-  if (!isRecord(value) || typeof value.closed !== "boolean" || typeof value.termination_confirmed !== "boolean" || typeof value.failed !== "boolean" || typeof value.controls_ready !== "boolean" || typeof value.finishing !== "boolean" || typeof value.elapsed_seconds !== "number" || !Number.isFinite(value.elapsed_seconds) || typeof value.preview_sequence !== "number" || !Number.isSafeInteger(value.preview_sequence) || typeof value.preview !== "string" || value.preview.length > browserLimits.maxPreviewCharacters || !browserPatterns.preview.test(value.preview)) {
-    throw new Error(translate("live.invalidStatus"));
-  }
-  return {
-    closed: value.closed,
-    terminationConfirmed: value.termination_confirmed,
-    failed: value.failed,
-    controlsReady: value.controls_ready,
-    finishing: value.finishing,
-    elapsedSeconds: value.elapsed_seconds,
-    previewSequence: value.preview_sequence,
-    preview: value.preview
-  };
+  const status = parseLiveStatus(await response.json());
+  if (!status) throw new Error(translate("live.invalidStatus"));
+  return status;
 }
 
-// web/live/commands.ts
-function parseControlsInvitation(value) {
-  if (typeof value !== "object" || value === null) return;
-  const document2 = value;
-  if (typeof document2.lease !== "string" || !browserPatterns.lease.test(document2.lease) || typeof document2.capability !== "string" || !browserPatterns.capability.test(document2.capability) || typeof document2.model !== "string" || typeof document2.model_title !== "string" || document2.model_title.length < 1 || document2.model_title.length > 200 || typeof document2.prompt !== "string" || typeof document2.prompt_limit !== "number" || document2.prompt_limit < 1 || !Number.isSafeInteger(document2.prompt_limit) || document2.prompt.length > document2.prompt_limit || typeof document2.webcam !== "boolean" || typeof document2.pointer !== "boolean" || typeof document2.sound !== "boolean" || typeof document2.audio_prompt !== "string" || typeof document2.audio_prompt_limit !== "number" || !Number.isSafeInteger(document2.audio_prompt_limit) || document2.audio_prompt_limit < 1 || document2.audio_prompt.length > document2.audio_prompt_limit || typeof document2.duration_seconds !== "number" || !Number.isFinite(document2.duration_seconds) || document2.duration_seconds <= 0)
-    return;
-  return {
-    lease: document2.lease,
-    capability: document2.capability,
-    model: document2.model,
-    modelTitle: document2.model_title,
-    durationSeconds: document2.duration_seconds,
-    axes: {},
-    prompt: document2.prompt,
-    promptCharacterLimit: document2.prompt_limit,
-    webcam: document2.webcam,
-    pointer: document2.pointer,
-    sound: document2.sound,
-    audioPrompt: document2.audio_prompt,
-    audioPromptCharacterLimit: document2.audio_prompt_limit
-  };
+// web/dom.ts
+function element(tag, text) {
+  const node = document.createElement(tag);
+  if (text !== void 0) node.appendChild(textNode(text));
+  return node;
 }
+function button(text, type = "button") {
+  const node = element("button", text);
+  node.type = type;
+  return node;
+}
+
+// web/live/webcam.ts
+var Webcam = class {
+  /**
+   * Build camera selection and a muted input preview.
+   * @param owner - The validated session invitation.
+   * @param fetcher - ComfyUI's local API client.
+   * @param fail - Request session ending if the camera disconnects.
+   */
+  constructor(owner, fetcher, fail) {
+    this.owner = owner;
+    this.fetcher = fetcher;
+    this.fail = fail;
+    this.view.className = "reactor-webcam";
+    const label = element("label", message("camera.label"));
+    label.append(this.select);
+    const defaultCamera = element("option", message("camera.default"));
+    defaultCamera.value = "";
+    this.select.append(defaultCamera);
+    this.video.muted = true;
+    this.video.autoplay = true;
+    this.video.playsInline = true;
+    this.video.hidden = true;
+    setTextAttribute(this.video, "aria-label", message("camera.preview"));
+    const controls = element("div");
+    controls.append(label, this.enable);
+    this.view.append(controls, this.video, this.status);
+    this.enable.addEventListener("click", () => {
+      this.enable.disabled = true;
+      const selected = this.select.value;
+      void this.start(selected);
+    });
+  }
+  owner;
+  fetcher;
+  fail;
+  view = element("section");
+  video = element("video");
+  enable = button(message("camera.enable"));
+  select = element("select");
+  status = element("p");
+  stream;
+  closed = false;
+  sequence = 0;
+  canvas = element("canvas");
+  upload;
+  controller = new AbortController();
+  async start(selected) {
+    try {
+      if (!await this.openCamera(selected)) return;
+      await this.listCameras();
+      if (this.closed) return;
+      setText(this.enable, message("camera.select"));
+      setText(this.status, message("camera.enabled"));
+    } catch (error) {
+      this.stopCamera();
+      if (this.closed) return;
+      const errors = /* @__PURE__ */ new Map([
+        ["NotAllowedError", "camera.permissionDenied"],
+        ["SecurityError", "camera.browserRequirements"],
+        ["NotFoundError", "camera.notFound"],
+        ["NotReadableError", "camera.busy"],
+        ["OverconstrainedError", "camera.unavailableSelection"]
+      ]);
+      setText(
+        this.status,
+        message(
+          error instanceof Error ? errors.get(error.name) ?? "camera.accessFailed" : "camera.accessFailed"
+        )
+      );
+    } finally {
+      if (!this.closed) this.enable.disabled = false;
+    }
+  }
+  /**
+   * Open the selected camera and release any previous stream.
+   * @param selected - The selected device ID, or an empty string for the default camera.
+   * @returns Whether the camera is ready and the panel is still open.
+   */
+  async openCamera(selected) {
+    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("", "SecurityError");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        width: { ideal: browserInput.cameraWidth },
+        height: { ideal: browserInput.cameraHeight },
+        frameRate: {
+          ideal: browserInput.cameraIdealFrameRate,
+          max: browserInput.cameraMaxFrameRate
+        },
+        ...selected ? { deviceId: { exact: selected } } : {}
+      }
+    });
+    if (this.closed) {
+      for (const track of stream.getTracks()) track.stop();
+      return false;
+    }
+    for (const track of this.stream?.getTracks() ?? []) {
+      track.stop();
+    }
+    this.stream = stream;
+    this.video.srcObject = stream;
+    await this.video.play();
+    if (this.closed) return false;
+    this.video.hidden = false;
+    return true;
+  }
+  /**
+   * List cameras after permission reveals their names.
+   * @returns When the available camera choices have been updated.
+   */
+  async listCameras() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    if (this.closed) return;
+    const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
+    const options = document.createDocumentFragment();
+    for (const device of devices) {
+      if (device.kind !== "videoinput") continue;
+      const option = element(
+        "option",
+        device.label || message("camera.number", { number: options.childElementCount + 1 })
+      );
+      option.value = device.deviceId;
+      option.selected = device.deviceId === selected;
+      options.appendChild(option);
+    }
+    this.select.replaceChildren();
+    this.select.appendChild(options);
+  }
+  /**
+   * Upload a camera frame without overlapping uploads.
+   * @returns Whether a camera frame was available to send.
+   */
+  async frame() {
+    if (this.closed || !this.stream || this.video.readyState < 2) return false;
+    for (const track of this.stream.getVideoTracks()) {
+      if (track.readyState === "live") continue;
+      this.fail(translate("camera.disconnected"));
+      return false;
+    }
+    if (this.upload) {
+      await this.upload;
+      return true;
+    }
+    const ratio = Math.min(
+      browserInput.cameraWidth / this.video.videoWidth,
+      browserInput.cameraHeight / this.video.videoHeight,
+      1
+    );
+    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
+    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
+    this.upload = this.send();
+    try {
+      await this.upload;
+      return true;
+    } finally {
+      this.upload = void 0;
+    }
+  }
+  async send() {
+    const blob = await new Promise((fulfill) => {
+      const context = this.canvas.getContext("2d");
+      if (!context) throw new Error(translate("camera.readFailed"));
+      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      this.canvas.toBlob(fulfill, "image/jpeg", browserInput.cameraJpegQuality);
+    });
+    if (this.closed || !blob) return;
+    const response = await this.fetcher(browserRoutes.live.camera, {
+      method: "POST",
+      cache: "no-store",
+      body: blob,
+      signal: AbortSignal.any([
+        this.controller.signal,
+        AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
+      ]),
+      headers: {
+        "Content-Type": "image/jpeg",
+        "X-Reactor-Comfy": "1",
+        "X-Reactor-Lease": this.owner.lease,
+        "X-Reactor-Capability": this.owner.capability,
+        "X-Reactor-Sequence": String(this.sequence++)
+      }
+    });
+    if (!response.ok) throw new Error(translate("camera.uploadFailed"));
+  }
+  /**
+   * Stop the camera, cancel uploads, and clear the capture canvas.
+   */
+  close() {
+    this.closed = true;
+    this.controller.abort();
+    this.stopCamera();
+    this.select.disabled = this.enable.disabled = true;
+    setText(this.status, message("camera.disabled"));
+    this.canvas.width = this.canvas.height = 0;
+  }
+  stopCamera() {
+    this.video.hidden = true;
+    for (const track of this.stream?.getTracks() ?? []) {
+      track.stop();
+    }
+    this.stream = void 0;
+    this.video.srcObject = null;
+  }
+};
+
+// web/live/polling.ts
+async function pause(milliseconds, signal) {
+  if (signal?.aborted) return;
+  await new Promise((fulfill) => {
+    const finish = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", finish);
+      fulfill();
+    };
+    const timer = setTimeout(finish, milliseconds);
+    signal?.addEventListener("abort", finish);
+  });
+}
+
+// web/live/sound.ts
+var SoundControls = class {
+  view = element("fieldset");
+  prompt = element("textarea");
+  apply = button(message("sound.applyPrompt"), "submit");
+  pending;
+  /**
+   * Build the sound prompt controls in their disabled state.
+   * @param initialPrompt - The workflow's starting sound prompt.
+   * @param promptCharacterLimit - The model's maximum sound prompt length.
+   */
+  constructor(initialPrompt, promptCharacterLimit) {
+    this.prompt.value = initialPrompt;
+    this.prompt.maxLength = promptCharacterLimit;
+    this.prompt.rows = 2;
+    const label = element("label", message("sound.prompt"));
+    label.append(this.prompt);
+    const form = element("form");
+    form.append(label, this.apply, element("p", message("sound.promptNotice")));
+    this.view.append(element("legend", message("sound.title")), form);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.pending = this.prompt.value;
+      this.apply.disabled = true;
+    });
+    this.setReady(false);
+  }
+  /**
+   * Enable sound input only when the session accepts changes.
+   * @param ready - Whether the model accepts live controls.
+   */
+  setReady(ready) {
+    this.prompt.disabled = !ready;
+    if (!ready) {
+      this.apply.disabled = true;
+      return;
+    }
+    this.apply.disabled = this.pending !== void 0;
+  }
+  /**
+   * Consume the next sound prompt queued by the user.
+   * @returns The queued prompt, or undefined when none is waiting.
+   */
+  takePrompt() {
+    const value = this.pending;
+    this.pending = void 0;
+    return value;
+  }
+};
+
+// web/live/commands.ts
 async function sendAction(fetcher, owner, sequence, name, fields) {
-  const response = await fetcher("/reactor-inc/v1/live/action", {
+  const response = await fetcher(browserRoutes.live.action, {
     method: "POST",
     cache: "no-store",
     signal: AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
@@ -1352,6 +1868,208 @@ async function sendAction(fetcher, owner, sequence, name, fields) {
   });
   if (!response.ok) throw new Error(translate("live.actionRejected"));
 }
+
+// web/live/pointer.ts
+var PointerPreview = class {
+  view = element("div");
+  status = element("p");
+  #marker = element("span");
+  #state = element("span");
+  #position = element("span");
+  #image;
+  #pointer;
+  /**
+   * Show pointer position alongside the output image.
+   * @param image - The model output used for dragging.
+   * @param signal - The panel's listener and observer lifetime.
+   */
+  constructor(image, signal) {
+    this.#image = image;
+    this.view.className = "reactor-pointer-preview";
+    this.#marker.className = "reactor-pointer-marker";
+    this.#marker.hidden = true;
+    this.#marker.setAttribute("aria-hidden", "true");
+    this.#state.setAttribute("role", "status");
+    this.status.hidden = true;
+    this.status.append(this.#state, this.#position);
+    this.view.append(image, this.#marker);
+    const resize = new ResizeObserver(this.#place.bind(this));
+    resize.observe(image);
+    image.addEventListener("blur", this.#place.bind(this), { signal });
+    image.addEventListener("focus", this.#place.bind(this), { signal });
+    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
+  }
+  /**
+   * Move the marker to the user's latest pointer position.
+   * @param pointer - The normalized image coordinates and hold state.
+   */
+  move(pointer) {
+    this.#pointer = pointer;
+    this.status.hidden = false;
+    setText(
+      this.#position,
+      message("pointer.position", {
+        x: Math.round(pointer.x * 100),
+        y: Math.round(pointer.y * 100)
+      })
+    );
+    this.#place();
+  }
+  /**
+   * Announce a hold or release after the server accepts it.
+   * @param pointer - The pointer update accepted by the server.
+   */
+  confirm(pointer) {
+    const key = pointer.active ? "pointer.held" : "pointer.released";
+    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
+  }
+  /**
+   * Hide the marker and announce that pointer input has stopped.
+   */
+  stop() {
+    this.#pointer = void 0;
+    this.#marker.hidden = true;
+    if (!this.status.hidden) setText(this.#state, message("pointer.stopped"));
+  }
+  #place() {
+    const pointer = this.#pointer;
+    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
+    if (this.#marker.hidden || !pointer) return;
+    this.#marker.style.left = `${this.#image.offsetLeft + pointer.x * this.#image.clientWidth}px`;
+    this.#marker.style.top = `${this.#image.offsetTop + pointer.y * this.#image.clientHeight}px`;
+  }
+};
+
+// web/live/drag.ts
+var DragInput = class {
+  /**
+   * Bind input until the panel's abort signal fires.
+   * @param image - The output image that receives input.
+   * @param signal - The panel's listener lifetime.
+   * @param send - Receive pointer updates in normalized image coordinates.
+   */
+  constructor(image, signal, send) {
+    this.image = image;
+    this.send = send;
+    image.tabIndex = 0;
+    image.draggable = false;
+    image.classList.add("reactor-drag-input");
+    setTextAttribute(image, "aria-label", message("pointer.instructions"));
+    image.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.button !== 0 || this.captured !== void 0) return;
+        this.captured = event.pointerId;
+        image.setPointerCapture(this.captured);
+        image.focus();
+        this.position(event);
+      },
+      { signal }
+    );
+    image.addEventListener(
+      "pointermove",
+      (event) => {
+        if (this.captured === event.pointerId) this.position(event);
+      },
+      { signal }
+    );
+    for (const name of ["pointerup", "pointercancel", "lostpointercapture", "blur"])
+      image.addEventListener(name, this.release.bind(this), { signal });
+    image.addEventListener("keydown", this.keydown.bind(this), { signal });
+    image.addEventListener(
+      "keyup",
+      (event) => {
+        if (event.key === " ") {
+          event.preventDefault();
+          event.stopPropagation();
+          this.release();
+        }
+      },
+      { signal }
+    );
+    window.addEventListener("blur", this.release.bind(this), { signal });
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.hidden) this.release();
+      },
+      { signal }
+    );
+    signal.addEventListener("abort", this.release.bind(this), { once: true });
+  }
+  image;
+  send;
+  pointer = {
+    x: browserInput.pointerCenter,
+    y: browserInput.pointerCenter,
+    active: false
+  };
+  captured;
+  /** Stop holding the pointer and release any browser pointer capture. */
+  release() {
+    const wasActive = this.pointer.active;
+    this.pointer = { ...this.pointer, active: false };
+    const previousCapture = this.captured;
+    this.captured = void 0;
+    if (wasActive) this.send(this.pointer);
+    if (previousCapture !== void 0 && this.image.hasPointerCapture(previousCapture))
+      this.image.releasePointerCapture(previousCapture);
+  }
+  /**
+   * Normalize a drag event to the displayed image bounds.
+   * @param event - The captured pointer event.
+   */
+  position(event) {
+    const rect = this.image.getBoundingClientRect();
+    this.pointer = {
+      x: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, (event.clientX - rect.left) / rect.width)
+      ),
+      y: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, (event.clientY - rect.top) / rect.height)
+      ),
+      active: true
+    };
+    this.send(this.pointer);
+  }
+  /**
+   * Move, hold, or release the pointer with the keyboard.
+   * @param event - A key pressed while the preview has focus.
+   */
+  keydown(event) {
+    const offsets = /* @__PURE__ */ new Map([
+      ["ArrowLeft", [-browserInput.pointerStep, 0]],
+      ["ArrowRight", [browserInput.pointerStep, 0]],
+      ["ArrowUp", [0, -browserInput.pointerStep]],
+      ["ArrowDown", [0, browserInput.pointerStep]],
+      [" ", [0, 0]],
+      ["Escape", [0, 0]]
+    ]);
+    const offset = offsets.get(event.key);
+    if (!offset) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === "Escape") {
+      this.release();
+      this.image.blur();
+      return;
+    }
+    this.pointer = {
+      x: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, this.pointer.x + offset[0])
+      ),
+      y: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, this.pointer.y + offset[1])
+      ),
+      active: event.key === " " || this.pointer.active
+    };
+    this.send(this.pointer);
+  }
+};
 
 // web/live/controls.ts
 var panels = /* @__PURE__ */ new Set();
@@ -1423,9 +2141,7 @@ var ControlPanel = class {
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
     const label = element(
       "label",
-      message(
-        this.owner.model === "xmax/x2" || this.owner.model === "reactor/sana-streaming" ? "live.editPrompt" : "live.scenePrompt"
-      )
+      message(this.owner.promptKind === "edit" ? "live.editPrompt" : "live.scenePrompt")
     );
     label.append(this.prompt);
     this.dialog.append(label, this.update);
@@ -1449,7 +2165,7 @@ var ControlPanel = class {
       }
     });
     this.update.addEventListener("click", () => {
-      if (!this.prompt.value.trim() && this.owner.model !== "reactor/sana-streaming") {
+      if (!this.prompt.value.trim() && !this.owner.allowEmptyPrompt) {
         setText(this.status, message("controls.emptyPrompt"));
         return;
       }
@@ -1590,7 +2306,7 @@ var ControlPanel = class {
       {},
       this.ending,
       this.previewSequence,
-      AbortSignal.timeout(2e3)
+      AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
     );
     this.display(reply);
     return reply;
@@ -1698,69 +2414,127 @@ function modelRow(model, seconds) {
   return row;
 }
 
-// web/discovery/api.ts
-function record(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value))
-    throw new Error(translate("models.invalidResponse"));
-  return value;
+// web/discovery/schema.ts
+var shortTextSchema = pipe(
+  string(),
+  minLength(1),
+  maxLength(browserLimits.maxTextCharacters)
+);
+function isRetrievalTime(value) {
+  const timestamp = Date.parse(value);
+  const parsedDate = new Date(timestamp);
+  return Number.isFinite(timestamp) && !Number.isNaN(parsedDate.getTime());
 }
-function isShortText(value, max = 200) {
-  if (typeof value !== "string") return false;
-  return value.length > 0 && value.length <= max;
-}
-function isNodeId(value) {
-  if (typeof value !== "string") return false;
-  return /^ReactorInc[A-Za-z0-9]+$/.test(value);
-}
-function parseModel(value) {
-  const row = record(value);
-  if (!isShortText(row.key) || !isShortText(row.name) || !isShortText(row.title) || !(row.connect_name === null || isShortText(row.connect_name)) || !(row.documentation_url === null || typeof row.documentation_url === "string" && /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/.test(
-    row.documentation_url
-  )) || !(row.credits_per_second === null || typeof row.credits_per_second === "number" && Number.isFinite(row.credits_per_second) && row.credits_per_second >= 0) || typeof row.observed !== "boolean" || !["available", "adapter_required"].includes(String(row.support)) || !Array.isArray(row.node_ids) || row.node_ids.length > 100 || !row.node_ids.every(isNodeId))
-    throw new Error(translate("models.invalidResponse"));
-  return {
-    entryKey: row.key,
-    modelSlug: row.name,
-    title: row.title,
-    connectionName: row.connect_name,
-    documentationUrl: row.documentation_url,
-    creditsPerSecond: row.credits_per_second,
-    observed: row.observed,
-    support: row.support,
-    nodeIds: row.node_ids
-  };
-}
+var retrievalTimeSchema = nullable(
+  pipe(
+    string(),
+    minLength(1),
+    maxLength(browserLimits.maxRetrievalTimeCharacters),
+    check(isRetrievalTime)
+  )
+);
+var modelSchema = pipe(
+  object({
+    key: shortTextSchema,
+    name: shortTextSchema,
+    title: shortTextSchema,
+    connect_name: nullable(shortTextSchema),
+    documentation_url: nullable(pipe(string(), regex(browserPatterns.documentation))),
+    credits_per_second: nullable(pipe(number(), finite(), minValue(0))),
+    observed: boolean(),
+    support: picklist(["available", "adapter_required"]),
+    node_ids: pipe(
+      array(pipe(string(), regex(browserPatterns.nodeId))),
+      maxLength(browserLimits.maxModelNodeIds)
+    )
+  }),
+  transform((model) => {
+    const identity = { entryKey: model.key, modelSlug: model.name, title: model.title };
+    const connection = {
+      connectionName: model.connect_name,
+      documentationUrl: model.documentation_url,
+      creditsPerSecond: model.credits_per_second
+    };
+    return {
+      ...identity,
+      ...connection,
+      observed: model.observed,
+      support: model.support,
+      nodeIds: model.node_ids
+    };
+  })
+);
+var automaticCheckSchema = pipe(
+  object({
+    enabled: boolean(),
+    running: boolean(),
+    interval_hours: pipe(number(), safeInteger(), minValue(1)),
+    checked_at: retrievalTimeSchema,
+    update_available: nullable(boolean()),
+    error: nullable(
+      pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters))
+    )
+  }),
+  transform((check2) => {
+    const schedule = { intervalHours: check2.interval_hours, checkedAt: check2.checked_at };
+    const result = { updateAvailable: check2.update_available, error: check2.error };
+    return { enabled: check2.enabled, running: check2.running, ...schedule, ...result };
+  })
+);
+var modelListSchema = pipe(
+  object({
+    revision: pipe(string(), regex(browserPatterns.revision)),
+    retrieved_at: retrievalTimeSchema,
+    models: pipe(array(modelSchema), minLength(1), maxLength(browserLimits.maxModels)),
+    can_rollback: boolean(),
+    mutation_allowed: boolean(),
+    automatic_check: optional(automaticCheckSchema)
+  }),
+  check((document2) => {
+    const keys = /* @__PURE__ */ new Set();
+    for (const model of document2.models) {
+      if (keys.has(model.entryKey)) return false;
+      keys.add(model.entryKey);
+    }
+    return true;
+  }),
+  transform((document2) => {
+    const identity = { revision: document2.revision, retrievedAt: document2.retrieved_at };
+    const permissions = {
+      canRollback: document2.can_rollback,
+      mutationAllowed: document2.mutation_allowed
+    };
+    return {
+      ...identity,
+      ...permissions,
+      models: document2.models,
+      ...document2.automatic_check === void 0 ? {} : { automaticCheck: document2.automatic_check }
+    };
+  })
+);
+var errorDocumentSchema = object({ error: optional(unknown()) });
+var errorTextSchema = pipe(
+  string(),
+  minLength(1),
+  maxLength(browserLimits.maxErrorCharacters)
+);
 function parseModelList(value) {
-  const document2 = record(value);
-  if (typeof document2.revision !== "string" || !browserPatterns.revision.test(document2.revision) || !(document2.retrieved_at === null || isShortText(document2.retrieved_at, 40) && Number.isFinite(Date.parse(document2.retrieved_at))) || typeof document2.can_rollback !== "boolean" || typeof document2.mutation_allowed !== "boolean" || !Array.isArray(document2.models) || document2.models.length < 1 || document2.models.length > 1024)
-    throw new Error(translate("models.invalidResponse"));
-  const models = document2.models.map(parseModel);
-  const keys = /* @__PURE__ */ new Set();
-  for (const model of models) {
-    if (keys.has(model.entryKey)) throw new Error(translate("models.invalidResponse"));
-    keys.add(model.entryKey);
-  }
-  return {
-    revision: document2.revision,
-    retrievedAt: document2.retrieved_at,
-    canRollback: document2.can_rollback,
-    mutationAllowed: document2.mutation_allowed,
-    models,
-    ...document2.automatic_check === void 0 ? {} : { automaticCheck: parseAutomaticCheck(document2.automatic_check) }
-  };
+  const result = safeParse(modelListSchema, value);
+  if (!result.success) throw new Error(translate("models.invalidResponse"));
+  return result.output;
 }
-function parseAutomaticCheck(value) {
-  const check = record(value);
-  if (typeof check.enabled !== "boolean" || typeof check.running !== "boolean" || typeof check.interval_hours !== "number" || !Number.isSafeInteger(check.interval_hours) || check.interval_hours < 1 || !(check.checked_at === null || isShortText(check.checked_at, 40) && Number.isFinite(Date.parse(check.checked_at))) || !(check.update_available === null || typeof check.update_available === "boolean") || !(check.error === null || isShortText(check.error, 1024)))
-    throw new Error(translate("models.invalidResponse"));
-  return {
-    enabled: check.enabled,
-    running: check.running,
-    intervalHours: check.interval_hours,
-    checkedAt: check.checked_at,
-    updateAvailable: check.update_available,
-    error: check.error
-  };
+function parseModelError(value) {
+  const document2 = safeParse(errorDocumentSchema, value);
+  if (!document2.success) throw new Error(translate("models.invalidResponse"));
+  const error = safeParse(errorTextSchema, document2.output.error);
+  return error.success ? error.output : void 0;
+}
+
+// web/discovery/api.ts
+function modelRoute(action) {
+  if (action === "read") return browserRoutes.models.read;
+  if (action === "refresh") return browserRoutes.models.refresh;
+  return browserRoutes.models.rollback;
 }
 function metadataStatus(retrievedAt) {
   if (retrievedAt === null) return message("models.installedList");
@@ -1771,14 +2545,16 @@ async function requestModels(fetcher, signal, action, revision) {
     method: action === "read" ? "GET" : "POST",
     cache: "no-store",
     credentials: "same-origin",
-    signal: AbortSignal.any([signal, AbortSignal.timeout(3e4)]),
+    signal: AbortSignal.any([
+      signal,
+      AbortSignal.timeout(browserLimits.discoveryTimeoutMilliseconds)
+    ]),
     headers: { "Content-Type": "application/json", "X-Reactor-Comfy": "1" }
   };
   if (action === "rollback") options.body = JSON.stringify({ revision });
-  const suffix = action === "read" ? "" : `/${action}`;
   let response;
   try {
-    response = await fetcher(`/reactor-inc/v1/catalog${suffix}`, options);
+    response = await fetcher(modelRoute(action), options);
   } catch {
     throw new Error(translate("models.unreachable"));
   }
@@ -1789,24 +2565,23 @@ async function requestModels(fetcher, signal, action, revision) {
     throw new Error(translate("models.invalidResponse"));
   }
   if (!response.ok) {
-    const error = record(body).error;
-    throw new Error(isShortText(error, 1024) ? error : translate("models.requestFailed"));
+    throw new Error(parseModelError(body) ?? translate("models.requestFailed"));
   }
   return parseModelList(body);
 }
 
 // web/discovery/dialog.ts
 var current;
-function automaticStatus(check) {
-  if (!check) return "";
-  if (!check.enabled) return message("models.checksOff");
-  if (check.running) return message("models.checkRunning");
-  if (check.error) return check.error;
-  if (check.updateAvailable === true) return message("models.listChanged");
-  if (check.checkedAt)
+function automaticStatus(check2) {
+  if (!check2) return "";
+  if (!check2.enabled) return message("models.checksOff");
+  if (check2.running) return message("models.checkRunning");
+  if (check2.error) return check2.error;
+  if (check2.updateAvailable === true) return message("models.listChanged");
+  if (check2.checkedAt)
     return message("models.checkSchedule", {
-      date: formatDate.bind(null, check.checkedAt),
-      hours: check.intervalHours
+      date: formatDate.bind(null, check2.checkedAt),
+      hours: check2.intervalHours
     });
   return message("models.checkDue");
 }
@@ -2092,7 +2867,7 @@ var ScenePanel = class {
       control.disabled = true;
       this.controls.append(control);
     }
-    this.states = new CameraStates(owner.model.endsWith("world-2"));
+    this.states = new CameraStates(Object.hasOwn(owner.axes, "move_longitudinal"));
     const input = new CameraInput(
       this.surface,
       this.controls,
@@ -2271,7 +3046,7 @@ var ScenePanel = class {
           input.axes,
           this.ending,
           this.previewSequence,
-          AbortSignal.timeout(2e3),
+          AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
           input.release
         );
         this.previewSequence = result.previewSequence;
@@ -2311,52 +3086,87 @@ function openSceneControls(value, fetcher) {
   panel.show();
 }
 
-// web/settings/api.ts
-function record2(value) {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error(translate("settings.invalidResponse"));
-  }
-  return value;
-}
+// web/settings/schema.ts
+var unknownRecordSchema = record(string(), unknown());
+var settingDefinitionSchema = object({
+  label: pipe(string(), minLength(1), maxLength(browserLimits.maxTextCharacters)),
+  minimum: pipe(number(), safeInteger()),
+  maximum: pipe(number(), safeInteger())
+});
+var configurationDocumentSchema = object({
+  revision: pipe(string(), regex(browserPatterns.revision)),
+  mutation_allowed: boolean(),
+  credential: object({
+    source: picklist(["missing", "saved", "environment"])
+  }),
+  integer_settings: unknown(),
+  settings: unknownRecordSchema,
+  credential_limit: unknown()
+});
+var checkSettingsSchema = object({ catalog_auto_check: boolean() });
+var credentialLimitSchema = pipe(number(), safeInteger(), minValue(1));
+var errorDocumentSchema2 = object({ error: optional(unknown()) });
+var errorTextSchema2 = pipe(string(), maxLength(browserLimits.maxErrorCharacters));
 function parseDefinitions(value) {
-  const definitions = record2(value);
-  if (!Object.hasOwn(definitions, "catalog_interval_hours"))
+  const document2 = safeParse(unknownRecordSchema, value);
+  if (!document2.success) throw new Error(translate("settings.invalidResponse"));
+  if (!Object.hasOwn(document2.output, "catalog_interval_hours")) {
     throw new Error(translate("settings.incompleteResponse"));
-  const result = /* @__PURE__ */ new Map();
-  for (const [name, raw] of Object.entries(definitions)) {
-    const field = record2(raw);
-    if (!/^[a-z][a-z_]+$/.test(name) || typeof field.label !== "string" || field.label.length < 1 || field.label.length > 200 || typeof field.minimum !== "number" || !Number.isSafeInteger(field.minimum) || typeof field.maximum !== "number" || !Number.isSafeInteger(field.maximum) || field.minimum > field.maximum)
-      throw new Error(translate("settings.invalidDefinition"));
-    result.set(name, { label: field.label, minimum: field.minimum, maximum: field.maximum });
   }
-  return Object.fromEntries(result);
+  const definitions = /* @__PURE__ */ new Map();
+  for (const [name, raw] of Object.entries(document2.output)) {
+    const field = safeParse(unknownRecordSchema, raw);
+    if (!field.success) throw new Error(translate("settings.invalidResponse"));
+    const validName = safeParse(pipe(string(), regex(browserPatterns.settingName)), name);
+    const definition = safeParse(settingDefinitionSchema, field.output);
+    if (!validName.success || !definition.success || definition.output.minimum > definition.output.maximum) {
+      throw new Error(translate("settings.invalidDefinition"));
+    }
+    definitions.set(name, definition.output);
+  }
+  return Object.fromEntries(definitions);
 }
 function parseConfiguration(value) {
-  const document2 = record2(value);
-  const settings = record2(document2.settings);
-  const credential = record2(document2.credential);
-  if (typeof document2.revision !== "string" || !browserPatterns.revision.test(document2.revision) || typeof document2.mutation_allowed !== "boolean" || typeof credential.source !== "string" || !["missing", "saved", "environment"].includes(credential.source)) {
-    throw new Error(translate("settings.invalidResponse"));
-  }
+  const result = safeParse(configurationDocumentSchema, value);
+  if (!result.success) throw new Error(translate("settings.invalidResponse"));
+  const document2 = result.output;
   const definitions = parseDefinitions(document2.integer_settings);
-  if (typeof settings.catalog_auto_check !== "boolean" || typeof document2.credential_limit !== "number" || !Number.isSafeInteger(document2.credential_limit) || document2.credential_limit < 1)
+  const checkSettings = safeParse(checkSettingsSchema, document2.settings);
+  const credentialLimit = safeParse(credentialLimitSchema, document2.credential_limit);
+  if (!checkSettings.success || !credentialLimit.success) {
     throw new Error(translate("settings.invalidChecks"));
-  const settingsByName = new Map(Object.entries(settings));
+  }
+  const settings = new Map(Object.entries(document2.settings));
   for (const [name, definition] of Object.entries(definitions)) {
-    const value2 = settingsByName.get(name);
-    if (typeof value2 !== "number" || !Number.isSafeInteger(value2) || value2 < definition.minimum || value2 > definition.maximum)
-      throw new Error(translate("settings.invalidLimit"));
+    const setting = safeParse(
+      pipe(
+        number(),
+        safeInteger(),
+        minValue(definition.minimum),
+        maxValue(definition.maximum)
+      ),
+      settings.get(name)
+    );
+    if (!setting.success) throw new Error(translate("settings.invalidLimit"));
   }
   return {
     revision: document2.revision,
-    credentialSource: credential.source,
+    credentialSource: document2.credential.source,
+    credentialLimit: credentialLimit.output,
     mutationAllowed: document2.mutation_allowed,
-    settings,
     definitions,
-    credentialLimit: document2.credential_limit
+    settings: document2.settings
   };
 }
-async function requestConfiguration(fetcher, signal, route = "/status", method = "GET", body) {
+function parseSettingsError(value) {
+  const document2 = safeParse(errorDocumentSchema2, value);
+  if (!document2.success) throw new Error(translate("settings.invalidResponse"));
+  const error = safeParse(errorTextSchema2, document2.output.error);
+  return error.success ? error.output : void 0;
+}
+
+// web/settings/api.ts
+async function requestConfiguration(fetcher, signal, route = browserRoutes.settings.status, method = "GET", body) {
   const options = {
     method,
     cache: "no-store",
@@ -2370,7 +3180,7 @@ async function requestConfiguration(fetcher, signal, route = "/status", method =
   if (body !== void 0) options.body = JSON.stringify(body);
   let response;
   try {
-    response = await fetcher(`/reactor-inc/v1${route}`, options);
+    response = await fetcher(route, options);
   } catch {
     throw new Error(translate("settings.unreachable"));
   }
@@ -2381,10 +3191,7 @@ async function requestConfiguration(fetcher, signal, route = "/status", method =
     throw new Error(translate("settings.unreadableResponse"));
   }
   if (!response.ok) {
-    const error = record2(document2).error;
-    throw new Error(
-      typeof error === "string" && error.length <= 1024 ? error : translate("settings.saveFailed")
-    );
+    throw new Error(parseSettingsError(document2) ?? translate("settings.saveFailed"));
   }
   return parseConfiguration(document2);
 }
@@ -2460,7 +3267,7 @@ var SettingsDialog = class {
       this.updateSettings.bind(
         this,
         message("settings.keyCleared"),
-        "/credential",
+        browserRoutes.settings.credential,
         "DELETE",
         void 0
       )
@@ -2474,7 +3281,7 @@ var SettingsDialog = class {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const value = this.key.value;
-      this.updateSettings(message("settings.keySaved"), "/credential", "PUT", {
+      this.updateSettings(message("settings.keySaved"), browserRoutes.settings.credential, "PUT", {
         api_key: value
       });
     });
@@ -2538,7 +3345,7 @@ var SettingsDialog = class {
       setText(this.status, message("settings.noLimitChanges"));
       return;
     }
-    this.updateSettings(message("settings.limitsSaved"), "/settings", "PATCH", {
+    this.updateSettings(message("settings.limitsSaved"), browserRoutes.settings.values, "PATCH", {
       revision: configuration.revision,
       settings: Object.fromEntries(changes)
     });
@@ -2585,7 +3392,7 @@ var SettingsDialog = class {
       setText(this.status, message("settings.noCheckChanges"));
       return;
     }
-    this.updateSettings(message("settings.checksSaved"), "/settings", "PATCH", {
+    this.updateSettings(message("settings.checksSaved"), browserRoutes.settings.values, "PATCH", {
       revision: configuration.revision,
       settings
     });
@@ -2629,7 +3436,7 @@ var SettingsDialog = class {
    * @param body - The settings change, if any.
    */
   updateSettings(success, route, method, body) {
-    if (route === "/credential") this.key.value = "";
+    if (route === browserRoutes.settings.credential) this.key.value = "";
     this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
     this.reload.disabled = true;
     setText(this.status, message("working"));

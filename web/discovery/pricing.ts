@@ -1,5 +1,5 @@
 import { formatNumber } from '#web/language.ts';
-import type { Model } from '#web/discovery/api.ts';
+import type { Model } from '#web/discovery/schema.ts';
 import { message, type Message } from '#web/localization.ts';
 
 /**
