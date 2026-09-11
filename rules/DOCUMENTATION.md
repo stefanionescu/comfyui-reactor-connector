@@ -148,7 +148,7 @@ Before writing, identify:
 - The next question the reader is likely to ask.
 
 Write for the least specialized reader who can reasonably complete the task.
-Do not assume every reader knows internal project vocabulary, deployment
+Do not assume every reader knows internal project vocabulary, runtime
 architecture, framework conventions, or organizational history.
 
 Put common tasks before specialist details:
@@ -316,7 +316,7 @@ Create `ADVANCED.md` for related specialist topics that need detailed explanatio
 - Performance, scaling, caching, or concurrency details.
 - Rare configuration combinations.
 - Environment and runtime tuning.
-- Complex deployment and recovery workflows.
+- Complex runtime and recovery workflows.
 - Deep troubleshooting and diagnostic trees.
 - Provider-specific integration details.
 - Operational behavior needed by maintainers but not by most users.
@@ -376,7 +376,7 @@ Use:
 ```markdown
 ## Advanced guide
 
-See [the advanced guide](ADVANCED.md) for runtime tuning, deployment recovery,
+See [the advanced guide](ADVANCED.md) for runtime tuning, session recovery,
 and detailed architecture.
 ```
 
@@ -652,7 +652,7 @@ Start with the subject, not the page.
 Avoid:
 
 ```text
-This page explains how deployment works.
+This page explains how the feature works.
 ```
 
 Use a brief scope sentence only when a reader needs it to distinguish this page
@@ -684,7 +684,7 @@ State measurable effects instead.
 Use:
 
 ```text
-Caching can reduce repeated database reads for identical requests.
+Caching can reduce repeated provider requests for identical input.
 ```
 
 Avoid:
@@ -771,13 +771,13 @@ Avoid opening with "there is" or "there are" when a concrete subject exists.
 Use:
 
 ```text
-Two deployment modes support private networking.
+Two connection modes support private networking.
 ```
 
 Avoid:
 
 ```text
-There are two deployment modes that support private networking.
+There are two connection modes that support private networking.
 ```
 
 ### Avoid noun stacks
@@ -1098,7 +1098,7 @@ Verify claims against the sources that own them:
 - Source code for runtime behavior.
 - Public types and schemas for contracts.
 - Configuration for supported values and defaults.
-- Migration state for database behavior.
+- Migration state for stored settings.
 - User interface code or a current product build for labels and navigation.
 - Provider documentation for external requirements.
 - Release configuration for version and platform support.
@@ -1122,7 +1122,7 @@ Do not fill gaps with plausible behavior.
 
 ### Distinguish guarantees from observations
 
-Distinguish promised behavior from what happened in a particular test or observation.
+Distinguish promised behavior from a particular measurement or observation.
 
 ```text
 The request times out after 30 seconds.
@@ -1131,17 +1131,17 @@ The request times out after 30 seconds.
 Use this sentence only if the project guarantees completion within 30 seconds.
 
 ```text
-In the current load test, the request completed within 30 seconds.
+In the current benchmark, the request completed within 30 seconds.
 ```
 
 This sentence describes an observation, not a guarantee.
 
-Do not convert a benchmark, one test run, or implementation detail into a
+Do not convert one benchmark result or implementation detail into a
 general promise.
 
 ### Scope version-specific statements
 
-State the applicable version, platform, plan, role, or deployment mode when the
+State the applicable version, platform, plan, role, or runtime mode when the
 behavior is not universal.
 
 Use "version 3.2 or later," not "version 3.2 or above."
@@ -1323,8 +1323,8 @@ Delete obsolete content. Git already preserves history.
 
 ### Platform extensions
 
-Shortcodes, Liquid tags, custom alerts, tab components, cards, and generated
-macros are acceptable only when the documentation platform owns and tests them.
+Use shortcodes, Liquid tags, alerts, tabs, cards, and generated macros only when
+the page's renderer supports them.
 
 For each extension:
 
@@ -1337,7 +1337,7 @@ For each extension:
 ### Interactive documentation components
 
 Use tabs only for parallel alternatives such as operating systems, package
-managers, deployment methods, or version ranges.
+managers, connection methods, or version ranges.
 
 For tabs:
 
@@ -1486,7 +1486,7 @@ Use:
 
 ```text
 Private networking keeps service traffic off the public internet. Configure it
-before deploying workloads that require internal-only access.
+before starting workloads that require internal-only access.
 ```
 
 ### Heading hierarchy
@@ -1509,7 +1509,7 @@ Use:
 ```markdown
 ## Configure authentication
 
-Choose the authentication method that matches the deployment environment.
+Choose the authentication method that matches the runtime environment.
 
 ### Use workload identity
 ```
@@ -1659,7 +1659,7 @@ Use quotation marks for non-interactive user interface text when the wording
 must be reproduced exactly:
 
 ```text
-The page displays "Deployment completed."
+The page displays "Connection established."
 ```
 
 Do not put quotation marks around links, headings, or code-formatted text.
@@ -1808,14 +1808,13 @@ Avoid repeated `cd` commands when one working-directory statement is clearer.
 Use uppercase angle-bracket placeholders:
 
 ```shell
-tool deploy --project <PROJECT_ID> --token <ACCESS_TOKEN>
+mise run comfy:install -- --host <COMFYUI_DIRECTORY>
 ```
 
 Explain the values:
 
 ```text
-Replace `<PROJECT_ID>` with the project identifier and `<ACCESS_TOKEN>` with a
-token that has deployment access.
+Replace `<COMFYUI_DIRECTORY>` with the ComfyUI installation directory.
 ```
 
 Do not mix placeholder styles such as `YOUR_PROJECT`, `{project}`, and
@@ -1883,11 +1882,9 @@ Place the warning before a command that:
 
 - Deletes data.
 - Rewrites history.
-- Drops a database.
 - Rotates a key.
 - Revokes access.
 - Replaces remote state.
-- Performs a production deployment.
 
 Explain:
 
@@ -1924,7 +1921,7 @@ List:
 - Required starting state.
 - Required credentials without exposing them.
 - Required backups.
-- Platform or deployment limitations.
+- Platform or runtime limitations.
 
 Do not reveal a prerequisite halfway through the procedure.
 
@@ -1978,13 +1975,13 @@ Do not use "should" to make the reader guess whether the step is required.
 Use:
 
 ```text
-If the deployment uses a private registry, add the registry credentials.
+If the package source requires authentication, add its credentials.
 ```
 
 Avoid:
 
 ```text
-Add the registry credentials if the deployment uses a private registry.
+Add the credentials if the package source requires authentication.
 ```
 
 The first form helps readers decide whether to skip the step before reading the
@@ -2540,7 +2537,7 @@ Before the procedure, state:
 
 - Required role or access level.
 - Required product, plan, or feature availability.
-- Deployment-mode limits.
+- Runtime-mode limits.
 - Whether an administrator must enable the feature.
 
 Do not confuse a role with a permission. Use the level that directly controls
@@ -2645,7 +2642,7 @@ important interface element:
 
 ```text
 repository-create-button.png
-deployment-request-flow.drawio.svg
+request-validation-flow.drawio.svg
 ```
 
 Do not use names such as `image1.png` or `new-screenshot.png`.
@@ -2708,11 +2705,11 @@ For Mermaid, include accessibility metadata when supported:
 ````markdown
 ```mermaid
 flowchart TD
-    accTitle: Deployment request flow
-    accDescr: A request moves from validation to deployment or rejection.
+    accTitle: Request validation flow
+    accDescr: A request moves from validation to acceptance or rejection.
 
     A[Validate request] --> B{Valid?}
-    B -->|Yes| C[Deploy]
+    B -->|Yes| C[Accept]
     B -->|No| D[Reject]
 ```
 ````
@@ -2785,7 +2782,7 @@ For screenshots, begin with the useful visual type and product context:
 For diagrams:
 
 ```markdown
-![Diagram showing requests moving through validation before deployment.](img/deployment-flow.svg)
+![Diagram showing requests moving through validation before acceptance.](img/request-validation-flow.svg)
 ```
 
 Do not start with "Image of" or "Graphic of." Screen readers already identify an
@@ -2990,7 +2987,7 @@ Architecture documentation must explain:
 - Failure boundaries.
 - Concurrency model.
 - Persistence model.
-- Deployment shape.
+- Runtime shape.
 - Important invariants.
 
 Explain why a boundary exists when the reason is not obvious from the model.
@@ -3007,7 +3004,7 @@ Use diagrams only when they make relationships clearer than prose.
 Write symptom-first headings:
 
 ```markdown
-### Deployment remains in `Pending`
+### Connection remains in `Pending`
 ```
 
 For each problem, include:

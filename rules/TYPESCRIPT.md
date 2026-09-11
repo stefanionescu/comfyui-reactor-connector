@@ -1,7 +1,7 @@
 # Working with TypeScript
 
-Use these rules when writing or reviewing application code, services, scripts,
-migration generators, Edge Functions, and shared tooling written in TypeScript.
+Use these rules when writing or reviewing source files and shared tooling written
+in TypeScript.
 
 Start with the compiler and import settings for the code's runtime. Then read the sections for the
 change you are making.
@@ -29,11 +29,11 @@ change you are making.
 
 Use TypeScript to describe the values your code accepts and returns. Validate external input before
 relying on those types. Type annotations disappear at runtime, so an annotation alone cannot check
-an HTTP response, environment variable, or database result.
+an HTTP response or environment variable.
 
-Use the project's runtime schema library, project-specific validation
-functions, or database constraints to check incoming values. After validation,
-pass the resulting typed values to the code that uses them.
+Use the project's runtime schema library or project-specific validation
+functions to check incoming values. After validation, pass the resulting typed
+values to the code that uses them.
 
 Prefer plain values, small functions, discriminated unions, and modules with clear responsibilities.
 Keep types simple enough that a reader can connect them to the runtime behavior. When implementation
@@ -49,18 +49,9 @@ Enable these compiler settings:
 | `strict`                           | Enables TypeScript's strict type checks, including null checks and implicit `any` checks |
 | `noUncheckedIndexedAccess`         | Includes `undefined` when an indexed read can refer to a missing value                   |
 | `exactOptionalPropertyTypes`       | Distinguishes an absent optional property from a property set to `undefined`             |
-| `noImplicitOverride`               | Requires `override` when a class member overrides an inherited member                    |
-| `forceConsistentCasingInFileNames` | Checks that imports use consistent filename casing                                       |
 
-Match module resolution and import extensions to the runtime:
-
-| Source                              | Import policy                                                                                                                       |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js application                 | Use bundler-compatible resolution, the Next.js TypeScript plugin, application aliases, and extensionless internal imports           |
-| Separately compiled Node service    | Use `NodeNext` semantics and runtime `.js` extensions in imports of TypeScript source, so the emitted JavaScript resolves correctly |
-| Deno Edge Function                  | Use explicit `.ts` extensions for internal imports                                                                                  |
-| TypeScript script run by Bun or tsx | Use extensionless imports unless its runtime requires an explicit extension                                                         |
-| Lint tooling                        | Follow the tooling's ESLint configuration                                                                                           |
+Match module resolution and import extensions to the configured compiler and
+runtime. Do not impose an import style from another runtime.
 
 Keep the exact ESLint rule configuration with the lint tooling. Apply the
 language standards in this file consistently. Use explicit type-only imports
@@ -76,8 +67,8 @@ dependencies before reading its behavior.
 - Use `const` for bindings that are not reassigned.
 - Use `let` when reassignment is needed. Never use `var`.
 - Keep side-effect imports rare. Make their purpose clear at the import site.
-- Keep triple-slash references out of handwritten source. Framework-generated declarations such as
-  `next-env.d.ts` follow their generator's requirements.
+- Keep triple-slash references out of handwritten source. Generated declarations
+  follow their generator's requirements.
 - Keep file comments about the code's purpose. Remove change-history notes, stale paths, and
   generated examples that are not part of the working code.
 
@@ -92,9 +83,8 @@ Use ES module syntax.
 - Use `export type` when re-exporting type-only symbols.
 - Use named imports and exports for application modules. Keep mutable exports such as `export let`
   out of public module APIs.
-- Use default exports for framework special files such as `page`, `layout`, `loading`, `error`, and
-  metadata functions, and for configuration files whose tools expect a default export.
-- Keep default exports out of other application modules.
+- Use default exports only for files whose tools require them.
+- Keep default exports out of other modules.
 - Use modules for namespacing. Do not create a class or exported object solely to collect unrelated
   functions under one name.
 - Do not use `namespace`, `module`, or `import x = require(...)`.
@@ -113,9 +103,9 @@ handwritten types in their respective modules.
 Use `type` aliases for object shapes. Keep type-only modules free of runtime behavior and imports
 with side effects. Do not add an interface to bypass a lint rule.
 
-Keep component props and other local types beside their implementation. Move a type to a shared
-module when multiple modules use the same data shape or API. Choose its location based on those
-consumers, rather than placing all React props in a global directory.
+Keep local types beside their implementation. Move a type to a shared module
+when multiple modules use the same data shape or API. Choose its location based
+on those consumers rather than placing all types in a global directory.
 
 ## Name declarations
 
@@ -159,8 +149,7 @@ assertion.
 Declare the inputs and outputs that callers rely on. Let TypeScript infer local details when the
 result is clear.
 
-- Annotate exported function return types. React component return types and framework-inferred
-  exports can use inference when it preserves the framework's supported types.
+- Annotate exported function return types.
 - Annotate callback parameters when TypeScript cannot infer their types clearly.
 - Avoid reassigning parameters; use a local variable for a value that changes during the function.
 - Use a discriminated union or an options object when it expresses the inputs more clearly than
@@ -178,7 +167,7 @@ objects for stateless behavior.
 
 - Keep constructors focused on initializing the instance.
 - Use `override` when overriding a class member.
-- Use decorators only when the project's approved framework or toolchain requires them.
+- Use decorators only when the project's approved toolchain requires them.
 - Do not create static container classes solely for namespacing.
 
 Use a module with named exports when the behavior does not need per-instance identity or state.
@@ -221,11 +210,8 @@ the project's runtime schema library or validation functions for:
 
 - HTTP bodies, query strings, route parameters, and headers;
 - environment variables;
-- database rows and remote procedure call results that have not already been
-  validated;
 - provider responses;
-- file input and generated data sources;
-- webhooks, scheduled-job payloads, and Edge Function requests.
+- file input and generated data sources.
 
 After validation, pass the checked values to domain code with their resulting types. Keep parsing
 and rejection close to the entry point so the rest of the application can rely on the checked shape.

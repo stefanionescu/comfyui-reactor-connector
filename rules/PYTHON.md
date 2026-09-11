@@ -84,6 +84,7 @@ rules in this guide.
     - [src Layout and Import Path](#src-layout-and-import-path)
 - [Power features](#power-features)
 - [Threading and concurrency](#threading-and-concurrency)
+- [ComfyUI and Reactor boundaries](#comfyui-and-reactor-boundaries)
 - [Manual verification](#manual-verification)
 - [Verification commands](#verification-commands)
 - [Review checklist](#review-checklist)
@@ -1864,11 +1865,10 @@ Rules:
 - Keep `__init__` small.
 - Pass `__init__` the values that the class needs. Do not pass complex external
   objects only because they contain those values.
-- Do not couple a class constructor to database rows, object-relational mapping
-  objects, API payloads, CLI namespaces, or provider software development kit
-  response objects.
+- Do not couple a class constructor to API payloads, CLI namespaces, or provider
+  software development kit response objects.
 - Use classmethod named constructors for external representations, such as
-  `from_row`, `from_payload`, `from_token`, or `from_path`.
+  `from_payload`, `from_token`, or `from_path`.
 - Do not construct business objects with `ClassName(**external_attributes)` when
   that couples the class to an external storage or wire format.
 - Validation of class invariants belongs in initialization.
@@ -1889,9 +1889,9 @@ class Point:
     y: float
 
     @classmethod
-    def from_row(cls, row: PointRow) -> Point:
-        """Build a point from a database row."""
-        return cls(x=row.x, y=row.y)
+    def from_payload(cls, payload: PointPayload) -> Point:
+        """Build a point from a validated payload."""
+        return cls(x=payload.x, y=payload.y)
 ```
 
 Bad:
@@ -2031,7 +2031,7 @@ Rules:
   contract.
 - Decorator behavior must be unsurprising.
 - Decorators run at definition time, usually import time. Do not let them depend
-  on files, sockets, databases, network calls, or other unavailable resources.
+  on files, sockets, network calls, or other unavailable resources.
 - Preserve function metadata in decorators that wrap functions.
 - Avoid `staticmethod`. Use a module-level function instead.
 - Use `classmethod` for named constructors or class-specific routines.
@@ -2257,7 +2257,7 @@ Rules:
   not depend on the loop variable and have no required repeated side effect.
 - Do not combine conditions when separate conditions communicate distinct
   domain decisions more clearly.
-- Do not hoist code when execution order, exceptions, logging, timing, database
+- Do not hoist code when execution order, exceptions, logging, timing, external
   calls, or mutation would change.
 
 Good merged condition:
@@ -2477,8 +2477,8 @@ Rules:
 - Do not call logging once for the static text and once for the value.
 - Do not eagerly compute expensive logging arguments unless the log level is
   enabled. Use `logger.isEnabledFor(...)` around expensive diagnostic work.
-- Configure handlers, formatters, and levels at the application entrypoint or
-  deployment boundary, not in importable library modules.
+- Configure handlers, formatters, and levels at the application entrypoint, not
+  in importable library modules.
 - Call `logging.basicConfig()` before logger methods are called when an
   entrypoint uses basic configuration.
 - If dictionary or file logging configuration is used, set
@@ -2582,8 +2582,7 @@ except OSError:
 
 Rules:
 
-- Explicitly close files, sockets, database connections, mmap mappings, h5py
-  files, matplotlib figures, and similar stateful resources.
+- Explicitly close files, sockets, and similar stateful resources.
 - Prefer `with` statements for resources that support context management.
 - Use `contextlib.closing()` for closeable resources without context-manager
   support.
@@ -2743,6 +2742,40 @@ Rules:
 - Prefer `threading.Condition` over low-level polling loops.
 - Keep shared mutable state small and explicit.
 - Document concurrency, cancellation, and isolation behavior when present.
+
+## ComfyUI and Reactor boundaries
+
+- Keep registration small and free of network activity. Use documented ComfyUI
+  node APIs and native image, audio, and video types.
+- Keep host- and provider-required identifiers exact. For requested changes to
+  project-owned node IDs, saved keys, or settings, update affected callers and
+  examples together and migrate required stored data directly. Do not keep
+  compatibility aliases or discard user data. A label-only edit changes no
+  saved keys.
+- Keep host imports at their boundary. Isolated media workers run by file path
+  with the selected host interpreter; do not add imports that require the
+  repository working directory or mutate `sys.path`.
+- Validate decoded JSON at entry. Keep SDK typing uncertainty at the transport
+  boundary; do not spread `Any` or blanket ignores into node code.
+- Keep blocking file and media work off the host event loop. Bound queues,
+  threads, memory, session duration, and cleanup time. Own, cancel, and await
+  every created task; propagate cancellation after cleanup.
+- Use verified model command schemas and track names. Discovery lists models;
+  it does not prove that a model has a working node adapter.
+- Validate refreshed discovery records separately and replace them atomically.
+  Refresh must not execute provider text, install code, or open paid sessions.
+- Own connection, upload, commands, recording, and teardown. Never retry session
+  creation or a state-changing command after an ambiguous response.
+- A dropped connection or paused track does not prove billing stopped. Preserve
+  uncertain cleanup in private state and report a clear recovery action.
+- Exclude HappyOyster. Do not add its nodes, dependencies, routes, or workflows.
+- Keep credentials out of widgets, saved workflows, logs, and public files.
+  Use the private credential store or environment configuration.
+- Do not buy credits, enable top-ups, change billing, or query the user's Reactor
+  dashboard or balance. Keep manual run records private.
+- Use Comfy Desktop for manual workflow checks. Preserve user graphs, media,
+  unrelated node packs, and browser tabs. Other web work uses a separate Chrome
+  session.
 
 ## Manual verification
 

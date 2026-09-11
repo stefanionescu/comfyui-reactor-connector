@@ -36,6 +36,7 @@ from another component, process, or service.
     - [Documentation maintenance](#documentation-maintenance)
 - [Protected files](#protected-files)
 - [Language discipline](#language-discipline)
+- [No backward compatibility](#no-backward-compatibility)
 - [Working with uncommitted changes](#working-with-uncommitted-changes)
 
 ## Thinking before coding
@@ -191,7 +192,8 @@ Run formatting, linting, type checks, builds, dependency checks, security scans,
 and browser or manual checks only when the user explicitly requests them.
 An implementation or documentation change does not itself request verification.
 
-Use the existing local tools when checks are requested.
+Use the existing local tools when checks are requested. Do not add hosted Git
+workflows or inference deployment tooling.
 
 ## Verification commands
 
@@ -314,6 +316,25 @@ Use direct, concrete language in code, comments, filenames, and documentation.
 - Describe redundancy directly instead of using idioms.
 
 If code uses vague language, improve it when touching that code.
+
+## No backward compatibility
+
+Do not add compatibility layers, forwarding wrappers, aliases for renamed
+symbols, or deprecated implementations. Replace the old interface directly.
+
+When something is replaced or renamed:
+
+- Delete the old implementation entirely.
+- Update every call site to use the new version.
+- Remove unused files, functions, types, and variables.
+
+Keep only the current implementation. For a requested rename or replacement,
+update affected callers, schemas, examples, and stored data together. Migrate
+required stored data directly; do not retain old IDs, aliases, forwarding
+wrappers, dual paths, or deprecated implementations.
+
+Keep names imposed by the current ComfyUI and Reactor APIs exact. Protect user
+graphs, media, and credentials. Do not discard user data to avoid a migration.
 
 ## Working with uncommitted changes
 

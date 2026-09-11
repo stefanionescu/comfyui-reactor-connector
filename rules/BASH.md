@@ -1,7 +1,7 @@
 # Working on Bash
 
-These rules apply to Git hooks, mise task files, committed Bash scripts, sourced
-libraries, and CI steps that use Bash in this single-project repository.
+These rules apply to Git hooks, mise task files, committed Bash scripts, and
+sourced libraries in this single-project repository.
 
 Use [NAMING.md](NAMING.md) for names and [GENERAL.md](GENERAL.md) for working rules.
 Use the existing commands for the affected scripts.
@@ -13,14 +13,14 @@ Choose the section that matches the work you are doing:
 | Task                                 | Sections                                                                                                                                                                              |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Choose where script logic belongs    | [Use Bash for command tasks](#use-bash-for-command-tasks), [when to use Bash](#when-to-use-bash)                                                                                      |
-| Create a hook, task, or script       | [File types and invocation](#file-types-and-invocation), [script structure](#script-structure), [functions](#functions)                                                               |
+| Create a hook, task, or script       | [File types and invocation](#file-types-and-invocation), [script structure](#script-structure), [module ownership](#module-ownership-and-visibility), [functions](#functions)           |
 | Handle failures                      | [Shell options](#shell-options), [output and errors](#output-logging-and-errors), [pipelines](#pipelines-and-redirection)                                                             |
 | Pass arguments and read input        | [Quoting](#quoting-and-expansion), [arrays](#arrays-and-argument-lists), [loops](#loops-and-input), [delimiters](#delimited-data-and-ifs)                                             |
 | Compare or calculate values          | [Conditionals](#conditionals), [arithmetic](#arithmetic), [variables](#variables-and-constants)                                                                                       |
 | Read or replace files                | [Paths](#paths-globs-and-file-names), [command substitution](#command-substitution), [temporary files](#temporary-files-locks-and-cleanup)                                            |
-| Call tools and manage processes      | [Calling commands](#calling-commands), [processes and privileges](#process-management-and-privilege-boundaries), [network commands](#network-commands)                                |
+| Call tools and manage processes      | [Calling commands](#calling-commands), [process management](#process-management), [network commands](#network-commands)                                                             |
 | Handle sensitive or structured input | [Structured data](#text-json-and-structured-data), [secrets](#secrets-and-environment), [security rules](#security-rules)                                                             |
-| Support developer machines and CI    | [Portability](#portability-rules), [CI scripts](#ci-scripts)                                                                                                                          |
+| Support developer machines           | [Portability](#portability-rules), [local tasks and hooks](#local-tasks-and-hooks)                                                                                                    |
 | Review or repair a script            | [Comments](#comments-and-documentation), [linting](#linting-and-formatting), [verification](#verification-scope), [debugging](#debugging-bash), [review checklist](#review-checklist) |
 
 ## Shell terms used here
@@ -47,12 +47,12 @@ Rules:
   failure behavior.
 - Treat every path, argument, environment value, command output, and user input
   as unsafe until quoted, validated, or parsed by a structured tool.
-- A script that deploys, deletes, migrates, uploads, modifies infrastructure, or
-  changes secrets must be readable enough to audit line by line.
+- A script that deletes files or changes secrets must be readable enough to
+  audit line by line.
 - ShellCheck warnings are design feedback. Fix them unless there is a documented
   reason not to.
 - `set -euo pipefail` is not a substitute for checking dangerous commands.
-- Keep mise tasks, hooks, and CI entries focused on calling the commands they need.
+- Keep mise tasks and hooks focused on calling the commands they need.
   Put more complex behavior in the module responsible for it.
 - Keep structured-data parsing and source-code analysis in their existing owner
   modules.
@@ -91,7 +91,7 @@ Bad Bash:
 #!/bin/sh
 cd dist
 for file in $(ls); do
-  scp $file $HOST:$DIR
+  shellcheck $file
 done
 ```
 
@@ -100,7 +100,7 @@ done
 Use Bash when the script mostly:
 
 - calls other command-line tools;
-- wires together build, lint, deploy, or cleanup steps;
+- wires together build, lint, or cleanup steps;
 - validates environment and then dispatches to project commands;
 - performs simple file movement, process checks, or retry loops.
 
@@ -146,18 +146,20 @@ Shebang rules:
 #!/usr/bin/env bash
 ```
 
-Use this for repository scripts that may run on macOS, Linux, CI, or developer
+Use this for repository scripts that may run on macOS, Linux, or developer
 machines.
 
 Repository scripts target Bash 3.2. Do not use `mapfile`, `readarray`,
-associative arrays, case-conversion expansion, `coproc`, or `wait -n`.
+associative arrays, `globstar`, namerefs, case-conversion expansion, `coproc`,
+`BASH_XTRACEFD`, `wait -n`, or `shopt -s lastpipe`. Do not rely on
+process-substitution behavior that has not been verified on the target system.
 
 ```bash
 #!/bin/bash
 ```
 
 Use this only when the target runtime deliberately relies on system Bash at that
-path, such as a controlled Linux remote host.
+path, such as a controlled Linux runtime.
 
 Do not use:
 
@@ -170,7 +172,7 @@ unless the file is intentionally POSIX `sh`. If a file uses `sh`, this Bash
 guide does not apply except for general quoting and security principles.
 
 Do not set the set-user-ID (SUID) or set-group-ID (SGID) permission bits on
-shell scripts. Use `sudo` or a platform-specific privilege boundary instead.
+shell scripts.
 
 ## File encoding and line endings
 
@@ -228,7 +230,7 @@ Bad:
 
 ```bash
 function run() {
-  if [ "$mode" = deploy -o "$mode" = rollback ]; then
+  if [ "$mode" = check -o "$mode" = cleanup ]; then
     let count=count+1
     command &>"$log_file"
   fi
@@ -238,9 +240,9 @@ function run() {
 Good:
 
 ```bash
-# _deploy - Runs the selected deployment operation.
-_deploy() {
-  if [[ "${mode}" == 'deploy' || "${mode}" == 'rollback' ]]; then
+# _apply_selected_operation - Applies the selected operation.
+_apply_selected_operation() {
+  if [[ "${mode}" == 'check' || "${mode}" == 'cleanup' ]]; then
     count=$(( count + 1 ))
     command >"${log_file}" 2>&1
   fi
@@ -265,7 +267,7 @@ Example:
 ```bash
 #!/usr/bin/env bash
 #
-# Build and publish the report bundle.
+# Build the report bundle.
 # Runtime: Bash 3.2+, macOS and Linux.
 
 set -euo pipefail
@@ -290,7 +292,7 @@ _require_report_dir() {
   [[ -d "${report_dir}" ]]
 }
 
-# main - Builds and publishes the report bundle.
+# main - Builds the report bundle.
 main() {
   local report_dir="${1:-}"
 
@@ -322,6 +324,49 @@ Rules:
 - Use explicit `exit 0` only when the final command's status is not the program
   result and success has already been established.
 
+## Module ownership and visibility
+
+Each file owns one cohesive responsibility. Directory structure supplies the
+family or domain name.
+
+Rules:
+
+- A sourced file containing only `source` statements is a barrel and is
+  forbidden. Callers source the exact owner they use.
+- A file and a sibling directory must not share a stem. Move the file into the
+  directory and give it a role name.
+- A function beginning with `_` is private to its defining file.
+- Private functions appear before public functions.
+- A private function must not be called from another file.
+- An executable file exposes only `main`; every other function in that file is
+  private.
+- A sourced public function uses its family or domain namespace, such as
+  `hook_run_step` or `runtime_remove_owned_path`.
+- Library files explicitly source every repository file whose public functions
+  they call. Do not rely on an entrypoint's source order or a transitive source.
+- Shell configuration owners start with an owner-specific include guard before
+  constants or dependency sources. The guard returns when its `_CFG_*_READY`
+  marker is set, then immediately declares that marker readonly.
+- Ordinary function libraries do not use blanket include guards. They remain
+  safe when direct dependency diamonds source them more than once.
+- Library-level behavioral constants use an owner-specific uppercase name and
+  are readonly immediately after assignment. Source-path discovery variables
+  are load-time values, not behavioral constants, and remain reassignable.
+- Do not create a file for one function used by one caller. Keep that function
+  with its caller unless the file owns a real executable, external-system,
+  security, persistence, or destructive-operation boundary.
+- A retained one-function, one-caller boundary includes a `Boundary:` header
+  that states the concrete boundary. A comment is not sufficient when the
+  implementation does not own that boundary.
+- Do not split one concept across parallel directory owners.
+
+Preferred order inside the function section:
+
+1. Private parsing and validation functions.
+1. Private operation functions.
+1. Public library functions.
+1. `main` for executable scripts.
+
 ## Shell options
 
 Check what each shell option changes before enabling it:
@@ -340,8 +385,8 @@ Rules:
 
 - Use `set -euo pipefail` only when the script is written and reviewed for those
   behaviors.
-- Do not rely on `errexit` for critical safety. Explicitly check `cd`, `rm`,
-  deploy, migration, upload, sync, and destructive commands.
+- Do not rely on `errexit` for critical safety. Explicitly check `cd`, `rm`, and
+  other destructive commands.
 - Do not use `errexit` as the only way to handle failures. It has exceptions in
   conditionals, pipelines, command substitutions, subshells, and functions.
 - Do not enable or disable `set` options in sourced libraries. Isolate a local
@@ -376,8 +421,9 @@ failing command.
 _cleanup() {
   local target="$1"
 
+  [[ -n "${target}" ]] || return 1
   cd -- "${target}" || return 1
-  runtime_remove_owned_path "${target}"
+  runtime_remove_owned_path "${REPO_ROOT}" "${target}"
 }
 ```
 
@@ -460,16 +506,15 @@ Rules:
 - Use `printf`, not `echo`, for predictable output.
 - Error messages go to `stderr`.
 - Machine-readable output goes to `stdout` and excludes progress text.
-- Deployment scripts include enough public context to diagnose the failing
-  operation.
-- Long-running, cron, deployment, and multi-host scripts use timestamped
+- Scripts include enough public context to diagnose the failing operation.
+- Long-running, cron, and multi-target scripts use timestamped
   diagnostics with stable fields instead of prose-only progress.
 - Include the public operation, a non-sensitive target label, the attempt
   number, and the status when those fields exist. Do not expose internal script
   or function names.
 - Do not print secrets, tokens, cookies, connection strings, `.env` content, or
   provider payloads.
-- Do not use colored output in CI unless the runner and logs support it.
+- Do not use colored output when the receiving logs do not support it.
 - Do not make parsers depend on human log text.
 - Use `logger` or journald only in Linux-only scripts that validate the command
   is available and document the runtime dependency.
@@ -477,13 +522,13 @@ Rules:
 Good:
 
 ```bash
-printf 'Deploying %s to %s\n' "${target_name}" "${environment}" >&2
+printf 'Running %s for %s\n' "${operation_name}" "${target_name}" >&2
 ```
 
 Structured diagnostic:
 
 ```bash
-# deploy_log_status - Prints a timestamped deployment status to stderr.
+# _log_status - Prints a timestamped operation status to stderr.
 # Globals:
 #   None.
 # Arguments:
@@ -494,7 +539,7 @@ Structured diagnostic:
 #   Writes the status fields to stderr.
 # Returns:
 #   0 when the status is written, non-zero otherwise.
-deploy_log_status() {
+_log_status() {
   local operation_name="$1"
   local target_name="$2"
   local status_label="$3"
@@ -509,7 +554,7 @@ deploy_log_status() {
 Bad:
 
 ```bash
-echo "Deploying with token $TOKEN"
+echo "Running with token $TOKEN"
 ```
 
 ## Literal text and here documents
@@ -542,7 +587,7 @@ Good with expansion:
 
 ```bash
 cat <<EOF
-Deploying ${target_name} to ${environment}.
+Processing ${target_name} in ${environment}.
 EOF
 ```
 
@@ -562,7 +607,7 @@ Keep existing brief hook and mise entry points consistent with the project polic
 ```bash
 #!/usr/bin/env bash
 #
-# Sync generated storage assets to the configured project.
+# Check generated files in the repository.
 # Runtime: Bash 3.2+, macOS and Linux.
 ```
 
@@ -581,18 +626,17 @@ For sourced public functions and risky functions other than `main`,
 include the full header:
 
 ```bash
-# storage_upload_asset - Uploads one asset to remote storage.
+# runtime_remove_owned_path - Removes one path below a verified repository root.
 # Globals:
-#   STORAGE_API_URL
-#   STORAGE_API_KEY
+#   None.
 # Arguments:
-#   Bucket name.
-#   Local file path.
+#   Repository root.
+#   Path below the repository root.
 # Outputs:
-#   Writes progress to stderr.
+#   Writes validation failures to stderr.
 # Returns:
-#   0 when upload succeeds, non-zero otherwise.
-storage_upload_asset() {
+#   0 when the path is absent or removed, non-zero when ownership is invalid.
+runtime_remove_owned_path() {
   ...
 }
 ```
@@ -632,15 +676,15 @@ done
 Case statements:
 
 ```bash
-case "${environment}" in
-  staging)
-    deploy_staging
+case "${operation}" in
+  check)
+    _check_project
     ;;
-  production)
-    deploy_production
+  format)
+    _format_project
     ;;
   *)
-    printf 'Error: unknown environment: %s\n' "${environment}" >&2
+    printf 'Error: unknown operation: %s\n' "${operation}" >&2
     return 1
     ;;
 esac
@@ -857,21 +901,21 @@ Use arrays for command arguments.
 Good:
 
 ```bash
-declare -a rsync_args
-rsync_args=(
-  -az
-  --delete
-  --exclude '.DS_Store'
+declare -a command_args
+command_args=(
+  tool
+  --flag
+  "${value}"
 )
 
-rsync "${rsync_args[@]}" "${source_dir}/" "${target_dir}/"
+"${command_args[@]}"
 ```
 
 Bad:
 
 ```bash
-rsync_args='-az --delete --exclude ".DS_Store"'
-rsync ${rsync_args} "${source_dir}/" "${target_dir}/"
+command_args='tool --flag "${value}"'
+${command_args}
 ```
 
 Rules:
@@ -889,7 +933,7 @@ failure matters:
 ```bash
 while IFS= read -r file; do
   files+=("${file}")
-done < <(find . -type f -name '*.sql' -print)
+done < <(find . -type f -name '*.sh' -print)
 ```
 
 For filenames, prefer NUL delimiters:
@@ -897,7 +941,7 @@ For filenames, prefer NUL delimiters:
 ```bash
 while IFS= LC_ALL=C read -r -d '' file; do
   files+=("${file}")
-done < <(find . -type f -name '*.sql' -print0)
+done < <(find . -type f -name '*.sh' -print0)
 ```
 
 ## Conditionals
@@ -936,8 +980,8 @@ fi
 Pattern matching:
 
 ```bash
-if [[ "${file}" == *.sql ]]; then
-  lint_sql "${file}"
+if [[ "${file}" == *.sh ]]; then
+  _check_shell_file "${file}"
 fi
 ```
 
@@ -1194,9 +1238,9 @@ Rules:
 Good:
 
 ```bash
-for file in ./*.sql; do
+for file in ./*.sh; do
   [[ -e "${file}" ]] || continue
-  sql_lint_file "${file}"
+  _check_shell_file "${file}"
 done
 ```
 
@@ -1219,24 +1263,16 @@ fi
 With `nullglob`, scope the option:
 
 ```bash
-# _list_sql_files - Prints SQL files in the current directory.
-_list_sql_files() {
+# _list_shell_files - Prints shell files in the current directory.
+_list_shell_files() {
   (
     shopt -s nullglob
 
     declare -a files
-    files=( ./*.sql )
+    files=( ./*.sh )
     printf '%s\n' "${files[@]}"
   )
 }
-```
-
-Prefer simpler local use when possible:
-
-```bash
-shopt -s nullglob
-sql_files=( ./*.sql )
-shopt -u nullglob
 ```
 
 If changing directories:
@@ -1373,8 +1409,8 @@ after all jobs complete, or use a tool that serializes output.
 Rules:
 
 - Check command availability before using non-standard tools.
-- Check uncommon commands before long-running, destructive, deployment, or
-  error-handling paths depend on them.
+- Check uncommon commands before long-running, destructive, or error-handling
+  paths depend on them.
 - Use fixed command names and argument arrays.
 - Do not build shell commands as strings.
 - Do not pass untrusted input to a shell.
@@ -1388,15 +1424,11 @@ Rules:
 - Use `--` before user-controlled positional arguments when supported.
 - Pass a file directly to a command instead of using `cat file | command` unless
   concatenation or a pipeline-only interface is required.
-- Do not run `su -c 'command'` without the target username. Prefer `sudo` or the
-  platform's service owner tools.
 - For multiple date fields, get one timestamp and derive fields from it.
 - Application code that invokes commands must pass an argument array to the
   process API, not a shell string.
 - Do not invoke `bash -c` or `bash -lc`. Put required shell behavior in an owned
   script or function and pass values as arguments.
-- Treat remote `ssh` command strings as a last resort. Prefer a reviewed script
-  copied to the host or pass fixed commands plus deliberately quoted arguments.
 
 Command requirement helper:
 
@@ -1414,13 +1446,13 @@ _require_command() {
 }
 ```
 
-## Process management and privilege boundaries
+## Process management
 
 Rules:
 
 - Do not use `ps ... | grep name` as process control.
-- Prefer service-manager commands, PID files owned by the script family,
-  or `pgrep`/`pkill` with exact matching.
+- Prefer PID files owned by the script family or `pgrep`/`pkill` with exact
+  matching.
 - Treat process names as advisory. They are not an authorization boundary.
 - When starting background jobs, save each PID, `wait` for each PID, and capture
   each job's status explicitly.
@@ -1428,26 +1460,8 @@ Rules:
   `INT`, `TERM`, and `EXIT`.
 - Keep per-job output in separate files when concurrent jobs can interleave
   logs.
-- Limit how many jobs run at once. When targeting many hosts or files, use an
+- Limit how many jobs run at once. When targeting many files, use an
   explicit concurrency limit.
-- `sudo command > file` redirects as the current user, not as root.
-- Globs in `sudo command /path/*` expand before `sudo` runs.
-- Use `sudo tee` when only the file write requires elevated privileges.
-- Use a fixed `sudo sh -c '...'` wrapper only when root-owned shell expansion or
-  redirection is required.
-- Do not put user input inside privileged shell strings.
-
-Privileged write:
-
-```bash
-deployment_config | sudo tee /etc/service/config >/dev/null
-```
-
-Privileged glob, fixed string only:
-
-```bash
-sudo sh -c 'ls /root-owned-dir/*.conf'
-```
 
 Process lookup:
 
@@ -1481,42 +1495,12 @@ _cleanup_children() {
   return 0
 }
 
-# _check_hosts - Checks remote hosts and returns nonzero on any failure.
-# Arguments:
-#   Small, already bounded host list to check.
-_check_hosts() {
-  local host
-  local pid
-  local status=0
-
-  trap '_cleanup_children' EXIT
-  trap '_cleanup_children; exit 130' INT
-  trap '_cleanup_children; exit 143' TERM
-
-  for host in "$@"; do
-    _check_host "${host}" >"${tmp_dir}/${host}.log" 2>&1 &
-    pid=$!
-    child_pids+=( "${pid}" )
-  done
-
-  for pid in "${child_pids[@]}"; do
-    if ! wait "${pid}"; then
-      status=1
-    fi
-  done
-
-  trap - EXIT INT TERM
-  return "${status}"
-}
 ```
 
 Bad:
 
 ```bash
 ps ax | grep service_name
-sudo mycmd > /etc/service/config
-sudo ls /root-owned-dir/*
-sudo sh -c "systemctl restart ${unit_name}"
 ```
 
 ## Text, JSON, and structured data
@@ -1583,10 +1567,10 @@ Rules:
 
 - Use `curl --fail --show-error --silent --location` for downloads unless the
   endpoint requires different behavior.
-- Use bounded timeouts for commands that can hang, including `ssh`, `scp`,
-  `curl`, `find` over mounted filesystems, and remote service checks.
-- Prefer tool-native timeout options first, such as SSH `ConnectTimeout` and
-  curl `--connect-timeout` plus `--max-time`.
+- Use bounded timeouts for commands that can hang, including `curl` and `find`
+  over mounted filesystems.
+- Prefer tool-native timeout options first, such as curl `--connect-timeout`
+  plus `--max-time`.
 - Wrap with `timeout` only when GNU/coreutils availability has been validated
   for the script's runtime. macOS does not provide GNU `timeout` by default.
 - Write downloads to explicit files.
@@ -1616,40 +1600,11 @@ _download_file() {
 }
 ```
 
-Remote timeout:
-
-```bash
-ssh \
-  -o "ConnectTimeout=${SSH_CONNECT_TIMEOUT_SECONDS}" \
-  -o "ServerAliveInterval=${SSH_KEEPALIVE_INTERVAL_SECONDS}" \
-  -o "ServerAliveCountMax=${SSH_KEEPALIVE_COUNT}" \
-  -- "${host}" \
-  systemctl is-active --quiet "${unit_name}"
-```
-
-Installer pattern:
-
-```bash
-tmp_dir="$(mktemp -d)" || return 1
-trap 'runtime_remove_owned_path "${tmp_dir}"' RETURN
-
-installer="${tmp_dir}/install.sh"
-curl --fail --show-error --silent --location \
-  --connect-timeout "${HTTP_CONNECT_TIMEOUT_SECONDS}" \
-  --max-time "${HTTP_TRANSFER_TIMEOUT_SECONDS}" \
-  --output "${installer}" \
-  "${installer_url}"
-
-printf '%s  %s\n' "${expected_sha256}" "${installer}" | shasum -a 256 -c -
-bash "${installer}" --version "${tool_version}"
-```
-
 ## Secrets and environment
 
 Rules:
 
-- Read secrets from the caller environment, a secret manager, or documented
-  ignored env files.
+- Read secrets from the caller environment or documented ignored env files.
 - Validate required secrets at the boundary.
 - Do not echo, trace, write, commit, or include secrets in command-line
   arguments when the process table could expose them.
@@ -1708,12 +1663,22 @@ Rules:
   redirection. Do not check with `test` and then create the lock later.
 - For lock directories, write the owner PID and recover stale locks explicitly.
 - Do not delete broad globs under variable paths without validation.
+- Full cleanup is opt-in. Stop commands preserve environments, caches, models,
+  and unrelated runtime resources by default.
+- Cleanup must be limited to repository-owned paths and PIDs. Do not delete
+  whole home cache roots, arbitrary configured cache roots, shared `/tmp`
+  families, or every process holding a GPU context.
+- Before `rm -rf`, canonicalize or structurally validate the target against an
+  explicit owner root. Reject empty paths, `/`, the repository root itself,
+  `$HOME`, and any path outside the declared owner.
+- Do not use `|| true` on destructive commands or required installation,
+  package build, or runtime commands.
 
 Good:
 
 ```bash
 tmp_dir="$(mktemp -d)" || return 1
-trap 'runtime_remove_owned_path "${tmp_dir}"' EXIT
+trap 'rm -rf -- "${tmp_dir}"' EXIT
 ```
 
 Atomic structured replacement:
@@ -1736,7 +1701,7 @@ trap - RETURN
 Race-safe lock directory:
 
 ```bash
-lock_dir="${state_dir}/deploy.lock"
+lock_dir="${state_dir}/operation.lock"
 
 if ! mkdir "${lock_dir}"; then
   printf 'Error: another operation already holds the lock\n' >&2
@@ -1744,11 +1709,11 @@ if ! mkdir "${lock_dir}"; then
 fi
 
 printf '%s\n' "$$" >"${lock_dir}/pid" || {
-  runtime_remove_owned_path "${lock_dir}"
+  runtime_remove_owned_path "${REPO_ROOT}" "${lock_dir}"
   return 1
 }
 
-trap 'runtime_remove_owned_path "${lock_dir}"' EXIT
+trap 'runtime_remove_owned_path "${REPO_ROOT}" "${lock_dir}"' EXIT
 ```
 
 Function-scoped cleanup:
@@ -1758,7 +1723,7 @@ Function-scoped cleanup:
 _generate_in_temp_dir() {
   local tmp_dir
   tmp_dir="$(mktemp -d)" || return 1
-  trap 'runtime_remove_owned_path "${tmp_dir}"' RETURN
+  trap 'rm -rf -- "${tmp_dir}"' RETURN
 
   _write_output_files "${tmp_dir}"
 }
@@ -1770,24 +1735,18 @@ after validating the target:
 ```bash
 [[ -n "${build_dir}" ]] || return 1
 [[ "${build_dir}" == */build ]] || return 1
-runtime_remove_owned_path "${build_dir}"
+runtime_remove_owned_path "${REPO_ROOT}" "${build_dir}"
 ```
 
-## CI scripts
+## Local tasks and hooks
 
-Rules:
-
-- Keep CI YAML thin. Put reusable logic in scripts.
-- CI scripts must be non-interactive by default.
-- Use explicit environment variables for CI-only behavior.
-- Print the versions of important tools when diagnosing setup issues.
-- Keep cache key creation deterministic.
-- Do not install global tools without pinning versions.
-- Do not mutate source files in verification jobs unless the job is explicitly a
-  formatter or codegen job.
-- Capture logs and reports to predictable artifact paths.
-- Do not call broad, expensive, or mutating checks from a narrow task unless the
-  owning rule file requires it.
+- Keep task entry points small. Put reusable behavior in the script that owns it.
+- Use pinned tools and existing dependencies. Hooks must not install packages.
+- Keep checks read-only. Formatting and generation use separate tasks.
+- Keep logs and scanner reports in ignored private directories.
+- Preserve other hook owners. Configure hooks only for this repository.
+- Propagate command failures. Never hide a failure behind a final message.
+- Do not create hosted Git workflows or deployment tooling.
 
 ## Security rules
 
@@ -1812,7 +1771,7 @@ Never:
 Safe `find -exec sh -c`:
 
 ```bash
-find . -type f -name '*.sql' -exec sh -c 'printf "%s\n" "$1"' sh {} \;
+find . -type f -name '*.sh' -exec sh -c 'printf "%s\n" "$1"' sh {} \;
 ```
 
 Unsafe:
@@ -1832,13 +1791,33 @@ into code.
 
 ## Portability rules
 
-Target the actual development and deployment environments. Use the configured command versions
-directly. Do not add portability wrappers, platform-selection branches, or fallback implementations
-for environments the project does not support.
+Rules:
 
-Keep paths quoted, use physical paths when symlinks matter, and make executable dependencies
-explicit. When a required tool is missing, fix the environment setup instead of adding an alternate
-implementation.
+- Default to Bash 3.2-compatible syntax unless runtime support is checked.
+- Every file header declares the supported platform and minimum Bash version.
+- The declared contract and syntax must agree. Bash 4+ features such as
+  `mapfile`, `readarray`, associative arrays, and `${value,,}` require a
+  checked Bash 4+ entry boundary; otherwise they are forbidden.
+- Account for macOS/BSD and GNU differences in `sed`, `date`, `readlink`,
+  `mktemp`, `stat`, `xargs`, and `grep`.
+- Prefer project-provided wrappers for platform-specific behavior.
+- Do not use `realpath` unless the target platform guarantees it.
+- Use `pwd -P` after `cd` for physical paths when symlinks matter.
+- Avoid `sed -i` unless platform-specific behavior is handled.
+- Avoid `date` parsing that differs between GNU and BSD.
+- Do not assume `/bin/bash` is a modern Bash on macOS.
+- Do not use Linux-only utilities in macOS-compatible scripts without checks.
+- Do not assume hooks have the same `PATH` as a developer shell.
+
+Portable script directory:
+
+```bash
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly SCRIPT_DIR
+```
+
+When absolute path resolution must handle symlinks across platforms, prefer a
+small verified Bash helper or product-owned application code.
 
 ## Linting and formatting
 
@@ -1848,8 +1827,8 @@ Rules:
 - Fix ShellCheck findings in the touched scope.
 - Use the existing formatter when formatting is explicitly requested.
 - Do not add broad lint suppressions.
-- Every suppression needs a nearby `lint:justify` comment with a concrete reason
-  and tracking reference, using the form shown below.
+- Every suppression needs a nearby `lint:justify` comment with a concrete reason,
+  using the form shown below.
 - Prefer changing code to satisfy ShellCheck over adding disable comments.
 
 Expected tools:
@@ -1863,9 +1842,9 @@ Run requested checks from the location expected by the project.
 ShellCheck suppression shape:
 
 ```bash
-# shellcheck disable=SC2154
-# lint:justify -- reason: variable is supplied by the deployment environment -- ticket: OPS-123
-printf '%s\n' "${DEPLOY_ENVIRONMENT}"
+# lint:justify -- reason: scanner scripts consume these paths.
+# shellcheck disable=SC2034
+OSV_FRONTEND_LOCKFILE="bun.lock"
 ```
 
 Keep a suppression next to the affected command and explain the requirement that
@@ -1876,8 +1855,8 @@ causes the warning. Avoid suppressing a warning for the whole file.
 Run syntax checks, ShellCheck, shfmt, naming checks, or other verification commands only when the
 user explicitly requests verification. Keep requested checks limited to the affected scripts.
 
-Do not create Bash test suites, mock command wrappers, test-only flags, or test-only abstractions.
-Never run a deployment or destructive command merely to check syntax.
+Do not create or run Bash tests. Never run a destructive command merely to
+check syntax.
 
 ## Debugging Bash
 
@@ -1993,21 +1972,18 @@ Before finishing Bash work, verify:
 - Argument lists use arrays.
 - User input and external data are validated before arithmetic or command use.
 - No `eval`, `bash -c`, `bash -lc`, parsed `ls`, or untrusted shell fragments exist.
-- `cd`, deployment, destructive, migration, upload, and sync commands are
-  checked explicitly.
+- `cd` and destructive commands are checked explicitly.
 - Pipelines behave correctly with or without `pipefail`.
 - Redirections are ordered correctly.
 - Temporary files are created with `mktemp` and cleaned up.
 - Downloads, generated files, and structured replacements validate temporary
   data before replacing known-good files.
 - Locks are acquired atomically, not with separate check-then-create steps.
-- Network, remote, mounted-filesystem, and readiness commands have bounded
+- Network and mounted-filesystem commands have bounded
   timeouts where they can hang.
 - Retries are limited to known retryable failures and have bounded attempts.
 - Background jobs are tracked by PID, waited on, and cleaned up on interruption.
 - Concurrent jobs keep output separated or use a tool that serializes output.
-- Checkpoint files cannot skip required work after inputs, targets, or runs
-  change.
 - Long-running or multi-target scripts log stable status fields to `stderr`
   without secrets.
 - Secrets are not printed, traced, or left in files.
@@ -2015,7 +1991,6 @@ Before finishing Bash work, verify:
 - Broken symlinks, home-relative paths, and no-match globs are handled
   deliberately where relevant.
 - `IFS`, `read`, and delimited-data handling do not drop meaningful data.
-- Privileged redirection and globbing happen at the intended privilege level.
 - Process command does not rely on `ps | grep`.
 - Files have UTF-8 without BOM and LF endings.
 - macOS/Linux portability is acceptable for the script's runtime.
@@ -2035,7 +2010,7 @@ grep pattern file | while read -r line; do count=$(( count + 1 )); done
 while read line; do process "$line"; done <<< "$(command)"
 cp $source $target
 rm -rf "$dir/"*
-cd "$dir"; deploy
+cd "$dir"; _check_project
 cmd1 && cmd2 || cmd3
 echo $value
 echo <<EOF
@@ -2045,15 +2020,13 @@ value=`command`
 $[count + 1]
 let count=count+1
 typeset value=1
-function deploy() {
+function run() {
 for arg; { printf '%s\n' "$arg"; }
 command &>"$log_file"
 command |& grep pattern
 if [ "$a" = x -o "$b" = y ]; then
 trap 'handle_error' ERR
 bash -c "$user_input"
-sudo command > /root/file
-sudo ls /root-owned-dir/*
 ps ax | grep service
 find . -exec sh -c 'echo {}' \;
 xargs command
@@ -2085,12 +2058,11 @@ done < <(find . -type f -print0)
 
 grep -q 'pattern' "${file}"
 cp -- "${source}" "${target}"
-deployment_config | sudo tee /etc/service/config >/dev/null
 
 if ! cd -- "${dir}"; then
   return 1
 fi
-deploy
+_check_project
 
 if cmd1; then
   cmd2
@@ -2106,8 +2078,8 @@ command_args=(tool --flag "${value}")
 
 value="$(command)" || return 1
 count=$(( count + 1 ))
-# _deploy - Runs the selected deployment operation.
-_deploy() {
+# _apply_selected_operation - Applies the selected operation.
+_apply_selected_operation() {
   ...
 }
 command >"${log_file}" 2>&1
