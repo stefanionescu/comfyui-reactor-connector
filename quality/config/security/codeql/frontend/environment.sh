@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Define frontend configuration values.
+# Set frontend CodeQL query suites, reports, and resource limits.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
-# lint:justify -- reason: CodeQL policy is sourced by scanner scripts -- ticket: quality-config
+# lint:justify -- reason: CodeQL policy is sourced by scanner scripts
 # shellcheck disable=SC2034
 [[ -n ${_CFG_QLJS_READY:-} ]] && return 0
 readonly _CFG_QLJS_READY=1

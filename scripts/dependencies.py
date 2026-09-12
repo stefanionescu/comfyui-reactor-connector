@@ -20,7 +20,9 @@ def requirements(root: Path) -> str:
             msg = "List each runtime dependency as one nonempty string."
             raise ValueError(msg)
         dependencies.append(item)
-    return "# Generated from pyproject.toml by mise run deps:export.\n" + "".join(f"{item}\n" for item in dependencies)
+    return "# Generated from pyproject.toml by mise run repo:deps:export.\n" + "".join(
+        f"{item}\n" for item in dependencies
+    )
 
 
 def main() -> int:
@@ -33,7 +35,7 @@ def main() -> int:
     expected = requirements(root)
     if args.check:
         if not destination.is_file() or destination.read_text(encoding="utf-8") != expected:
-            sys.stdout.write("Update requirements.txt with mise run deps:export." + "\n")
+            sys.stdout.write("Update requirements.txt with mise run repo:deps:export." + "\n")
             return 1
     else:
         destination.write_text(expected, encoding="utf-8")

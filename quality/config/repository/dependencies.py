@@ -13,7 +13,7 @@ LOCK_PACKAGE_SECTION = "package"
 PACKAGE_NAME_FIELD = "name"
 
 ROOT_REQUIREMENTS_GLOB = "requirements*.txt"
-EXPORT_TASK = ".mise/tasks/deps/export"
+EXPORT_TASK = ".mise/tasks/repo/deps/export"
 EXPORT_SCAN_ROOTS = (
     ".mise/tasks",
     "scripts",

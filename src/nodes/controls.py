@@ -15,7 +15,7 @@ from ...config.nodes import (
 )
 
 
-def generation_controls(prompt_key: str = "video") -> list[io.Input]:
+def generation_controls(prompt_key: str = "video", *, duration: io.Input | None = None) -> list[io.Input]:
     """Build the shared prompt, duration, seed, and repeat-run controls."""
     prompt_label = "Edit prompt" if prompt_key in {"edit", "webcam"} else "Scene prompt"
     return [
@@ -26,7 +26,9 @@ def generation_controls(prompt_key: str = "video") -> list[io.Input]:
             multiline=True,
             default=DEFAULT_PROMPTS[prompt_key],
         ),
-        io.Float.Input(
+        duration
+        if duration is not None
+        else io.Float.Input(
             "duration_seconds",
             display_name="Video length (seconds)",
             tooltip="Video length in seconds. Setup also counts toward the session time limit.",

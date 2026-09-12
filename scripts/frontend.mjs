@@ -3,7 +3,7 @@ import { basename } from 'node:path';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const result = await build({
-  entryPoints: ['web/extension.ts'],
+  entryPoints: ['web/scripts/extension.ts'],
   outfile: 'web/extension.js',
   bundle: true,
   write: false,
@@ -29,12 +29,12 @@ for (const filename of ['extension.js', 'extension.css']) {
       actual = await readFile(destination, 'utf8');
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
-      console.error(`Build ${filename} with mise run frontend:build.`);
+      console.error(`Build ${filename} with mise run comfy:frontend:build.`);
       process.exitCode = 1;
       continue;
     }
     if (actual !== output.text) {
-      console.error(`Rebuild ${filename} with mise run frontend:build.`);
+      console.error(`Rebuild ${filename} with mise run comfy:frontend:build.`);
       process.exitCode = 1;
     }
   } else {

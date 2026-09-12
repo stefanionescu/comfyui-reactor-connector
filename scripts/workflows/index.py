@@ -12,54 +12,27 @@ from ...src.serialization import mapping_value
 def input_summary(example: Example, schema: Json) -> str:
     """Describe the inputs and controls needed by one workflow."""
     model = str(mapping_value(schema)["model"])
+    has_image = "image" in example.sources
+    live_kind = next(
+        (kind for source, kind in (("source", "liveVideo"), ("image", "liveImage")) if source in example.sources),
+        "liveText",
+    )
+    # Earlier conditions take priority when an example combines several input types.
     choices = (
-        ((example.mode == "webcam"), translate("workflows", "index.input.webcam")),
-        (
-            example.clip_count > 1,
-            translate("workflows", "index.input.continueImage")
-            if ("image" in example.sources)
-            else translate("workflows", "index.input.continueText"),
-        ),
-        (
-            (example.mode in {"live", "webcam"}),
-            translate("workflows", "index.input.liveVideo")
-            if ("source" in example.sources)
-            else translate("workflows", "index.input.liveImage")
-            if ("image" in example.sources)
-            else translate("workflows", "index.input.liveText"),
-        ),
-        (model == "ltx2", translate("workflows", "index.input.speech")),
-        ((example.plan == "shots"), translate("workflows", "index.input.shots")),
-        (
-            (example.plan == "prompts"),
-            translate("workflows", "index.input.sequenceImage")
-            if ("image" in example.sources)
-            else translate("workflows", "index.input.sequenceText"),
-        ),
-        (
-            ("source" in example.sources),
-            translate("workflows", "index.input.reference")
-            if ("reference_image" in example.sources)
-            else translate("workflows", "index.input.video"),
-        ),
-        (
-            ("image" in example.sources) and ("ending_image" in example.sources),
-            translate("workflows", "index.input.firstLast"),
-        ),
-        (("ending_image" in example.sources), translate("workflows", "index.input.last")),
-        (
-            ("image" in example.sources),
-            translate("workflows", "index.input.world")
-            if (example.mode != "record")
-            else translate("workflows", "index.input.image"),
-        ),
+        (example.mode == "webcam", "webcam"),
+        (example.clip_count > 1, "continueImage" if has_image else "continueText"),
+        (example.mode == "live", live_kind),
+        (model == "ltx2", "speech"),
+        (example.plan == "shots", "shots"),
+        (example.plan == "prompts", "sequenceImage" if has_image else "sequenceText"),
+        ("source" in example.sources, "reference" if "reference_image" in example.sources else "video"),
+        (has_image and "ending_image" in example.sources, "firstLast"),
+        ("ending_image" in example.sources, "last"),
+        (has_image, "world" if example.mode != "record" else "image"),
     )
-    return next(
-        (text for applies, text in choices if applies),
-        translate("workflows", "index.input.sound")
-        if ("AUDIO" in output_types(schema))
-        else translate("workflows", "index.input.text"),
-    )
+    fallback = "sound" if "AUDIO" in output_types(schema) else "text"
+    key = next((key for applies, key in choices if applies), fallback)
+    return translate("workflows", "index.input." + key)
 
 
 def workflow_rows(schemas: dict[str, Json], guide_prefix: str) -> list[str]:
@@ -72,7 +45,7 @@ def workflow_rows(schemas: dict[str, Json], guide_prefix: str) -> list[str]:
     for model, examples in groups.items():
         lines.extend([f"### {MODELS[model].title}", "", translate("workflows", "index.columns"), "| --- | --- | --- |"])
         lines.extend(
-            f"| [{example.title.split(': ', 1)[-1]}]({example.path}) | "
+            f"| [{example.title}]({example.path}) | "
             f"{input_summary(example, schemas[example.node_id])} | [{guide}]({guide_prefix}/{example.node_id}.md) |"
             for example in examples
         )
@@ -109,11 +82,17 @@ def workflow_index(
         ("intro", ""),
         ("openTitle", "## "),
         ("openSteps", ""),
-        ("updateTitle", "## "),
-        ("update", ""),
         ("filesTitle", "## "),
     ):
-        lines.extend([heading + translate("workflows", "index." + key, count=len(EXAMPLES)), ""])
+        lines.extend(
+            [
+                heading
+                + translate(
+                    "workflows", "index." + key, count=len(EXAMPLES), start=translate("workflows", "notes.start")
+                ),
+                "",
+            ]
+        )
     lines.extend(workflow_rows(schemas, guide_prefix))
     for key, heading in (
         ("saveTitle", "## "),
@@ -122,11 +101,15 @@ def workflow_index(
         ("help", ""),
         ("limitsTitle", "## "),
         ("limits", ""),
+        ("updateTitle", "## "),
+        ("update", ""),
         ("language", ""),
         ("samplesTitle", "## "),
         ("samples", ""),
     ):
-        lines.extend([heading + translate("workflows", "index." + key), ""])
+        lines.extend(
+            [heading + translate("workflows", "index." + key, save_video=translate("workflows", "nodes.saveVideo")), ""]
+        )
     lines.extend([translate("workflows", "index.sampleColumns"), "| --- | --- |", *sample_rows(sample_prefix), ""])
     for key, heading in (
         ("reuseTitle", "### "),

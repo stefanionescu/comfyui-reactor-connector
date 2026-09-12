@@ -47,6 +47,7 @@ def run_command(
     is_output_captured: bool = False,
     is_failure_raised: bool = False,
     context: ProcessContext | None = None,
+    input_bytes: bytes | None = None,
 ) -> ProcessResult:
     """Run a fixed argument list without a shell."""
     if not arguments:
@@ -59,6 +60,7 @@ def run_command(
             is_output_captured=is_output_captured,
             is_failure_raised=is_failure_raised,
             context=context or ProcessContext(),
+            input_bytes=input_bytes,
         ),
     )
 
@@ -69,18 +71,20 @@ async def _run_subprocess(
     is_output_captured: bool,
     is_failure_raised: bool,
     context: ProcessContext,
+    input_bytes: bytes | None,
 ) -> ProcessResult:
     """Run one resolved executable and collect its result."""
     process = await asyncio.create_subprocess_exec(
         *command,
         cwd=context.working_directory,
         env=context.environment,
+        stdin=asyncio.subprocess.PIPE if input_bytes is not None else None,
         stdout=asyncio.subprocess.PIPE if is_output_captured else None,
         stderr=asyncio.subprocess.PIPE if is_output_captured else None,
     )
     try:
         async with asyncio.timeout(context.timeout_seconds):
-            stdout, stderr = await process.communicate()
+            stdout, stderr = await process.communicate(input_bytes)
     finally:
         if process.returncode is None:
             with suppress(ProcessLookupError):

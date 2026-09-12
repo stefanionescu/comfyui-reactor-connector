@@ -112,7 +112,7 @@
         0.5,
         false
       ],
-      "title": "X2: Edit with a Reference Image"
+      "title": "X2: Edit with a Reference Image (Reactor)"
     },
     {
       "id": 4,
@@ -224,8 +224,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

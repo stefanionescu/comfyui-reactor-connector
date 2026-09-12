@@ -5,7 +5,7 @@ from .schema import lingbot_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...state.generation.lingbot import LingBotWorldRequest
-from ...execution.lingbot.request import LingBotWorldOperation
+from ...execution.lingbot.operation import LingBotWorldOperation
 from ...comfy.execution import generate_video, operation_fingerprint
 
 
@@ -19,7 +19,7 @@ class LingBotWorldExplore(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("lingbot-world-2-video-v2")
 
     @classmethod
@@ -43,10 +43,10 @@ class LingBotWorldExplore(io.ComfyNode):
         del variation
         encoded = await asyncio.to_thread(encode_png, image)
         request = LingBotWorldRequest(
-            prompt,
-            duration_seconds,
-            seed,
-            encoded,
+            prompt=prompt,
+            duration_seconds=duration_seconds,
+            seed=seed,
+            image=encoded,
             movement="idle" if interactive else movement,
             look_horizontal="idle" if interactive else look_horizontal,
             look_vertical="idle" if interactive else look_vertical,

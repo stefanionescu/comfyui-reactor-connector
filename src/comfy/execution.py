@@ -10,7 +10,6 @@ from functools import partial
 from ..language import translate
 from ..runtime import get_runtime
 from ..state.documents import Json
-from ..media.output import owned_io
 from ..media.audio import read_audio
 from ..state.reports import RunReport
 from ..state.settings import Settings
@@ -22,8 +21,9 @@ from ..execution.report import prepare_report
 from ..errors import ErrorCode, ConnectorError
 from ..execution.diagnostics import save_failure
 from ..execution.operation import VideoOperation
-from ..live.interaction import CameraInteraction
+from ..live.interaction import BrowserInteraction
 from ..state.settings import ExecutionConfiguration
+from ..media.output import owned_io, discard_outputs
 from ..media.units import convert_mebibytes_to_bytes
 from comfy_api.latest import io, ComfyAPI, InputImpl
 from contextlib import suppress, asynccontextmanager
@@ -49,11 +49,11 @@ async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
 
 
 async def _generate_admitted_video(
-    request: VideoOperation,
+    operation: VideoOperation,
     configuration: ExecutionConfiguration,
     destination: Path,
     report: RunReport,
-    open_interaction: Callable[[], Awaitable[CameraInteraction | None]],
+    open_interaction: Callable[[], Awaitable[BrowserInteraction | None]],
 ) -> tuple[CaptureResult, dict[str, Json] | None]:
     """Own admission, live controls, remote cleanup, and private failure diagnostics."""
     settings = configuration.settings
@@ -71,7 +71,7 @@ async def _generate_admitted_video(
             )
             async with reservation.protect(outcome):
                 result = await capture_video(
-                    request,
+                    operation,
                     configuration,
                     destination,
                     outcome=outcome,
@@ -132,7 +132,7 @@ async def node_output(
                 lambda: read_audio(audio_path, convert_mebibytes_to_bytes(settings.max_queue_megabytes))
             )
         finally:
-            await owned_io(partial(audio_path.unlink, missing_ok=True))
+            await discard_outputs(audio_path, error=sys.exception())
         return io.NodeOutput(InputImpl.VideoFromFile(str(result.path)), audio, metadata)
     video = InputImpl.VideoFromFile(str(result.path))
     if interaction_summary is not None:
@@ -161,12 +161,11 @@ async def _temporary_video() -> AsyncGenerator[Path, None]:
         is_complete = True
     finally:
         if not is_complete and destination is not None:
-            await owned_io(partial(destination.unlink, missing_ok=True))
-            await owned_io(partial(destination.with_suffix(".wav").unlink, missing_ok=True))
+            await discard_outputs(destination, destination.with_suffix(".wav"), error=sys.exception())
 
 
 async def generate_video(
-    request: VideoOperation,
+    operation: VideoOperation,
     *,
     node_id: str,
     interactive: bool = False,
@@ -179,18 +178,18 @@ async def generate_video(
     await progress.set_progress(0, 3)
     configuration = get_runtime().configuration
     snapshot = await asyncio.to_thread(configuration.execution_snapshot)
-    request.validate(snapshot.settings)
-    report = await owned_io(lambda: prepare_report(node_id, request.connection_name, request.duration_seconds))
+    operation.validate(snapshot.settings)
+    report = await owned_io(lambda: prepare_report(node_id, operation.connection_name, operation.duration_seconds))
     await progress.set_progress(1, 3)
     try:
         async with _temporary_video() as destination:
             task = asyncio.create_task(
                 _generate_admitted_video(
-                    request,
+                    operation,
                     snapshot,
                     destination,
                     report,
-                    partial(prepare_interaction, request, interactive=interactive, controls=controls),
+                    partial(prepare_interaction, operation, interactive=interactive, controls=controls),
                 )
             )
             result, interaction_summary = await wait_for_execution(task)

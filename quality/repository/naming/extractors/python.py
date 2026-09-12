@@ -101,6 +101,19 @@ class PythonNameExtractor(ast.NodeVisitor):
                 },
             )
 
+    def visit_TypeAlias(self, node: ast.TypeAlias) -> None:
+        """Collect a Python type statement under the type-alias naming rules."""
+        self.names.append(
+            {
+                "path": self.relative_path,
+                "line": node.lineno,
+                "language": "python",
+                "category": "type_aliases",
+                "name": node.name.id,
+            }
+        )
+        self.generic_visit(node)
+
     def visit_Assign(self, node: ast.Assign) -> None:
         """Collect assignment target names."""
         for target in node.targets:

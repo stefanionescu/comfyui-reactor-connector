@@ -87,7 +87,7 @@
         20.0,
         0
       ],
-      "title": "X2: Edit and Drag a Webcam Scene"
+      "title": "X2: Edit and Drag a Webcam Scene (Reactor)"
     },
     {
       "id": 4,
@@ -145,8 +145,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

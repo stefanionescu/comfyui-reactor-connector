@@ -26,24 +26,25 @@ The Reactor node returns **Video** without sound and **Recording details** as
 text. In your own graph, connect **Video** to **Save Video** to keep the result
 after ComfyUI clears its temporary storage.
 
-## Cancellation
+## Cancellation and recovery
 
-Session time can exceed the saved
-video length. A seed does not guarantee identical results after a model update.
-Unchanged inputs may reuse ComfyUI's cached result. Changing the key or execution
-limits can cause another run when you next select **Run**.
+Use ComfyUI's cancel control to stop a queued or running workflow. With **Live
+controls** off, closing the browser does not cancel the workflow. With live
+controls on, closing the live panel or losing its browser connection ends the
+session and discards the unfinished video.
 
-Use ComfyUI's cancel control to stop a run. Closing the ComfyUI window does not
-cancel a queued workflow. Failed runs do not return a video. If the session's
-end is unconfirmed, wait for the stated session limit before trying again.
-Do not restart ComfyUI to bypass this wait.
+Failed runs do not return a video. Correct any reported input error before
+running again. If video stops arriving, check your connection and Reactor
+account. If the session's end is unconfirmed, wait for the stated session limit
+before trying again. Do not restart ComfyUI to bypass this wait.
 
 The connector runs one session at a time. Other runs wait and can be cancelled
 before they connect. The default queue wait limit is 120 seconds. A rejected
 command or lost connection ends the run; the connector does not retry it.
 
-For invalid inputs, missing video, or connection errors, follow the
-troubleshooting guide (**Recovery** in the bundled `ADVANCED.md`).
+Unchanged inputs may reuse ComfyUI's cached result. Change **Run number** for
+another generation. Changing the key or execution limits can also cause another
+run. A seed does not guarantee identical results after a model update.
 
 [Reactor Helios reference](https://docs.reactor.inc/model-api-reference/helios/overview)
 
@@ -54,11 +55,15 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
+Keep the live panel open until recording finishes. Closing it or losing its
+browser connection ends the live session and discards the unfinished video.
+The preview has no sound. Prompt changes are sent to Reactor but are not saved
+in **Recording details**.
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

@@ -1,4 +1,4 @@
-"""Describe Lingbot workflow inputs and controls."""
+"""Describe LingBot workflow inputs and controls."""
 
 from ..example import Example
 

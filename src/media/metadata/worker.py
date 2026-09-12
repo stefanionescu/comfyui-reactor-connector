@@ -44,7 +44,7 @@ def describe(path: Path, maximum_bytes: int) -> dict[str, int | bool | None]:
 
 def main(arguments: list[str]) -> int:
     """Read worker arguments and report only fixed error codes or validated video facts."""
-    sys.stdout.write(str(json.dumps({"ready": True})) + "\n")
+    sys.stdout.write(json.dumps({"ready": True}) + "\n")
     sys.stdout.flush()
     result: dict[str, str | int | bool | None] = {"error": "recording_details"}
     if len(arguments) == WORKER_ARGUMENT_COUNT:
@@ -52,6 +52,6 @@ def main(arguments: list[str]) -> int:
             result = {**describe(Path(arguments[1]), int(arguments[2]))}
         except Exception:  # noqa: BLE001 -- reason: The worker reports only fixed codes, never native exception text.
             result = {"error": "recording_details"}
-    sys.stdout.write(str(json.dumps(result)) + "\n")
+    sys.stdout.write(json.dumps(result) + "\n")
     sys.stdout.flush()
     return int("error" in result)

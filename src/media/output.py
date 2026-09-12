@@ -94,3 +94,26 @@ async def owned_io[T](operation: Callable[[], T]) -> T:
         task.exception()
         raise asyncio.CancelledError
     return task.result()
+
+
+async def discard_outputs(*paths: Path, error: BaseException | None) -> None:
+    """Attempt every owned output removal and preserve an existing execution failure."""
+
+    def remove_files() -> None:
+        """Finish all removals in one worker before returning the first filesystem error."""
+        failure: OSError | None = None
+        for path in paths:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError as exception:
+                if failure is None:
+                    failure = exception
+        if failure is not None:
+            raise failure
+
+    try:
+        await owned_io(remove_files)
+    except OSError:
+        if error is None:
+            raise
+        error.add_note("Some temporary recording files could not be removed.")

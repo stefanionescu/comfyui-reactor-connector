@@ -138,7 +138,7 @@
         5.0,
         true
       ],
-      "title": "LingBot: Move through an Image"
+      "title": "LingBot: Move through an Image (Reactor)"
     },
     {
       "id": 4,
@@ -204,8 +204,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

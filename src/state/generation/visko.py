@@ -5,14 +5,14 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class ViskoStableRequest(VideoInputs):
+class ViskoRequest(VideoInputs):
     """Synchronized image and sound generation settings.
 
     Attributes:
         audio_prompt: Text describing the requested sound.
         resolution: Requested provider resolution.
         audio_enabled: Whether sound generation is enabled.
-        prompt_passthrough: Whether prompt changes pass through immediately.
+        prompt_passthrough: Whether to send prompts without preprocessing.
 
     """
 
@@ -22,9 +22,4 @@ class ViskoStableRequest(VideoInputs):
     prompt_passthrough: bool = False
 
 
-@dataclass(frozen=True, slots=True)
-class ViskoDynamicRequest(ViskoStableRequest):
-    """Generation settings for the Dynamic model."""
-
-
-__all__ = ["ViskoDynamicRequest", "ViskoStableRequest"]
+__all__ = ["ViskoRequest"]

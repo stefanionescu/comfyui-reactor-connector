@@ -30,6 +30,7 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
     """Load a size-limited PCM recording as normalized ComfyUI audio."""
     with wave.open(str(path), "rb") as reader:
         count, channels = reader.getnframes(), reader.getnchannels()
+        # Leave room for decoded samples and conversion buffers within the sample budget.
         if (
             not MIN_CHANNELS <= channels <= MAX_CHANNELS
             or reader.getsampwidth() != PCM_SAMPLE_BYTES
@@ -39,7 +40,7 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
         ):
             raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioLimit"))
         content = reader.readframes(count)
-        if len(content) != count * channels * 2:
+        if len(content) != count * channels * PCM_SAMPLE_BYTES:
             raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioIncomplete"))
     values = np.frombuffer(content, dtype="<i2").reshape(count, channels).T.astype(np.float32)
     values /= 32768

@@ -35,7 +35,7 @@
       ],
       "size": [
         360,
-        60
+        80
       ],
       "flags": {},
       "order": 8,
@@ -46,7 +46,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Fast H3 rounds each clip to a supported length."
+        "Fast H3 rounds each clip to a supported length. Saving starts one extra continuation that uses credits and is excluded from the output."
       ],
       "title": "Using This Workflow"
     },
@@ -97,7 +97,7 @@
         0,
         "16:9"
       ],
-      "title": "Fast H3: Build a Clip with Sound"
+      "title": "Fast H3: Generate a Clip with Audio (Reactor)"
     },
     {
       "id": 4,
@@ -200,8 +200,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

@@ -1,0 +1,9 @@
+[
+    {
+        "rule": "js/trivial-conditional",
+        "path": "web/extension.js",
+        "lineHash": "df07a1671a2591c3:1",
+        "columnHash": "17",
+        "reason": "Valibot 1.5.0 getGlobalConfig retains an unassigned store after esbuild removes unused global configuration setters. The reported negation is constant but does not change validation behavior. Keep the bundle and all queries in scope."
+    }
+]

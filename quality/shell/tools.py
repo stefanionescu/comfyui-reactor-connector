@@ -27,7 +27,7 @@ def main() -> int:
             if result.return_code:
                 return result.return_code
     except OSError:
-        write_error("ShellCheck and shfmt are required. Run mise run setup.")
+        write_error("ShellCheck and shfmt are required. Run mise run repo:setup.")
         return 1
     return 0
 

@@ -24,7 +24,7 @@ native **Info** explains its inputs and model-specific limits.
 Open **ComfyUI menu → Extensions → Reactor → Reactor settings**. Saving a key
 clears the entry field and stores the value in the private server state directory.
 The saved value is never returned to the window or written into a workflow.
-**Configured** means a key is present; it does not mean Reactor has accepted it.
+Saving a key does not validate it with Reactor.
 
 `REACTOR_API_KEY` in the ComfyUI server environment takes precedence over a saved
 key. **Clear saved key** removes only the saved value. Change an environment key
@@ -72,18 +72,14 @@ active work or remove saved media.
 
 ## Credit rates
 
-Select **View credit rate** on a generation node. The dialog starts with its
-requested video length; continued clips use clip length multiplied by clip count.
-For a connected duration input, enter the time yourself.
+Open **ComfyUI menu → Extensions → Reactor → Reactor models** for public rates.
+Expand **Calculate credits for session time** to multiply a rate by a chosen
+session time. Setup and recording preparation can add time beyond the video
+length. The calculation is not a quote or spending limit; refer to Reactor for
+actual charges. A missing or unconfirmed rate produces no calculation.
 
-**Session time to calculate (seconds)** multiplies a public rate by your chosen
-time. Setup, waiting, and recording preparation can add time beyond the
-video length. The calculation is not a quote or spending limit. Refer to Reactor
-for actual charges. A missing or unconfirmed rate produces no calculation.
-
-The dialog shows when rates were checked. Refresh the model list for current
-public prices. To compare models, open **Reactor models** and expand **Calculate
-credits for session time**. Credit-rate controls are not saved as node inputs.
+Refresh the model list for current prices. **Model sources and automatic checks**
+shows when rates were checked.
 
 ## Model updates
 
@@ -91,12 +87,11 @@ Open **ComfyUI menu → Extensions → Reactor → Reactor models** to search th
 included list or your last saved list. Opening the dialog reads local information.
 Each entry shows its last checked rate, any available guide, and node support.
 
-Installed models appear before the first refresh. Refresh the list to load public
+Models supported by the installed nodes appear before the first refresh. Refresh the list to load public
 prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.
 
 **Refresh models** reads Reactor's public prices and model guides. Entries come from
 published prices or guides; your account determines which models you can run.
-HappyOyster is excluded, including when an older list is restored.
 
 | Status                                              | Meaning                                                                                                            |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -248,8 +243,7 @@ length or ends early. File details do not assess visual quality or billed time.
 
 Reports omit prompts, images, keys, tokens, remote session IDs, and absolute paths.
 ComfyUI may reuse a cached report and its `run_id`; pressing **Run** does not prove
-a new session started. Older reports may have fewer fields and no schema version.
-Allow missing fields when reading them. Do not rerun solely to update a report.
+a new session started. Do not rerun solely to update a report.
 
 ## Recording overhead
 
@@ -307,9 +301,7 @@ private prompt or model details. Review any excerpt before sharing it.
 Finish or cancel active work, wait for sessions to end, then stop ComfyUI
 before changing the connector.
 
-After a Registry release exists, update or uninstall the connector through
-**ComfyUI Manager** like any other registered package. For a source checkout,
-replace the whole `custom_nodes/reactor-inc` folder with the new source, install
+To update a source checkout, replace the whole `custom_nodes/reactor-inc` folder with the new source, install
 its runtime requirements using ComfyUI's Python, and restart. Refresh the
 ComfyUI window.
 
@@ -336,20 +328,35 @@ was built. Example prompts and speech scripts stay in English. Changing ComfyUI'
 language does not rewrite your graph or translate model inputs. Node search
 aliases, categories, placeholders, and errors from queued execution currently
 use English. An error already returned by the server keeps its original text.
+Native dropdowns can show saved values such as `idle`, `soft`, and `cut` even
+when the locale file supplies translated option labels. The node guides explain
+these values.
+Connector HTTP routes select translations from `Accept-Language`; queued node
+execution does not inherit that request language.
 
-To build workflow text from an installed locale, choose a separate output folder:
+To translate workflow notes and titles:
 
-```sh
-mise run workflows:build -- --language fr --output-directory .artifacts/workflows/fr
-```
+1. Choose a locale tag, such as `fr`. Create `locales/<tag>/workflows.json` using
+   `locales/en/workflows.json` as the reference. Translate the message values;
+   preserve JSON keys and placeholders such as `{title}`, `{first}`, and `{second}`.
+   Partial translations use English for missing messages.
+2. Review the translation before building. Only English resources are supplied
+   with this checkout; the command below requires your added locale file.
+3. Set `workflow_language` to your locale tag, then generate a separate folder:
 
-Add reviewed French resources before using this example; only English resources
-are supplied. The output index links to the repository's shared guides and sample
-files. Keep it with that checkout. It is not a standalone translated package.
+    ```sh
+    workflow_language=fr
+    mise run comfy:workflows:build -- --language "$workflow_language" --output-directory ".artifacts/workflows/$workflow_language"
+    ```
+
+The build checks the supplied translation against the English message keys and
+placeholders. It translates workflow labels and notes, not prompts or speech
+scripts. The output index links to this checkout's shared guides and sample
+files. Keep it with that checkout; it is not a standalone translated package.
 
 ## Development commands
 
-Run `mise run setup` to install the pinned tools and dependencies and enable local
+Run `mise run repo:setup` to install the pinned tools and dependencies and enable local
 Git hooks. Bun manages frontend dependencies; uv manages Python dependencies.
 Development tools use the repository environment, separate from ComfyUI.
 
@@ -358,15 +365,9 @@ Quality tools run from the repository root. ComfyUI starts media workers through
 the root launcher in isolated Python processes; those workers use only the media
 modules and static configuration.
 
-Browser TypeScript and CSS in `web/` build to the served `web/extension.js` and
-`web/extension.css`. Node guides in `web/docs/` are native Markdown.
-Runtime data records live in `src/state/` and import only the standard library
-and each other; import-linter enforces this. Operational behavior stays with its
-existing domain modules. Frontend checks use the official ComfyUI frontend
-types: `skipLibCheck` skips dependency declaration internals, and the Zod 3 peer
-is pinned as an explicit reviewed dev dependency, not a shim. The four-value
-native SaveVideo widget form is checked statically against the backend schema
-and frontend 1.49.6 source; no host workflows were executed.
+Browser TypeScript in `web/scripts/` and CSS in `web/styles/` build to
+`web/extension.js` and `web/extension.css`. ComfyUI serves node guides from
+`web/docs/`. Frontend checks use the official ComfyUI frontend types.
 
 Python checks read types from your actual ComfyUI installation. Set its source
 directory in your terminal before running development commands:
@@ -387,30 +388,35 @@ Replace these example paths with your installation's paths. The variables apply
 to commands run from that terminal; they are not stored in the repository.
 
 Setup downloads the pinned Semgrep rules into ignored local storage and verifies
-their content hashes. To restore those files, run `mise run security:rules`.
+their content hashes. To restore those files, run `mise run repo:security:rules`.
 The downloaded rules retain their upstream license notices and are not included
 in the connector package.
 
-| Command                    | Purpose                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------- |
-| `mise run deps`            | Install locked development dependencies.                                                          |
-| `mise run setup`           | Install tools and dependencies, then enable local hooks. Stops if another project owns the hooks. |
-| `mise run format`          | Format source files.                                                                              |
-| `mise run check`           | Check source, types, generated files, dependencies, security, licenses, and links.                |
-| `mise run type:python`     | Check Python types against the selected ComfyUI installation.                                     |
-| `mise run frontend:build`  | Build the shipped JavaScript and CSS.                                                             |
-| `mise run workflows:build` | Build the example graphs and workflow index.                                                      |
-| `mise run deps:export`     | Generate runtime requirements from project metadata.                                              |
-| `mise run models:check`    | Read public prices and guides without saving them.                                                |
-| `mise run models:validate` | Check node registrations and translations.                                                        |
-| `mise run audit:python`    | Check Python dependencies against advisory services.                                              |
-| `mise run audit:frontend`  | Check frontend dependencies against advisory services.                                            |
-| `mise run security:rules`  | Download and verify the pinned Semgrep rule packs.                                                |
-| `mise run release:package` | Run checks, then build the official `node.zip` with comfy-cli and inspect it locally.             |
+Tasks use two groups: `repo` for development tools and checks, and `comfy` for
+connector builds, workflows, models, and Registry releases. Run `mise tasks` to
+list every task.
+
+| Command                          | Purpose                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `mise run repo:setup`            | Install tools and dependencies, then enable local hooks. Stops if another project owns the hooks. |
+| `mise run repo:deps`             | Install locked development dependencies.                                                          |
+| `mise run repo:deps:export`      | Generate runtime requirements from project metadata.                                              |
+| `mise run repo:format`           | Format source files.                                                                              |
+| `mise run repo:check`            | Check source, types, generated files, dependencies, security, licenses, and links.                |
+| `mise run repo:type:python`      | Check Python types against the selected ComfyUI installation.                                     |
+| `mise run repo:audit:python`     | Check Python dependencies against advisory services.                                              |
+| `mise run repo:audit:frontend`   | Check frontend dependencies against advisory services.                                            |
+| `mise run repo:security:rules`   | Download and verify the pinned Semgrep rule packs.                                                |
+| `mise run comfy:frontend:build`  | Build the shipped JavaScript and CSS.                                                             |
+| `mise run comfy:workflows:build` | Build the example graphs and workflow index.                                                      |
+| `mise run comfy:models:check`    | Read public prices and guides without saving them.                                                |
+| `mise run comfy:models:validate` | Check node registrations and translations.                                                        |
+| `mise run comfy:release:package` | Run checks, then build the official node.zip with comfy-cli and inspect it locally.               |
+| `mise run comfy:release:publish` | Check and package the connector, then publish a Registry version with comfy-cli.                  |
 
 Pre-commit checks scan staged changes for secrets and reject staged private
 settings files. They also check source files, frontend types, and generated output
-in the working directory. Pre-push runs `mise run check` against the working
+in the working directory. Pre-push runs `mise run repo:check` against the working
 directory. Hooks do not stash or rewrite your work.
 
 Builds write generated assets; checks and hooks do not install dependencies or
@@ -427,44 +433,55 @@ changed host calls manually in the installed ComfyUI as well.
 
 ## Official packaging and publishing
 
-`mise run` tasks are development-only. `mise run release:package` runs the
-project checks, then performs official local packaging and inspection. It does
-not publish.
+Use [Comfy's official CLI](https://github.com/Comfy-Org/comfy-cli) to create and
+publish the Registry package. The commands below use comfy-cli 1.20.0.
 
-The packaging flow is:
-
-1. Supply real Registry publisher and repository metadata in `pyproject.toml`;
-   both are currently pending. Review the version and any dependency or lock
-   changes.
-2. Run `mise run deps:export`, `mise run workflows:build`,
-   `mise run frontend:build`, and an authorized `mise run check`.
-3. Pack from tracked, reviewed source with the built assets in place, using
-   comfy-cli 1.20.0:
+1. Create a publisher and publishing API key in
+   [Comfy Registry](https://docs.comfy.org/registry/publishing). The publishing
+   key is separate from the Reactor key used to generate videos.
+2. Set `[tool.comfy].PublisherId` to that publisher's ID in `pyproject.toml`.
+   Check `[project.urls].Repository` and choose an unused semantic version in
+   `[project].version`. Published versions cannot be overwritten.
+3. Build the distribution files:
 
     ```sh
-    comfy node pack
-    unzip -l node.zip
+    mise run repo:deps:export
+    mise run comfy:workflows:build
+    mise run comfy:frontend:build
     ```
 
-4. Scan the official archive for secrets:
+4. Commit the reviewed source and built assets. The official packer selects
+   Git-tracked paths and reads their current working-tree content. New untracked
+   files are omitted. `.comfyignore` excludes development files.
+5. Run the release task:
 
     ```sh
-    gitleaks dir node.zip \
-      --config quality/config/security/gitleaks/config.toml \
-      --max-archive-depth 3 \
-      --no-banner \
-      --redact \
-      --ignore-gitleaks-allow
+    mise run comfy:release:package
     ```
 
-5. `comfy node publish` is a separate command that requires explicit
-   authorization; it is never a task side effect.
+    This runs the project checks, including network-backed dependency, security,
+    and link checks. It then calls `comfy node pack`, lists the contents of
+    `node.zip`, and scans the archive for secrets.
 
-`comfy node publish` repacks the current inputs rather than uploading the
-inspected `node.zip`. Keep the tracked-file selection, source, built assets,
-`.comfyignore`, metadata, and CLI version unchanged between the inspected pack
-and publishing, and do not claim a byte-identical upload.
+6. Publish when ready. This repeats the package checks before publishing:
 
-Registry publication is pending the real publisher and repository identity, and
-the version-release selection is deferred. Manager/Registry installation
-acceptance against a published release has not been performed here.
+    ```sh
+    mise run comfy:release:publish
+    ```
+
+    Enter the Registry publishing key at the hidden prompt. No `.env` file is
+    required. This CLI does not read `REGISTRY_ACCESS_TOKEN` automatically.
+
+    Choose the publisher ID yourself when creating the account. Comfy requires
+    this public ID in the committed `pyproject.toml`; it cannot be renamed after
+    account creation. The API key authorizes publishing and stays private.
+
+7. Install the published version through ComfyUI Manager and check node loading,
+   menus, help, and templates in that installation.
+
+Publishing creates a new archive from the checkout. Keep the source, built
+assets, tracked paths, metadata, `.comfyignore`, and CLI version unchanged after
+inspection. The publish command does not upload the previously inspected ZIP.
+
+For later releases, update the version and repeat this procedure. Keep publishing
+credentials outside the repository and browser assets.

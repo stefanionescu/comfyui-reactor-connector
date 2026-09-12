@@ -9,7 +9,7 @@ from comfy_api.latest import io, Input
 from ...settings.store import read_settings
 from ...media.video.input import prepared_video
 from ...state.generation.sana import SanaRequest
-from ...execution.sana.request import SanaOperation
+from ...execution.sana.operation import SanaOperation
 from ..controls import live_control, video_outputs, generation_controls
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
@@ -20,7 +20,7 @@ class SanaEditVideo(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("sana-source-v2")
 
     @classmethod

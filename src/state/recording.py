@@ -50,9 +50,9 @@ class RecordingSettings:
         source: Local fragmented recording source.
         destination: Encoded video destination.
         wav: Separate audio destination.
-        duration: Selected recording duration.
-        size_limit: Encoded output byte limit.
-        memory_limit: Decoded sample byte limit.
+        duration_seconds: Selected recording duration.
+        max_output_bytes: Encoded output byte limit.
+        max_memory_bytes: Decoded sample byte limit.
         start_seconds: Selected recording start.
 
     """
@@ -60,9 +60,9 @@ class RecordingSettings:
     source: Path
     destination: Path
     wav: Path
-    duration: float
-    size_limit: int
-    memory_limit: int
+    duration_seconds: float
+    max_output_bytes: int
+    max_memory_bytes: int
     start_seconds: float
 
 

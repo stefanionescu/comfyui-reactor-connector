@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { getQuote } from '#shared/eslint/plugin/imports.js';
 import { ALIAS_ROOTS, DEFAULT_SCOPE } from '#config/imports/aliases.js';
 
 import {
@@ -24,19 +25,6 @@ const findAliasPath = (absoluteTargetPath, aliasRoots) => {
     return `${aliasPrefix}${remainder}`;
   }
   return null;
-};
-
-/**
- * Returns the quote character (single or double) used by an import source node.
- * @param sourceNode - String-literal node containing the module path.
- * @returns The original quote character, defaulting to a single quote.
- */
-const getQuote = (sourceNode) => {
-  const raw = typeof sourceNode.raw === 'string' ? sourceNode.raw : '';
-  if (raw.startsWith('"')) {
-    return '"';
-  }
-  return "'";
 };
 
 export const noCrossFolderImports = {

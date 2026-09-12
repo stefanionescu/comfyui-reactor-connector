@@ -3,7 +3,7 @@
 # Define licenses configuration values.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
-# lint:justify -- reason: root package policy is sourced by license scripts -- ticket: quality-config
+# lint:justify -- reason: root package policy is sourced by license scripts
 # shellcheck disable=SC2034
 [[ -n ${_CFG_LICENSES_READY:-} ]] && return 0
 readonly _CFG_LICENSES_READY=1

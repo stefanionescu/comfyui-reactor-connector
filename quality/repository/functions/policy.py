@@ -7,10 +7,12 @@ from pathlib import Path
 from typing import TypedDict
 from quality.lib.files import read_utf8
 from quality.lib.json_config import JsonConfigError
+from quality.python.rules.function_length import FunctionCollector
 from quality.config.repository.functions import FUNCTION_POLICY_PATH, FUNCTION_POLICY_VERSION
 from quality.lib.json_config import (
     require_int,
     require_keys,
+    require_string,
     require_mapping,
     require_sequence,
     read_json_mapping,
@@ -110,8 +112,8 @@ def validate_named_rule(
 ) -> NamedFunctionRule:
     """Validate one exact function exemption record."""
     require_keys(rule, required={"path", "names", "reason"}, context=context)
-    path_value = require_nonempty_text(rule["path"], f"{context}.path")
-    reason = require_nonempty_text(rule["reason"], f"{context}.reason")
+    path_value = require_string(rule["path"], f"{context}.path")
+    reason = require_string(rule["reason"], f"{context}.reason")
     relative_path = Path(path_value)
     if (
         relative_path.is_absolute()
@@ -124,20 +126,12 @@ def validate_named_rule(
     if not source_path.is_file():
         message = f"{context}.path does not name a file: {path_value}"
         raise JsonConfigError(message)
-    names = require_string_list(rule["names"], f"{context}.names", is_nonempty=True)
+    names = require_string_list(rule["names"], f"{context}.names", are_items_nonempty=True)
     if len(names) != len(set(names)):
         message = f"{context}.names contains duplicates"
         raise JsonConfigError(message)
     validate_function_names(path_value, names, function_names(source_path), context, seen)
     return {"path": path_value, "names": names, "reason": reason}
-
-
-def require_nonempty_text(value: object, context: str) -> str:
-    """Return one non-empty policy string."""
-    if not isinstance(value, str) or not value:
-        message = f"{context} must be a non-empty string"
-        raise JsonConfigError(message)
-    return value
 
 
 def validate_function_names(
@@ -166,35 +160,9 @@ def function_names(path: Path) -> set[str]:
     except SyntaxError as error:
         message = f"{path.as_posix()} cannot validate function exemptions: {error}"
         raise JsonConfigError(message) from error
-    names: set[str] = set()
-    scope: list[str] = []
-
-    class Collector(ast.NodeVisitor):
-        """Collect functions with their enclosing class and function names."""
-
-        def visit_ClassDef(self, node: ast.ClassDef) -> None:
-            """Visit one class scope."""
-            scope.append(node.name)
-            self.generic_visit(node)
-            scope.pop()
-
-        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-            """Collect one synchronous function."""
-            collect(node)
-
-        def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-            """Collect one asynchronous function."""
-            collect(node)
-
-    def collect(node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        """Collect a function and visit its nested definitions."""
-        names.add(".".join((*scope, node.name)))
-        scope.append(node.name)
-        Collector().generic_visit(node)
-        scope.pop()
-
-    Collector().visit(tree)
-    return names
+    collector = FunctionCollector()
+    collector.visit(tree)
+    return {name for name, _ in collector.functions}
 
 
 def require_function_version(value: object) -> None:

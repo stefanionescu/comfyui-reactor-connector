@@ -22,7 +22,7 @@ sends all prompts before generation starts.
 
 Choose a recording length that includes the changes you want. A prompt near the
 end may have little visible effect, and a later prompt does not extend the file.
-Use **helios-05-live-prompt** in native **Browse Templates → reactor-inc** when you want to
+Use **helios-05-live-prompt** in **Browse Templates → reactor-inc** when you want to
 choose changes while watching instead of preparing them in advance.
 
 The text-sequence example starts on a forest path, adds sunlight at chunk 1,
@@ -31,14 +31,14 @@ consistent. It records eight seconds; the optional image stays fixed.
 
 ## Run and save
 
-1. Open **helios-03-prompt-sequence** or **helios-04-image-sequence** in native
+1. Open **helios-03-prompt-sequence** or **helios-04-image-sequence** in
    **Browse Templates → reactor-inc**.
-2. Edit the opening prompt and both later prompt builders. For the image
+2. Edit the opening prompt, **1. Let Sunlight Through**, and **2. Enter a Clearing**. For the image
    example, upload your picture in **Upload Your Starting Image**.
 3. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 4. Select **Run**. Play the result in **Preview and Save Video**.
 
-The node returns native `VIDEO` without audio and recording details as `STRING`.
+The node returns **Video** without audio and **Recording details** as text.
 Connect **Video** to ComfyUI's **Save Video** to keep the temporary result.
 Seeds do not guarantee identical output after a provider update.
 
@@ -54,14 +54,16 @@ order and use an opening prompt that describes the same scene. For image input,
 provide one image within the upload limit; batches are not accepted.
 
 If a change is missing, check its chunk number and the recording length. If
-generation fails, read the reported error and troubleshooting guide (**Recovery** in the bundled `ADVANCED.md`)
-before running again.
+generation fails, correct the reported input error or check your connection and
+Reactor account. If the session end is unconfirmed, wait for its stated time
+limit before running again.
 
 [Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

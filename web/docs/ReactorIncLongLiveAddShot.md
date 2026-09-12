@@ -5,20 +5,21 @@ Add a later shot to a LongLive storyboard. This node prepares the shot list loca
 ## Build a sequence
 
 Connect **Add a Shot** nodes in order. **Previous shots (JSON)** is an advanced
-control for entering a list directly. To show it, right-click the node and
-choose **Show Advanced**. The examples do not require editing JSON.
+control for entering a list directly. Select the node, open the properties panel,
+and expand **Advanced inputs** under **Parameters**. The examples do not require
+editing JSON.
 
-1. Leave **Previous shots (JSON)** unconnected for the first later shot.
+1. Keep `[]` in **Previous shots (JSON)** for the first later shot.
 2. Choose when the shot starts in **Start chunk**, then set its transition and prompt.
 3. Connect the **Shots** output to another Reactor LongLive: Add a Shot node's **Previous shots (JSON)**
-   input to add another shot, or to Reactor LongLive: Generate Video from a Storyboard to generate the video.
+   input to add another shot, or to **Shots (JSON)** on **LongLive: Generate Video from a Storyboard (Reactor)** to generate the video.
 4. Set the opening prompt and video length on the generation node.
 
 | Input                 | Meaning                                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Previous shots (JSON) | The earlier shot list. Default: `[]`. Connect another Reactor LongLive: Add a Shot node to extend its list.      |
 | Start chunk           | Chunk number from the start of generation, from 1 to 100,000. Each later shot needs a larger number. Default: 1. |
-| Transition            | `soft` changes the prompt within the scene. `cut` starts a new scene. Default: soft.                             |
+| Transition            | `soft` changes the prompt within the scene. `cut` starts a new scene. Default: `soft`.                           |
 | Scene prompt          | The later shot's description, from 1 to 20,000 characters.                                                       |
 
 The output is a `STRING` containing a validated JSON shot list. It can be saved

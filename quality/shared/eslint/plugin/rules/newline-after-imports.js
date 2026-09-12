@@ -1,28 +1,6 @@
-import { isImportLike } from '#shared/eslint/plugin/imports.js';
+import { isImportLike, statementEnd } from '#shared/eslint/plugin/imports.js';
 
 const blankLinePattern = /\n\s*\n/u;
-const whitespaceOnlyPattern = /^\s*$/u;
-
-/**
- * Returns the source offset after the node including any same-line trailing comments.
- * @param sourceCode - ESLint source text, comments, and token locations.
- * @param node - Syntax-tree node to inspect.
- * @returns Offset after the statement and same-line trailing comments.
- */
-const getStatementEndComments = (sourceCode, node) => {
-  const fullText = sourceCode.getText();
-  let end = node.range[1];
-
-  for (const comment of sourceCode.getCommentsAfter(node)) {
-    const between = fullText.slice(end, comment.range[0]);
-    if (!whitespaceOnlyPattern.test(between) || comment.loc.start.line !== node.loc.end.line) {
-      break;
-    }
-    end = comment.range[1];
-  }
-
-  return end;
-};
 
 /**
  * Returns the first non-whitespace offset in a text range.
@@ -86,7 +64,7 @@ export const newlineAfterImports = {
         }
 
         const lastImportNode = node.body.at(lastImportIndex);
-        const importEnd = getStatementEndComments(sourceCode, lastImportNode);
+        const importEnd = statementEnd(sourceCode, lastImportNode);
         const boundaryText = sourceText.slice(importEnd, firstNonImportNode.range[0]);
         const leadingWhitespace = boundaryText.match(/^\s*/u)[0];
 

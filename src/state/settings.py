@@ -38,7 +38,7 @@ class Settings:
 
     def to_json(self) -> dict[str, Json]:
         """Return only non-secret settings for the local configuration route."""
-        return dict(asdict(self).items())
+        return asdict(self)
 
 
 @dataclass(frozen=True, slots=True)

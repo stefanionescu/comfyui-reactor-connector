@@ -131,7 +131,7 @@
         0.5,
         true
       ],
-      "title": "X2: Drag and Edit a Video"
+      "title": "X2: Drag and Edit a Video (Reactor)"
     },
     {
       "id": 4,
@@ -197,8 +197,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

@@ -40,7 +40,7 @@ def read_license_policy(root: Path) -> LicensePolicy:
     allowed = require_string_list(
         payload["allowed_licenses"],
         f"{LICENSE_POLICY_FILE}.allowed_licenses",
-        is_nonempty=True,
+        are_items_nonempty=True,
     )
     exemptions: list[LicenseExemption] = []
     seen_packages: set[str] = set()
@@ -75,7 +75,7 @@ def parse_license_exemption(
         message = f"{context}.package duplicates {canonical_package}"
         raise JsonConfigError(message)
     seen_packages.add(canonical_package)
-    licenses = require_string_list(exemption["licenses"], f"{context}.licenses", is_nonempty=True)
+    licenses = require_string_list(exemption["licenses"], f"{context}.licenses", are_items_nonempty=True)
     if len(licenses) != len(set(licenses)):
         message = f"{context}.licenses must not contain duplicates"
         raise JsonConfigError(message)

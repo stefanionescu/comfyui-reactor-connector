@@ -2,8 +2,7 @@
 
 Apply an edit prompt to a local video clip. Connect native **Load Video** or
 **Create Video** to **Source video**, then connect **Video** to **Save Video**. The output
-contains video without audio. Leave the prompt empty to recreate the source without
-requesting an edit.
+contains video without audio.
 
 Start with a clear subject and simple movement. For example, ask for a watercolor
 painting that keeps the clip’s composition and motion. Leave the prompt empty
@@ -34,9 +33,9 @@ Preparation stops if it takes more than 60 seconds. You can cancel it in ComfyUI
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **sana-streaming-01-edit-video** in native **Browse Templates → reactor-inc**.
-3. Upload a short source clip in Load Video and describe the edit.
-4. Select **Run**, then play the output in Save Video.
+2. Open **sana-streaming-01-edit-video** in **Browse Templates → reactor-inc**.
+3. Upload a short clip in **Upload Your Source Video** and describe the edit.
+4. Select **Run**. **Preview and Save Video** saves the result and lets you play it.
 
 Start with a three- to five-second landscape clip. For example, enter
 “Change the scene to a soft watercolor painting. Keep the movement and composition.”
@@ -51,8 +50,9 @@ Recording stops at the chosen video length or when Reactor reports that the clip
 has finished. The output can be shorter than requested. The session time limit
 in Reactor settings also applies.
 
-The node returns native `VIDEO` and recording details as `STRING`. Save Video
-retains the temporary result under its relative output prefix. Input copies are
+The node returns **Video** without sound and **Recording details** as text. In
+your own graph, connect **Video** to ComfyUI's **Save Video** to keep the result
+after ComfyUI clears its temporary storage. Input copies are
 removed after the session ends or the operation fails.
 
 ## Cancellation
@@ -62,8 +62,9 @@ so it can exceed the output duration. The host recording and session limits appl
 The connector disconnects after recording, failure, or cancellation and does not
 automatically retry rejected commands or uncertain session creation.
 
-Use ComfyUI's cancel control to stop. Closing the ComfyUI window does not cancel
-a queued workflow. Unchanged inputs may reuse ComfyUI's cache; change **Run number**
+Use ComfyUI's cancel control to stop a queued or running workflow. With **Live
+controls** off, closing the browser does not cancel the workflow. With live
+controls on, losing the live panel ends the session and discards unfinished video. Unchanged inputs may reuse ComfyUI's cache; change **Run number**
 to request another run. Seeds do not guarantee identical output after a
 provider update.
 
@@ -82,11 +83,14 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
+Keep the live panel open until recording finishes. Closing it or losing its
+browser connection ends the session and discards the unfinished video. The
+preview has no sound.
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

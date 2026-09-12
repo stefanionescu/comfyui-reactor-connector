@@ -60,7 +60,7 @@ _configure_codeql_python() {
 _cleanup_python_database() {
   [[ ${CODEQL_KEEP_DB} == '1' ]] && return 0
   [[ ${database_dir} == "${REPO_ROOT}/${CODEQL_ARTIFACT_ROOT}/${CODEQL_DATABASE_DIR}."* ]] || return 1
-  runtime_remove_owned_path "${REPO_ROOT}" "${database_dir}"
+  codeql_remove_database "${REPO_ROOT}" "${database_dir}"
 }
 
 # main - Creates and analyzes the repository Python CodeQL database.

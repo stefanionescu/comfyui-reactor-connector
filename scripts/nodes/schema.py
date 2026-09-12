@@ -18,7 +18,6 @@ def main() -> None:
         if schema.node_id in schemas or model not in MODEL_IDENTITIES:
             msg = "Each node must have a unique ID and a known model."
             raise ValueError(msg)
-        # ComfyUI leaves the base execution callable untyped; inspect only its declared names.
         parameters = set(inspect.signature(node.execute).parameters)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] -- reason: The host base class leaves execute untyped; only its signature is inspected.
         if parameters != {item.id for item in schema.inputs}:
             msg = f"Align the schema and execution inputs for {schema.node_id}."

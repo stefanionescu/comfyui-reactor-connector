@@ -24,11 +24,11 @@ before connection. The image limit is 8192 pixels per side.
 Keep the script short enough for the chosen duration. At 140 words per minute,
 five seconds allows about 11 words. A longer script may be cut off. This node
 sets an explicit take length; it does not infer a longer duration from the script.
-See recording overhead (**Recording overhead** in the bundled `ADVANCED.md`) for additional
-generation needed to finish saving.
+LTX may generate up to 20 extra seconds to finish the recording. These seconds
+use credits and are not saved.
 The session time limit applies to the whole run.
-The usual speech range is 80–220 words per minute. The range reported by the
-connected model applies to your run.
+The connector accepts 1 to 1,000 words per minute and then checks the range
+reported by the connected model before starting.
 
 ## Run and save
 
@@ -64,7 +64,7 @@ The connector does not retry ambiguous session creation or model commands.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 

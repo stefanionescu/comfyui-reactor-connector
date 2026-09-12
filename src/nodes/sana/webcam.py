@@ -4,7 +4,7 @@ from comfy_api.latest import io
 from ...media.webcam import WebcamFrames
 from ...state.generation.sana import SanaRequest
 from ...comfy.interaction import build_live_options
-from ...execution.sana.request import SanaOperation
+from ...execution.sana.operation import SanaOperation
 from ..controls import video_outputs, generation_controls
 from ...comfy.execution import generate_video, operation_fingerprint
 from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
@@ -15,7 +15,7 @@ class SanaWebcam(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("sana-webcam-v1")
 
     @classmethod

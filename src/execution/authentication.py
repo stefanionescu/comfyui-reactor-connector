@@ -39,7 +39,7 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
     """Authorize one session with a server lifetime cap; never retry a mint."""
     if MODEL_NAME.fullmatch(model) is None or not 1 <= session_seconds <= MAX_SESSION_SECONDS:
         raise authentication_error()
-    payload = {
+    request_body = {
         "expires_after": session_seconds + SESSION_EXPIRY_BUFFER_SECONDS,
         "authorization_details": [
             {
@@ -61,19 +61,19 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
             ) as session,
             session.post(
                 SESSION_ENDPOINT,
-                json=payload,
+                json=request_body,
                 headers={"Reactor-API-Key": credential.reveal()},
                 allow_redirects=False,
             ) as response,
         ):
             if response.status != HTTPStatus.OK:
                 raise authentication_error()
-            payload = bytearray()
+            response_bytes = bytearray()
             async for chunk in response.content.iter_chunked(AUTHENTICATION_CHUNK_BYTES):
-                payload.extend(chunk)
-                if len(payload) > MAX_RESPONSE_BYTES:
+                response_bytes.extend(chunk)
+                if len(response_bytes) > MAX_RESPONSE_BYTES:
                     raise authentication_error()
-        document = mapping_value(parse_json(payload.decode(), max_bytes=MAX_RESPONSE_BYTES))
+        document = mapping_value(parse_json(response_bytes.decode(), max_bytes=MAX_RESPONSE_BYTES))
         token, expires = document.get("jwt"), document.get("expires_at")
         if (
             not isinstance(token, str)

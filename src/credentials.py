@@ -12,7 +12,9 @@ from ..config.security import MAX_CREDENTIAL_CHARACTERS
 def parse_credential(value: str) -> Credential:
     """Reject empty, oversized, or whitespace-containing API keys."""
     if not value or value != value.strip() or len(value) > MAX_CREDENTIAL_CHARACTERS:
-        raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.keyEmpty"))
+        raise ConnectorError(
+            ErrorCode.CONFIGURATION, translate("main", "errors.keyEmpty", maximum=MAX_CREDENTIAL_CHARACTERS)
+        )
     if any(character.isspace() for character in value):
         raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.keyWhitespace"))
     return Credential(value)

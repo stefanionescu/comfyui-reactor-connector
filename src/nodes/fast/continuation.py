@@ -27,14 +27,13 @@ class FastContinue(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("fast-continue-v1")
 
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        controls = generation_controls("continuation")
-        controls[1] = io.Float.Input(
+        duration = io.Float.Input(
             "clip_seconds",
             display_name="Clip length (seconds)",
             tooltip="Length of each clip. Fast H3 chooses the closest supported length.",
@@ -50,7 +49,7 @@ class FastContinue(io.ComfyNode):
             category="Reactor/Generate",
             search_aliases=[],
             inputs=[
-                *controls,
+                *generation_controls("continuation", duration=duration),
                 io.Combo.Input("aspect", display_name="Aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
                 io.Int.Input(
                     "clip_count",

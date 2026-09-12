@@ -45,7 +45,7 @@ def function_doc_block(lines: list[str], declaration_line: int) -> list[str]:
 
 
 def has_meaningful_summary(name: str, summary: str) -> bool:
-    """Return whether a summary adds information beyond the function name."""
+    """Check for a non-filler word absent from the name; this does not assess clarity."""
     name_words = set(name.removeprefix("_").split("_"))
     summary_words = {
         word.lower() for word in SUMMARY_WORD_RE.findall(summary) if word.lower() not in VAGUE_SUMMARY_WORDS

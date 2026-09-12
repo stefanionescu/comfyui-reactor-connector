@@ -134,7 +134,7 @@
         0,
         true
       ],
-      "title": "Helios: Animate an Image with Live Prompts"
+      "title": "Helios: Animate an Image with Live Prompts (Reactor)"
     },
     {
       "id": 4,
@@ -200,8 +200,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

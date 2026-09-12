@@ -39,14 +39,6 @@ function compareViolations(left, right) {
   return left.message.localeCompare(right.message);
 }
 
-function sourceNamingEntries(relativePath, sourceText, language) {
-  if (language === 'javascript') {
-    return collectJavaScriptNames(relativePath, sourceText, language);
-  }
-
-  return [];
-}
-
 function namingEntriesForFile(relativePath, policy) {
   if (isPathExcluded(relativePath, policy)) {
     return [];
@@ -62,11 +54,7 @@ function namingEntriesForFile(relativePath, policy) {
     ...collectDirectoryNames(relativePath),
     ...collectFileNames(relativePath, sourceText),
   ];
-  if (!language) {
-    return fileNames;
-  }
-
-  return [...fileNames, ...sourceNamingEntries(relativePath, sourceText, language)];
+  return [...fileNames, ...collectJavaScriptNames(relativePath, sourceText, language)];
 }
 
 function stripStructuralPrefixes(name, regexes) {
@@ -128,9 +116,8 @@ function analyzeNaming(scope, policy) {
       continue;
     }
 
-    const displayPath = relativePath;
-    for (const entry of namingEntriesForFile(displayPath, policy)) {
-      addNamingEntryViolations(policy, displayPath, entry, violations, seen);
+    for (const entry of namingEntriesForFile(relativePath, policy)) {
+      addNamingEntryViolations(policy, relativePath, entry, violations, seen);
     }
   }
 

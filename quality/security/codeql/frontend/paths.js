@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { parse } from 'yaml';
 import { CODEQL_SCAN_FILE } from '#config/security/codeql/frontend/paths.js';
 
 const repoRoot = process.cwd();
@@ -7,26 +8,14 @@ const errors = [];
 
 const scanPolicyPath = path.join(repoRoot, CODEQL_SCAN_FILE);
 // eslint-disable-next-line security/detect-non-literal-fs-filename -- CODEQL_SCAN_FILE selects the repository-owned scanner configuration.
-const lines = fs.readFileSync(scanPolicyPath, 'utf8').split('\n');
-let inPathsSection = false;
-
-for (const rawLine of lines) {
-  const line = rawLine.trim();
-  if (line.startsWith('paths-ignore:')) {
-    break;
+const policy = parse(fs.readFileSync(scanPolicyPath, 'utf8'));
+if (!Array.isArray(policy?.paths) || !policy.paths.length) {
+  throw new Error('CodeQL configuration must include a nonempty paths list.');
+}
+for (const scanPath of policy.paths) {
+  if (typeof scanPath !== 'string' || !scanPath.trim()) {
+    throw new Error('Each CodeQL paths entry must be a nonempty string.');
   }
-  if (line.startsWith('paths:')) {
-    inPathsSection = true;
-    continue;
-  }
-  if (!inPathsSection || !line.startsWith('- ')) {
-    continue;
-  }
-
-  const scanPath = line
-    .slice(2)
-    .trim()
-    .replaceAll(/^['"]|['"]$/gu, '');
   const absolutePath = path.join(repoRoot, scanPath);
   // eslint-disable-next-line security/detect-non-literal-fs-filename -- Only check whether a path declared in the scanner configuration exists.
   if (!fs.existsSync(absolutePath)) {

@@ -16,15 +16,16 @@ Your camera remains off until you enable it in the live panel.
 
 ## Run and save
 
-1. Open **sana-streaming-03-webcam** from the connector's templates.
-2. Describe an edit, such as “Turn the scene into a watercolor painting.”
-3. Select **Run**, then **Enable camera** in the live panel. Allow camera access.
-4. Check the camera preview. To change cameras, choose one and select **Use selected camera**.
-5. Select **Start session** within 60 seconds.
-6. To change the edit, enter a live prompt and select **Apply prompt**.
-7. Let recording finish. **Preview and Save Video** saves the result.
+1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **sana-streaming-03-webcam** in **Browse Templates → reactor-inc**.
+3. Describe an edit, such as “Turn the scene into a watercolor painting.”
+4. Select **Run**, then **Enable camera** in the live panel. Allow camera access.
+5. Check the camera preview. To change cameras, choose one and select **Use selected camera**.
+6. Select **Start session** within 60 seconds.
+7. To change the edit, enter a live prompt and select **Apply prompt**.
+8. Let recording finish. **Preview and Save Video** saves the result.
 
-The node returns `VIDEO` and recording details as `STRING`. SANA may take one
+The node returns **Video** without sound and **Recording details** as text. SANA may take one
 or more groups of frames to apply a prompt change. Camera frames use up to
 640 × 480 pixels. The browser sends at most ten new frames per second, and
 the connector repeats the latest frame on the model's 24 fps input.
@@ -38,11 +39,13 @@ If camera access fails, use localhost or HTTPS, check camera permissions for Com
 close other applications using the camera. This node requires a SANA deployment
 with the `camera` video input. A deployment without that input cannot run it.
 
-See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for privacy and recovery steps.
+If the session end is unconfirmed, wait for its stated time limit before trying
+again. Correct the reported error before starting another session.
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

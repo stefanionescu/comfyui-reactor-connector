@@ -1,4 +1,4 @@
-"""Share browser controls between threads and limit queued input."""
+"""Store browser leases and expire closed entries."""
 
 import threading
 from ..language import translate

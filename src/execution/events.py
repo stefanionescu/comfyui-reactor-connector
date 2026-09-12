@@ -53,38 +53,34 @@ class SessionEvents:
 
     def on_error(self, error: object) -> None:
         """Stop without retrying a potentially billable operation."""
+        if not self.active:
+            return
         self.diagnostic = self.diagnostic or describe_failure(self.phase, error)
         self._fail(phase_error(error, self.phase))
 
     def on_message(self, message: object) -> None:
         """Track model state separately from command acknowledgements."""
-        if isinstance(message, dict):
-            envelope = cast("dict[str, object]", message)
-            kind = envelope.get("type")
-            if isinstance(kind, str) and len(self.message_types) < MAX_MESSAGE_TYPES:
-                self.message_types.add(kind[:128])
-            payload = envelope.get("data")
-            if envelope.get("type") in ("state", "state_update") and isinstance(payload, dict):
-                self.state = cast("dict[str, object]", payload)
-                self.state_ready.set()
-                if isinstance(kind, str):
-                    self.state_snapshots[kind] = self.state
-                    self.state_signals[kind].set()
-        if isinstance(message, dict) and cast("dict[str, object]", message).get("type") == "generation_complete":
+        if not self.active or not isinstance(message, dict):
+            return
+        envelope = cast("dict[str, object]", message)
+        kind = envelope.get("type")
+        if isinstance(kind, str) and len(self.message_types) < MAX_MESSAGE_TYPES:
+            self.message_types.add(kind[:128])
+        payload = envelope.get("data")
+        if isinstance(kind, str) and kind in self.state_signals and isinstance(payload, dict):
+            self.state = cast("dict[str, object]", payload)
+            self.state_ready.set()
+            self.state_snapshots[kind] = self.state
+            self.state_signals[kind].set()
+        if kind == "generation_complete":
             self.generation_complete.set()
-        if isinstance(message, dict) and cast("dict[str, object]", message).get("type") in (
-            "command_error",
-            "action_error",
-        ):
-            self._fail(
-                ConnectorError(
-                    ErrorCode.INVALID_INPUT,
-                    translate("main", "errors.commandRejected"),
-                )
-            )
+        if kind in ("command_error", "action_error"):
+            self._fail(ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.commandRejected")))
 
     def on_status(self, status: object) -> None:
         """Fail if an established connection leaves its ready state."""
+        if not self.active:
+            return
         if status == "ready":
             self.ready = True
         elif self.ready:
@@ -107,6 +103,8 @@ class SessionEvents:
 
     def on_recording_window(self, start: float, end: float, now: float, predicted_wait: float) -> None:
         """Retain timing facts for private timeout evidence, without URLs or tokens."""
+        if not self.active:
+            return
         self.recording_window = {
             "start": start,
             "end": end,
@@ -147,10 +145,15 @@ class SessionEvents:
     def close(self) -> None:
         """Disable callbacks before disconnect emits its normal final status."""
         self.active = False
-        try:
-            for event, callback in self.handlers:
+        first_error: Exception | None = None
+        for event, callback in self.handlers:
+            try:
                 self.transport.off(event, callback)
-        finally:
-            self.handlers.clear()
-            if not self.failure.done():
-                self.failure.cancel()
+            except Exception as error:  # noqa: BLE001 -- reason: Detach every SDK callback before reporting the first removal failure.
+                if first_error is None:
+                    first_error = error
+        self.handlers.clear()
+        if not self.failure.done():
+            self.failure.cancel()
+        if first_error is not None:
+            raise first_error

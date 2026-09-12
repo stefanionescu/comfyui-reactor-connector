@@ -1,4 +1,4 @@
-"""Describe Ltx workflow inputs and controls."""
+"""Describe LTX workflow inputs and controls."""
 
 from ..example import Example
 

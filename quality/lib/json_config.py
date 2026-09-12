@@ -22,14 +22,7 @@ def read_json_mapping(path: Path) -> dict[str, object]:
     except (RuntimeError, json.JSONDecodeError, JsonConfigError) as exception:
         message = f"{path.as_posix()} is not valid quality JSON: {exception}"
         raise JsonConfigError(message) from exception
-    if not isinstance(payload, dict):
-        message = f"{path.as_posix()} must contain a JSON object"
-        raise JsonConfigError(message)
-    candidate = cast("dict[object, object]", payload)
-    if any(not isinstance(key, str) for key in candidate):
-        message = f"{path.as_posix()} must use string object members"
-        raise JsonConfigError(message)
-    return cast("dict[str, object]", candidate)
+    return require_mapping(payload, path.as_posix())
 
 
 def _unique_mapping(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -84,11 +77,11 @@ def require_string(value: object, context: str) -> str:
     return value
 
 
-def require_string_list(value: object, context: str, *, is_nonempty: bool = False) -> list[str]:
-    """Return a list containing only strings."""
+def require_string_list(value: object, context: str, *, are_items_nonempty: bool = False) -> list[str]:
+    """Require string items; an empty list is allowed."""
     items = require_sequence(value, context)
-    if any(not isinstance(item, str) or (is_nonempty and not item) for item in items):
-        message = f"{context} must contain only {'non-empty ' if is_nonempty else ''}strings"
+    if any(not isinstance(item, str) or (are_items_nonempty and not item) for item in items):
+        message = f"{context} must contain only {'non-empty ' if are_items_nonempty else ''}strings"
         raise JsonConfigError(message)
     return cast("list[str]", items)
 

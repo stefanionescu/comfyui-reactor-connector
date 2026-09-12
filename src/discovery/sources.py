@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 from datetime import UTC, datetime
 from .navigation import navigation_guides
 from ..errors import ErrorCode, ConnectorError
+from .contracts import rows, invalid, parse_snapshot
 from ..serialization import parse_json, mapping_value
 from ..state.discovery import Snapshot, FORMAT_VERSION
-from .contracts import rows, invalid, parse_guide, parse_price, parse_snapshot
 from ...config.discovery import (
     INDEX_URL,
     PRICING_URL,
@@ -45,7 +45,7 @@ def parse_sources(
         rate = mapping_value(row.get("rate"))
         if rate.get("unit") != "credits" or rate.get("denomination") != "second":
             raise invalid()
-        price = parse_price(
+        prices.append(
             {
                 "id": row.get("id"),
                 "name": row.get("name"),
@@ -53,17 +53,14 @@ def parse_sources(
                 "observed": True,
             }
         )
-        prices.append(price.to_json())
     if len(index_text.encode()) > MAX_SOURCE_BYTES:
         raise invalid()
-    guides: list[Json] = [
-        parse_guide({"slug": slug, "title": title, "observed": True}).to_json()
-        for title, slug in GUIDE_LINE.findall(index_text)
-    ]
+    index_entries = GUIDE_LINE.findall(index_text)
+    guides: list[Json] = [{"slug": slug, "title": title, "observed": True} for title, slug in index_entries]
     if navigation_text is not None:
         if len(navigation_text.encode()) > MAX_SOURCE_BYTES:
             raise invalid()
-        indexed = {slug for _, slug in GUIDE_LINE.findall(index_text)}
+        indexed = {slug for _, slug in index_entries}
         guides.extend(guide.to_json() for guide in navigation_guides(navigation_text) if guide.slug not in indexed)
     return parse_snapshot(
         {
@@ -93,7 +90,7 @@ async def _read(session: aiohttp.ClientSession, url: str) -> str:
 
 
 async def read_public_models() -> Snapshot:
-    """Reconcile pricing, the text index, and navigation before replacing the cache."""
+    """Read and validate public prices and guides without changing the saved list."""
     try:
         async with aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=SOURCE_TIMEOUT_SECONDS),

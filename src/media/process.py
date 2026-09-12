@@ -89,7 +89,7 @@ class MediaProcess:
             async with asyncio.timeout(self.shutdown_seconds):
                 returncode = await self.process.wait()
             if returncode != 0:
-                raise ConnectorError(ErrorCode.CAPTURE, ENCODER_ERRORS["encoder_failed"])
+                raise ConnectorError(ErrorCode.CAPTURE, translate("main", ENCODER_ERRORS["encoder_failed"]))
             return result
         finally:
             await self._finish(tasks)
@@ -133,7 +133,7 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
             if isinstance(code, str)
             else ENCODER_ERRORS["encoder_failed"]
         )
-        raise ConnectorError(ErrorCode.CAPTURE, message)
+        raise ConnectorError(ErrorCode.CAPTURE, translate("main", message))
     return value
 
 

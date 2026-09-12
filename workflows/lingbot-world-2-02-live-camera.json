@@ -139,7 +139,7 @@
         5.0,
         true
       ],
-      "title": "LingBot World 2: Move and Look Independently"
+      "title": "LingBot World 2: Move and Look Independently (Reactor)"
     },
     {
       "id": 4,
@@ -205,8 +205,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

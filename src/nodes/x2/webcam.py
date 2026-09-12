@@ -8,7 +8,7 @@ from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...media.webcam import WebcamFrames
 from ...state.generation.x2 import X2Request
-from ...execution.x2.request import X2Operation
+from ...execution.x2.operation import X2Operation
 from ...comfy.interaction import build_live_options
 from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
@@ -29,7 +29,7 @@ class X2Webcam(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("x2-webcam-v1")
 
     @classmethod
@@ -60,7 +60,7 @@ class X2Webcam(io.ComfyNode):
                 io.Int.Input(
                     "variation",
                     display_name="Run number",
-                    tooltip="Change this number to run again with unchanged inputs. This does not change the seed.",
+                    tooltip="Change this number to run again with unchanged inputs.",
                     default=DEFAULT_VARIATION,
                     min=MIN_VARIATION,
                     max=MAX_VARIATION,

@@ -1,6 +1,6 @@
 {
     "fast-h3-01-text-to-video": {
-        "title": "Fast H3: Build a Clip with Sound"
+        "title": "Fast H3: Generate a Clip with Audio"
     },
     "fast-h3-02-image-to-video": {
         "title": "Fast H3: Animate a Starting Image"
@@ -67,9 +67,9 @@
         },
         "intro": "This folder contains {count} editable ComfyUI workflows. Each graph has connected nodes and setup instructions.",
         "language": "Only English examples are included. Notes and custom node titles are saved in the graph; changing the interface language does not translate them.",
-        "limits": "Live workflows stop at the chosen duration. Fast H3 can create a chosen number of consecutive clips. Media inputs start empty; use your own files or the samples below.",
+        "limits": "Live workflows stop at the chosen duration. Fast H3 can create a chosen number of consecutive clips.",
         "limitsTitle": "Limits",
-        "openSteps": "1. Open an example from native **Browse Templates → reactor-inc**, or open a JSON file listed below.\n2. Read **Start Here** and upload the required image or video.\n3. Set your key in **Extensions → Reactor → Reactor settings**, then select **Run**.",
+        "openSteps": "1. Open an example from native **Browse Templates → reactor-inc**, or open a JSON file listed below.\n2. Read **{start}**. Media inputs start empty; select your own image or video or use the samples below.\n3. Set your key in **Extensions → Reactor → Reactor settings**, then select **Run**.",
         "openTitle": "Open a workflow",
         "portrait": "Fictional portrait",
         "portraitUse": "Make a portrait speak with LTX.",
@@ -81,7 +81,7 @@
         "sampleColumns": "| File | Use it for |",
         "samples": "Download a sample, then select it in the matching image or video input node.",
         "samplesTitle": "Sample inputs",
-        "save": "**Preview and Save Video** writes to `video/reactor/` under the ComfyUI output folder. Examples with sound also save a separate audio file.",
+        "save": "**{save_video}** writes to `video/reactor/` under the ComfyUI output folder. Examples with sound also save a separate audio file.",
         "saveTitle": "Save, stop, and get help",
         "stop": "Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End session** stops early and discards the unfinished video.",
         "stream": "Stream over rocks",
@@ -94,10 +94,10 @@
     },
     "limits": {
         "continuation": "The {clips} clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.",
-        "fast": "Fast H3 rounds each clip to a supported length.",
+        "fast": "Fast H3 rounds each clip to a supported length. Saving starts one extra continuation that uses credits and is excluded from the output.",
         "helios": "Each Helios chunk contains 33 frames. Connect prompts in order and use increasing **Start chunk** values. The opening prompt starts at chunk 0. Later prompts do not extend the recording.",
         "longlive": "Each LongLive chunk is about 1.2 seconds at 24 fps. The soft transition starts near 1.2 seconds; the hard cut near 2.4 seconds. Increase **Video length (seconds)** if you schedule later shots.",
-        "ltx": "Use a clear portrait with the whole head visible.",
+        "ltx": "Use a clear portrait with the whole head visible. Finishing the recording may generate up to 20 extra seconds that use credits and are not saved.",
         "sourceVideo": "Use standard dynamic range (SDR) video. The edited output has no sound.",
         "totalDuration": "This example requests {seconds:g} seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up."
     },
@@ -162,18 +162,18 @@
         "title": "SANA: Edit a Webcam"
     },
     "setup": {
-        "endingImage": "Upload the ending image in **Choose the Final Frame**.",
-        "image": "Upload an image in **Upload Your Starting Image**.",
+        "endingImage": "Upload the ending image in **{title}**.",
+        "image": "Upload an image in **{title}**.",
         "key": "Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.",
         "live": "Select **Run** to open the live panel.",
-        "portrait": "Upload a portrait in **Upload Your Starting Image**.",
+        "portrait": "Upload a portrait in **{title}**.",
         "prompt": "Edit **Scene prompt** to describe the scene or change you want.",
         "record": "Select **Run** to create and save the video.",
-        "reference": "Upload the subject to insert in **Upload Your Reference Subject**.",
-        "sequence": "Edit the opening prompt, **1. Let Sunlight Through**, and **2. Enter a Clearing**.",
-        "shots": "Edit the opening prompt, **1. Soft Transition**, and **2. Hard Cut**.",
+        "reference": "Upload the subject to insert in **{title}**.",
+        "sequence": "Edit the opening prompt, **{first}**, and **{second}**.",
+        "shots": "Edit the opening prompt, **{first}**, and **{second}**.",
         "speech": "Edit **Spoken words**. Keep the speech short enough for five seconds.",
-        "video": "Upload a video in **Upload Your Source Video** (at least 33 frames).",
+        "video": "Upload a video in **{title}** (at least 33 frames).",
         "viskoImage": "Edit **Scene prompt** to name what is in your image and describe its motion. The example prompt describes a forest path.",
         "editPrompt": "Describe the change you want in **Edit prompt**."
     },

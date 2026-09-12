@@ -51,9 +51,15 @@
                 "visit_ImportFrom",
                 "visit_Assign",
                 "visit_AnnAssign",
+                "visit_TypeAlias",
                 "visit_If",
                 "visit_Name",
-                "visit_Attribute"
+                "visit_Attribute",
+                "visit_Lambda",
+                "visit_ListComp",
+                "visit_SetComp",
+                "visit_DictComp",
+                "visit_GeneratorExp"
             ],
             "is_excluded": true
         },
@@ -120,7 +126,7 @@
             "categories": ["classes"],
             "names": ["CatalogState"],
             "allowed_banned_terms": ["catalog"],
-            "reason": "The plan names the persisted model-snapshot record CatalogState."
+            "reason": "CatalogState stores the current and previous model snapshots for persistence and restoration."
         },
         {
             "path_regexes": ["^src/extension\\.py$"],
@@ -140,7 +146,7 @@
         },
         {
             "path_regexes": [
-                "(?:^src/execution/visko/request\\.py$|^src/state/generation/visko\\.py$|^src/nodes/visko/stable\\.py$)"
+                "(?:^src/execution/visko/operation\\.py$|^src/state/generation/visko\\.py$|^src/nodes/visko/stable\\.py$)"
             ],
             "languages": ["python"],
             "categories": ["variables", "parameters"],

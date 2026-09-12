@@ -1,4 +1,4 @@
-"""Own private settings and credential changes outside ComfyUI's public storage."""
+"""Report a settings update based on an outdated revision."""
 
 from ..language import translate
 from ..errors import ErrorCode, ConnectorError

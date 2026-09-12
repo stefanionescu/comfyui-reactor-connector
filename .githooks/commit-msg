@@ -9,7 +9,7 @@ main() {
   TASK_ROOT="$(git rev-parse --show-toplevel)"
   readonly TASK_ROOT
   cd "${TASK_ROOT}" || exit 1
-  exec mise run hook:commit-msg -- "$@"
+  exec mise run repo:hook:commit-msg -- "$@"
 }
 
 main "$@"

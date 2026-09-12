@@ -114,7 +114,7 @@
         5.0,
         false
       ],
-      "title": "LingBot: Explore a Local Image"
+      "title": "LingBot: Explore a Local Image (Reactor)"
     },
     {
       "id": 4,
@@ -180,8 +180,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

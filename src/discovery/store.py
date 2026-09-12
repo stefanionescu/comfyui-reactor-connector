@@ -119,6 +119,8 @@ class ModelStore:
                 await asyncio.shield(task)
             except asyncio.CancelledError:
                 cancelled = True
+            except Exception:  # noqa: BLE001 -- reason: Wait for the write before propagating cancellation or its saved failure.
+                break
         if cancelled:
             task.exception()
             raise asyncio.CancelledError

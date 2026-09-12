@@ -32,7 +32,7 @@ def _unique_fields(pairs: list[tuple[str, Json]]) -> dict[str, Json]:
 
 
 def validate_json(value: object, *, max_depth: int = MAX_JSON_DEPTH) -> Json:
-    """Copy JSON data within size and nesting limits; reject other Python objects."""
+    """Copy JSON values within the nesting limit; reject other Python objects."""
     if max_depth < 0:
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.jsonDepth"))
     if value is None or isinstance(value, (str, bool, int)):

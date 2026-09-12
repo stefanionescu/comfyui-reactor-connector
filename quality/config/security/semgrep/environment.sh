@@ -3,7 +3,7 @@
 # Define semgrep configuration values.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck shell=bash
-# lint:justify -- reason: Semgrep policy is sourced by the scanner entrypoint -- ticket: quality-security
+# lint:justify -- reason: Semgrep policy is sourced by the scanner entrypoint
 # shellcheck disable=SC2034
 [[ -n ${_CFG_SEMGREP_READY:-} ]] && return 0
 readonly _CFG_SEMGREP_READY=1

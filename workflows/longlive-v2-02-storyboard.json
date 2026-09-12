@@ -99,7 +99,7 @@
         0,
         "[]"
       ],
-      "title": "LongLive: Soft Transition and Hard Cut"
+      "title": "LongLive: Soft Transition and Hard Cut (Reactor)"
     },
     {
       "id": 4,
@@ -173,7 +173,7 @@
         "soft",
         "The camera pulls back to show the trees around the fox."
       ],
-      "title": "1. Soft Transition"
+      "title": "1. Soft Transition (Reactor)"
     },
     {
       "id": 6,
@@ -217,7 +217,7 @@
         "cut",
         "A wide view of a still lake at sunrise."
       ],
-      "title": "2. Hard Cut"
+      "title": "2. Hard Cut (Reactor)"
     }
   ],
   "links": [
@@ -252,8 +252,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     },
     "reroutes": [

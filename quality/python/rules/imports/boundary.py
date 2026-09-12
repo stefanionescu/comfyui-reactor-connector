@@ -8,6 +8,7 @@ from quality.lib.source import dotted_name
 from quality.lib.diagnostics import diagnostic
 from quality.config.repository.paths import PYTHON_RUNTIME_DIRS
 from quality.config.python.rules import FORBIDDEN_RUNTIME_IMPORT_ROOTS
+from quality.python.rules.imports.bindings import lexical_import_bindings
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -26,11 +27,11 @@ def collect_import_boundary_violations(
     if tree is None:
         return []
     relative_path = source.relative_path
-    bindings = import_bindings(tree)
+    bindings = lexical_import_bindings(tree)
     violations: list[Diagnostic] = []
 
     for node in ast.walk(tree):
-        violations.extend(violations_for_node(relative_path, node, config, package_policy, bindings))
+        violations.extend(violations_for_node(relative_path, node, config, package_policy, bindings[node]))
 
     if is_runtime_source(relative_path):
         for line, module_name in runtime_imported_module_names(tree):
@@ -132,31 +133,17 @@ def is_sys_path_expression(node: ast.AST, bindings: dict[str, str]) -> bool:
     return resolved_name(node, bindings) == "sys.path"
 
 
-def import_bindings(tree: ast.Module) -> dict[str, str]:
-    """Return local import names mapped to their absolute imported identities."""
-    bindings: dict[str, str] = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                local_name = alias.asname or alias.name.split(".", 1)[0]
-                bindings[local_name] = alias.name if alias.asname else alias.name.split(".", 1)[0]
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            for alias in node.names:
-                if alias.name == "*":
-                    continue
-                bindings[alias.asname or alias.name] = f"{node.module}.{alias.name}"
-    return bindings
-
-
 def resolved_name(node: ast.AST | None, bindings: dict[str, str]) -> str:
     """Return a dotted expression name after applying import aliases."""
     name = dotted_name(node)
     if not name:
         return ""
     root, separator, tail = name.partition(".")
-    if root == "__import__":
+    if root == "__import__" and root not in bindings:
         return "builtins.__import__"
     bound_root = bindings.get(root, root)
+    if not bound_root:
+        return ""
     return f"{bound_root}.{tail}" if separator else bound_root
 
 
@@ -175,6 +162,8 @@ def runtime_imported_module_names(tree: ast.Module) -> list[tuple[int, str]]:
     def visit(node: ast.AST) -> None:
         """Collect runtime imports under one AST node."""
         if isinstance(node, ast.If) and isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+            for statement in node.orelse:
+                visit(statement)
             return
         if isinstance(node, ast.Import):
             names.extend((node.lineno, alias.name) for alias in node.names)

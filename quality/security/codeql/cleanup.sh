@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Remove paths that are proven to belong to the repository.
+# Remove CodeQL databases below a verified repository root.
 # Runtime: Bash 3.2+, macOS and Linux.
-# Boundary: Owns recursive deletion for repository-managed files.
+# Boundary: Owns recursive deletion for repository-managed CodeQL databases.
 
-# runtime_remove_owned_path - Remove one path below a verified repository root.
+# codeql_remove_database - Remove one path below a verified repository root.
 # Globals:
 #   None.
 # Arguments:
@@ -14,7 +14,7 @@
 #   Writes validation failures to standard error.
 # Returns:
 #   0 when the path is absent or removed, non-zero when ownership is invalid.
-runtime_remove_owned_path() {
+codeql_remove_database() {
   local requested_root="$1"
   local target_path="$2"
   local owner_root

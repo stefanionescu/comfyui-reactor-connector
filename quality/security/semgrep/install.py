@@ -61,7 +61,7 @@ def collect_rules(settings: dict[str, object], pins: list[RulePin]) -> dict[Rule
     timeout = require_int(settings["timeout_seconds"], "Semgrep timeout", minimum=1)
     adjustments = require_mapping(settings["adjustments"], "Semgrep rule adjustments")
     available: dict[str, dict[str, object]] = {}
-    for source in require_string_list(settings["sources"], "Semgrep sources", is_nonempty=True):
+    for source in require_string_list(settings["sources"], "Semgrep sources", are_items_nonempty=True):
         for rule in read_rules(registry.hostname, source, timeout):
             available[require_string(rule["id"], "rule identifier")] = rule
     rules: dict[RulePin, dict[str, object]] = {}

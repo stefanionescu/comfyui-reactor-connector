@@ -5,9 +5,9 @@ from typing import ClassVar
 from ...media.output import owned_io
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
-from ...state.generation.visko import ViskoStableRequest
+from ...state.generation.visko import ViskoRequest
 from ..controls import live_control, generation_controls
-from ...execution.visko.request import ViskoStableOperation
+from ...execution.visko.operation import ViskoStableOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 
 
@@ -16,12 +16,11 @@ class ViskoStableGenerate(io.ComfyNode):
 
     node_id: ClassVar[str] = "ReactorIncViskoStableGenerate"
     display_name: ClassVar[str] = "Visko Stable: Generate Video (Reactor)"
-    request_type: ClassVar[type[ViskoStableRequest]] = ViskoStableRequest
     operation_type: ClassVar[type[ViskoStableOperation]] = ViskoStableOperation
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint(f"{cls.node_id}-recording-v1")
 
     @classmethod
@@ -99,7 +98,7 @@ class ViskoStableGenerate(io.ComfyNode):
             """Prepare media inside the owned task before starting the Reactor session."""
             source_image = image
             encoded = None if source_image is None else await owned_io(lambda: encode_png(source_image))
-            request = cls.request_type(
+            request = ViskoRequest(
                 prompt,
                 duration_seconds,
                 seed,

@@ -2,9 +2,43 @@
 
 import math
 from typing import cast
+from pathlib import Path
 from collections.abc import Mapping
 from ...src.state.documents import Json
 from ...src.serialization import mapping_value
+
+
+def build_node(node_id: int, kind: str, widgets: list[Json], *, title: str | None = None) -> dict[str, Json]:
+    """Create a serialized ComfyUI node with stable widget order and an optional display title."""
+    value: dict[str, Json] = {
+        "id": node_id,
+        "type": kind,
+        "pos": [0, 0],
+        "size": [0, 0],
+        "flags": {},
+        "order": node_id,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [],
+        "properties": {"Node name for S&R": kind},
+        "widgets_values": widgets,
+    }
+    if title:
+        value["title"] = f"{title} (Reactor)" if kind.startswith("ReactorInc") else title
+    return value
+
+
+def build_output(name: str, kind: str, links: list[Json]) -> dict[str, Json]:
+    """Describe a serialized output socket and its links."""
+    return {"name": name, "type": kind, "links": links}
+
+
+def build_input(name: str, kind: str, link: int, *, has_widget: bool = False) -> dict[str, Json]:
+    """Describe a connected input and its optional widget binding."""
+    value: dict[str, Json] = {"name": name, "type": kind, "link": link}
+    if has_widget:
+        value["widget"] = {"name": name}
+    return value
 
 
 def widget_values(schema: Json, values: Mapping[str, str | float | bool]) -> list[Json]:
@@ -65,7 +99,7 @@ def validate_sources(schema: Json, sources: tuple[str, ...]) -> None:
         raise ValueError(msg)
 
 
-def validate_connections(nodes: list[Json], schemas: dict[str, Json]) -> None:
+def validate_node_sockets(nodes: list[Json], schemas: dict[str, Json]) -> None:
     """Reject connected input names or socket types that disagree with a registered node."""
     for value in nodes:
         node = mapping_value(value)
@@ -151,3 +185,16 @@ def validate_video_codec(codec: Json, choice: Json) -> None:
     if not all(checks):
         msg = "Inspect the changed native video codec controls."
         raise ValueError(msg)
+
+
+def save_workflows(generated: dict[Path, str], *, check: bool) -> list[str]:
+    """Write validated workflows, or report differences without changing files."""
+    issues: list[str] = []
+    for path, text in generated.items():
+        if check:
+            if not path.exists() or path.read_text(encoding="utf-8") != text:
+                issues.append(f"Rebuild {path.name} with mise run comfy:workflows:build.")
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+    return issues

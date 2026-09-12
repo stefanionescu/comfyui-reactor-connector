@@ -42,11 +42,11 @@ function reportIfTrivial(context, maxStatements, node) {
   if (statements.length === 0 || statements.length > maxStatements) {
     return;
   }
-  if (body.type === 'BlockStatement') {
-    for (const statement of statements) {
-      if (!trivialStatementTypes.has(statement.type)) return;
-    }
-  }
+  if (
+    body.type === 'BlockStatement' &&
+    statements.some((statement) => !trivialStatementTypes.has(statement.type))
+  )
+    return;
   context.report({ node, message: `${message} Function: ${functionName(node)}.` });
 }
 
@@ -71,7 +71,25 @@ export const noTrivialFunctions = {
   },
   create(context) {
     const maxStatements = context.options[0]?.maxStatements ?? defaultMaxStatements;
-    const visit = reportIfTrivial.bind(null, context, maxStatements);
+    const visit = (node) => {
+      // APIs require callbacks, and reused functions avoid duplicated expressions.
+      if (node.parent.type === 'CallExpression' && node.parent.arguments.includes(node)) return;
+      const declaration = node.parent.type === 'VariableDeclarator' ? node.parent.parent : node;
+      // Callers of exported functions may live outside this file.
+      if (['ExportNamedDeclaration', 'ExportDefaultDeclaration'].includes(declaration.parent.type))
+        return;
+      const binding = node.parent.type === 'VariableDeclarator' ? node.parent : node;
+      const variables = context.sourceCode.getDeclaredVariables(binding);
+      if (
+        variables.some(
+          (variable) =>
+            variable.name === functionName(node) &&
+            variable.references.filter((reference) => !reference.isWriteOnly()).length > 1,
+        )
+      )
+        return;
+      reportIfTrivial(context, maxStatements, node);
+    };
     return {
       FunctionDeclaration: visit,
       FunctionExpression: visit,

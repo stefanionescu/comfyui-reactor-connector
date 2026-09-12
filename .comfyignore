@@ -1,6 +1,8 @@
-# Development-only files excluded from the official node.zip.
-/web/**/*.ts
+# Browser source
+/web/scripts/
 /web/styles/
+
+# Development tools and instructions
 /scripts/
 /quality/
 /.mise/
@@ -9,7 +11,11 @@
 /AGENTS.md
 /CLAUDE.md
 /PLAN.md
-/history_*.md
+/RESEARCH.md
+/IMPLEMENTATION.md
+/POLICY-PROPOSAL.md
+
+# Development dependencies and configuration
 /package.json
 /bun.lock
 /bunfig.toml
@@ -26,20 +32,26 @@
 /.typos.toml
 /.editorconfig
 /.comfyignore
+
+# Local dependencies and generated artifacts
+/dist/
 /.git/
 /.venv/
 /node_modules/
-/dist/
-/build/
 /.artifacts/
 /.cache/
 /.ruff_cache/
-/.pytest_cache/
+/node.zip
+
+# Python caches
 **/__pycache__/
 **/*.py[cod]
+
+# Private settings and credentials
 **/.env
 **/.env.*
+/.reactor-private/
+
+# Logs and operating system files
 **/*.log
 **/.DS_Store
-/.reactor-private/
-/node.zip

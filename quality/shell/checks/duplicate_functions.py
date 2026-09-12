@@ -17,11 +17,8 @@ def collect_duplicate_function_bodies(sources: dict[str, str]) -> list[Diagnosti
     bodies: dict[str, list[tuple[str, str, int]]] = defaultdict(list)
     for path, source in sources.items():
         for function in collect_shell_functions(source):
-            body = "\n".join(
-                strip_shell_comments(str(line)).strip()
-                for line in function["body"]
-                if strip_shell_comments(str(line)).strip()
-            )
+            cleaned = (strip_shell_comments(str(line)).strip() for line in function["body"])
+            body = "\n".join(line for line in cleaned if line)
             if len(body.splitlines()) >= SHELL_DUPLICATE_MIN_LINES:
                 bodies[body].append((path, str(function["name"]), int(function["start"])))
     errors: list[Diagnostic] = []

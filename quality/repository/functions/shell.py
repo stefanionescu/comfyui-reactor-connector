@@ -18,11 +18,8 @@ def collect_shell_function_violations(
     """Return shell function policy violations."""
     errors: list[NamedDiagnostic] = []
     for function in collect_shell_functions(source_text):
-        body = [
-            strip_shell_comments(str(line)).strip()
-            for line in function["body"]
-            if strip_shell_comments(str(line)).strip()
-        ]
+        cleaned = (strip_shell_comments(str(line)).strip() for line in function["body"])
+        body = [line for line in cleaned if line]
         if len(body) == 1 and ("$@" in body[0] or '"$@"' in body[0]):
             errors.append(
                 {
@@ -41,7 +38,7 @@ def collect_shell_function_violations(
                     "line": function["start"],
                     "code": "shell.trivial-function",
                     "name": function["name"],
-                    "message": f"function has {len(body)} trivial statement(s)",
+                    "message": f"function has {len(body)} nonempty code line(s)",
                 },
             )
     return errors

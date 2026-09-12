@@ -30,7 +30,7 @@ class ControlValues:
 
     Attributes:
         prompt: Text shown in the live prompt control.
-        is_passthrough_enabled: Whether prompt changes continue immediately.
+        is_passthrough_enabled: Whether to send prompts without preprocessing.
         audio_prompt: Text shown in the optional audio prompt control.
         is_audio_enabled: Whether the audio prompt control starts enabled.
 

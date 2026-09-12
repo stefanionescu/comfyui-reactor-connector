@@ -77,7 +77,7 @@
         false,
         false
       ],
-      "title": "Visko Dynamic: Video with Sound"
+      "title": "Visko Dynamic: Video with Sound (Reactor)"
     },
     {
       "id": 4,
@@ -180,8 +180,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

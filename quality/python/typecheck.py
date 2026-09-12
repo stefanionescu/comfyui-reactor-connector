@@ -26,7 +26,7 @@ def host_paths() -> list[str]:
         is_output_captured=True,
         context=ProcessContext(timeout_seconds=10),
     )
-    packages = require_string_list(json.loads(result.stdout), "ComfyUI package directories", is_nonempty=True)
+    packages = require_string_list(json.loads(result.stdout), "ComfyUI package directories", are_items_nonempty=True)
     if not all(Path(item).is_dir() for item in packages):
         msg = "ComfyUI's Python did not report valid package directories."
         raise ValueError(msg)

@@ -115,7 +115,7 @@
         5.0,
         false
       ],
-      "title": "LingBot World 2: Explore a Local Image"
+      "title": "LingBot World 2: Explore a Local Image (Reactor)"
     },
     {
       "id": 4,
@@ -181,8 +181,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

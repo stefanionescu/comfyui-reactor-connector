@@ -29,7 +29,8 @@ function packageExemptions(value) {
     if (name !== name.trim().toLowerCase() || exemptions.has(name)) {
       throw new Error(`License exemptions require unique lowercase package names: ${name}.`);
     }
-    requireString(exemption.reason.trim(), `${name}: reason`);
+    const reason = requireString(exemption.reason, `${name}: reason`);
+    requireString(reason.trim(), `${name}: reason`);
     exemptions.set(name, licenseNames(exemption.licenses, `${name}: licenses`));
   }
   return exemptions;

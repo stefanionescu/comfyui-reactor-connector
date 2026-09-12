@@ -11,10 +11,7 @@ from quality.config.repository.paths import QUALITY_EXCLUDED_DIRS, SHELL_SCOPE_P
 
 def parse_scope_list(scope: str) -> list[str]:
     """Return comma-separated scope parts."""
-    parts = [part.strip() for part in scope.split(",")]
-    if not parts:
-        return []
-    return [part for part in parts if part]
+    return [part for value in scope.split(",") if (part := value.strip())]
 
 
 def parse_arguments(argument_values: list[str], default_scope: str = "all") -> tuple[str, list[str]]:

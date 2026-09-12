@@ -1,4 +1,4 @@
-"""Publish a prepared local clip at its frame rate with one owned task."""
+"""Decode prepared video frames while retaining one frame at a time."""
 
 from __future__ import annotations
 

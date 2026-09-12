@@ -56,7 +56,7 @@ class CameraCommands:
                 ConnectorError(
                     ErrorCode.TIMEOUT,
                     translate("main", "errors.cameraCommandTimeout"),
-                    diagnostic_detail=f"The {axis} reply exceeded five seconds.",
+                    diagnostic_detail=f"The {axis} reply exceeded {COMMAND_TIMEOUT_SECONDS} seconds.",
                 )
             )
 

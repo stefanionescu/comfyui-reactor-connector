@@ -21,7 +21,7 @@ main() {
     exit 2
   fi
   mise which codeql >/dev/null || {
-    printf '%s\n' 'CodeQL is required. Run mise run setup.' >&2
+    printf '%s\n' 'CodeQL is required. Run mise run repo:setup.' >&2
     exit 1
   }
   language=javascript

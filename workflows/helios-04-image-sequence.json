@@ -142,7 +142,7 @@
         0,
         "[]"
       ],
-      "title": "Helios: Animate an Image through Prompt Changes"
+      "title": "Helios: Animate an Image through Prompt Changes (Reactor)"
     },
     {
       "id": 4,
@@ -215,7 +215,7 @@
         1,
         "Sunlight reaches the forest floor as the camera moves forward."
       ],
-      "title": "1. Let Sunlight Through"
+      "title": "1. Let Sunlight Through (Reactor)"
     },
     {
       "id": 6,
@@ -258,7 +258,7 @@
         3,
         "The camera follows the path into a sunny clearing."
       ],
-      "title": "2. Enter a Clearing"
+      "title": "2. Enter a Clearing (Reactor)"
     }
   ],
   "links": [
@@ -301,8 +301,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     },
     "reroutes": [

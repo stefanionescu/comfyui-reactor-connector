@@ -22,7 +22,7 @@ class SessionResources:
     """Resources released together before the owning session finishes.
 
     Attributes:
-        request: Model operation being executed.
+        operation: Model operation being executed.
         transport: Provider connection.
         settings: Effective server limits.
         capture: Incremental media capture owner.
@@ -34,7 +34,7 @@ class SessionResources:
 
     """
 
-    request: VideoOperation
+    operation: VideoOperation
     transport: Transport
     settings: Settings
     capture: VideoCapture

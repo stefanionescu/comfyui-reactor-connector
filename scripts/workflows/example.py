@@ -5,6 +5,26 @@ from dataclasses import dataclass
 from ...src.language import translate
 
 
+# Plan steps and extra media inputs occupy mutually exclusive positions.
+SETUP_NOTE_ID = 1
+
+SOURCE_INPUT_ID = 2
+
+GENERATION_ID = 3
+
+SAVE_VIDEO_ID = 4
+
+EXTRA_INPUT_ID = 5
+
+SECOND_STEP_ID = 6
+
+SAVE_AUDIO_ID = 7
+
+USAGE_NOTE_ID = 8
+
+FIRST_STEP_ID = 5
+
+
 @dataclass(frozen=True, slots=True)
 class Example:
     """One editable workflow with named widget values and explicit media sources."""

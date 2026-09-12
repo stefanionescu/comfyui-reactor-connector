@@ -1,10 +1,10 @@
-"""Task-specific Helios nodes with native ComfyUI media sockets."""
+"""Animate an input image with Helios."""
 
 import asyncio
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...state.generation.helios import HeliosRequest
-from ...execution.helios.request import HeliosOperation
+from ...execution.helios.operation import HeliosOperation
 from ...comfy.execution import generate_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
@@ -14,7 +14,7 @@ class HeliosAnimate(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("helios-video-v2")
 
     @classmethod

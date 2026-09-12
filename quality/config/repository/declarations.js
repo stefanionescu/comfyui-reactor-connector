@@ -59,7 +59,7 @@ export const SHELL_CONFIG_GUARDS = [
     message: 'shell config files must not contain control flow',
   },
   {
-    pattern: /^\s*funct\x69on\s+/mu,
+    pattern: /^\s*function\s+/mu,
     message: 'shell config files must not define functions',
   },
   { pattern: /\$\(/u, message: 'shell config files must not run command substitutions' },

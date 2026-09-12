@@ -64,7 +64,7 @@ SHELL_BASH_4_PATTERNS = (
 
 BASH_PREFIX_ALLOWLIST = {
     ".githooks": ("pre",),
-    ".mise/tasks/hook": ("pre",),
+    ".mise/tasks/repo/hook": ("pre",),
 }
 
 ALLOWED_DEFAULT_FRAGMENTS = (
@@ -103,15 +103,15 @@ ALLOWED_SCRIPT_ROOT_FOLDERS = {
 }
 
 ALLOWED_SINGLE_SCRIPT_FOLDERS = {
-    # The root setup task installs tools; the other tasks are grouped by purpose.
-    ".mise/tasks",
+    # Repository setup and complete checks share the repository task group.
+    ".mise/tasks/repo",
     # These shell entrypoints share their owner with JavaScript policy or filtering code.
     "quality/config/repository/licenses",
     "quality/repository/licenses",
-    ".mise/tasks/licenses",
-    ".mise/tasks/security",
-    ".mise/tasks/release",
-    ".mise/tasks/links",
+    ".mise/tasks/repo/licenses",
+    ".mise/tasks/repo/security",
+    ".mise/tasks/comfy/release",
+    ".mise/tasks/repo/links",
     "quality/config/security/bearer",
     "quality/config/security/codeql/frontend",
     "quality/config/security/gitleaks",

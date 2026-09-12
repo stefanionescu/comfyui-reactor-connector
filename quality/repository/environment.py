@@ -37,7 +37,7 @@ def check_environment() -> None:
         msg = "uv returned an invalid package change list."
         raise TypeError(msg)
     if changes:
-        msg = "The development environment is out of date. Run mise run deps, then check again."
+        msg = "The development environment is out of date. Run mise run repo:deps, then check again."
         raise ValueError(msg)
 
 

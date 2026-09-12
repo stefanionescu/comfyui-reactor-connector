@@ -31,7 +31,7 @@
       "type": "LoadImage",
       "pos": [
         40,
-        280
+        300
       ],
       "size": [
         400,
@@ -73,7 +73,7 @@
       ],
       "size": [
         440,
-        160
+        180
       ],
       "flags": {},
       "order": 8,
@@ -84,7 +84,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "The 3 clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length."
+        "The 3 clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length. Saving starts one extra continuation that uses credits and is excluded from the output."
       ],
       "title": "Using This Workflow"
     },
@@ -93,7 +93,7 @@
       "type": "ReactorIncFastContinue",
       "pos": [
         500,
-        280
+        300
       ],
       "size": [
         440,
@@ -143,14 +143,14 @@
         3,
         ""
       ],
-      "title": "Fast H3: Continue from an Image"
+      "title": "Fast H3: Continue from an Image (Reactor)"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        280
+        300
       ],
       "size": [
         360,
@@ -189,7 +189,7 @@
       "type": "SaveAudioAdvanced",
       "pos": [
         1000,
-        650
+        670
       ],
       "size": [
         360,
@@ -254,8 +254,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

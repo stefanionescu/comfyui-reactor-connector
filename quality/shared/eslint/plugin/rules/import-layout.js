@@ -1,4 +1,4 @@
-import { isImportLike } from '#shared/eslint/plugin/imports.js';
+import { isImportLike, statementEnd } from '#shared/eslint/plugin/imports.js';
 
 const whitespaceOnlyPattern = /^\s*$/u;
 
@@ -31,27 +31,6 @@ const getLeadingSegmentStart = (sourceCode, node) => {
   }
 
   return start;
-};
-
-/**
- * Returns the source offset after the node including any same-line trailing comments.
- * @param sourceCode - ESLint source text, comments, and token locations.
- * @param node - Syntax-tree node to inspect.
- * @returns Offset after the node and its same-line trailing comments.
- */
-const getImportEndComments = (sourceCode, node) => {
-  const fullText = sourceCode.getText();
-  let end = node.range[1];
-
-  for (const comment of sourceCode.getCommentsAfter(node)) {
-    const between = fullText.slice(end, comment.range[0]);
-    if (!whitespaceOnlyPattern.test(between) || comment.loc.start.line !== node.loc.end.line) {
-      break;
-    }
-    end = comment.range[1];
-  }
-
-  return end;
 };
 
 /** Collapses whitespace for stable import statement sort comparison. */
@@ -235,7 +214,7 @@ export const importLayout = {
           }
 
           const segmentStarts = importNodes.map(getLeadingSegmentStart.bind(null, sourceCode));
-          const blockEnd = getImportEndComments(sourceCode, importNodes.at(-1));
+          const blockEnd = statementEnd(sourceCode, importNodes.at(-1));
           const entries = buildEntries(importNodes, segmentStarts, blockEnd, sourceCode);
           const expectedEntries = computeExpectedEntries(entries);
           const replacementText = buildReplacementText(expectedEntries);

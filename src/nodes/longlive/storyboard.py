@@ -1,9 +1,9 @@
-"""Build and execute LongLive shots without making users write model commands."""
+"""Generate a LongLive video from scheduled shots and transitions."""
 
 from comfy_api.latest import io
 from ...state.generation.longlive import LongLiveRequest
 from ..controls import video_outputs, generation_controls
-from ...execution.longlive.request import LongLiveOperation
+from ...execution.longlive.operation import LongLiveOperation
 from ...execution.longlive.storyboard import parse_storyboard
 from ...comfy.execution import generate_video, operation_fingerprint
 
@@ -36,7 +36,7 @@ class LongLiveStoryboard(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("longlive-storyboard-v1")
 
     @classmethod

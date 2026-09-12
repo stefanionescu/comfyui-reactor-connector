@@ -18,8 +18,8 @@ from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
-from ....config.media.video import MIN_SOURCE_FRAMES
 from ....config.media.workers import INPUT_TIMEOUT_SECONDS
+from ....config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
 
 
 def input_error() -> ConnectorError:
@@ -37,8 +37,8 @@ async def _copy_source(source: str | io.BytesIO, destination: Path, maximum: int
             if buffer.nbytes > maximum:
                 raise input_error()
             async with FileOutput(destination, maximum) as output:
-                for offset in range(0, buffer.nbytes, 65_536):
-                    await output.write(bytes(buffer[offset : offset + 65_536]))
+                for offset in range(0, buffer.nbytes, SOURCE_COPY_CHUNK_BYTES):
+                    await output.write(bytes(buffer[offset : offset + SOURCE_COPY_CHUNK_BYTES]))
         return
     await _copy_file(Path(source), destination, maximum)
 
@@ -59,7 +59,7 @@ async def _copy_file(path: Path, destination: Path, maximum: int) -> None:
         """Read one chunk only after the source stream has opened."""
         if stream is None:
             raise input_error()
-        return stream.read(65_536)
+        return stream.read(SOURCE_COPY_CHUNK_BYTES)
 
     try:
         await owned_io(open_source)

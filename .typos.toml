@@ -22,3 +22,8 @@ IIFEs = "IIFEs"
 [type.semgrep]
 extend-glob = ["packs.json"]
 extend-ignore-re = ['"version": "[A-Za-z0-9]+"']
+
+# Bearer finding fingerprints are opaque identifiers, not English words.
+[type.bearer]
+extend-glob = ["false-positives.json"]
+extend-ignore-re = ['"[0-9a-f]{32}_[0-9]+":']

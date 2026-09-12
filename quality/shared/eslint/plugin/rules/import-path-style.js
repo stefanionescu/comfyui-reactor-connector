@@ -1,3 +1,4 @@
+import { getQuote } from '#shared/eslint/plugin/imports.js';
 import { INTERNAL_PREFIXES } from '#config/imports/aliases.js';
 
 const styleMessages = new Map([
@@ -79,19 +80,6 @@ function getPreferredSource(source, style) {
   }
 
   return `${source}.${style}`;
-}
-
-/**
- * Returns the quote character used by the import source node.
- * @param sourceNode - String-literal node containing the module path.
- * @returns The original quote character, defaulting to a single quote.
- */
-function getQuote(sourceNode) {
-  const raw = typeof sourceNode.raw === 'string' ? sourceNode.raw : '';
-  if (raw.startsWith('"')) {
-    return '"';
-  }
-  return "'";
 }
 
 export const importPathStyle = {

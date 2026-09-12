@@ -4,11 +4,9 @@ import sys
 import json
 import asyncio
 from pathlib import Path
-from functools import partial
 from ...language import translate
 from ..failures import safe_error
 from ..events import SessionEvents
-from ...media.output import owned_io
 from ..cleanup import finish_session
 from ..operation import VideoOperation
 from .resources import SessionResources
@@ -16,6 +14,7 @@ from ...state.media import CaptureResult
 from ...media.capture import VideoCapture
 from ...state.reports import FailureReport
 from ..diagnostics import describe_failure
+from ...media.output import discard_outputs
 from ..interaction import SessionInteraction
 from ...errors import ErrorCode, ConnectorError
 from ...state.settings import ExecutionConfiguration
@@ -40,7 +39,7 @@ def _video_track(transport: Transport) -> Track:
 
 async def _capture_generation(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
     """Connect, configure the model, and capture the requested video and recording."""
-    recording_window = RecordingWindow(0, session.request.duration_seconds)
+    recording_window = RecordingWindow(0, session.operation.duration_seconds)
     await session.capture.ready.wait()
     if session.worker.done():
         return await session.worker, recording_window
@@ -53,7 +52,7 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
     track.on_frame(session.capture.receive)
     if session.interaction is not None:
         await session.interaction.connected(session.transport, track, session.events)
-    recording_window = await session.request.begin_generation(
+    recording_window = await session.operation.begin_generation(
         session.transport,
         session.events,
         session.settings.max_capture_seconds,
@@ -63,14 +62,14 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
     session.events.phase = "capture"
     async with asyncio.timeout(session.settings.first_frame_timeout_seconds):
         await session.capture.first_frame.wait()
-    if session.request.requires_audio:
+    if session.operation.requires_audio:
         # Generation can finish before WebRTC delivers the requested recorded interval.
         await session.capture.complete.wait()
     else:
         await _capture_until_end(session.capture, session.events)
     result = await asyncio.shield(session.worker)
     session.events.capture_frames = result.frames
-    if session.request.requires_audio:
+    if session.operation.requires_audio:
         await session.events.call(
             "recording",
             session.transport.save_recording(
@@ -139,7 +138,7 @@ async def _capture_session(session: SessionResources) -> tuple[CaptureResult, Re
 
 
 async def capture_video(
-    request: VideoOperation,
+    operation: VideoOperation,
     configuration: ExecutionConfiguration,
     destination: Path,
     *,
@@ -150,16 +149,16 @@ async def capture_video(
     settings = configuration.settings
     capture = VideoCapture(
         destination,
-        request.duration_seconds,
+        operation.duration_seconds,
         convert_mebibytes_to_bytes(settings.max_queue_megabytes),
         convert_mebibytes_to_bytes(settings.max_capture_megabytes),
-        fallback_fps=request.fallback_fps,
+        fallback_fps=operation.fallback_fps,
     )
     try:
-        transport = SessionTransport(request.connection_name, configuration.credential, settings.max_session_seconds)
+        transport = SessionTransport(operation.connection_name, configuration.credential, settings.max_session_seconds)
         events = SessionEvents(transport)
         session = SessionResources(
-            request=request,
+            operation=operation,
             transport=transport,
             settings=settings,
             capture=capture,
@@ -169,7 +168,7 @@ async def capture_video(
             interaction=interaction,
         )
         result, recording_window = await _capture_session(session)
-        if request.requires_audio:
+        if operation.requires_audio:
             result = await prepare_recording(
                 destination.with_suffix(".recording.mp4"),
                 destination,
@@ -184,8 +183,11 @@ async def capture_video(
     else:
         return result
     finally:
-        if request.requires_audio:
-            await owned_io(partial(destination.with_suffix(".recording.mp4").unlink, missing_ok=True))
-        if sys.exception() is not None:
-            await owned_io(partial(destination.unlink, missing_ok=True))
-            await owned_io(partial(destination.with_suffix(".wav").unlink, missing_ok=True))
+        error = sys.exception()
+        discarded: list[Path] = []
+        if operation.requires_audio:
+            discarded.append(destination.with_suffix(".recording.mp4"))
+        if error is not None:
+            discarded.extend((destination, destination.with_suffix(".wav")))
+        if discarded:
+            await discard_outputs(*discarded, error=error)

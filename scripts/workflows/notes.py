@@ -10,16 +10,29 @@ def setup_steps(example: Example, model: str) -> list[str]:
     steps = [translate("workflows", "setup.key")]
     image_key = "setup.portrait" if model == "ltx2" else "setup.image"
     sources = (
-        ("source", "setup.video"),
-        ("image", image_key),
-        ("reference_image", "setup.reference"),
-        ("ending_image", "setup.endingImage"),
+        ("source", "setup.video", "sourceVideo"),
+        ("image", image_key, "startingImage"),
+        ("reference_image", "setup.reference", "referenceImage"),
+        ("ending_image", "setup.endingImage", "endingImage"),
     )
-    steps.extend(translate("workflows", key) for source, key in sources if source in example.sources)
+    steps.extend(
+        translate("workflows", key, title=translate("workflows", "nodes." + title))
+        for source, key, title in sources
+        if source in example.sources
+    )
+    prompt_titles: dict[str, str] = {}
     if example.plan == "shots":
         prompt_key = "setup.shots"
+        prompt_titles = {
+            "first": translate("workflows", "nodes.softTransition"),
+            "second": translate("workflows", "nodes.hardCut"),
+        }
     elif example.plan == "prompts":
         prompt_key = "setup.sequence"
+        prompt_titles = {
+            "first": translate("workflows", "nodes.sunlight"),
+            "second": translate("workflows", "nodes.clearing"),
+        }
     elif "image" in example.sources and model.startswith("visko-"):
         prompt_key = "setup.viskoImage"
     elif model == "ltx2":
@@ -28,7 +41,7 @@ def setup_steps(example: Example, model: str) -> list[str]:
         prompt_key = "setup.editPrompt"
     else:
         prompt_key = "setup.prompt"
-    steps.append(translate("workflows", prompt_key))
+    steps.append(translate("workflows", prompt_key, **prompt_titles))
     steps.append(translate("workflows", "setup.record" if example.mode == "record" else "setup.live"))
     return [f"{number}. {step}" for number, step in enumerate(steps, 1)]
 
@@ -63,7 +76,7 @@ def model_notes(example: Example, model: str) -> list[str]:
         notes.append(translate("workflows", "limits.fast"))
     if model == "ltx2":
         notes.append(translate("workflows", "limits.ltx"))
-    if "source" in example.sources:
+    if "source" in example.sources and example.mode != "record":
         notes.append(translate("workflows", "limits.sourceVideo"))
     if example.plan == "prompts":
         notes.append(translate("workflows", "limits.helios"))
@@ -77,5 +90,5 @@ def sections(example: Example, model: str) -> tuple[str, str]:
     setup = "\n".join(setup_steps(example, model))
     notes = model_notes(example, model)
     if "source" in example.sources and example.mode == "record":
-        setup += "\n\n" + notes.pop()
+        setup += "\n\n" + translate("workflows", "limits.sourceVideo")
     return setup, "\n\n".join(notes)

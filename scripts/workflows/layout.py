@@ -3,8 +3,19 @@
 import re
 import math
 import textwrap
-from .example import Example
 from ...src.state.documents import Json
+from .example import (
+    Example,
+    FIRST_STEP_ID,
+    GENERATION_ID,
+    SAVE_AUDIO_ID,
+    SAVE_VIDEO_ID,
+    SETUP_NOTE_ID,
+    USAGE_NOTE_ID,
+    EXTRA_INPUT_ID,
+    SECOND_STEP_ID,
+    SOURCE_INPUT_ID,
+)
 
 GAP = 60
 INPUT_WIDTH = 400
@@ -38,14 +49,14 @@ def arrange(nodes: list[Json], example: Example, model: str) -> dict[str, Json]:
     """Align columns while keeping each note and node sized for its content."""
     records = [item for item in nodes if isinstance(item, dict)]
     by_id = {item["id"]: item for item in records if isinstance(item["id"], int)}
-    has_inputs = any(number in by_id for number in (2, 5, 6))
+    has_inputs = any(number in by_id for number in (SOURCE_INPUT_ID, EXTRA_INPUT_ID, SECOND_STEP_ID))
     model_x = 40 + INPUT_WIDTH + GAP if has_inputs else 40
     output_x = model_x + MODEL_WIDTH + GAP
     first_width = INPUT_WIDTH if has_inputs else MODEL_WIDTH
     top = 60
     note_columns = (
-        (1, 40, first_width),
-        (8, model_x if has_inputs else output_x, MODEL_WIDTH if has_inputs else OUTPUT_WIDTH),
+        (SETUP_NOTE_ID, 40, first_width),
+        (USAGE_NOTE_ID, model_x if has_inputs else output_x, MODEL_WIDTH if has_inputs else OUTPUT_WIDTH),
     )
     for number, x, width in (column for column in note_columns if column[0] in by_id):
         note = by_id[number]
@@ -55,19 +66,19 @@ def arrange(nodes: list[Json], example: Example, model: str) -> dict[str, Json]:
             note["pos"], note["size"] = [x, 60], [width, height]
             top = max(top, 60 + height + GAP)
     positions = {
-        2: (40, top, INPUT_WIDTH, 310),
-        3: (model_x, top, MODEL_WIDTH, model_height(example, model)),
-        4: (output_x, top, OUTPUT_WIDTH, 310),
-        5: (40, top + 310 + GAP, INPUT_WIDTH, 310),
-        7: (output_x, top + 310 + GAP, OUTPUT_WIDTH, 130),
+        SOURCE_INPUT_ID: (40, top, INPUT_WIDTH, 310),
+        GENERATION_ID: (model_x, top, MODEL_WIDTH, model_height(example, model)),
+        SAVE_VIDEO_ID: (output_x, top, OUTPUT_WIDTH, 310),
+        EXTRA_INPUT_ID: (40, top + 310 + GAP, INPUT_WIDTH, 310),
+        SAVE_AUDIO_ID: (output_x, top + 310 + GAP, OUTPUT_WIDTH, 130),
     }
     if example.plan in {"shots", "prompts"}:
-        positions[5] = (40, top, INPUT_WIDTH, 240)
-        positions[6] = (40, top + 340, INPUT_WIDTH, 240)
+        positions[FIRST_STEP_ID] = (40, top, INPUT_WIDTH, 240)
+        positions[SECOND_STEP_ID] = (40, top + 340, INPUT_WIDTH, 240)
         if "image" in example.sources:
-            positions[2] = (model_x, top + model_height(example, model) + GAP, MODEL_WIDTH, 310)
+            positions[SOURCE_INPUT_ID] = (model_x, top + model_height(example, model) + GAP, MODEL_WIDTH, 310)
     elif ("ending_image" in example.sources) and "image" not in example.sources:
-        positions[5] = (40, top, INPUT_WIDTH, 310)
+        positions[EXTRA_INPUT_ID] = (40, top, INPUT_WIDTH, 310)
     for number, (x, y, width, height) in positions.items():
         if number in by_id:
             by_id[number]["pos"], by_id[number]["size"] = [x, y], [width, height]
@@ -76,9 +87,9 @@ def arrange(nodes: list[Json], example: Example, model: str) -> dict[str, Json]:
 
 def link_routes(example: Example, positions: dict[int, tuple[int, int, int, int]]) -> dict[str, Json]:
     """Route sequence and image links around the node columns without changing their endpoints."""
-    model_x, top = positions[3][:2]
-    output_x = positions[4][0]
-    extra: dict[str, Json] = {"ds": {"scale": 0.6, "offset": [20, 20]}}
+    model_x, top = positions[GENERATION_ID][:2]
+    output_x = positions[SAVE_VIDEO_ID][0]
+    extra: dict[str, Json] = {"ds": {"scale": 0.6, "offset": [160, 200]}}
     if example.plan in {"shots", "prompts"}:
         link_id = 3 if (example.plan == "prompts") and ("image" in example.sources) else 2
         reroutes: list[Json] = [
@@ -88,7 +99,7 @@ def link_routes(example: Example, positions: dict[int, tuple[int, int, int, int]
         ]
         extensions: list[Json] = [{"id": link_id, "parentId": 3}]
         if "image" in example.sources:
-            image_y = positions[2][1]
+            image_y = positions[SOURCE_INPUT_ID][1]
             reroutes.extend(
                 [
                     {"id": 4, "pos": [output_x - 20, image_y + 40], "linkIds": [2]},

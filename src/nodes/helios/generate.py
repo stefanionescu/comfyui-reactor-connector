@@ -1,8 +1,8 @@
-"""Task-specific Helios nodes with native ComfyUI media sockets."""
+"""Generate a video from a text prompt with Helios."""
 
 from comfy_api.latest import io
 from ...state.generation.helios import HeliosRequest
-from ...execution.helios.request import HeliosOperation
+from ...execution.helios.operation import HeliosOperation
 from ...comfy.execution import generate_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
@@ -12,7 +12,7 @@ class HeliosGenerate(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("helios-video-v2")
 
     @classmethod
@@ -22,7 +22,7 @@ class HeliosGenerate(io.ComfyNode):
             node_id="ReactorIncHeliosGenerate",
             display_name="Helios: Generate Video (Reactor)",
             category="Reactor/Generate",
-            description="Generate a video with your Reactor account. Help includes usage limits.",
+            description="Generate a video from a scene prompt using your Reactor account.",
             search_aliases=["Reactor", "Helios", "text to video"],
             inputs=[*generation_controls(), live_control()],
             outputs=video_outputs(),

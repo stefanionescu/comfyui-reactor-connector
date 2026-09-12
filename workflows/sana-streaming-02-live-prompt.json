@@ -130,7 +130,7 @@
         0,
         true
       ],
-      "title": "SANA: Change the Prompt while Recording"
+      "title": "SANA: Change the Prompt while Recording (Reactor)"
     },
     {
       "id": 4,
@@ -196,8 +196,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

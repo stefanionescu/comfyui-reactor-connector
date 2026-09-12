@@ -5,13 +5,15 @@ Add a later prompt to a Helios sequence. This node prepares text locally.
 ## Build a sequence
 
 Connect **Add a Prompt** nodes in order. **Previous prompts (JSON)** is an advanced
-control for entering a list directly. To show it, right-click the node and
-choose **Show Advanced**. The examples do not require editing JSON.
+control for entering a list directly. Select the node, open the properties panel,
+and expand **Advanced inputs** under **Parameters**. The examples do not require
+editing JSON.
 
-1. Leave **Previous prompts (JSON)** unconnected for the first later prompt.
+1. Keep `[]` in **Previous prompts (JSON)** for the first later prompt.
 2. Choose its **Start chunk** number and describe the scene in **Scene prompt**.
 3. Connect **Prompt sequence** to the next Add a Prompt node's **Previous prompts (JSON)** input.
-4. Connect the last Add a Prompt node to **Reactor Helios: Generate Video from a Prompt Sequence**.
+4. Connect the last **Prompt sequence** output to **Prompt sequence (JSON)** on
+   **Helios: Generate Video from a Prompt Sequence (Reactor)**.
    Set the opening prompt and recording length on that generation node.
 
 | Input                   | Meaning                                                                                              |

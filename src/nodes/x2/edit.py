@@ -10,8 +10,8 @@ from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...settings.store import read_settings
 from ...state.generation.x2 import X2Request
-from ...execution.x2.request import X2Operation
 from ...media.video.input import prepared_video
+from ...execution.x2.operation import X2Operation
 from ..controls import live_control, video_outputs
 from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
@@ -35,7 +35,7 @@ class X2EditVideo(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("x2-source-v1")
 
     @classmethod
@@ -44,7 +44,7 @@ class X2EditVideo(io.ComfyNode):
         return io.Schema(
             node_id="ReactorIncX2EditVideo",
             display_name="X2: Edit Video (Reactor)",
-            description="Edit a local clip. Help explains X2 references and pointer controls.",
+            description="Edit a local video with a prompt, an optional reference image, and pointer controls.",
             category="Reactor/Edit",
             search_aliases=["Reactor", "X2", "video to video", "reference"],
             inputs=[
@@ -72,7 +72,7 @@ class X2EditVideo(io.ComfyNode):
                 io.Int.Input(
                     "variation",
                     display_name="Run number",
-                    tooltip="Change this number to run again with unchanged inputs. This does not change the seed.",
+                    tooltip="Change this number to run again with unchanged inputs.",
                     default=DEFAULT_VARIATION,
                     min=MIN_VARIATION,
                     max=MAX_VARIATION,

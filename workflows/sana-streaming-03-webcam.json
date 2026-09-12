@@ -90,7 +90,7 @@
         0,
         0
       ],
-      "title": "SANA: Edit a Webcam"
+      "title": "SANA: Edit a Webcam (Reactor)"
     },
     {
       "id": 4,
@@ -148,8 +148,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

@@ -17,7 +17,7 @@ class LiveOptions:
         connection_name: Reviewed provider model connection.
         prompt: Opening scene or edit prompt.
         webcam: Optional browser frame source.
-        is_passthrough_enabled: Whether prompt changes pass through immediately.
+        is_passthrough_enabled: Whether to send prompts without preprocessing.
         audio_prompt: Opening sound prompt.
         is_audio_enabled: Whether generated audio is enabled.
 

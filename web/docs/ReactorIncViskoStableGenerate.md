@@ -13,7 +13,7 @@ one **Load Image** output to the optional **Starting image** input.
 | Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                    |
 | Run number             | Change this integer for another run. Default: 0.                                                 |
 | Sound prompt           | A short description of sound, up to 1,000 characters. Blank uses the picture alone.              |
-| Resolution             | Blank uses the model default. Otherwise, enter an exact offered resolution name.                 |
+| Resolution             | Leave blank to use the model default. See the resolution guidance below for custom names.        |
 | Include sound          | Generate sound when true. False asks the model to provide silence. Default: true.                |
 | Use prompt unchanged   | Send your exact scene prompt when true. False lets Reactor rewrite it first.                     |
 | Starting image         | Optional single RGB image, at most 8192 pixels per side and within the upload limit.             |
@@ -24,19 +24,23 @@ to about one sentence: the provider uses roughly the first 128 tokens. An audio
 prompt is not another scene description. Image batches and non-finite pixels are
 rejected before connecting.
 
-If you enter a resolution, the connector checks that the connected model supports
-it. An unsupported name ends the session before generation. Leave this field blank for a first run. The resolution
-stays the same throughout the run.
+Leave **Resolution** blank for the model default. For a custom value, check the
+[Visko Stable resolution reference](https://docs.reactor.inc/model-api-reference/visko-orbis-stable/schema) and use an exact name supported
+by your deployment. The connector checks that name against the connected
+model's offered resolutions before generation. An unsupported name ends the
+session. Resolution stays fixed throughout the recording.
 
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **visko-stable-01-text-to-video** in native **Browse Templates → reactor-inc**.
+2. Open **visko-stable-01-text-to-video** in **Browse Templates → reactor-inc**.
 3. Describe a scene and its sound, then select **Run**.
-4. Play the saved video with sound. Use Save Audio to inspect or retain sound alone.
+4. Play the result in **Preview and Save Video**. Use **Preview and Save Audio**
+   to inspect or retain sound alone.
 
 To start from an image, open **visko-stable-02-image-to-video** and upload one
-starting picture. Describe what is in that picture and how it should move.
+starting picture in **Upload Your Starting Image**. Describe the subject and
+how it should move.
 The example prompt describes a forest path. Replace it when you use another
 subject. **Use prompt unchanged** is on in the image example, so Reactor does
 not rewrite your scene description. The empty sound prompt lets the picture
@@ -56,13 +60,16 @@ returns an error and removes unfinished files.
 
 ## Stop and recover
 
-Use ComfyUI's cancel control to stop generation. Pausing playback or closing
-the ComfyUI window does not stop it. Change **Run number** to request another run
-with unchanged inputs.
+Use ComfyUI's cancel control to stop a queued or running workflow. Pausing video
+playback does not stop generation. With **Live controls** off, closing the browser
+does not cancel the workflow. With live controls on, closing the live panel or
+losing its browser connection ends the session and discards unfinished video.
 
-If the session reaches its limit before recording is ready, try a shorter video
-or increase **Maximum session duration** in Reactor settings. For other failures,
-follow the recovery guide (**Recovery** in the bundled `ADVANCED.md`) before trying again.
+Unchanged inputs may reuse ComfyUI's cached result. Change **Run number** for
+another generation. If the session limit expires before recording is ready,
+try a shorter video or increase **Maximum session duration (seconds)** in Reactor
+settings. Correct reported input errors before trying again. If the session end
+is unconfirmed, wait for its stated time limit before starting another run.
 
 [Reactor Visko Stable schema](https://docs.reactor.inc/model-api-reference/visko-orbis-stable/schema)
 
@@ -76,11 +83,10 @@ video to hear the result. Sound on/off and resolution stay fixed for the recordi
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
-
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

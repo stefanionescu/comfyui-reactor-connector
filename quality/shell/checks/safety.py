@@ -43,14 +43,14 @@ def check_recursive_remove(
     functions = collect_shell_functions(source)
     owner = function_for_line(functions, line_number)
     owner_name = str(owner["name"]) if owner is not None else ""
-    if owner_name == "runtime_remove_owned_path":
+    if path == "quality/security/codeql/cleanup.sh" and owner_name == "codeql_remove_database":
         return []
     return [
         diagnostic(
             path,
             line_number,
             "shell.recursive-remove",
-            "recursive deletion must use runtime_remove_owned_path",
+            "recursive deletion must use codeql_remove_database",
         ),
     ]
 

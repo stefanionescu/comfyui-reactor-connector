@@ -47,7 +47,7 @@
             },
             {
                 "path": "src/live/interaction.py",
-                "names": ["CameraInteraction.closed"],
+                "names": ["BrowserInteraction.closed"],
                 "reason": "Implements the session interaction callback that records confirmed or uncertain remote termination."
             },
             {

@@ -1658,8 +1658,9 @@ def _trim_history_messages(
     messages: Sequence[HistoryMessage],
     max_messages: int,
 ) -> list[HistoryMessage]:
-    if len(messages) <= max_messages:
-        return list(messages)
+    """Copy at most max_messages entries; require a positive limit."""
+    if max_messages < 1:
+        raise ValueError("max_messages must be positive")
     return list(messages[-max_messages:])
 ```
 
@@ -2530,11 +2531,10 @@ Good:
 ```python
 message = f"name: {name}; score: {score}"
 
-rows = ["<table>"]
+rows = []
 for last_name, first_name in employees:
-    rows.append("<tr><td>%s, %s</td></tr>" % (last_name, first_name))
-rows.append("</table>")
-employee_table = "".join(rows)
+    rows.append(f"{last_name}, {first_name}")
+employee_list = "\n".join(rows)
 ```
 
 Bad:

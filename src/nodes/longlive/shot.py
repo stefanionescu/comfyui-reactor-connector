@@ -1,4 +1,4 @@
-"""Build and execute LongLive shots without making users write model commands."""
+"""Append a shot to a LongLive storyboard without generating video."""
 
 from comfy_api.latest import io
 from ...state.generation.longlive import Shot

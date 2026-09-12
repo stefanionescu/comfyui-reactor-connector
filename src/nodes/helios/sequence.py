@@ -5,7 +5,7 @@ from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...state.generation.helios import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
-from ...execution.helios.request import HeliosOperation
+from ...execution.helios.operation import HeliosOperation
 from ..controls import video_outputs, generation_controls
 from ...comfy.execution import generate_video, operation_fingerprint
 
@@ -44,7 +44,7 @@ class HeliosSequence(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("helios-sequence-v1")
 
     @classmethod

@@ -1,6 +1,14 @@
 {
     "b50df814875fbc402405698c2e1242e8_0": {
-        "comment": "web/extension.js: element creates literal UI tags supplied by internal callers; provider content uses textContent. Generated from web/dom.ts.",
+        "comment": "web/extension.js: element creates literal UI tags supplied by internal callers; provider content uses textContent. Generated from web/scripts/dom.ts.",
+        "false_positive": true
+    },
+    "f6315af703ff26f9bb0d119ba079b076_0": {
+        "comment": "quality/security/codeql/frontend/sarif.js: compares public CodeQL line location fingerprints against committed reviewed findings. Neither operand contains credentials or other secret data; constant-time comparison is unnecessary.",
+        "false_positive": true
+    },
+    "f6315af703ff26f9bb0d119ba079b076_1": {
+        "comment": "quality/security/codeql/frontend/sarif.js: compares public CodeQL column location fingerprints against committed reviewed findings. Neither operand contains credentials or other secret data; constant-time comparison is unnecessary.",
         "false_positive": true
     }
 }

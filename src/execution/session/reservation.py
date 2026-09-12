@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 from ...state.session import SessionOutcome
 from ...errors import ErrorCode, ConnectorError
 from ...storage import atomic_write, read_private, private_directory
+from ....config.generation.session import MAX_SESSION_RECORD_BYTES, MAX_SESSION_RECORD_DEPTH
 
 
 class SessionReservation:
@@ -127,7 +128,7 @@ def _lock(descriptor: int) -> None:
 def _remaining(path: Path) -> float:
     """Reject damaged records instead of assuming the previous session ended."""
     try:
-        raw = read_private(path, max_bytes=1024)
+        raw = read_private(path, max_bytes=MAX_SESSION_RECORD_BYTES)
     except FileNotFoundError:
         return 0
     invalid = ConnectorError(
@@ -135,7 +136,7 @@ def _remaining(path: Path) -> float:
         translate("main", "errors.sessionRecordDamaged"),
     )
     try:
-        value = parse_json(raw.decode("utf-8"), max_bytes=1024, max_depth=2)
+        value = parse_json(raw.decode("utf-8"), max_bytes=MAX_SESSION_RECORD_BYTES, max_depth=MAX_SESSION_RECORD_DEPTH)
     except (ValueError, TypeError, ConnectorError):
         raise invalid from None
     if not isinstance(value, dict) or set(value) != {"version", "expires_at"}:

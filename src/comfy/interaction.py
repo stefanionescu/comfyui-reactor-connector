@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from ..state.documents import Json
     from ..media.webcam import WebcamFrames
     from ..execution.operation import VideoOperation
-    from ..live.interaction import CameraInteraction
+    from ..live.interaction import BrowserInteraction
 
 
 class _BrowserSender(Protocol):
@@ -57,7 +57,7 @@ def _owner() -> tuple[str, str]:
 
 
 async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> None:
-    """Wait for the invited client within its setup deadline and report an explicit end request."""
+    """Wait for the invited client within its setup deadline and report an explicit end operation."""
     async with asyncio.timeout(timeout_seconds):
         while not lease.is_ready():
             if lease.read().end:
@@ -67,7 +67,7 @@ async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> Non
             await asyncio.sleep(INPUT_POLL_SECONDS)
 
 
-async def _prepare_camera(options: LiveOptions, duration_seconds: float) -> CameraInteraction:
+async def _prepare_camera(options: LiveOptions, duration_seconds: float) -> BrowserInteraction:
     """Invite the prompt owner to camera controls and await its connection."""
     client, node = _owner()
     axes = MODELS_BY_CONNECTION[options.connection_name].camera_axes
@@ -77,10 +77,10 @@ async def _prepare_camera(options: LiveOptions, duration_seconds: float) -> Came
     # Queuing a camera workflow starts it; the panel does not add another start step.
     lease = ControlLease(options, choices=choices, started=True)
     get_runtime().browsers.add(lease)
-    invitation = lease.invitation()
-    invitation.update(node_id=node, duration_seconds=duration_seconds)
-    cast("_BrowserSender", PromptServer.instance).send_sync("reactor-inc.live", invitation, client)
     try:
+        invitation = lease.invitation()
+        invitation.update(node_id=node, duration_seconds=duration_seconds)
+        cast("_BrowserSender", PromptServer.instance).send_sync("reactor-inc.live", invitation, client)
         await _wait_for_controls(lease, CAMERA_INVITATION_TIMEOUT_SECONDS)
     except BaseException:
         lease.close(is_termination_confirmed=True, failed=True)
@@ -93,10 +93,10 @@ async def _prepare_controls(options: LiveOptions, duration_seconds: float) -> Co
     client, node = _owner()
     lease = ControlLease(options)
     get_runtime().browsers.add(lease)
-    invitation = lease.invitation()
-    invitation.update(node_id=node, duration_seconds=duration_seconds)
-    cast("_BrowserSender", PromptServer.instance).send_sync("reactor-inc.controls", invitation, client)
     try:
+        invitation = lease.invitation()
+        invitation.update(node_id=node, duration_seconds=duration_seconds)
+        cast("_BrowserSender", PromptServer.instance).send_sync("reactor-inc.controls", invitation, client)
         await _wait_for_controls(lease, CONTROL_INVITATION_TIMEOUT_SECONDS)
     except BaseException:
         lease.close(is_termination_confirmed=True, failed=True)
@@ -105,26 +105,26 @@ async def _prepare_controls(options: LiveOptions, duration_seconds: float) -> Co
 
 
 async def prepare_interaction(
-    request: VideoOperation, *, interactive: bool, controls: LiveOptions | None
-) -> CameraInteraction | ControlInteraction | None:
-    """Open the camera or editing controls supported by this model request."""
+    operation: VideoOperation, *, interactive: bool, controls: LiveOptions | None
+) -> BrowserInteraction | ControlInteraction | None:
+    """Open the camera or editing controls supported by this model operation."""
     interaction = None
     if controls is not None:
-        interaction = await _prepare_controls(controls, request.duration_seconds)
+        interaction = await _prepare_controls(controls, operation.duration_seconds)
     elif interactive:
-        options = build_live_options(request)
-        if MODELS_BY_CONNECTION[request.connection_name].camera_axes:
-            interaction = await _prepare_camera(options, request.duration_seconds)
+        options = build_live_options(operation)
+        if MODELS_BY_CONNECTION[operation.connection_name].camera_axes:
+            interaction = await _prepare_camera(options, operation.duration_seconds)
         else:
-            interaction = await _prepare_controls(options, request.duration_seconds)
+            interaction = await _prepare_controls(options, operation.duration_seconds)
     return interaction
 
 
-def build_live_options(request: VideoOperation, *, webcam: WebcamFrames | None = None) -> LiveOptions:
+def build_live_options(operation: VideoOperation, *, webcam: WebcamFrames | None = None) -> LiveOptions:
     """Translate execution-owned control values into live-session options."""
-    values = request.build_control_values()
+    values = operation.build_control_values()
     return LiveOptions(
-        request.connection_name,
+        operation.connection_name,
         values.prompt,
         webcam,
         is_passthrough_enabled=values.is_passthrough_enabled,

@@ -1,4 +1,4 @@
-"""Describe Sana workflow inputs and controls."""
+"""Describe SANA workflow inputs and controls."""
 
 from ..example import Example
 from ..live import build_live_example

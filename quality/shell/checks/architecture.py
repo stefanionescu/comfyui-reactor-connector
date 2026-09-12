@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, TypedDict
 from quality.lib.diagnostics import diagnostic
 from quality.config.shell import SHELL_ACTION_PREFIXES, SHELL_CONFIG_PREFIXES
 from quality.shell.checks.bash import is_architecture_source, is_file_executable
-from quality.shell.parsers import collect_shell_functions, shell_identifier_references
+from quality.shell.parsers import collect_shell_functions, shell_command_references
 
 if TYPE_CHECKING:
     from quality.lib.diagnostics import Diagnostic
@@ -85,7 +85,7 @@ def direct_source_dependencies(path: str, source: str) -> tuple[set[str], list[D
 
 
 def has_boundary_header(source: str) -> bool:
-    """Return whether a file declares a concrete architectural boundary."""
+    """Check the boundary header format and word count, not the explanation's quality."""
     for line in source.splitlines()[:8]:
         match = BOUNDARY_RE.fullmatch(line)
         if match is not None and len(match.group("description").split()) >= MIN_BOUNDARY_WORDS:
@@ -268,7 +268,7 @@ def check_direct_dependencies(
 def check_shell_architecture(sources: dict[str, str], root: Path) -> list[Diagnostic]:
     """Return all shell module architecture diagnostics."""
     governed = architecture_sources(sources)
-    references = {path: shell_identifier_references(source) for path, source in governed.items()}
+    references = {path: shell_command_references(source) for path, source in governed.items()}
     owners = function_owners(governed)
     errors: list[Diagnostic] = []
     errors.extend(check_visibility(governed, references, root))

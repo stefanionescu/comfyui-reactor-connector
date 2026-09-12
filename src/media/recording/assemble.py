@@ -3,10 +3,9 @@
 import sys
 import asyncio
 from pathlib import Path
-from ..output import owned_io
-from functools import partial
 from ...language import translate
 from ...paths import EXTENSION_ROOT
+from ..output import discard_outputs
 from ...state.settings import Settings
 from ...state.media import CaptureResult
 from ..units import convert_mebibytes_to_bytes
@@ -63,5 +62,4 @@ async def prepare_recording(
         return CaptureResult(destination, frames, str(mode), audio_path=audio)
     finally:
         if not success:
-            await owned_io(partial(destination.unlink, missing_ok=True))
-            await owned_io(partial(audio.unlink, missing_ok=True))
+            await discard_outputs(destination, audio, error=sys.exception())

@@ -107,7 +107,7 @@
         0.5,
         false
       ],
-      "title": "X2: Edit a Local Video"
+      "title": "X2: Edit a Local Video (Reactor)"
     },
     {
       "id": 4,
@@ -173,8 +173,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

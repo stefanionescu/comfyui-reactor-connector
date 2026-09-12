@@ -69,10 +69,7 @@ def collect_dependency_violations(root: Path) -> list[str]:
 def read_toml(path: Path) -> dict[str, object]:
     """Return parsed TOML data."""
     parsed: object = tomli.loads(path.read_text(encoding="utf-8"))
-    mapping = _mapping(parsed)
-    if not mapping:
-        return {}
-    return mapping
+    return _mapping(parsed)
 
 
 def collect_lock_violations(root: Path) -> list[str]:
@@ -131,7 +128,7 @@ def collect_requirements_violations(root: Path) -> list[str]:
         if path.is_file() and path != required
     ]
     if not required.is_file() or required.read_text(encoding="utf-8") != requirements(root):
-        violations.append("Update requirements.txt with mise run deps:export")
+        violations.append("Update requirements.txt with mise run repo:deps:export")
     return violations
 
 
@@ -147,7 +144,7 @@ def collect_export_workflow_violations(root: Path) -> list[str]:
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             if REQUIREMENTS_EXPORT_COMMAND in line:
                 violations.append(
-                    f"{_relative(path, root)}:{line_number}: export only declared runtime requirements",
+                    f"{path.relative_to(root)}:{line_number}: export only declared runtime requirements",
                 )
     return violations
 
@@ -156,7 +153,7 @@ def collect_install_command_violations(root: Path) -> list[str]:
     """Return diagnostics for unsupported Python package install commands."""
     violations: list[str] = []
     for path in iter_policy_files([root / scan_root for scan_root in INSTALL_COMMAND_SCAN_ROOTS]):
-        rel_path = _relative(path, root)
+        rel_path = path.relative_to(root)
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             if _is_uv_pip_allowed(rel_path, line):
                 continue
@@ -208,15 +205,6 @@ def _mapping(value: object) -> dict[str, object]:
         return {}
     raw = cast("dict[object, object]", value)
     return {key: item for key, item in raw.items() if isinstance(key, str)}
-
-
-def _relative(path: Path, root: Path) -> Path:
-    """Return a repository-relative path."""
-    root_path = root
-    relative_path = path.relative_to(root_path)
-    if not relative_path.parts:
-        return Path()
-    return relative_path
 
 
 def main() -> int:

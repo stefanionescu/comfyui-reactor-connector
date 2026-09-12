@@ -13,14 +13,23 @@ from itertools import chain
 from fractions import Fraction
 from dataclasses import dataclass
 from typing import cast, TYPE_CHECKING
+from config.media.images import RGB_CHANNELS
 from src.state.recording import RecordingVideo, RecordingSettings
-from config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE
+from config.media.audio import (
+    SAMPLE_RATE,
+    MAX_CHANNELS,
+    MIN_CHANNELS,
+    PCM_SAMPLE_BYTES,
+    AUDIO_WRITE_BLOCK_SAMPLES,
+    AUDIO_ENCODE_BLOCK_SAMPLES,
+)
 from config.media.video import (
     ENCODER_CRF,
     ENCODER_NAME,
     ENCODER_PRESET,
     MAX_FRAME_RATE,
     MAX_START_SECONDS,
+    HDR_TRANSFER_CODES,
     MAX_COMPONENT_BITS,
     MAX_FRAME_DIMENSION,
     MIN_FRAME_DIMENSION,
@@ -63,11 +72,11 @@ class AudioEncoder:
         self.stream.layout = audio.layout
         self.stream.time_base = Fraction(1, SAMPLE_RATE)
 
-    def through(self, samples: int) -> None:
+    def encode_until(self, end_sample: int) -> None:
         """Encode audio up to the requested sample position in small consecutive blocks."""
-        end = min(samples, self.audio.samples.shape[1])
+        end = min(end_sample, self.audio.samples.shape[1])
         while self.position < end:
-            stop = min(end, self.position + 1024)
+            stop = min(end, self.position + AUDIO_ENCODE_BLOCK_SAMPLES)
             values = np.ascontiguousarray(self.audio.samples[:, self.position : stop])
             frame = av.AudioFrame.from_ndarray(values, format="fltp", layout=self.audio.layout)
             frame.sample_rate = SAMPLE_RATE
@@ -79,7 +88,7 @@ class AudioEncoder:
 
     def finish(self, samples: int) -> None:
         """Encode the remaining selected samples and flush all audio packets into the recording."""
-        self.through(samples)
+        self.encode_until(samples)
         for packet in self.stream.encode(None):
             self.writer.mux(packet)
 
@@ -128,6 +137,7 @@ def read_audio(source: Path, origin: Fraction, duration_seconds: float, maximum_
             raise ValueError(msg)
         layout = "mono" if channels == 1 else "stereo"
         count = math.ceil(duration_seconds * SAMPLE_RATE)
+        # Reserve half the sample budget for conversion buffers; this is not a process memory cap.
         if count * channels * 4 > maximum_memory // 2:
             msg = "recording_memory"
             raise ValueError(msg)
@@ -159,7 +169,7 @@ def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> R
             raise ValueError(msg)
         stream = reader.streams.video[0]
         rate = stream.average_rate
-        if rate is None or not 1 <= rate <= MAX_FRAME_RATE or stream.codec_context.color_trc in (16, 18):
+        if rate is None or not 1 <= rate <= MAX_FRAME_RATE or stream.codec_context.color_trc in HDR_TRANSFER_CODES:
             msg = "recording_video"
             raise ValueError(msg)
         frames = reader.decode(stream)
@@ -178,7 +188,7 @@ def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> R
             or not MIN_FRAME_DIMENSION <= frame.height <= MAX_FRAME_DIMENSION
             or frame.width % 2
             or frame.height % 2
-            or frame.width * frame.height * 3 > memory_limit
+            or frame.width * frame.height * RGB_CHANNELS > memory_limit
         ):
             msg = "recording_memory"
             raise ValueError(msg)
@@ -230,26 +240,26 @@ def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: Rec
         video.codec_context.time_base = video.time_base
         video.options = {"preset": ENCODER_PRESET, "crf": ENCODER_CRF}
         sound = AudioEncoder(writer, audio)
-        for frame, current in recording_frames(reader, timing, settings.duration):
+        for frame, current in recording_frames(reader, timing, settings.duration_seconds):
             for packet in video.encode(frame):
                 writer.mux(packet)
-            sound.through(round(current * SAMPLE_RATE))
+            sound.encode_until(round(current * SAMPLE_RATE))
             previous = current
             frames += 1
-            if frames > MAX_FRAME_RATE * settings.duration + 1:
+            if frames > MAX_FRAME_RATE * settings.duration_seconds + 1:
                 msg = "recording_video"
                 raise ValueError(msg)
-            if settings.destination.exists() and settings.destination.stat().st_size > settings.size_limit:
+            if settings.destination.exists() and settings.destination.stat().st_size > settings.max_output_bytes:
                 msg = "file_limit"
                 raise ValueError(msg)
         if previous is None:
             msg = "recording_video"
             raise ValueError(msg)
-        count = round(min(settings.duration, float(previous + 1 / timing.rate)) * SAMPLE_RATE)
+        count = round(min(settings.duration_seconds, float(previous + 1 / timing.rate)) * SAMPLE_RATE)
         sound.finish(count)
         for packet in video.encode(None):
             writer.mux(packet)
-    if settings.destination.stat().st_size > settings.size_limit:
+    if settings.destination.stat().st_size > settings.max_output_bytes:
         msg = "file_limit"
         raise ValueError(msg)
     return frames, count
@@ -257,15 +267,15 @@ def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: Rec
 
 def write_wav(path: Path, audio: RecordingAudio, count: int, maximum_bytes: int) -> None:
     """Write the selected samples as size-limited signed 16-bit PCM audio."""
-    if count * audio.samples.shape[0] * 2 + 44 > maximum_bytes:
+    if count * audio.samples.shape[0] * PCM_SAMPLE_BYTES + 44 > maximum_bytes:
         msg = "file_limit"
         raise ValueError(msg)
     with wave.open(str(path), "wb") as output:
         output.setnchannels(audio.samples.shape[0])
-        output.setsampwidth(2)
+        output.setsampwidth(PCM_SAMPLE_BYTES)
         output.setframerate(SAMPLE_RATE)
-        for start in range(0, count, 4096):
-            chunk = audio.samples[:, start : min(count, start + 4096)]
+        for start in range(0, count, AUDIO_WRITE_BLOCK_SAMPLES):
+            chunk = audio.samples[:, start : min(count, start + AUDIO_WRITE_BLOCK_SAMPLES)]
             pcm = np.rint(np.clip(chunk, -1, 1) * 32767).astype("<i2")
             output.writeframes(pcm.T.tobytes())
 
@@ -275,12 +285,15 @@ def prepare(settings: RecordingSettings) -> dict[str, str | int]:
     if not math.isfinite(settings.start_seconds) or not 0 <= settings.start_seconds <= MAX_START_SECONDS:
         msg = "recording_video"
         raise ValueError(msg)
-    timing = video_timing(settings.source, settings.memory_limit, settings.start_seconds)
+    timing = video_timing(settings.source, settings.max_memory_bytes, settings.start_seconds)
     audio = read_audio(
-        settings.source, timing.origin, settings.duration, settings.memory_limit - timing.width * timing.height * 3
+        settings.source,
+        timing.origin,
+        settings.duration_seconds,
+        settings.max_memory_bytes - timing.width * timing.height * RGB_CHANNELS,
     )
     frames, count = encode_video(settings, audio, timing)
-    write_wav(settings.wav, audio, count, settings.size_limit)
+    write_wav(settings.wav, audio, count, settings.max_output_bytes)
     return {
         "frames": frames,
         "timestamp_mode": "recording_pts",
@@ -299,16 +312,16 @@ def read_settings(arguments: list[str]) -> RecordingSettings:
         source=Path(arguments[1]),
         destination=Path(arguments[2]),
         wav=Path(arguments[3]),
-        duration=float(arguments[4]),
-        size_limit=int(arguments[5]),
-        memory_limit=int(arguments[6]),
+        duration_seconds=float(arguments[4]),
+        max_output_bytes=int(arguments[5]),
+        max_memory_bytes=int(arguments[6]),
         start_seconds=float(arguments[7]),
     )
 
 
 def main(arguments: list[str]) -> int:
     """Report readiness and return recording facts or fixed error codes without native error text."""
-    sys.stdout.write(str(json.dumps({"ready": True})) + "\n")
+    sys.stdout.write(json.dumps({"ready": True}) + "\n")
     sys.stdout.flush()
     try:
         result = prepare(read_settings(arguments))
@@ -322,13 +335,13 @@ def main(arguments: list[str]) -> int:
             "file_limit",
         }:
             code = "recording_video"
-        sys.stdout.write(str(json.dumps({"error": code})) + "\n")
+        sys.stdout.write(json.dumps({"error": code}) + "\n")
         sys.stdout.flush()
         return 1
     except Exception:  # noqa: BLE001 -- reason: The worker protocol permits only fixed error codes, never native exception text.
-        sys.stdout.write(str(json.dumps({"error": "recording_video"})) + "\n")
+        sys.stdout.write(json.dumps({"error": "recording_video"}) + "\n")
         sys.stdout.flush()
         return 1
-    sys.stdout.write(str(json.dumps(result)) + "\n")
+    sys.stdout.write(json.dumps(result) + "\n")
     sys.stdout.flush()
     return 0

@@ -1,5 +1,10 @@
 # Reactor Cleanup and Public ComfyUI Distribution Plan
 
+Mise tasks are grouped under `repo` (development checks and tooling) and `comfy`
+(connector builds, workflows, models, and releases). Historical task paths in the
+baseline ledger refer to the earlier layout; current command examples use the
+grouped task names.
+
 ## Objective
 
 Clean the complete Reactor connector around native ComfyUI extension contracts and the shared engineering standard used by Live Shopping. Remove duplicated platform responsibilities, correct runtime ownership and schema assumptions, and publish Reactor through the official Comfy Registry tools.
@@ -8,11 +13,11 @@ This is one coordinated cleanup, not a compatibility migration or a proposal for
 
 Reactor targets public distribution. Live Shopping currently runs from a linked checkout. Reactor therefore needs official publishing and published-installation acceptance, not a different internal architecture.
 
-Status: the architectural migration passed its earlier local lint, type, build, and packaging checks. Official `comfy node pack` produced an inspected 249-member archive that passed its Gitleaks scan. Those results do not establish a complete cleanup: the file-by-file review in section 15 records 166 findings and policy proposals, with coverage modes for all 598 current files. Contradicted completion criteria have been reopened. This audit changes only the plan; none of its code or public-documentation fixes has been implemented.
+Status: the most recent complete `repo:check` passed, and the official packer produced an inspected 252-member archive that passed secret scanning. The baseline file-by-file audit records 166 findings and policy proposals across 598 paths at `88b1861`. Earlier implementation and research notes recorded changes and API evidence; those separate files are no longer present in this checkout. The historical ledger preserves the original findings and paths rather than claiming they are all still open or all complete.
 
-Keep one `web/` directory, flat `workflows/`, native V3 registration, the isolated worker entrypoint, and public workflow contracts. The earlier localization/configuration findings remain open in sections 3 and 9. The complete English node catalog remains an unresolved decision. Registry identity and release-version selection are deferred. No publication, host workflow execution, paid generation, published-installation acceptance, license review, or complete pre-publication check suite was performed during this audit.
+Keep one `web/` directory, flat `workflows/`, native V3 registration, the isolated worker entrypoint, and public workflow contracts. The listed configuration and localization implementation is now present. The complete English node catalog remains an unresolved decision. Registry identity and release-version selection are deferred. Host workflow execution, paid generation, publication, and published-installation acceptance remain unperformed.
 
-Browser source, the built `extension.js` and `extension.css`, and native `docs/` share one `web/` directory. Example workflows are flat JSON files in `workflows/` because ComfyUI's Templates menu reads only `<pack>/workflows/*.json`, not subfolders. The generated `workflows/README.md` lists them under one heading per model.
+Browser TypeScript now lives in `web/scripts/`, CSS source in `web/styles/`, and native help in `web/docs/`. Built `extension.js` and `extension.css` remain directly under `web/`. Historical file paths in the baseline ledger refer to the pre-move layout. Example workflows remain directly under `workflows/`, with shared inputs under `workflows/assets/`. The owner confirmed the flat layout after reviewing the installed host's discovery limitation. Keep one set of JSON files and no generated `example_workflows/` copies.
 
 ## Contents
 
@@ -90,7 +95,7 @@ These choices align the two projects where ComfyUI leaves the implementation ope
 - Keep `web/`. The [official native-help documentation](https://docs.comfy.org/custom-nodes/help_page) uses a `web/` directory containing browser assets and `docs/`. The loader contract is `WEB_DIRECTORY`; that directory name is conventional, not mandatory.
 - Keep authored TypeScript/CSS in `web/` beside the generated `web/extension.js` and `web/extension.css` and the authored `web/docs/` Markdown. ComfyUI serves only `.js` files from `WEB_DIRECTORY`, and `.comfyignore` excludes `web/**/*.ts` and `web/styles/` from the package.
 - Root `__init__.py` and `comfy_entrypoint` implement native package loading. Root `__main__.py` is different: it is Reactor's existing Python directory entrypoint for the fixed isolated media workers. ComfyUI does not require or call it for node registration. Retain it because the parent launches the host interpreter with `-I`, the connector directory, and a fixed worker operation; do not describe it as standard custom-node boilerplate.
-- The declaration file is `web/host.d.ts`. It associates externally served `scripts/app.js` and `scripts/api.js` with official `ComfyApp`/`ComfyApi` types and permits CSS imports. It emits no JavaScript and is not a mock, polyfill, or shipped host implementation. The filename is a project choice.
+- The declaration file is now `web/scripts/host.d.ts`. It associates externally served `scripts/app.js` and `scripts/api.js` with official `ComfyApp`/`ComfyApi` types and permits CSS imports. Removing this handwritten mapping is an open cleanup target. Evaluate the official typed extension API when released, and plain JavaScript as a separate option for reducing build complexity. The earlier research and implementation notes recorded the evidence and acceptance criteria. No replacement has been implemented.
 - English literals in V3 schema metadata are valid official fallbacks. A complete English locale catalog is also used by ComfyUI's own frontend. Our partial-English-override policy is not an official prohibition on full catalogs; keep that distinction explicit when resolving section 9.
 
 ### What belongs to ComfyUI
@@ -174,12 +179,12 @@ Section 14 is the explicit implementation deletion list; user data, local enviro
 
 ## Scope and execution approvals
 
-- Implementation proceeded under the section-14 deletion list and per-phase approvals. The user approved deleting `scripts/release.py`, `.mise/tasks/comfy/install`, the generated-help machinery, and `config/models/nodes.py`, and approved `compilerOptions.skipLibCheck` with a pinned Zod 3 development dependency. Live Shopping, protected rules, and installed extensions remain untouched by this repository's changes.
+- Implementation proceeded under the section-14 deletion list and per-phase approvals. The user approved deleting `scripts/release.py`, `.mise/tasks/comfy/install`, the generated-help machinery, and `config/models/nodes.py`, and approved `compilerOptions.skipLibCheck` with a pinned Zod 3 development dependency. Live Shopping remains unchanged. Subsequent approvals cover P01–P07 and local installation with unpaid checks; the earlier implementation notes recorded the backup, installation, and browser evidence.
 - Obtain the actual Registry publisher ID and canonical repository URL before filling publishing metadata; both remain deferred. Do not invent them or assume `reactor-inc` is available without checking the Registry.
 - Select and record the actual supported ComfyUI/frontend pair and a released comfy-cli version that provides `node pack`, `node publish`, and the documented ignore behavior. Upstream source availability does not establish the installed CLI version.
 - The existing README states ComfyUI `0.34.6`, frontend `1.49.6`, and Python `3.12`. Verify the final used APIs against the chosen baseline before publishing minimum requirements. Do not add old-host fallback chains.
 - Select an exact reviewed version of the official frontend type dependency, published at least seven days earlier. Use the package manager during authorized implementation, not this planning task.
-- Keep `AGENTS.md`, `CLAUDE.md`, and `rules/*` unchanged. If a targeted tooling correction conflicts with protected instructions, request that specific amendment instead of broadening exceptions or rewriting the entire rule set.
+- The user approved P01–P07 only, as specified in the approved P01–P07 proposal. These seven example corrections are applied to `rules/BASH.md`, `rules/PYTHON.md`, and `rules/DOCUMENTATION.md`. Keep `AGENTS.md`, `CLAUDE.md`, and all other protected instructions unchanged. Further rule changes require a separate explicit request.
 - Confirm exact paths before deleting existing files/directories, replacing an installed node folder, or removing old archives. No forced replacement, Git cleanup, or unattended deletion is authorized by this document.
 - Builds, checks, host changes, publication, and paid generation are execution steps requiring their applicable authorization. Publishing must not happen as a build side effect. Paid operations require explicit agreement on scope and cost.
 - Do not add automated tests or hosted Git workflows under the current project rules. Acceptance below uses the authorized existing checks and actual host/manual inspection.
@@ -256,7 +261,7 @@ Move declarations as follows. These are exact declaration moves, not wholesale m
 - [x] Move `RunReport.prepare`'s version/UUID/resource lookup to `src/execution/report.py::prepare_report`, which returns the state record. Keep its pure output serialization on `RunReport`; apply the separate removal of package identity there.
 - [x] Keep credential loading/saving in `src/credentials.py`, settings parsing in `src/settings/schema.py`, and settings generation/snapshot creation in `src/settings/execution.py`. State holds their values, not their stores. Preserve credential redaction and all boundary validation.
 - [x] Keep `MODEL_IDENTITIES` in `config/models.py` and runtime indexes in `src/models.py`; import `ModelDefinition` from `src/state/models.py` rather than defining it again.
-- [ ] Finish removal of old-location state exports. Imports use the declaring state modules, but `src/settings/execution.py::__all__` still lists `ExecutionConfiguration` (R13).
+- [x] Finish removal of old-location state exports. Imports use the declaring state modules, and `src/settings/execution.py::__all__` now exports only `ConfigurationGeneration` (R13).
 - [x] Delete `src/media/state.py`, `src/live/state.py`, and `src/execution/session/state.py` after all their declarations/callers move. Retain the other source modules for their real behavior; do not delete an execution or validation module merely because its dataclass moved.
 - [x] Enforce the data layer with the existing import-linter configuration: `src/state/` may not import other `src` packages, `config`, `scripts`, `quality`, or third-party and host packages. Keep state within runtime scan/type/documentation coverage and in the normal `src/` Registry payload. Do not create another checker framework or generated state catalog.
 
@@ -317,10 +322,10 @@ The current model association is authored twice: `src/extension.py::NODE_REGISTR
 
 These are pending ownership corrections, not authorization to change limits, model behavior, or wire formats. Root `config/` remains Python configuration; browser-only policy stays in `web/browser.ts` as already planned.
 
-- [ ] Add `MAX_SESSION_RECORD_BYTES = 1024` and `MAX_SESSION_RECORD_DEPTH = 2` to `config/generation/session.py`. Update both size-limit uses and the JSON-depth argument in `src/execution/session/reservation.py::_remaining` to consume them. Preserve the persisted record shape and damaged-record rejection.
-- [ ] Reuse the existing `config/media/audio.py::PCM_SAMPLE_BYTES` in the recording worker's WAV size calculation and `setsampwidth` call. Preserve two-byte PCM, the 16-bit conversion, sample rate, channel layout, and output bytes.
-- [ ] Name the recording worker's encoding and WAV-write block sizes in `config/media/audio.py`: `AUDIO_ENCODE_BLOCK_SAMPLES = 1024` and `AUDIO_WRITE_BLOCK_SAMPLES = 4096`. Update `AudioEncoder.through` and the WAV-writing loop in `src/media/recording/worker.py` without changing their chunk boundaries or timing.
-- [ ] Add `browserLimits.minCalculatorSeconds = 0.1` in `web/browser.ts`. Replace the duplicated minimum strings in `web/discovery/rate.ts` and `web/discovery/dialog.ts` with that value. Keep credit calculations and the existing maximum unchanged.
+- [x] Add `MAX_SESSION_RECORD_BYTES = 1024` and `MAX_SESSION_RECORD_DEPTH = 2` to `config/generation/session.py`. Update both size-limit uses and the JSON-depth argument in `src/execution/session/reservation.py::_remaining` to consume them. Preserve the persisted record shape and damaged-record rejection.
+- [x] Reuse the existing `config/media/audio.py::PCM_SAMPLE_BYTES` in the recording worker's WAV size calculation and `setsampwidth` call. Preserve two-byte PCM, the 16-bit conversion, sample rate, channel layout, and output bytes.
+- [x] Name the recording worker's encoding and WAV-write block sizes in `config/media/audio.py`: `AUDIO_ENCODE_BLOCK_SAMPLES = 1024` and `AUDIO_WRITE_BLOCK_SAMPLES = 4096`. Update `AudioEncoder.encode_until` and the WAV-writing loop in `src/media/recording/worker.py` without changing their chunk boundaries or timing.
+- [x] Add `browserLimits.minCalculatorSeconds = 0.1` in `web/scripts/browser.ts`. Replace the duplicated minimum strings in `web/scripts/discovery/rate.ts` and `web/scripts/discovery/dialog.ts` with that value. Keep credit calculations and the existing maximum unchanged.
 - Keep compiled regex objects, fixed worker dispatch callables, mathematical unit conversions, serializer logic, and development diagnostics with their operational owners. Runtime validation pattern text already has configuration owners; do not move every literal into a global configuration file.
 - Public English media-error prose is not configuration. Its locale move and parent-process translation belong to section 9; keep worker error codes stable.
 
@@ -393,7 +398,7 @@ These are pending ownership corrections, not authorization to change limits, mod
 ### Source layout
 
 - [x] Keep authored TypeScript and `web/styles/interface.css` in `web/`, beside the built `web/extension.js` and `web/extension.css`. Keep the stylesheet for Reactor's live and settings controls.
-- [ ] Remove the `.reactor-node-help` iframe styles and rebuild the served CSS (U01).
+- [x] Remove the `.reactor-node-help` iframe styles and rebuild the served CSS (U01).
 - [x] Keep authored `web/docs` in place; it becomes the directly served native help, not a build source copied elsewhere.
 - [x] Update `config/web` callers to the new browser-owned configuration paths specified in section 3, then remove the vacated TypeScript-only directory.
 
@@ -477,19 +482,19 @@ The Comfy-owned frontend's [English node catalog](https://github.com/Comfy-Org/C
 
 ### Open decision: complete English node locale catalog
 
-- [ ] Decide whether `locales/en/nodeDefs.json` should remain a partial override file or contain a complete translator-facing English catalog. The current implementation follows the partial-override choice; this plan update does not authorize reversing it. ComfyUI's own complete English catalog is valid precedent, not a requirement that every extension must copy.
+- [x] Retain `locales/en/nodeDefs.json` as a partial override file. Schema definitions supply the other English labels and descriptions. A complete duplicate English catalog is unnecessary for the current implementation; ComfyUI's own complete catalog remains valid precedent, not a requirement for extensions.
 - If a complete catalog is selected, settle its authoring and synchronization method before implementation. Keep native V3 schema fallbacks and do not restore `translate_schema`, make backend schema creation depend on locale files, or introduce a generated runtime registration catalog. Catalog completeness is independent of the browser source layout.
 
 ### Pending localization corrections
 
-- [ ] Move all 18 English messages in `config/media/capture.py::ENCODER_ERRORS` to `locales/en/main.json` under `reactorInc.mediaErrors`, keyed by the existing worker error codes. Preserve every sentence and code. Keep `ENCODER_ERRORS` in the same configuration module as a code-to-message-key map, with values such as `mediaErrors.dimensions`, rather than English prose.
-- [ ] Update `src/media/process.py::MediaProcess.run` and `_report` to resolve those messages through `src/language.py::translate` when constructing public errors. Unknown or malformed worker codes must still select the existing `encoder_failed` fallback. Worker processes continue to send fixed codes; they must not import locale loading, credentials, or host initialization.
-- [ ] Add the Reactor category-segment defaults `Reactor`, `Generate`, `Edit`, `Live`, `Worlds`, and `Plans` under `locales/en/main.json::nodeCategories`. Keep schema category IDs unchanged. Do not use per-node locale `category` fields as a substitute for the native category surface.
-- [ ] Align `scripts/nodes/translations.py` with native nullable input/output tooltips: treat `null` tooltip values as absent text while requiring strings for supplied names, descriptions, placeholders, and option labels. Dispatch native node resources to their specialized validator in `read_english` so the generic message validator does not reject valid native nulls. Keep general-message placeholder/type checks unchanged.
-- [ ] Allow the native generated seed-control label in node translations only where the actual schema requests `control_after_generate`, using its declared control name or the standard generated name. Keep unknown nodes, unrelated input names, output indices, and combo choices rejected. Do not introduce another handwritten inventory of every frontend widget or duplicate host-owned seed-label rendering.
-- [ ] Correct the translation contract documentation in `scripts/nodes/translations.py` and `quality/config/repository/translations.py`: permitting `category` or `search_aliases` keys locally is not proof that the frontend consumes them. Keep search aliases in native schemas; document the inspected host behavior without promising locale-driven alias translation.
-- [ ] Extend `scripts/nodes/metadata.py::validate_metadata` to validate the node ID for optional `web/docs/<NodeID>/` localized-guide directories as well as root fallback guide filenames. Validate supplied locale filenames without requiring new translations or a page for every node.
-- [ ] Document the language-selection boundary accurately in `ADVANCED.md`: connector HTTP routes use `Accept-Language`; queued node execution does not currently establish that locale scope, and only English resources ship. Do not claim localized execution errors or add a new workflow language parameter as an incidental fix.
+- [x] Move all 18 English messages in `config/media/capture.py::ENCODER_ERRORS` to `locales/en/main.json` under `reactorInc.mediaErrors`, keyed by the existing worker error codes. Preserve every sentence and code. Keep `ENCODER_ERRORS` in the same configuration module as a code-to-message-key map, with values such as `mediaErrors.dimensions`, rather than English prose.
+- [x] Update `src/media/process.py::MediaProcess.run` and `_report` to resolve those messages through `src/language.py::translate` when constructing public errors. Unknown or malformed worker codes must still select the existing `encoder_failed` fallback. Worker processes continue to send fixed codes; they must not import locale loading, credentials, or host initialization.
+- [x] Add the Reactor category-segment defaults `Reactor`, `Generate`, `Edit`, `Live`, `Worlds`, and `Plans` under `locales/en/main.json::nodeCategories`. Keep schema category IDs unchanged. Do not use per-node locale `category` fields as a substitute for the native category surface.
+- [x] Align `scripts/nodes/translations.py` with native nullable input/output tooltips: treat `null` tooltip values as absent text while requiring strings for supplied names, descriptions, placeholders, and option labels. Dispatch native node resources to their specialized validator in `read_english` so the generic message validator does not reject valid native nulls. Keep general-message placeholder/type checks unchanged.
+- [x] Allow the native generated seed-control label in node translations only where the actual schema requests `control_after_generate`, using its declared control name or the standard generated name. Keep unknown nodes, unrelated input names, output indices, and combo choices rejected. Do not introduce another handwritten inventory of every frontend widget or duplicate host-owned seed-label rendering.
+- [x] Correct the translation contract documentation in `scripts/nodes/translations.py` and `quality/config/repository/translations.py`: permitting `category` or `search_aliases` keys locally is not proof that the frontend consumes them. Keep search aliases in native schemas; document the inspected host behavior without promising locale-driven alias translation.
+- [x] Extend `scripts/nodes/metadata.py::validate_metadata` to validate the node ID for optional `web/docs/<NodeID>/` localized-guide directories as well as root fallback guide filenames. Validate supplied locale filenames without requiring new translations or a page for every node.
+- [x] Document the language-selection boundary accurately in `ADVANCED.md`: connector HTTP routes use `Accept-Language`; queued node execution does not currently establish that locale scope, and only English resources ship. Do not claim localized execution errors or add a new workflow language parameter as an incidental fix.
 
 ### Detailed help by usefulness
 
@@ -530,7 +535,7 @@ The Comfy-owned frontend's [English node catalog](https://github.com/Comfy-Org/C
 - [x] Keep separate registered-Reactor coverage and native-node schema facts so adding inspected native nodes does not incorrectly require Reactor guides or examples for every core node.
 - [x] Replace the hardcoded `SaveVideo` array `[prefix, "auto", "auto"]` in `build_workflow` with values established from the selected native schema and static inspection of the installed frontend 1.49.6 serialization source. Correct `LoadVideo`, `LoadImage`, and audio-save fields the same way where their actual schemas differ.
 - [x] Do not assume V3 input objects alone fully specify frontend-only widget serialization. Establish the concrete controls from static inspection of the selected frontend's serialization source, then keep that mapping explicit in the existing serializer. No invented universal schema-to-canvas framework.
-- [ ] Inspect a frontend-saved specimen of these native controls in the actual selected ComfyUI frontend and compare the serialized widget values against builder output. This UI acceptance step was excluded from the authorized scope and remains unperformed.
+- [x] Inspect a frontend-saved specimen of these native controls in the actual selected ComfyUI frontend and compare the serialized widget values against builder output. The installed frontend's serialization matches every widget-value array in all 33 builder outputs.
 - [x] Keep `control_after_generate` widget ordering, connected-widget bindings, socket types, output indices, and note/group positions consistent with the final frontend artifacts.
 - [x] Keep schema comparisons in development checks. Remove redundant validation of values already established by the same builder, not checks that catch mismatched node IDs, sockets, or missing example coverage.
 - [ ] Open every generated workflow in the actual selected ComfyUI frontend and inspect native controls, links, outputs, and notes. Fix builder source for any discovered mismatch and regenerate; do not hand-edit generated JSON into a second source of truth.
@@ -550,7 +555,7 @@ Keep the binary assets byte-for-byte. Do not resize, generate, transcode, or cha
 | `workflows/fast-h3-01-text-to-video.jpg`   | Preserve the matching template thumbnail.                   |
 | `workflows/helios-02-image-to-video.jpg`   | Preserve the matching template thumbnail.                   |
 
-- [x] Generate every example as `workflows/<slug>.json` with `mise run workflows:build`. Preserve every example operation and note.
+- [x] Generate every example as `workflows/<slug>.json` with `mise run comfy:workflows:build`. Preserve every example operation and note.
 - [x] Remove the model subfolders under `workflows/` and the generated HTML copies. Keep the builder source and text resources.
 - [x] Keep `workflows/` as the only template directory. Do not add `example_workflows/`, another alias, or a static route.
 
@@ -574,7 +579,7 @@ Keep the binary assets byte-for-byte. Do not resize, generate, transcode, or cha
 - [x] Declare the verified Python minimum in `[project].requires-python` and ComfyUI minimum in `[tool.comfy].requires-comfyui`. Use the documented `comfyui-frontend-package` dependency constraint for the verified frontend requirement after checking the supported host environment. Do not copy a lower core Python minimum or force replacement of host-managed libraries to make a constraint pass.
 - [x] Keep valid license metadata and legal text.
 - [ ] Review the selected publisher's accepted metadata shape rather than blindly copying an older license example. Deferred with publisher identity.
-- [x] Maintain `requirements.txt` from `[project].dependencies` using `scripts/dependencies.py` and `mise run deps:export`. Do not add a second authored dependency list.
+- [x] Maintain `requirements.txt` from `[project].dependencies` using `scripts/dependencies.py` and `mise run repo:deps:export`. Do not add a second authored dependency list.
 - [x] Add `.comfyignore` excluding development-only `web/**/*.ts`, `web/styles/`, `scripts/`, `quality/`, `.mise/`, `.githooks/`, `rules/`, agent instructions, `PLAN.md`, root frontend manifests/lockfiles, `uv.lock`, development tool configuration, old `dist/`, local environments, caches, logs, and private environment/state files.
 - [x] Keep root `__init__.py`, runtime `__main__.py`, `src/`, Python `config/`, `pyproject.toml`, `requirements.txt`, license/user guides, `locales/`, public `web/` assets, and `workflows/` in the runtime payload.
 - [x] Ignore generated `node.zip` in Git and exclude it from published content. Do not commit release archives or force-include an old archive directory.
@@ -598,10 +603,10 @@ Use the following sequence from the repository root when implementation and the 
 The concrete existing build/check and official packaging commands are:
 
 ```sh
-mise run deps:export
-mise run workflows:build
-mise run frontend:build
-mise run check
+mise run repo:deps:export
+mise run comfy:workflows:build
+mise run comfy:frontend:build
+mise run repo:check
 comfy node pack
 unzip -l node.zip
 ```
@@ -688,9 +693,9 @@ Describe this accurately as preserved checker implementations with updated confi
 
 ## 13. Rewrite documentation for the final behavior
 
-- [ ] Finish the README rewrite through D01-D06. The current source-installation procedure exists, but publication bookkeeping and unsupported parity wording remain.
-- [ ] Keep available installation instructions separate from development and deferred publication work. Do not document a Registry installation as available before publication.
-- [ ] Finish the advanced-guide cleanup through D07-D12. Retain useful settings, recovery, and maintenance instructions; remove implementation-report prose.
+- [x] Finish the README rewrite through D01-D06. Source installation, model-grouped node descriptions, and the supported frontend range are documented without publication bookkeeping or unsupported parity claims.
+- [x] Keep available installation instructions separate from development and deferred publication work. Do not document a Registry installation as available before publication.
+- [x] Finish the advanced-guide cleanup through D07-D12. Retain useful settings, recovery, and maintenance instructions; remove implementation-report prose.
 - [x] Remove custom ZIP names, package identities, managed-folder recovery, `comfy:install`, generated HTML help, and obsolete workflow/build paths from user procedures.
 - [x] Explain which modes require a browser and which execute headlessly. Native node presence does not imply a webcam session can run through a bare API client.
 - [x] Explain that model refresh neither installs node code nor grants provider access.
@@ -726,7 +731,7 @@ Keep root `__init__.py` and runtime `__main__.py`, ordinary `src` with runtime d
 ### Direct cutover requirements
 
 - [x] Update affected imports, task calls, schemas, UI event consumers, docs, and generated artifacts in the same coordinated change.
-- [ ] Finish R13, R18, and U01 so no stale state export, unused worker mode, or obsolete help CSS remains. Preserve the completed removal of V1 registration and custom distribution.
+- [x] Finish R13, R18, and U01 so no stale state export, unused worker mode, or obsolete help CSS remains. Preserve the completed removal of V1 registration and custom distribution.
 - [x] Keep current public node IDs for unchanged operations. This is not a compatibility implementation and does not require node-replacement mappings.
 - [x] Preserve stored credentials, settings, catalog snapshots, session reservations, user workflows, and media. This structural cleanup does not require changing their formats or locations.
 - [x] Do not delete existing recording reports because future reports omit package identity. No old-report reader is added solely for this cleanup.
@@ -739,7 +744,7 @@ Keep root `__init__.py` and runtime `__main__.py`, ordinary `src` with runtime d
 
 This review covers the current Git-visible worktree, including untracked source. The initial inventory contains 598 existing files; 173 tracked paths are already deleted and are not current implementation files. Generated browser files, generated workflow JSON, lockfiles, binary assets, and legal text have distinct review responsibilities; they must not be rewritten as ordinary prose.
 
-The source review and coverage record are complete within the ledger's stated modes. Findings below identify inspected declarations and passages. Generated/binary classifications are not claims of line-by-line review, playback, or runtime acceptance. No review can guarantee that every defect has been found. The 165 code, public-documentation, and policy items remain open. D40's plan-status correction is addressed by this update.
+The source review and coverage record are complete within the ledger's stated modes. Findings below identify inspected declarations and passages. Generated/binary classifications are not claims of line-by-line review, playback, or runtime acceptance. No review can guarantee that every defect has been found. The baseline review recorded 165 code, public-documentation, and policy items, plus D40's plan-status correction. Subsequent implementation and acceptance evidence is recorded in the earlier implementation notes; the baseline count is not a count of currently open work.
 
 Apply `rules/WRITING.md` and ISO 24495-1:2023 to project-authored text: readers must get the information they need, find it, understand it, and use it. Judge names against the concepts understood by the intended developers. ISO 24495 does not prescribe a Python import sorter, a maximum function size, or particular folder names. The engineering findings below must stand on their own technical evidence, not an invented ISO clause. This is a source review, not certification or a claim that runtime behavior has been verified.
 
@@ -747,7 +752,7 @@ Keep exact external API names, workflow IDs and values, protocol keys, license t
 
 ### Quality-tool findings
 
-Each row is an open item. Locations refer to the reviewed worktree and include a declaration or search phrase so the finding remains usable after lines move. Correctness fixes take priority over cosmetic changes.
+Each row records a baseline finding; subsequent dispositions were recorded in the earlier implementation notes. Locations refer to the reviewed worktree and include a declaration or search phrase so the finding remains usable after lines move. Correctness fixes take priority over cosmetic changes.
 
 | ID  | File and location                                                                                                                                                                                         | Concrete finding and required correction                                                                                                                                                                                                                                                                                                                                                 |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -880,7 +885,7 @@ Each row is an open item. Locations refer to the reviewed worktree and include a
 | W10 | `scripts/nodes/translations.py::compare_messages`                                                | The list branch checks only string types, unlike the scalar branch's placeholder comparison. Its docstring therefore overstates placeholder protection. Validate list-message placeholders against corresponding English entries where lists are supported, or explicitly narrow that contract. Preserve partial-translation behavior.                                        |
 | W11 | `.githooks/pre-commit` and `.githooks/pre-push`, header/function comments                        | “Check the staged change” and “Check the pushed revision” overstate the invoked commands: most checks inspect the working tree. Correct the comments to the actual scope; do not imply that the hook verifies a different Git revision.                                                                                                                                       |
 | W12 | All 35 existing `.mise/tasks/` files                                                             | The file summary, `#MISE description`, and `main` summary often repeat the same sentence three times. Keep machine-consumed descriptions. Record a narrow policy change allowing one useful human explanation instead of duplicated comments, with explicit approval before changing the shell documentation rule. Preserve every task's command, scope, and safety controls. |
-| W13 | `.mise/tasks/release/package`                                                                    | Its description implies a local packaging-only operation, but it first runs `mise run check`, which includes external links and network-backed security/dependency checks. Describe those prerequisites and side effects accurately; do not remove release checks merely to simplify the wording.                                                                             |
+| W13 | `.mise/tasks/release/package`                                                                    | Its description implies a local packaging-only operation, but it first runs `mise run repo:check`, which includes external links and network-backed security/dependency checks. Describe those prerequisites and side effects accurately; do not remove release checks merely to simplify the wording.                                                                        |
 | W14 | `src/state/recording.py::RecordingSettings` and `src/media/recording/worker.py`                  | Recording fields inconsistently identify units. Rename internal `duration` to `duration_seconds`, `size_limit` to `max_output_bytes`, and `memory_limit` to `max_memory_bytes`, updating worker callers together. Preserve CLI order, field values, and public keys.                                                                                                          |
 
 ### Public writing findings
@@ -932,7 +937,7 @@ The criteria column identifies the affected ISO plain-language principle: needed
 
 ### Protected-rule findings and decisions
 
-These are findings about the supplied rules, not edits authorized by this audit. Keep the files unchanged until the user approves the exact correction.
+The table preserves the original findings. The user subsequently approved P01–P07 only; those corrections are applied as specified in the approved P01–P07 proposal. P08–P10 remain unapproved. Enforcement and mandatory comment requirements are unchanged. The owner subsequently confirmed that shared naming conventions should stay in place. These entries are review findings, not planned rule changes; any future proposal must identify a concrete defect and its exact correction.
 
 | ID  | File and passage                                                                                                                                                      | Finding and proposed decision                                                                                                                                                                                                                                                                     |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1577,9 +1582,9 @@ The existing narrow host declarations, typed records, credential redaction, boun
 
 - [ ] Implement the authorized findings, recording any declined policy proposals separately rather than silently omitting them.
 - [ ] Preserve all public node IDs, parameter names/order/defaults/limits, output order, provider command semantics, and persistent private-state formats.
-- [ ] Regenerate `web/extension.js` and `web/extension.css` from their `web/` sources with `mise run frontend:build`; regenerate the 33 workflow JSONs and index with `mise run workflows:build` after their text sources change. Do not rebuild or replace the six binary assets for prose cleanup.
+- [x] Regenerate `web/extension.js` and `web/extension.css` from their `web/` sources with `mise run comfy:frontend:build`; regenerate the 33 workflow JSONs and index with `mise run comfy:workflows:build` after their text sources change. Do not rebuild or replace the six binary assets for prose cleanup.
 - [ ] Review changed public text against the four plain-language principles and remove internal status/approval narration. This requires reading the text, not a new readability-score checker.
-- [ ] Within the user's requested local verification scope, run the existing relevant lint/type/build checks after implementation. Do not add automated tests, run ComfyUI workflows, install into a host, publish, or make paid requests for this audit.
+- [x] Run the existing relevant lint/type/build checks after implementation. The complete `repo:check` passes. Later explicit approval also covers local installation and unpaid host checks; no automated test files or paid generation were added to that scope.
 
 ## Implementation order
 
@@ -1590,7 +1595,7 @@ The completed migration stages below remain the record of the main implementatio
 1. Resolve the complete-English-catalog decision before changing catalog completeness or adding extraction tooling. That decision does not block the independent media-error and configuration ownership corrections.
 2. Add the locale messages and named constants specified in sections 9 and 3 before updating `src/media/process.py`, the reservation reader, the recording worker, and the two browser calculators. Preserve public node parameters, error codes, message text, media output, and all existing limits.
 3. Align the existing native translation/guide validators with the explicitly listed nullable-tooltip, generated seed-control, and localized-guide contracts. Add category defaults through the native `main.nodeCategories` surface and document the queued-execution language limitation.
-4. Regenerate `web/extension.js` and `web/extension.css` after browser or bundled message changes, using `mise run frontend:build`. Regenerate examples only if their maintained builder text changes; do not rewrite generation prompts or alter workflow parameters as a localization side effect.
+4. Regenerate `web/extension.js` and `web/extension.css` after browser or bundled message changes, using `mise run comfy:frontend:build`. Regenerate examples only if their maintained builder text changes; do not rewrite generation prompts or alter workflow parameters as a localization side effect.
 5. When verification is requested, use the existing scoped lint, type, `models:validate`, frontend, and workflow artifact checks. Before publication, repack and re-inspect the official archive after any packaged source changes. Retain the separate approval requirements for host execution, full release checks, publishing, and paid runs.
 
 ### Stage A: Confirm boundaries and supported tools
@@ -1658,26 +1663,26 @@ The user requested the final release/build/security/artifact process in this pla
 
 ### Audit follow-up acceptance
 
-- [ ] All 18 public media-error sentences have locale ownership and parent-process translation, with unchanged worker codes and fallback behavior. No worker imports localization or host bindings.
-- [ ] The named reservation, PCM, audio-block, and browser-calculator values replace the listed literals without changing their values or behavior.
-- [ ] Native category coverage and translation/guide validation match the reviewed contracts. Complete English catalog coverage is claimed only if that decision is approved and implemented; English-only execution and missing translations are not described as fully localized.
-- [ ] Scoped checks and affected generated artifacts are reverified after implementation. Earlier passing lint/build/archive results remain evidence for the earlier source state, not proof that these newly identified gaps are fixed.
+- [x] All 18 public media-error sentences have locale ownership and parent-process translation, with unchanged worker codes and fallback behavior. No worker imports localization or host bindings.
+- [x] The named reservation, PCM, audio-block, and browser-calculator values replace the listed literals without changing their values or behavior.
+- [x] Native category coverage and translation/guide validation match the reviewed contracts. Complete English catalog coverage is claimed only if that decision is approved and implemented; English-only execution and missing translations are not described as fully localized.
+- [x] Scoped checks and affected generated artifacts are reverified after implementation. Earlier passing lint/build/archive results remain evidence for the earlier source state, not proof that these newly identified gaps are fixed.
 
 ### Checkout acceptance in ComfyUI
 
 With authorized host/browser access:
 
-- [ ] Load the checkout through the native loader with one active node copy. Confirm that the browser assets are the new `web/extension.js` and `extension.css`.
-- [ ] Confirm native node search/categories, schema labels, Parameters controls, native Info, commands, and template discovery.
-- [ ] Open every generated example without missing nodes, malformed widget values, or connection warnings. Confirm the built-in save/load controls match the selected host.
-- [ ] Inspect both templates with thumbnails and the canonical sample paths. Do not queue generation merely to check that a workflow opens.
+- [x] Load the checkout through the native loader with one active node copy. Confirm that the browser assets are the new `web/extension.js` and `extension.css`.
+- [x] Confirm native node search/categories, schema labels, Parameters controls, native Info, commands, and template discovery.
+- [x] Open every generated example without missing nodes, malformed widget values, or connection warnings. Confirm the built-in save/load controls match the selected host.
+- [x] Inspect both templates with thumbnails and the canonical sample paths. Do not queue generation merely to check that a workflow opens.
 - [ ] Confirm settings endpoints expose only credential status, enforce mutation restrictions, and keep server limits authoritative.
-- [ ] Confirm catalog refresh updates metadata without generation or dynamic node registration.
-- [ ] Confirm normal workflow/node lifecycle does not duplicate menus, subscriptions, stylesheets, or dialogs.
+- [x] Confirm catalog refresh updates metadata without generation or dynamic node registration.
+- [x] Confirm normal workflow/node lifecycle does not duplicate menus, subscriptions, stylesheets, or dialogs.
 
 ### Public package acceptance
 
-- [x] The selected released comfy-cli (1.20.0) `node pack` creates `node.zip` with the intended members (249 files verified).
+- [x] The selected released comfy-cli (1.20.0) `node pack` creates `node.zip` with the intended members (252 files verified in the latest temporary checkout).
 - [ ] The selected released comfy-cli's `publish` behavior is verified. `comfy node publish` has not run.
 - [x] The official payload includes runtime `__main__.py`, `src`, Python `config`, requirements, locales, built browser assets, retained guides, examples, and sample assets.
 - [x] The payload excludes development tools, TypeScript source, private state, local environments, obsolete archives/manifests, and generated duplicate help/media.
@@ -1689,10 +1694,54 @@ With authorized host/browser access:
 
 ### Reactor execution acceptance
 
-Paid operations require separately agreed scope and cost. Use the real installed distribution for final release evidence, not simulated provider results.
+On 13 September 2026, the user authorized paid model and camera checks without a separate credit cap. Use the real installed distribution for final release evidence, not simulated provider results.
+
+Start with these five prepared runs, one at a time:
+
+| Model and workflow    | Requested video | Input                                 | Credits per session second | 90-second session allowance |
+| --------------------- | --------------- | ------------------------------------- | -------------------------- | --------------------------- |
+| Helios text-to-video  | 2 seconds       | Example text                          | 17                         | 1,530 credits               |
+| LongLive storyboard   | 5 seconds       | Example text and two scheduled shots  | 17                         | 1,530 credits               |
+| Fast H3 text-to-video | 6 seconds       | Example text; inspect video and audio | 70                         | 6,300 credits               |
+| SANA file editing     | 2 seconds       | Bundled forest video                  | 17                         | 1,530 credits               |
+| X2 file editing       | 2 seconds       | Bundled forest video                  | 17                         | 1,530 credits               |
+
+The [public pricing endpoint](https://api.reactor.inc/pricing), read on 13 September
+2026, reports 10,000 credits per US dollar. The rate calculation totals 12,420
+credits (US$1.242) if every session reaches the existing 90-second limit. The
+earlier proposed 13,000-credit cap no longer applies. Session time includes
+setup and extra model work, not just saved video duration. Keep the existing
+90-second session limit. Confirm each session has ended before starting another;
+investigate failures before retrying. Account top-ups are not authorized.
+
+The five reviewable graphs are in `.artifacts/acceptance/proposed-runs/`. They use
+Run number 1, disable live controls, and save under the `reactor-acceptance/`
+output prefix. The bundled forest video has been uploaded through ComfyUI's
+native endpoint as `reactor-acceptance/forest-motion.mp4`, without overwriting an
+existing input. These graphs were prepared before execution approval. Camera and interactive
+checks are now authorized too, subject to actual device availability. Record
+execution results separately; preparation alone does not satisfy acceptance.
+
+Paid execution results on 13 September 2026:
+
+| Check | Result |
+| ----- | ------ |
+| Helios text-to-video | Passed: two seconds, 48 frames, native Save Video. |
+| LongLive storyboard | Passed: five seconds, 120 frames, native shot helpers. |
+| Fast H3 video and audio | Passed after adding the observed Singapore recording origin; 6.6-second video and separate FLAC. |
+| SANA file editing | Passed: two seconds, 48 frames. |
+| X2 file editing | Passed: two seconds, 48 frames. |
+| LingBot live camera controls | Passed: ten-second video, 55 preview frames, acknowledged forward and idle commands. |
+| SANA physical webcam | Retry passed: real 640 × 480 MacBook Pro camera input; two-second output, 48 frames, no microphone audio; camera released. |
+
+All saved media decodes successfully. Native cancellation ended the webcam setup;
+the queue and reservation are clear. The Fast H3 origin change passed Python
+checks, archive comparison, and secret scanning before installation. Detailed
+results and limits were recorded in the earlier implementation notes. The broader acceptance
+items below remain open where they include additional models or failure phases.
 
 - [ ] Noninteractive text/image generation returns usable native video and optional audio; core Save Video/audio nodes consume the results.
-- [ ] Local prompt-sequence and storyboard composition works without credentials or provider calls.
+- [x] Local prompt-sequence and storyboard composition works without credentials or provider calls.
 - [ ] Approved SANA/X2 file editing, Fast H3 continuation, LTX speech, LingBot/world navigation, and Visko sound paths preserve their actual model contracts.
 - [ ] Approved live prompts, pointer controls, world controls, and webcams are owned by the submitting browser and release their tracks/leases.
 - [ ] Noninteractive API execution does not depend on frontend callbacks. Browser-required modes fail clearly without an owner.
@@ -1704,7 +1753,7 @@ Any unexecuted acceptance item remains explicitly unverified. A successful build
 
 ## Definition of done
 
-- [ ] Complete the newly opened configuration and localization audit items, and record the explicit English-catalog decision without treating it as an official ComfyUI mandate. Retain the single `web/` directory, the justified worker entrypoint, public contracts, and protected tooling boundaries.
+- [x] Complete the newly opened configuration and localization audit items, and record the explicit English-catalog decision without treating it as an official ComfyUI mandate. Retain the single `web/` directory, the justified worker entrypoint, public contracts, and protected tooling boundaries.
 - [ ] Reactor and Live Shopping follow the same native extension and shared structural conventions. The explicitly documented workflow-authoring, generated-asset tracking, authorized checker changes, product responsibilities, and public-distribution differences remain; neither project gains or loses machinery merely for symmetry.
 - [x] Ordinary `src`, useful `config`, root dependency/compiler files, esbuild, and workflow builders remain; runtime data records have one domain-based home under `src/state/`. There is no new packaging hierarchy, bundler/workspace migration, or generated runtime catalog.
 - [x] All existing Reactor operations are accounted for and their runtime, media, security, and live-control lifetimes remain explicit.
@@ -1716,3 +1765,12 @@ Any unexecuted acceptance item remains explicitly unverified. A successful build
 - [ ] Complete the authorized readability and maintainability remediation, with explicit dispositions for approval-dependent policy proposals. Passing lint alone does not meet the plain-language requirement.
 - [x] User settings, credentials, catalog state, reservations, saved workflows, media, backups, and old reports have not been silently deleted or rewritten.
 - [x] Checkout and published-installation evidence, paid-run approvals, remaining external inputs, and unverified acceptance items are reported accurately.
+
+## Pricing UI removal
+
+The user chose to remove the per-node View credit rate button and its standalone
+popup. The frontend registration hook, dialog, node-input inspection helpers,
+node type alias, node-specific rate rules, unused language event, and popup-only
+translations are removed. Guides point to the existing Reactor models browser
+for public session rates and its optional calculator. No replacement badge is
+being added. Frontend lint, types, and generated-asset checks pass.

@@ -75,3 +75,33 @@ export const isImportLike = (supportRequire, node) => {
   }
   return false;
 };
+
+/**
+ * Include comments attached to the same line as a statement.
+ * @param sourceCode - ESLint source text and comment locations.
+ * @param node - The statement whose trailing comments belong to its edit range.
+ * @returns The offset after the statement and its same-line comments.
+ */
+export function statementEnd(sourceCode, node) {
+  const text = sourceCode.getText();
+  let end = node.range[1];
+  for (const comment of sourceCode.getCommentsAfter(node)) {
+    if (
+      !/^\s*$/u.test(text.slice(end, comment.range[0])) ||
+      comment.loc.start.line !== node.loc.end.line
+    )
+      break;
+    end = comment.range[1];
+  }
+  return end;
+}
+
+/**
+ * Preserve the quote style of an import when rewriting its path.
+ * @param sourceNode - The import's string literal.
+ * @returns Its quote character, or a single quote when raw text is unavailable.
+ */
+export function getQuote(sourceNode) {
+  const raw = typeof sourceNode.raw === 'string' ? sourceNode.raw : '';
+  return raw.startsWith('"') ? '"' : "'";
+}

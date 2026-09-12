@@ -1128,10 +1128,11 @@ Do not fill gaps with plausible behavior.
 Distinguish promised behavior from a particular measurement or observation.
 
 ```text
-The request times out after 30 seconds.
+The request has a 30-second timeout.
 ```
 
-Use this sentence only if the project guarantees completion within 30 seconds.
+This states the configured timeout. It does not promise successful completion
+within 30 seconds; cancellation and cleanup can continue after it expires.
 
 ```text
 In the current benchmark, the request completed within 30 seconds.

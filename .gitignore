@@ -6,7 +6,6 @@ node_modules/
 __pycache__/
 *.py[cod]
 .ruff_cache/
-.pytest_cache/
 
 # Build output and check artifacts
 /dist/

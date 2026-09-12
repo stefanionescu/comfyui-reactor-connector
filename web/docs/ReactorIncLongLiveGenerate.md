@@ -1,6 +1,6 @@
 # Reactor LongLive: Generate Video
 
-Generate a short video from an opening shot prompt with LongLive-2.0.
+Generate a short video from an opening shot prompt with LongLive.
 
 ## Inputs
 
@@ -18,25 +18,32 @@ separate LongLive storyboard workflow.
 
 ## Run and save
 
-1. Configure the key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open the matching template and provide the inputs described above.
-3. Connect **Video** to the native **Save Video** node, then select **Run**.
-4. Play the result in Save Video. Saved files use the workflow's relative output prefix.
+1. Open **longlive-v2-01-text-to-video** in **Browse Templates → reactor-inc**.
+2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+3. Enter **Scene prompt** in **LongLive: Opening Shot**.
+4. Choose **Video length (seconds)**, then select **Run**.
+5. Play the result in **Preview and Save Video**. This node also saves the file.
 
-The node returns native `VIDEO` and recording details as `STRING`. This operation
-records video without audio. Use Save Video to retain the temporary result.
+The node returns **Video** without audio and **Recording details** as text.
+In your own graph, connect **Video** to ComfyUI's **Save Video** to keep the
+result after ComfyUI clears its temporary storage.
 
-**Video length (seconds)** limits the captured video; connection and setup also use
-session time. The host recording and session limits both apply. Changing **Run number** requests another execution with the
-same other inputs. Unchanged inputs may reuse the host cache; changing the
-account or execution limits invalidates that reuse. Seeds do not guarantee
-identical results after a provider update.
+**Video length (seconds)** limits the recorded video. The session time limit in
+Reactor settings also applies. Unchanged inputs may reuse ComfyUI's cached
+result; change **Run number** for another generation. Changing the account or
+execution limits can also cause another run. Seeds do not guarantee identical
+results after a model update.
 
-Use ComfyUI's cancel control to stop a queued or running operation. Closing a
-browser tab does not cancel the workflow. The connector owns one session at a
-time, applies a session time limit, and disconnects after recording or failure.
-It does not retry rejected commands or uncertain session creation. If the connector cannot confirm
-that the session ended, wait for its time limit before trying again.
+## Cancellation
+
+Use ComfyUI's cancel control to stop a queued or running workflow.
+With **Live controls** off, closing the browser does not cancel the workflow.
+With live controls on, losing the live panel ends the session and discards the
+unfinished video.
+The connector runs one session at a time and disconnects after recording or
+failure. It does not retry failed commands or uncertain session creation. If
+it cannot confirm that the session ended, wait for the stated time limit before
+trying again.
 
 ## Recovery
 
@@ -53,11 +60,15 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
+Keep the live panel open until recording finishes. Closing it or losing its
+browser connection ends the live session and discards the unfinished video.
+The preview has no sound. Prompt changes are sent to Reactor but are not saved
+in **Recording details**.
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

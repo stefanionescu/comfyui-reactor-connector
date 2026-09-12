@@ -1,4 +1,8 @@
-"""Validate native node labels and partial language resources."""
+"""Validate native node labels and partial language resources.
+
+Category segments use main.nodeCategories; search aliases remain schema-owned.
+Accepted category and alias fields do not imply frontend translation support.
+"""
 
 from __future__ import annotations
 
@@ -59,7 +63,13 @@ def compare_messages(value: object, english: object, location: str) -> None:
             msg = f"{location}: Keep the English placeholders and their formatting."
             raise JsonConfigError(msg)
     elif isinstance(english, list):
-        require_string_list(value, location, is_nonempty=True)
+        reference_items = require_string_list(cast("list[object]", english), location)
+        translated_items = require_string_list(value, location, are_items_nonempty=True)
+        if len(translated_items) != len(reference_items):
+            msg = f"{location}: Keep the same number of messages as the English list."
+            raise JsonConfigError(msg)
+        for index, (translated, reference_item) in enumerate(zip(translated_items, reference_items, strict=True)):
+            compare_messages(translated, reference_item, f"{location}[{index}]")
     else:
         reference = require_mapping(english, location)
         translated_group = require_mapping(value, location)
@@ -78,6 +88,8 @@ def validate_labels(labels: object, socket: dict[str, Json], location: str) -> N
         allowed.discard("options")
     require_keys(fields, required=set(), optional=allowed | {"name"}, context=location)
     for key, value in fields.items():
+        if key == "tooltip" and value is None:
+            continue
         if key != "options":
             require_string(value, f"{location}.{key}")
             continue
@@ -86,6 +98,28 @@ def validate_labels(labels: object, socket: dict[str, Json], location: str) -> N
         require_keys(options, required=set(), optional=set(choices), context=location)
         for option, label in options.items():
             require_string(label, f"{location}.options.{option}")
+
+
+def validate_node_inputs(inputs: dict[str, object], declared_inputs: list[Json], location: str) -> None:
+    """Check declared input labels and the requested native seed-control labels."""
+    sockets = {str(mapping_value(item)["name"]): mapping_value(item) for item in declared_inputs}
+    generated_controls: set[str] = set()
+    for socket in sockets.values():
+        control = socket.get("control_after_generate")
+        if isinstance(control, str) and control:
+            generated_controls.add(control)
+        elif control is True:
+            prefix = socket.get("control_prefix")
+            generated_controls.add(f"{prefix} control_after_generate" if prefix else "control_after_generate")
+    require_keys(inputs, required=set(), optional=set(sockets) | generated_controls, context=f"{location}.inputs")
+    for name, input_labels in inputs.items():
+        if name in sockets:
+            validate_labels(input_labels, sockets[name], f"{location}.inputs.{name}")
+        else:
+            labels = require_mapping(input_labels, f"{location}.inputs.{name}")
+            require_keys(labels, required=set(), optional={"name"}, context=f"{location}.inputs.{name}")
+            if "name" in labels:
+                require_string(labels["name"], f"{location}.inputs.{name}.name")
 
 
 def validate_node_labels(labels: object, schema: dict[str, Json], location: str) -> None:
@@ -103,20 +137,19 @@ def validate_node_labels(labels: object, schema: dict[str, Json], location: str)
     if not isinstance(declared_inputs, list) or not isinstance(declared_outputs, list):
         msg = f"{location}: Export node inputs and outputs as lists."
         raise JsonConfigError(msg)
-    sockets = {str(mapping_value(item)["name"]): mapping_value(item) for item in declared_inputs}
-    require_keys(inputs, required=set(), optional=set(sockets), context=f"{location}.inputs")
+    validate_node_inputs(inputs, declared_inputs, location)
     require_keys(
         outputs,
         required=set(),
         optional={str(index) for index in range(len(declared_outputs))},
         context=f"{location}.outputs",
     )
-    for name, input_labels in inputs.items():
-        validate_labels(input_labels, sockets[name], f"{location}.inputs.{name}")
     for index, value in outputs.items():
         output = require_mapping(value, f"{location}.outputs.{index}")
         require_keys(output, required=set(), optional=OUTPUT_LABEL_FIELDS | {"name"}, context=location)
         for field, label in output.items():
+            if field == "tooltip" and label is None:
+                continue
             require_string(label, f"{location}.outputs.{index}.{field}")
 
 
@@ -132,9 +165,10 @@ def read_english(root: Path, schemas: dict[str, Json]) -> dict[str, dict[str, ob
     english: dict[str, dict[str, object]] = {}
     for path in sorted((root / "en").glob("*.json")):
         messages = read_json_mapping(path)
-        validate_messages(messages, str(path))
         if path.name == "nodeDefs.json":
             validate_node_translations(messages, schemas, str(path))
+        else:
+            validate_messages(messages, str(path))
         english[path.name] = messages
     return english
 

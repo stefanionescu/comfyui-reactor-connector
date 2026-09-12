@@ -12,18 +12,18 @@ of the requested change.
 
 ## Inputs
 
-| Input                     | What to provide                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------ |
-| Source video              | One SDR RGB clip with at least 33 frames. Use native Load Video or Create Video.                 |
-| Edit prompt               | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                     |
-| Video length (seconds)    | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
-| Run number                | Change this integer to request another run. Default: 0.                                          |
-| Keep queued frames        | Keep source frames in order when true. False favors recent frames and limits delay.              |
-| Hold pointer              | Hold the pointer at the chosen position while true. Default: false.                              |
-| Horizontal position (0–1) | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                        |
-| Vertical position (0–1)   | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                          |
-| Reference image           | Optional single RGB image of the subject to insert or replace. Batches are rejected.             |
-| Live controls             | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
+| Input                     | What to provide                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Source video              | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
+| Edit prompt               | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
+| Video length (seconds)    | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.            |
+| Run number                | Change this integer to request another run. Default: 0.                                                     |
+| Keep queued frames        | Keep source frames in order when true. False favors recent frames and limits delay.                         |
+| Hold pointer              | Hold the pointer at the chosen position while true. Default: false.                                         |
+| Horizontal position (0-1) | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                                   |
+| Vertical position (0-1)   | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                                     |
+| Reference image           | Optional single RGB image of the subject to insert or replace. Batches are rejected.                        |
+| Live controls             | Open live controls in the ComfyUI window that runs the workflow. Default: false.                            |
 
 X2 has no seed command. **Run number** controls ComfyUI caching; it is not a model
 seed and does not guarantee reproducibility.
@@ -40,9 +40,9 @@ metadata are omitted. Preparation has a 60-second deadline and supports cancel.
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **x2-01-edit-video** in native **Browse Templates → reactor-inc**.
-3. Upload a short local video. Keep the example watercolor prompt for a first run.
-4. Select **Run**, then play the result in Save Video.
+2. Open **x2-01-edit-video** in **Browse Templates → reactor-inc**.
+3. Upload a short clip in **Upload Your Source Video**. Keep the example watercolor prompt for a first run.
+4. Select **Run**. **Preview and Save Video** saves the result and lets you play it.
 
 Use **x2-02-reference-edit** to provide a subject image as well. Choose an image
 with a clear subject and describe what to replace in the source clip.
@@ -58,18 +58,23 @@ and prompt changes. The reference image stays fixed. Release the pointer to stop
 
 In the live panel, a circle marks the point you choose. **Pointer held** or
 **Pointer released** confirms that the control was accepted. The position is
-measured from the picture's left and top edges. See live controls (**Drag in X2** in the bundled `ADVANCED.md`)
-for keyboard use.
+measured from the picture's left and top edges. For keyboard use, focus the
+output picture and position the pointer with the arrow keys. Hold Space to hold
+the pointer; release Space or press Escape to release it. Losing focus also
+releases the pointer.
 
-The outputs are native `VIDEO` and recording details as `STRING`. Save Video
-retains the temporary result under its relative output prefix. Input copies
+The outputs are **Video** without sound and **Recording details** as text. In
+your own graph, connect **Video** to ComfyUI's **Save Video** to keep the result
+after ComfyUI clears its temporary storage. Input copies
 are removed when the session ends or execution fails.
 
 ## Cancellation
 
 Session time includes setup and can
 exceed output duration. The configured recording and server session limits apply.
-Use ComfyUI's cancel control to stop; closing a tab does not cancel a workflow.
+Use ComfyUI's cancel control to stop a queued or running workflow. With **Live
+controls** off, closing the browser does not cancel it. With live controls on,
+losing the live panel ends the session and discards unfinished video.
 The connector disconnects after recording, failure, or cancellation. It does not
 automatically retry failed commands or uncertain session creation.
 
@@ -85,11 +90,14 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
+Keep the live panel open until recording finishes. Closing it or losing its
+browser connection ends the session and discards the unfinished video. The
+preview has no sound.
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+**Recording details** describes the saved file, model, and timing. It does not
+measure visual quality or billed time. ComfyUI can reuse a cached report; do not
+run another paid generation solely to refresh it.

@@ -13,7 +13,7 @@ main() {
   source "${REPO_ROOT}/quality/config/security/bearer/environment.sh"
 
   if ! bearer scan --help >/dev/null 2>&1; then
-    printf '%s\n' 'error: bearer is not available. Run: mise run setup' >&2
+    printf '%s\n' 'error: bearer is not available. Run: mise run repo:setup' >&2
     exit 1
   fi
 

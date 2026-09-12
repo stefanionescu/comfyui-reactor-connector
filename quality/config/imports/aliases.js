@@ -5,6 +5,6 @@ export const ALIAS_ROOTS = [
   { segment: 'quality/web', aliasPrefix: '#web/' },
   { segment: 'quality/shared', aliasPrefix: '#shared/' },
   { segment: 'quality/repository', aliasPrefix: '#repository/' },
-  { segment: 'web', aliasPrefix: '#web/' },
+  { segment: 'web/scripts', aliasPrefix: '#web/' },
 ];
 export const INTERNAL_PREFIXES = ['./', '../', '#config/', '#web/', '#shared/', '#repository/'];

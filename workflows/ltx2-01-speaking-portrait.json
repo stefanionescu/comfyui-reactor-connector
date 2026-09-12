@@ -84,7 +84,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Use a clear portrait with the whole head visible."
+        "Use a clear portrait with the whole head visible. Finishing the recording may generate up to 20 extra seconds that use credits and are not saved."
       ],
       "title": "Using This Workflow"
     },
@@ -142,7 +142,7 @@
         "Hello. Welcome to this short video.",
         140
       ],
-      "title": "LTX: Make a Portrait Speak"
+      "title": "LTX: Make a Portrait Speak (Reactor)"
     },
     {
       "id": 4,
@@ -253,8 +253,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

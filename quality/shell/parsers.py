@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import re
+import json
+from typing import cast
+from functools import lru_cache
 from typing import TYPE_CHECKING, TypedDict
 from quality.lib.diagnostics import diagnostic
+from quality.lib.json_config import require_mapping
+from quality.lib.process import run_command, ProcessContext
 
 if TYPE_CHECKING:
     from quality.lib.diagnostics import Diagnostic
@@ -21,29 +26,76 @@ class ShellFunction(TypedDict):
 
 FUNCTION_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\(\) \{$")
 FUNCTION_END_RE = re.compile(r"^}$")
-IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
 
 
-def strip_shell_comments(line: str) -> str:
-    """Remove comments while respecting shell quotes."""
+@lru_cache
+def shell_nodes(source: str) -> tuple[dict[str, object], ...]:
+    """Read shfmt's Bash syntax tree without executing the source."""
+    result = run_command(
+        ["shfmt", "-ln", "bash", "--to-json"],
+        input_bytes=source.encode("utf-8"),
+        is_output_captured=True,
+        is_failure_raised=True,
+        context=ProcessContext(timeout_seconds=10),
+    )
+    pending: list[object] = [json.loads(result.stdout)]
+    nodes: list[dict[str, object]] = []
+    while pending:
+        value = pending.pop()
+        if isinstance(value, dict):
+            node = require_mapping(cast("dict[str, object]", value), "shfmt node")
+            nodes.append(node)
+            pending.extend(node.values())
+        elif isinstance(value, list):
+            pending.extend(cast("list[object]", value))
+    return tuple(nodes)
+
+
+def shell_literal(word: object) -> str | None:
+    """Read a static shell word; expansions remain unknown instead of being guessed."""
+    node = require_mapping(word, "shfmt word")
+    if node.get("Type") in {"Lit", "SglQuoted"}:
+        value = node.get("Value")
+        return value if isinstance(value, str) else None
+    parts = node.get("Parts")
+    if not isinstance(parts, list):
+        return None
+    values = [shell_literal(part) for part in cast("list[object]", parts)]
+    if any(value is None for value in values):
+        return None
+    return "".join(value for value in values if value is not None)
+
+
+def strip_shell_comments(line: str) -> str:  # noqa: C901, PLR0912 -- reason: Keep quote, escape, and word-boundary transitions together in this line scanner.
+    """Remove a line comment while preserving quoted text and hashes within words.
+
+    This line helper does not parse nested substitutions or multiline quoting.
+    Command and variable-name checks use the complete shfmt syntax tree.
+    """
     quote: str | None = None
     is_escaped = False
+    is_word_start = True
     for index, char in enumerate(line):
+        if quote == "'":
+            if char == "'":
+                quote = None
+            continue
         if is_escaped:
             is_escaped = False
             continue
         if char == "\\":
             is_escaped = True
+            is_word_start = False
             continue
         if quote:
             if char == quote:
                 quote = None
             continue
+        if char == "#" and is_word_start:
+            return line[:index]
         if char in {"'", '"'}:
             quote = char
-            continue
-        if char == "#":
-            return line[:index]
+        is_word_start = char.isspace() or char in ";|&()<>"
     return line
 
 
@@ -71,16 +123,24 @@ def collect_shell_functions(source: str) -> list[ShellFunction]:
     return functions
 
 
-def shell_identifier_references(source: str) -> dict[str, list[int]]:
-    """Return unqualified shell identifier occurrences outside declarations."""
-    declaration_lines = {int(function["start"]) for function in collect_shell_functions(source)}
+def shell_command_references(source: str) -> dict[str, list[int]]:
+    """Collect static command calls and trap callbacks; dynamic command names remain unresolved."""
     references: dict[str, list[int]] = {}
-    for line_number, line in enumerate(source.splitlines(), start=1):
-        if line_number in declaration_lines:
+    for node in shell_nodes(source):
+        if node.get("Type") != "CallExpr":
             continue
-        code = strip_shell_comments(line)
-        for name in IDENTIFIER_RE.findall(code):
-            references.setdefault(name, []).append(line_number)
+        arguments = cast("list[object]", node.get("Args", []))
+        if not arguments:
+            continue
+        command = shell_literal(arguments[0])
+        line = int(cast("int", require_mapping(node["Pos"], "command position")["Line"]))
+        if command is not None:
+            references.setdefault(command, []).append(line)
+        if command == "trap" and len(arguments) > 1:
+            callback = shell_literal(arguments[1])
+            if callback:
+                for name, positions in shell_command_references(callback).items():
+                    references.setdefault(name, []).extend(line + offset - 1 for offset in positions)
     return references
 
 

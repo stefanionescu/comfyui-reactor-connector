@@ -14,7 +14,12 @@
 .reactor-dialog::backdrop {
   background: #0008;
 }
-.reactor-dialog header {
+.reactor-dialog > header {
+  position: sticky;
+  top: -1.5rem;
+  z-index: 2;
+  padding: 0.75rem 0;
+  background: var(--comfy-menu-bg, Canvas);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -89,6 +94,7 @@
   margin-top: 0.75rem;
 }
 .reactor-dialog [role=status] {
+  font-size: 0.875rem;
   min-height: 1.5em;
 }
 .reactor-dialog summary {
@@ -96,7 +102,6 @@
   padding: 0.5rem 0;
 }
 .reactor-models {
-  box-sizing: border-box;
   width: min(54rem, calc(100vw - 2rem));
 }
 .reactor-models ul {
@@ -120,7 +125,6 @@
   margin: 0.35rem 0;
 }
 .reactor-controls {
-  box-sizing: border-box;
   width: min(48rem, calc(100vw - 2rem));
   scroll-padding-bottom: 7rem;
 }
@@ -145,13 +149,25 @@
   width: 100%;
   box-sizing: border-box;
 }
-.reactor-controls footer {
+.reactor-dialog > footer {
   position: sticky;
   bottom: -1.5rem;
   z-index: 1;
   margin-top: 0.5rem;
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border-color, GrayText);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   background: var(--comfy-menu-bg, Canvas);
+}
+.reactor-dialog > :where(footer) [role=status] {
+  flex: 1 1 9rem;
+}
+.reactor-dialog > :where(footer) .reactor-actions {
+  margin-top: 0;
 }
 .reactor-controls :where(footer) p {
   margin: 0 0 0.5rem;
@@ -159,8 +175,36 @@
 .reactor-webcam {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 160px;
-  gap: 0.5rem 1rem;
+  gap: 0.75rem 1rem;
   align-items: center;
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.4rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.reactor-webcam header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.reactor-webcam h3 {
+  font-size: 1rem;
+  margin: 0;
+}
+.reactor-webcam [role=status] {
+  margin: 0;
+  font-size: 0.875rem;
+  min-height: 0;
+}
+.reactor-camera-controls {
+  display: grid;
+  gap: 0.5rem;
+}
+.reactor-webcam:has(select:disabled) .reactor-camera-controls {
+  display: none;
 }
 .reactor-webcam video {
   width: 160px;
@@ -172,10 +216,13 @@
 }
 .reactor-webcam select {
   width: 100%;
-}
-.reactor-webcam p {
-  grid-column: 1 / -1;
-  margin: 0.25rem 0 0.75rem;
+  min-width: 0;
+  font: inherit;
+  padding: 0.5rem;
+  color: var(--input-text, CanvasText);
+  background: var(--comfy-input-bg, Field);
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.25rem;
 }
 @media (max-width: 600px) {
   .reactor-webcam {
@@ -198,26 +245,29 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-.reactor-node-help {
-  width: min(64rem, calc(100vw - 2rem));
-  padding: 1rem;
-}
-.reactor-node-help iframe {
-  display: block;
-  width: 100%;
-  height: min(72vh, 55rem);
-  border: 0;
-  margin-top: 1rem;
-}
 .reactor-live {
   width: min(52rem, calc(100vw - 2rem));
-  box-sizing: border-box;
 }
-.reactor-live header {
-  position: sticky;
-  top: -1.5rem;
-  padding: 0.5rem 0;
-  background: var(--comfy-menu-bg, Canvas);
+.reactor-live > header,
+.reactor-controls > header {
+  display: grid;
+  gap: 0.4rem;
+}
+.reactor-session-status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.875rem;
+}
+.reactor-session-status p {
+  margin: 0;
+  min-height: 0;
+}
+.reactor-session-status small {
+  font-size: inherit;
+  white-space: nowrap;
 }
 .reactor-live p {
   margin: 0.6rem 0;
@@ -246,4 +296,14 @@
 .reactor-live textarea {
   width: 100%;
   box-sizing: border-box;
+}
+.reactor-dialog .reactor-help {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+.reactor-dialog .reactor-help summary {
+  cursor: pointer;
+}
+.reactor-dialog [role=status]:empty {
+  display: none;
 }

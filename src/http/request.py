@@ -13,14 +13,22 @@ async def read_document(request: web.Request, *, max_bytes: int = MAX_SETTINGS_B
     if request.content_type != "application/json":
         raise web.HTTPUnsupportedMediaType(text=translate("main", "errors.requestJsonRequired"))
     if request.content_length is not None and request.content_length > max_bytes:
-        raise web.HTTPRequestEntityTooLarge(max_size=max_bytes, actual_size=request.content_length)
+        raise web.HTTPRequestEntityTooLarge(
+            max_size=max_bytes,
+            actual_size=request.content_length,
+            text=translate("main", "errors.requestTooLarge", max_bytes=max_bytes),
+        )
     content = bytearray()
     try:
         async with asyncio.timeout(SETTINGS_TIMEOUT_SECONDS):
             async for chunk in request.content.iter_chunked(REQUEST_CHUNK_BYTES):
                 content.extend(chunk)
                 if len(content) > max_bytes:
-                    raise web.HTTPRequestEntityTooLarge(max_size=max_bytes, actual_size=len(content))
+                    raise web.HTTPRequestEntityTooLarge(
+                        max_size=max_bytes,
+                        actual_size=len(content),
+                        text=translate("main", "errors.requestTooLarge", max_bytes=max_bytes),
+                    )
     except TimeoutError:
         raise web.HTTPRequestTimeout(text=translate("main", "errors.requestTimeout")) from None
     try:

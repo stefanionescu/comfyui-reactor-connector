@@ -1,11 +1,11 @@
-// web/extension.ts
+// web/scripts/extension.ts
 import { api as api3 } from "../../scripts/api.js";
 import { app as app2 } from "../../scripts/app.js";
 
-// web/http.ts
+// web/scripts/http.ts
 import { api as api2 } from "../../scripts/api.js";
 
-// web/language.ts
+// web/scripts/language.ts
 import { api } from "../../scripts/api.js";
 import { app } from "../../scripts/app.js";
 
@@ -17,10 +17,10 @@ var main_default = {
       browserRequirements: "Camera access needs localhost or HTTPS and a supported browser.",
       busy: "Close other apps using the camera, then try again.",
       default: "Default camera",
-      disabled: "Camera off.",
+      disabled: "Off",
       disconnected: "The camera disconnected. The session is ending.",
       enable: "Enable camera",
-      enabled: "Camera on. Microphone audio is off.",
+      enabled: "On · microphone off",
       label: "Camera",
       notFound: "Connect a camera, then try again.",
       number: "Camera {number}",
@@ -39,14 +39,13 @@ var main_default = {
       connecting: "Connecting to Reactor…",
       connectionClosed: "Connection closed. Check Reactor session status before starting again.",
       connectionEnded: "The live connection ended.",
-      dragInstructions: "Drag on the output to steer the subject. Release to stop. With the picture focused, arrow keys position the pointer, Space holds it, and Escape releases it.",
+      dragInstructions: "Drag on the output to steer the subject. Release to stop. Focus the picture and use arrow keys to position the pointer. Hold Space to hold it; release Space or press Escape to release it.",
       emptyPrompt: "Enter a prompt before applying it.",
       pointerRateExceeded: "Pointer input arrived too quickly. The session is ending.",
-      promptSent: "Prompt sent. The model applies changes to later frames.",
+      promptSent: "Prompt sent.",
       recording: "Recording. Live controls are ready.",
-      recordingNotStarted: "Recording did not start. Close this panel to view the workflow result.",
-      recordingNotice: "Recording stops at the chosen duration. Ending early discards the unfinished video. The preview has no sound.",
-      soundSent: "Sound prompt sent. The model applies changes to later audio.",
+      recordingNotStarted: "Recording did not start.",
+      soundSent: "Sound prompt sent.",
       start: "Start session",
       title: "Reactor live controls"
     },
@@ -57,7 +56,7 @@ var main_default = {
       anchorInterval: "Choose Source refresh interval (chunks) from 0 to 1,000.",
       aspectRatio: "Choose an offered aspect ratio.",
       audioIncomplete: "The recording audio is incomplete.",
-      audioLimit: "The recording audio exceeds its native limits.",
+      audioLimit: "Cannot load the recording audio. Its format is unsupported or it exceeds the memory limit in Reactor settings.",
       authenticationFailed: "Reactor could not authenticate. Check your saved key and network connection.",
       automaticCheckFailed: "Automatic model check failed. Use Refresh models to retry.",
       automaticChecksType: "Use true or false for automatic model checks.",
@@ -75,7 +74,7 @@ var main_default = {
       cameraStateRequired: "Send a complete listed camera state.",
       captureDisconnected: "The Reactor connection ended before capture finished.",
       captureLimit: "Choose a video length within Maximum video duration (seconds) in Reactor settings.",
-      captureQueueFull: "The video capture queue is full. Shorten the capture.",
+      captureQueueFull: "Video arrived faster than it could be saved. Free CPU and disk capacity by stopping other demanding tasks before trying again.",
       captureStopped: "Video capture was stopped.",
       cleanupRestartRequired: "The remote session ended, but local cleanup failed. Restart ComfyUI.",
       cleanupUnconfirmed: "Session cleanup failed; termination is unconfirmed. The server lifetime cap applies.",
@@ -100,7 +99,7 @@ var main_default = {
       continuedClipDuration: "Choose 5.167 to 14.375 seconds per clip.",
       encoderMetadata: "The video encoder returned invalid metadata.",
       encoderNotReady: "The video encoder did not become ready.",
-      encoderPipes: "The video encoder pipes are unavailable.",
+      encoderPipes: "Cannot start video recording because the encoder is unavailable. Check the media dependencies in your ComfyUI installation.",
       encoderResult: "The video encoder returned no valid result.",
       encoderStopFailed: "The encoder process did not stop. Restart ComfyUI before another run.",
       endingImageUploadLimit: "Provide an ending image within the upload limit.",
@@ -111,14 +110,14 @@ var main_default = {
       guideListIncomplete: "The guide list may be incomplete. The previous list is unchanged.",
       imageDimensions: "Use an image no larger than 8192 pixels per side.",
       imagePixels: "The image contains non-finite pixel values.",
-      imageUploadLimit: "Provide image bytes within the upload limit.",
+      imageUploadLimit: "Provide a nonempty starting image within the upload limit in Reactor settings.",
       jsonDepth: "The JSON input is nested too deeply.",
       jsonDuplicateKey: "Duplicate JSON key.",
       jsonObject: "Expected a JSON object.",
       jsonSize: "The JSON input exceeds its size limit.",
       jsonSyntax: "Enter valid JSON with unique keys.",
       jsonValues: "Use finite numbers and ordinary JSON values.",
-      keyEmpty: "Enter a nonempty API key without spaces.",
+      keyEmpty: "Copy the complete API key from your Reactor account without surrounding spaces. Keys must contain 1 to {maximum} characters; do not shorten a key to fit.",
       keyRequired: "Set your Reactor API key in Reactor settings or the server environment before running.",
       keyUnreadable: "Cannot read the saved Reactor key. Check its private file.",
       keyWhitespace: "The API key cannot contain whitespace.",
@@ -185,7 +184,7 @@ var main_default = {
       requestJsonRequired: "Send a JSON request.",
       requestTimeout: "The configuration request took too long.",
       reservationReused: "Create a new reservation for each session.",
-      resolutionName: "Use a short model resolution name.",
+      resolutionName: "Leave Resolution blank or enter a model resolution name with at most {maximum} characters.",
       resolutionUnavailable: "This model does not offer that resolution. Leave it blank for the default.",
       rotationSpeed: "Choose Turn per step (degrees) from 0 to 30.",
       runFailed: "Reactor could not complete this run. Check your connection and account status.",
@@ -222,7 +221,7 @@ var main_default = {
       settingsRevisionRequired: "Send settings and their current revision.",
       settingsUnreadable: "Cannot load Reactor execution settings. Check the limits and private key.",
       settingsWholeNumbers: "Use whole numbers for Reactor limits and check intervals.",
-      shotChunk: "Place a later shot at chunk 1 or above.",
+      shotChunk: "Set the later shot chunk to a whole number from 1 to {maximum}.",
       shotPrompt: "Enter a shot prompt of 1 to 20,000 characters.",
       shotTransition: "Choose a soft transition or a cut.",
       singleImageRequired: "Connect exactly one RGB image, not a batch.",
@@ -238,9 +237,9 @@ var main_default = {
       sourceReaderClosed: "The prepared video reader is closed.",
       sourceTimestampMissing: "The prepared video has no frame timestamp.",
       sourceVideoFormat: "Use an SDR RGB video at 1 to 120 frames per second.",
-      sourceVideoRequired: "Connect a prepared source video.",
+      sourceVideoRequired: "Connect a video to Source video before running.",
       speechLength: "Enter a script of 1 to 10,000 characters.",
-      speechPace: "Use a positive whole-number speech pace.",
+      speechPace: "Set Words per minute to a whole number from {minimum} to {maximum}.",
       speechPaceMissing: "LTX did not report its accepted speech pace.",
       speechPaceRange: "Use a speech pace from {minimum} to {maximum}.",
       startingImageRequired: "Connect one starting image.",
@@ -257,7 +256,7 @@ var main_default = {
       storyboardSize: "Keep the storyboard within 128 KB.",
       terminationUnconfirmed: "Session termination is unconfirmed. Wait for its server limit before retrying.",
       terminationWait: "An earlier Reactor session has unconfirmed termination. Wait {seconds} seconds before starting another run.",
-      videoArrivalRate: "Video arrived faster than it could be saved. Shorten the capture.",
+      videoArrivalRate: "Video arrived faster than it could be saved. Free CPU and disk capacity by stopping other demanding tasks before trying again.",
       videoEncodingFailed: "Video encoding failed. Check disk space and media support.",
       videoFrameColor: "The video track must provide RGB frames.",
       videoFrameType: "The video track returned an unsupported frame.",
@@ -269,7 +268,8 @@ var main_default = {
       viskoSoundChanged: "Visko started with different sound settings. The run was stopped.",
       worldPromptLength: "Use a prompt of at most 1,000 characters.",
       x2PromptLength: "Use at most 1,000 prompt characters.",
-      x2Unsupported: "This X2 version is not supported. Update the connector."
+      x2Unsupported: "This X2 version is not supported. Update the connector.",
+      requestTooLarge: "Send a JSON request no larger than {max_bytes} bytes."
     },
     live: {
       actionRejected: "The live action was not accepted. The session is ending.",
@@ -277,14 +277,15 @@ var main_default = {
       back: "Back",
       connectingPanel: "Connecting the live panel…",
       connectionLost: "The live connection was lost. The connector will ask Reactor to stop after five seconds without a browser connection. Check Reactor Usage to confirm the session has ended before another run.",
-      discarded: "The session ended without saving a video. Close this panel to view the workflow result.",
+      discarded: "Session ended without saving a video.",
       duration: "{model} · {seconds} seconds of video",
-      elapsed: "Time spent on setup and recording: {seconds} seconds.",
+      elapsed: "Elapsed: {seconds} s",
       emptyScenePrompt: "Enter a scene prompt before applying it.",
       endSession: "End session",
-      ended: "Session ended. Close this panel to view the workflow result.",
+      ended: "Session ended.",
       ending: "Ending the session…",
       forward: "Forward",
+      help: "Help",
       invalidStatus: "The live panel received an invalid status.",
       lookDown: "Look down",
       lookLeft: "Look left",
@@ -295,10 +296,11 @@ var main_default = {
       movementInstructions: "Click the picture, then use W A S D to move and arrow keys to turn. Click a button for a brief movement, or hold it to keep moving. Escape stops camera movement.",
       movementLabel: "Live view. W A S D moves. Arrow keys turn. Escape stops camera movement.",
       output: "Live model output",
+      previewNotice: "The preview has no sound. The saved video can have a higher frame rate.",
       previewReady: "Live preview. Controls are active.",
       promptNotice: "Prompt changes affect later frames. The starting image stays fixed.",
-      promptSent: "Prompt sent. Watch the video for the change.",
-      recordingNotice: "The preview has fewer frames per second than the saved video and has no sound. Save Video saves the finished recording. Ending early discards the unfinished video.",
+      promptSent: "Prompt sent.",
+      recordingNotice: "End session stops early and discards the unfinished video.",
       scenePrompt: "Scene prompt",
       unconfirmedEnd: "Reactor has not confirmed that the session ended. Wait for its time limit before another run.",
       unreachable: "Live controls could not reach their session.",
@@ -335,14 +337,12 @@ var main_default = {
       restored: "Previous model list restored. This does not change which models Reactor offers.",
       search: "Search models",
       searchPlaceholder: "Model name or ID",
-      showAll: "Show all models",
       sources: "Model sources and automatic checks",
       title: "Reactor models",
       unreachable: "Cannot reach the Reactor model list. Check ComfyUI and try again."
     },
     pointer: {
       held: "Pointer held.",
-      instructions: "Drag on the output to move the subject. Use arrow keys to position the pointer, Space to hold it, and Escape to release it.",
       position: " {x}% across, {y}% down.",
       released: "Pointer released.",
       stopped: "Pointer controls stopped."
@@ -351,20 +351,11 @@ var main_default = {
       calculate: "Calculate credits for session time",
       calculation: "{seconds} session seconds × {rate} credits per second = {credits} credits.",
       enterTime: "Enter session time",
-      estimateNotice: "Estimate = rate × session time. Session time includes setup and recording.",
-      loadFailed: "Cannot load the credit rate.",
-      loading: "Loading the local credit rate…",
-      modelUnavailable: "No rate is listed for this node. Open the ComfyUI menu, then Extensions → Reactor → Reactor models, and refresh the list.",
       rate: "{rate} credits per session second.",
       rateOutdated: "This rate was not found in the latest source check. Refresh Reactor models before relying on a calculation.",
       rateUnavailable: "A current rate is not available. Refresh Reactor models to check for a rate.",
-      requestedDuration: "Requested video length: {seconds} seconds.",
       sessionTime: "Session time to calculate (seconds)",
-      timeRange: "Enter a session time from 0.1 to {maximum} seconds.",
-      title: "Credit rate",
-      totalTimeNotice: "Use total session time, including setup and recording.",
-      unknownDuration: "The video length comes from a connected input or is not available. Enter a session time below to calculate credits.",
-      viewRate: "View credit rate"
+      totalTimeNotice: "Use total session time, including setup and recording."
     },
     settings: {
       advancedLimits: "Advanced limits",
@@ -416,7 +407,9 @@ var main_default = {
       title: "Reactor settings",
       unreachable: "Cannot reach Reactor settings. Check ComfyUI and try again.",
       unreadableResponse: "ComfyUI returned an unreadable Reactor settings response.",
-      updateFailed: "Reactor settings could not be saved."
+      updateFailed: "Reactor settings could not be saved.",
+      readFailed: "ComfyUI could not read Reactor settings.",
+      removeFailed: "ComfyUI could not clear the saved Reactor key."
     },
     sound: {
       applyPrompt: "Apply sound prompt",
@@ -424,12 +417,39 @@ var main_default = {
       promptNotice: "Describe the sound briefly. Leave blank to use the picture alone.",
       title: "Sound"
     },
-    working: "Working…"
+    working: "Working…",
+    mediaErrors: {
+      dimensions: "Video dimensions changed during capture.",
+      frame_size: "Video frames must have even dimensions within the capture limit.",
+      timestamps: "Video timestamps stopped increasing.",
+      file_limit: "The captured video exceeds its file limit.",
+      no_frames: "No video frames were captured.",
+      truncated: "The encoder received an incomplete frame.",
+      encoder_failed: "Video encoding failed. Check free disk space and the host's media support.",
+      source_frames: "Use a source video with at least 33 frames within the input time limit.",
+      source_video: "Use a readable local SDR video with increasing timestamps.",
+      source_streams: "Use a video file with exactly one video track.",
+      source_hdr: "The video uses HDR color. Convert it to SDR before using it.",
+      source_rate: "The video needs a frame rate from 1 to 120 frames per second.",
+      source_time_missing: "The video is missing frame timestamps.",
+      source_frame_limit: "The video exceeds 120 frames per second within the selected duration.",
+      recording_video: "The recording has unsupported video or invalid timestamps.",
+      recording_audio: "The recording needs one mono or stereo audio track with valid timestamps.",
+      recording_memory: "The recording exceeds the configured media memory limit.",
+      recording_details: "The saved video's details could not be read."
+    }
+  },
+  nodeCategories: {
+    Reactor: "Reactor",
+    Generate: "Generate",
+    Edit: "Edit",
+    Live: "Live",
+    Worlds: "Worlds",
+    Plans: "Plans"
   }
 };
 
-// web/language.ts
-var languageEvents = new EventTarget();
+// web/scripts/language.ts
 var messages = /* @__PURE__ */ new Map();
 function readMessage(source, key) {
   let value = source;
@@ -500,16 +520,15 @@ function displayValue(value) {
   return typeof value === "number" ? formatNumber(value) : String(value);
 }
 
-// web/http.ts
+// web/scripts/http.ts
 function requestLocal(route, options) {
   const headers = new Headers(options.headers);
   headers.set("Accept-Language", selectedLocale());
   return api2.fetchApi(route, { ...options, headers });
 }
 
-// web/localization.ts
+// web/scripts/localization.ts
 var bindings = /* @__PURE__ */ new Set();
-var textBindings = /* @__PURE__ */ new WeakMap();
 function message(key, values = {}, fallback) {
   const content = { key, values };
   if (fallback !== void 0) content.fallback = fallback;
@@ -522,18 +541,23 @@ function textNode(content) {
   if (typeof content !== "string") {
     const binding = { target: new WeakRef(node), message: content, rendered: node.data };
     bindings.add(binding);
-    textBindings.set(node, binding);
   }
   return node;
 }
 function setText(target, content) {
   for (const child of target.childNodes) {
-    if (!(child instanceof Text)) continue;
-    const previous = textBindings.get(child);
-    if (previous) bindings.delete(previous);
+    releaseText(child);
   }
   target.replaceChildren();
   target.appendChild(textNode(content));
+}
+function releaseText(root) {
+  for (const binding of bindings) {
+    const target = binding.target.deref();
+    if (!target || root.contains(target)) {
+      bindings.delete(binding);
+    }
+  }
 }
 function setTextAttribute(target, attribute, content) {
   const rendered = translate(content.key, content.values, content.fallback);
@@ -551,8 +575,8 @@ function refreshText() {
       bindings.delete(binding);
       continue;
     }
-    const current4 = bindingText(target, binding.attribute);
-    if (current4 !== binding.rendered) {
+    const current3 = bindingText(target, binding.attribute);
+    if (current3 !== binding.rendered) {
       bindings.delete(binding);
       continue;
     }
@@ -574,7 +598,19 @@ function updateBinding(target, binding) {
     target.setAttribute(binding.attribute, binding.rendered);
 }
 
-// web/routes.ts
+// web/scripts/dom.ts
+function element(tag, text) {
+  const node = document.createElement(tag);
+  if (text !== void 0) node.appendChild(textNode(text));
+  return node;
+}
+function button(text, type = "button") {
+  const node = element("button", text);
+  node.type = type;
+  return node;
+}
+
+// web/scripts/routes.ts
 var browserRoutes = {
   settings: {
     status: "/reactor-inc/v1/status",
@@ -590,6 +626,319 @@ var browserRoutes = {
     exchange: "/reactor-inc/v1/live/exchange",
     action: "/reactor-inc/v1/live/action",
     camera: "/reactor-inc/v1/live/camera"
+  }
+};
+
+// web/scripts/browser.ts
+var browserLimits = {
+  requestTimeoutMilliseconds: 1e4,
+  discoveryTimeoutMilliseconds: 3e4,
+  pollIntervalMilliseconds: 100,
+  actionTimeoutMilliseconds: 2e3,
+  inputNudgeMilliseconds: 250,
+  maxPendingInputs: 8,
+  maxPreviewCharacters: 35e4,
+  minCalculatorSeconds: 0.1,
+  maxCalculatorSeconds: 3600,
+  maxTextCharacters: 200,
+  maxErrorCharacters: 1024,
+  maxRetrievalTimeCharacters: 40,
+  maxModelNodeIds: 100,
+  maxModels: 1024
+};
+var browserInput = {
+  pointerCenter: 0.5,
+  pointerMinimum: 0,
+  pointerMaximum: 1,
+  pointerStep: 0.03,
+  cameraWidth: 640,
+  cameraHeight: 480,
+  cameraIdealFrameRate: 12,
+  cameraMaxFrameRate: 24,
+  cameraJpegQuality: 0.8
+};
+var browserPatterns = {
+  lease: /^[a-f0-9]{32}$/,
+  revision: /^[a-f0-9]{64}$/,
+  preview: /^[A-Za-z0-9+/]*={0,2}$/,
+  capability: /^[A-Za-z0-9_-]{43}$/,
+  documentation: /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/,
+  nodeId: /^ReactorInc[A-Za-z0-9]+$/,
+  settingName: /^[a-z][a-z_]+$/
+};
+
+// web/scripts/live/webcam.ts
+var Webcam = class {
+  /**
+   * Build camera selection and a muted input preview.
+   * @param owner - The validated session invitation.
+   * @param fetcher - ComfyUI's local API client.
+   * @param fail - Request session ending if the camera disconnects.
+   */
+  constructor(owner, fetcher, fail) {
+    this.owner = owner;
+    this.fetcher = fetcher;
+    this.fail = fail;
+    this.view.className = "reactor-webcam";
+    const heading = element("header");
+    heading.append(element("h3", message("camera.label")), this.status);
+    this.status.setAttribute("role", "status");
+    setTextAttribute(this.select, "aria-label", message("camera.label"));
+    const defaultCamera = element("option", message("camera.default"));
+    defaultCamera.value = "";
+    this.select.append(defaultCamera);
+    this.video.muted = true;
+    this.video.autoplay = true;
+    this.video.playsInline = true;
+    this.video.hidden = true;
+    setTextAttribute(this.video, "aria-label", message("camera.preview"));
+    const controls = element("div");
+    controls.className = "reactor-camera-controls";
+    controls.append(this.select, this.enable);
+    this.view.append(heading, controls, this.video);
+    this.enable.addEventListener("click", () => {
+      this.enable.disabled = true;
+      const selected = this.select.value;
+      void this.start(selected);
+    });
+  }
+  owner;
+  fetcher;
+  fail;
+  view = element("section");
+  video = element("video");
+  enable = button(message("camera.enable"));
+  select = element("select");
+  status = element("p", message("camera.disabled"));
+  stream;
+  closed = false;
+  sequence = 0;
+  canvas = element("canvas");
+  upload;
+  controller = new AbortController();
+  async start(selected) {
+    try {
+      if (!await this.openCamera(selected)) return;
+      await this.listCameras();
+      if (this.closed) return;
+      setText(this.enable, message("camera.select"));
+      setText(this.status, message("camera.enabled"));
+    } catch (error) {
+      this.stopCamera();
+      if (this.closed) return;
+      const errors = /* @__PURE__ */ new Map([
+        ["NotAllowedError", "camera.permissionDenied"],
+        ["SecurityError", "camera.browserRequirements"],
+        ["NotFoundError", "camera.notFound"],
+        ["NotReadableError", "camera.busy"],
+        ["OverconstrainedError", "camera.unavailableSelection"]
+      ]);
+      setText(
+        this.status,
+        message(
+          error instanceof Error ? errors.get(error.name) ?? "camera.accessFailed" : "camera.accessFailed"
+        )
+      );
+    } finally {
+      if (!this.closed) this.enable.disabled = false;
+    }
+  }
+  /**
+   * Open the selected camera and release any previous stream.
+   * @param selected - The selected device ID, or an empty string for the default camera.
+   * @returns Whether the camera is ready and the panel is still open.
+   */
+  async openCamera(selected) {
+    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("", "SecurityError");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        width: { ideal: browserInput.cameraWidth },
+        height: { ideal: browserInput.cameraHeight },
+        frameRate: {
+          ideal: browserInput.cameraIdealFrameRate,
+          max: browserInput.cameraMaxFrameRate
+        },
+        ...selected ? { deviceId: { exact: selected } } : {}
+      }
+    });
+    if (this.closed) {
+      for (const track of stream.getTracks()) track.stop();
+      return false;
+    }
+    for (const track of this.stream?.getTracks() ?? []) {
+      track.stop();
+    }
+    this.stream = stream;
+    this.video.srcObject = stream;
+    await this.video.play();
+    if (this.closed) return false;
+    this.video.hidden = false;
+    return true;
+  }
+  /**
+   * List cameras after permission reveals their names.
+   * @returns When the available camera choices have been updated.
+   */
+  async listCameras() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    if (this.closed) return;
+    const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
+    const options = document.createDocumentFragment();
+    for (const device of devices) {
+      if (device.kind !== "videoinput") continue;
+      const option = element(
+        "option",
+        device.label || message("camera.number", { number: options.childElementCount + 1 })
+      );
+      option.value = device.deviceId;
+      option.selected = device.deviceId === selected;
+      options.appendChild(option);
+    }
+    releaseText(this.select);
+    this.select.replaceChildren();
+    this.select.appendChild(options);
+  }
+  /**
+   * Upload a camera frame without overlapping uploads.
+   * @returns Whether a camera frame was uploaded successfully.
+   */
+  async frame() {
+    if (this.closed || !this.stream || this.video.readyState < 2) return false;
+    for (const track of this.stream.getVideoTracks()) {
+      if (track.readyState === "live") continue;
+      this.fail(translate("camera.disconnected"));
+      return false;
+    }
+    if (this.upload) {
+      return await this.upload;
+    }
+    const ratio = Math.min(
+      browserInput.cameraWidth / this.video.videoWidth,
+      browserInput.cameraHeight / this.video.videoHeight,
+      1
+    );
+    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
+    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
+    this.upload = this.send();
+    try {
+      return await this.upload;
+    } finally {
+      this.upload = void 0;
+    }
+  }
+  async send() {
+    const blob = await new Promise((fulfill) => {
+      const context = this.canvas.getContext("2d");
+      if (!context) throw new Error(translate("camera.readFailed"));
+      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      this.canvas.toBlob(fulfill, "image/jpeg", browserInput.cameraJpegQuality);
+    });
+    if (this.closed) return false;
+    if (!blob) throw new Error(translate("camera.readFailed"));
+    const response = await this.fetcher(browserRoutes.live.camera, {
+      method: "POST",
+      cache: "no-store",
+      body: blob,
+      signal: AbortSignal.any([
+        this.controller.signal,
+        AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
+      ]),
+      headers: {
+        "Content-Type": "image/jpeg",
+        "X-Reactor-Comfy": "1",
+        "X-Reactor-Lease": this.owner.lease,
+        "X-Reactor-Capability": this.owner.capability,
+        "X-Reactor-Sequence": String(this.sequence++)
+      }
+    });
+    if (!response.ok) throw new Error(translate("camera.uploadFailed"));
+    return true;
+  }
+  /**
+   * Stop the camera, cancel uploads, and clear the capture canvas.
+   */
+  close() {
+    this.closed = true;
+    this.controller.abort();
+    this.stopCamera();
+    this.select.disabled = this.enable.disabled = true;
+    setText(this.status, message("camera.disabled"));
+    this.canvas.width = this.canvas.height = 0;
+  }
+  stopCamera() {
+    this.video.hidden = true;
+    for (const track of this.stream?.getTracks() ?? []) {
+      track.stop();
+    }
+    this.stream = void 0;
+    this.video.srcObject = null;
+  }
+};
+
+// web/scripts/live/polling.ts
+async function pause(milliseconds, signal) {
+  if (signal?.aborted) return;
+  await new Promise((fulfill) => {
+    const finish = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", finish);
+      fulfill();
+    };
+    const timer = setTimeout(finish, milliseconds);
+    signal?.addEventListener("abort", finish);
+  });
+}
+
+// web/scripts/live/sound.ts
+var SoundControls = class {
+  view = element("fieldset");
+  status = element("p");
+  prompt = element("textarea");
+  apply = button(message("sound.applyPrompt"), "submit");
+  pending;
+  /**
+   * Build the sound prompt controls in their disabled state.
+   * @param initialPrompt - The workflow's starting sound prompt.
+   * @param promptCharacterLimit - The model's maximum sound prompt length.
+   */
+  constructor(initialPrompt, promptCharacterLimit) {
+    this.prompt.value = initialPrompt;
+    this.prompt.maxLength = promptCharacterLimit;
+    this.prompt.rows = 2;
+    const label = element("label", message("sound.prompt"));
+    label.append(this.prompt);
+    const form = element("form");
+    this.status.setAttribute("role", "status");
+    form.append(label, this.apply, this.status, element("small", message("sound.promptNotice")));
+    this.view.append(element("legend", message("sound.title")), form);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.pending = this.prompt.value;
+      this.apply.disabled = true;
+    });
+    this.setReady(false);
+  }
+  /**
+   * Enable sound input only when the session accepts changes.
+   * @param ready - Whether the model accepts live controls.
+   */
+  setReady(ready) {
+    this.prompt.disabled = !ready;
+    if (!ready) {
+      this.apply.disabled = true;
+      return;
+    }
+    this.apply.disabled = this.pending !== void 0;
+  }
+  /**
+   * Consume the next sound prompt queued by the user.
+   * @returns The queued prompt, or undefined when none is waiting.
+   */
+  takePrompt() {
+    const value = this.pending;
+    this.pending = void 0;
+    return value;
   }
 };
 
@@ -1183,48 +1532,121 @@ function safeParse(schema, input, config$1) {
   };
 }
 
-// web/browser.ts
-var browserLimits = {
-  requestTimeoutMilliseconds: 1e4,
-  discoveryTimeoutMilliseconds: 3e4,
-  pollIntervalMilliseconds: 100,
-  actionTimeoutMilliseconds: 2e3,
-  inputNudgeMilliseconds: 250,
-  maxPendingInputs: 8,
-  maxPreviewCharacters: 35e4,
-  maxCalculatorSeconds: 3600,
-  maxTextCharacters: 200,
-  maxErrorCharacters: 1024,
-  maxRetrievalTimeCharacters: 40,
-  maxModelNodeIds: 100,
-  maxModels: 1024
-};
-var browserInput = {
-  pointerCenter: 0.5,
-  pointerMinimum: 0,
-  pointerMaximum: 1,
-  pointerStep: 0.03,
-  cameraWidth: 640,
-  cameraHeight: 480,
-  cameraIdealFrameRate: 12,
-  cameraMaxFrameRate: 24,
-  cameraJpegQuality: 0.8
-};
-var browserPatterns = {
-  lease: /^[a-f0-9]{32}$/,
-  revision: /^[a-f0-9]{64}$/,
-  preview: /^[A-Za-z0-9+/]*={0,2}$/,
-  capability: /^[A-Za-z0-9_-]{43}$/,
-  documentation: /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/,
-  nodeId: /^ReactorInc[A-Za-z0-9]+$/,
-  settingName: /^[a-z][a-z_]+$/
+// web/scripts/schema.ts
+var publicErrorSchema = object({
+  error: optional(
+    pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters))
+  )
+});
+function parsePublicError(value) {
+  const result = safeParse(publicErrorSchema, value);
+  if (!result.success) return void 0;
+  return result.output.error;
+}
+
+// web/scripts/live/commands.ts
+async function sendAction(fetcher, owner, sequence, name, fields, signal) {
+  const response = await fetcher(browserRoutes.live.action, {
+    method: "POST",
+    cache: "no-store",
+    signal: AbortSignal.any([signal, AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)]),
+    headers: { "Content-Type": "application/json", "X-Reactor-Comfy": "1" },
+    body: JSON.stringify({
+      lease: owner.lease,
+      capability: owner.capability,
+      sequence,
+      action: name,
+      fields
+    })
+  });
+  signal.throwIfAborted();
+  if (!response.ok) {
+    let document2;
+    try {
+      document2 = await response.json();
+    } catch {
+      throw new Error(translate("live.actionRejected"));
+    }
+    throw new Error(parsePublicError(document2) ?? translate("live.actionRejected"));
+  }
+}
+
+// web/scripts/live/pointer.ts
+var PointerPreview = class {
+  view = element("div");
+  status = element("p");
+  #marker = element("span");
+  #state = element("span");
+  #position = element("span");
+  #image;
+  #pointer;
+  /**
+   * Show pointer position alongside the output image.
+   * @param image - The model output used for dragging.
+   * @param signal - The panel's listener and observer lifetime.
+   */
+  constructor(image, signal) {
+    this.#image = image;
+    this.view.className = "reactor-pointer-preview";
+    this.#marker.className = "reactor-pointer-marker";
+    this.#marker.hidden = true;
+    this.#marker.setAttribute("aria-hidden", "true");
+    this.#state.setAttribute("role", "status");
+    this.status.hidden = true;
+    this.status.append(this.#state, this.#position);
+    this.view.append(image, this.#marker);
+    const resize = new ResizeObserver(this.#place.bind(this));
+    resize.observe(image);
+    image.addEventListener("blur", this.#place.bind(this), { signal });
+    image.addEventListener("focus", this.#place.bind(this), { signal });
+    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
+  }
+  /**
+   * Move the marker to the user's latest pointer position.
+   * @param pointer - The normalized image coordinates and hold state.
+   */
+  move(pointer) {
+    this.#pointer = pointer;
+    this.status.hidden = false;
+    setText(
+      this.#position,
+      message("pointer.position", {
+        x: Math.round(pointer.x * 100),
+        y: Math.round(pointer.y * 100)
+      })
+    );
+    this.#place();
+  }
+  /**
+   * Announce a hold or release after the server accepts it.
+   * @param pointer - The pointer update accepted by the server.
+   */
+  confirm(pointer) {
+    const key = pointer.active ? "pointer.held" : "pointer.released";
+    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
+  }
+  /**
+   * Hide the marker and announce that pointer input has stopped.
+   */
+  stop() {
+    this.#pointer = void 0;
+    this.#marker.hidden = true;
+    if (!this.status.hidden) setText(this.#state, message("pointer.stopped"));
+  }
+  #place() {
+    const pointer = this.#pointer;
+    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
+    if (this.#marker.hidden || !pointer) return;
+    this.#marker.style.left = `${this.#image.offsetLeft + pointer.x * this.#image.clientWidth}px`;
+    this.#marker.style.top = `${this.#image.offsetTop + pointer.y * this.#image.clientHeight}px`;
+  }
 };
 
-// web/live/input.ts
+// web/scripts/live/input.ts
 function cameraAxes(keys, hasIndependentAxes) {
-  function direction(negative, positive, first, second) {
-    if (keys.has(negative) === keys.has(positive)) return "idle";
-    return keys.has(negative) ? first : second;
+  function direction(firstKey, secondKey, firstDirection, secondDirection) {
+    if (keys.has(firstKey) === keys.has(secondKey)) return "idle";
+    return keys.has(firstKey) ? firstDirection : secondDirection;
   }
   const forward = direction("w", "s", "forward", "back");
   const lateral = direction("a", "d", "strafe_left", "strafe_right");
@@ -1316,8 +1738,7 @@ var CameraInput = class {
       key,
       setTimeout(() => {
         this.nudges.delete(key);
-        const keys = /* @__PURE__ */ new Set([...this.keyboard, ...this.pointers.values(), ...this.nudges.keys()]);
-        this.update(keys, false);
+        this.publish();
       }, milliseconds)
     );
   }
@@ -1401,7 +1822,7 @@ var CameraInput = class {
   }
 };
 
-// web/live/schema.ts
+// web/scripts/live/schema.ts
 var invitationEntries = {
   lease: pipe(string(), regex(browserPatterns.lease)),
   capability: pipe(string(), regex(browserPatterns.capability)),
@@ -1412,11 +1833,11 @@ var invitationEntries = {
 };
 var invitationSchema = object(invitationEntries);
 function buildInvitation(document2, axes) {
-  const identity = { lease: document2.lease, capability: document2.capability };
-  const presentation = { modelTitle: document2.model_title, promptKind: document2.prompt_kind };
   return {
-    ...identity,
-    ...presentation,
+    lease: document2.lease,
+    capability: document2.capability,
+    modelTitle: document2.model_title,
+    promptKind: document2.prompt_kind,
     durationSeconds: document2.duration_seconds,
     allowEmptyPrompt: document2.allow_empty_prompt,
     axes
@@ -1449,9 +1870,11 @@ var sceneInvitationSchema = pipe(
     return true;
   }),
   transform((document2) => {
-    const invitation = buildInvitation(document2, document2.axes);
-    const prompt = { prompt: document2.prompt, promptCharacterLimit: document2.prompt_limit };
-    return { ...invitation, ...prompt };
+    return {
+      ...buildInvitation(document2, document2.axes),
+      prompt: document2.prompt,
+      promptCharacterLimit: document2.prompt_limit
+    };
   })
 );
 var controlsInvitationSchema = pipe(
@@ -1469,16 +1892,12 @@ var controlsInvitationSchema = pipe(
     return document2.audio_prompt.length <= document2.audio_prompt_limit;
   }),
   transform((document2) => {
-    const invitation = buildInvitation(document2, {});
-    const prompt = { prompt: document2.prompt, promptCharacterLimit: document2.prompt_limit };
-    const audioPrompt = {
-      audioPrompt: document2.audio_prompt,
-      audioPromptCharacterLimit: document2.audio_prompt_limit
-    };
     return {
-      ...invitation,
-      ...prompt,
-      ...audioPrompt,
+      ...buildInvitation(document2, {}),
+      prompt: document2.prompt,
+      promptCharacterLimit: document2.prompt_limit,
+      audioPrompt: document2.audio_prompt,
+      audioPromptCharacterLimit: document2.audio_prompt_limit,
       webcam: document2.webcam,
       pointer: document2.pointer,
       sound: document2.sound
@@ -1501,15 +1920,12 @@ var liveStatusSchema = pipe(
     )
   }),
   transform((status) => {
-    const termination = {
+    return {
       closed: status.closed,
       terminationConfirmed: status.termination_confirmed,
-      failed: status.failed
-    };
-    const progress = { controlsReady: status.controls_ready, finishing: status.finishing };
-    return {
-      ...termination,
-      ...progress,
+      failed: status.failed,
+      controlsReady: status.controls_ready,
+      finishing: status.finishing,
       elapsedSeconds: status.elapsed_seconds,
       previewSequence: status.preview_sequence,
       preview: status.preview
@@ -1532,7 +1948,7 @@ function parseLiveStatus(value) {
   return result.output;
 }
 
-// web/live/api.ts
+// web/scripts/live/api.ts
 async function exchange(fetcher, owner, sequence, axes, end, previewSequence, signal, release = false) {
   const response = await fetcher(browserRoutes.live.exchange, {
     method: "POST",
@@ -1549,383 +1965,38 @@ async function exchange(fetcher, owner, sequence, axes, end, previewSequence, si
       preview_sequence: previewSequence
     })
   });
-  if (!response.ok) throw new Error(translate("live.unreachable"));
+  if (!response.ok) {
+    let document2;
+    try {
+      document2 = await response.json();
+    } catch {
+      throw new Error(translate("live.unreachable"));
+    }
+    throw new Error(parsePublicError(document2) ?? translate("live.unreachable"));
+  }
   const status = parseLiveStatus(await response.json());
+  signal.throwIfAborted();
   if (!status) throw new Error(translate("live.invalidStatus"));
   return status;
 }
-
-// web/dom.ts
-function element(tag, text) {
-  const node = document.createElement(tag);
-  if (text !== void 0) node.appendChild(textNode(text));
-  return node;
-}
-function button(text, type = "button") {
-  const node = element("button", text);
-  node.type = type;
-  return node;
-}
-
-// web/live/webcam.ts
-var Webcam = class {
-  /**
-   * Build camera selection and a muted input preview.
-   * @param owner - The validated session invitation.
-   * @param fetcher - ComfyUI's local API client.
-   * @param fail - Request session ending if the camera disconnects.
-   */
-  constructor(owner, fetcher, fail) {
-    this.owner = owner;
-    this.fetcher = fetcher;
-    this.fail = fail;
-    this.view.className = "reactor-webcam";
-    const label = element("label", message("camera.label"));
-    label.append(this.select);
-    const defaultCamera = element("option", message("camera.default"));
-    defaultCamera.value = "";
-    this.select.append(defaultCamera);
-    this.video.muted = true;
-    this.video.autoplay = true;
-    this.video.playsInline = true;
-    this.video.hidden = true;
-    setTextAttribute(this.video, "aria-label", message("camera.preview"));
-    const controls = element("div");
-    controls.append(label, this.enable);
-    this.view.append(controls, this.video, this.status);
-    this.enable.addEventListener("click", () => {
-      this.enable.disabled = true;
-      const selected = this.select.value;
-      void this.start(selected);
-    });
-  }
-  owner;
-  fetcher;
-  fail;
-  view = element("section");
-  video = element("video");
-  enable = button(message("camera.enable"));
-  select = element("select");
-  status = element("p");
-  stream;
-  closed = false;
-  sequence = 0;
-  canvas = element("canvas");
-  upload;
-  controller = new AbortController();
-  async start(selected) {
-    try {
-      if (!await this.openCamera(selected)) return;
-      await this.listCameras();
-      if (this.closed) return;
-      setText(this.enable, message("camera.select"));
-      setText(this.status, message("camera.enabled"));
-    } catch (error) {
-      this.stopCamera();
-      if (this.closed) return;
-      const errors = /* @__PURE__ */ new Map([
-        ["NotAllowedError", "camera.permissionDenied"],
-        ["SecurityError", "camera.browserRequirements"],
-        ["NotFoundError", "camera.notFound"],
-        ["NotReadableError", "camera.busy"],
-        ["OverconstrainedError", "camera.unavailableSelection"]
-      ]);
-      setText(
-        this.status,
-        message(
-          error instanceof Error ? errors.get(error.name) ?? "camera.accessFailed" : "camera.accessFailed"
-        )
-      );
-    } finally {
-      if (!this.closed) this.enable.disabled = false;
-    }
-  }
-  /**
-   * Open the selected camera and release any previous stream.
-   * @param selected - The selected device ID, or an empty string for the default camera.
-   * @returns Whether the camera is ready and the panel is still open.
-   */
-  async openCamera(selected) {
-    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("", "SecurityError");
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        width: { ideal: browserInput.cameraWidth },
-        height: { ideal: browserInput.cameraHeight },
-        frameRate: {
-          ideal: browserInput.cameraIdealFrameRate,
-          max: browserInput.cameraMaxFrameRate
-        },
-        ...selected ? { deviceId: { exact: selected } } : {}
-      }
-    });
-    if (this.closed) {
-      for (const track of stream.getTracks()) track.stop();
-      return false;
-    }
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    this.stream = stream;
-    this.video.srcObject = stream;
-    await this.video.play();
-    if (this.closed) return false;
-    this.video.hidden = false;
-    return true;
-  }
-  /**
-   * List cameras after permission reveals their names.
-   * @returns When the available camera choices have been updated.
-   */
-  async listCameras() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    if (this.closed) return;
-    const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
-    const options = document.createDocumentFragment();
-    for (const device of devices) {
-      if (device.kind !== "videoinput") continue;
-      const option = element(
-        "option",
-        device.label || message("camera.number", { number: options.childElementCount + 1 })
-      );
-      option.value = device.deviceId;
-      option.selected = device.deviceId === selected;
-      options.appendChild(option);
-    }
-    this.select.replaceChildren();
-    this.select.appendChild(options);
-  }
-  /**
-   * Upload a camera frame without overlapping uploads.
-   * @returns Whether a camera frame was available to send.
-   */
-  async frame() {
-    if (this.closed || !this.stream || this.video.readyState < 2) return false;
-    for (const track of this.stream.getVideoTracks()) {
-      if (track.readyState === "live") continue;
-      this.fail(translate("camera.disconnected"));
-      return false;
-    }
-    if (this.upload) {
-      await this.upload;
-      return true;
-    }
-    const ratio = Math.min(
-      browserInput.cameraWidth / this.video.videoWidth,
-      browserInput.cameraHeight / this.video.videoHeight,
-      1
-    );
-    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
-    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-    this.upload = this.send();
-    try {
-      await this.upload;
-      return true;
-    } finally {
-      this.upload = void 0;
-    }
-  }
-  async send() {
-    const blob = await new Promise((fulfill) => {
-      const context = this.canvas.getContext("2d");
-      if (!context) throw new Error(translate("camera.readFailed"));
-      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      this.canvas.toBlob(fulfill, "image/jpeg", browserInput.cameraJpegQuality);
-    });
-    if (this.closed || !blob) return;
-    const response = await this.fetcher(browserRoutes.live.camera, {
-      method: "POST",
-      cache: "no-store",
-      body: blob,
-      signal: AbortSignal.any([
-        this.controller.signal,
-        AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
-      ]),
-      headers: {
-        "Content-Type": "image/jpeg",
-        "X-Reactor-Comfy": "1",
-        "X-Reactor-Lease": this.owner.lease,
-        "X-Reactor-Capability": this.owner.capability,
-        "X-Reactor-Sequence": String(this.sequence++)
-      }
-    });
-    if (!response.ok) throw new Error(translate("camera.uploadFailed"));
-  }
-  /**
-   * Stop the camera, cancel uploads, and clear the capture canvas.
-   */
-  close() {
-    this.closed = true;
-    this.controller.abort();
-    this.stopCamera();
-    this.select.disabled = this.enable.disabled = true;
-    setText(this.status, message("camera.disabled"));
-    this.canvas.width = this.canvas.height = 0;
-  }
-  stopCamera() {
-    this.video.hidden = true;
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    this.stream = void 0;
-    this.video.srcObject = null;
-  }
-};
-
-// web/live/polling.ts
-async function pause(milliseconds, signal) {
-  if (signal?.aborted) return;
-  await new Promise((fulfill) => {
-    const finish = () => {
-      clearTimeout(timer);
-      signal?.removeEventListener("abort", finish);
-      fulfill();
-    };
-    const timer = setTimeout(finish, milliseconds);
-    signal?.addEventListener("abort", finish);
-  });
-}
-
-// web/live/sound.ts
-var SoundControls = class {
-  view = element("fieldset");
-  prompt = element("textarea");
-  apply = button(message("sound.applyPrompt"), "submit");
-  pending;
-  /**
-   * Build the sound prompt controls in their disabled state.
-   * @param initialPrompt - The workflow's starting sound prompt.
-   * @param promptCharacterLimit - The model's maximum sound prompt length.
-   */
-  constructor(initialPrompt, promptCharacterLimit) {
-    this.prompt.value = initialPrompt;
-    this.prompt.maxLength = promptCharacterLimit;
-    this.prompt.rows = 2;
-    const label = element("label", message("sound.prompt"));
-    label.append(this.prompt);
-    const form = element("form");
-    form.append(label, this.apply, element("p", message("sound.promptNotice")));
-    this.view.append(element("legend", message("sound.title")), form);
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      this.pending = this.prompt.value;
-      this.apply.disabled = true;
-    });
-    this.setReady(false);
-  }
-  /**
-   * Enable sound input only when the session accepts changes.
-   * @param ready - Whether the model accepts live controls.
-   */
-  setReady(ready) {
-    this.prompt.disabled = !ready;
-    if (!ready) {
-      this.apply.disabled = true;
-      return;
-    }
-    this.apply.disabled = this.pending !== void 0;
-  }
-  /**
-   * Consume the next sound prompt queued by the user.
-   * @returns The queued prompt, or undefined when none is waiting.
-   */
-  takePrompt() {
-    const value = this.pending;
-    this.pending = void 0;
-    return value;
-  }
-};
-
-// web/live/commands.ts
-async function sendAction(fetcher, owner, sequence, name, fields) {
-  const response = await fetcher(browserRoutes.live.action, {
-    method: "POST",
-    cache: "no-store",
-    signal: AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
-    headers: { "Content-Type": "application/json", "X-Reactor-Comfy": "1" },
-    body: JSON.stringify({
-      lease: owner.lease,
-      capability: owner.capability,
+async function endSession(fetcher, owner, sequence, previewSequence) {
+  const axes = Object.fromEntries(Object.keys(owner.axes).map((axis) => [axis, "idle"]));
+  try {
+    await exchange(
+      fetcher,
+      owner,
       sequence,
-      action: name,
-      fields
-    })
-  });
-  if (!response.ok) throw new Error(translate("live.actionRejected"));
+      axes,
+      true,
+      previewSequence,
+      AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
+      true
+    );
+  } catch {
+  }
 }
 
-// web/live/pointer.ts
-var PointerPreview = class {
-  view = element("div");
-  status = element("p");
-  #marker = element("span");
-  #state = element("span");
-  #position = element("span");
-  #image;
-  #pointer;
-  /**
-   * Show pointer position alongside the output image.
-   * @param image - The model output used for dragging.
-   * @param signal - The panel's listener and observer lifetime.
-   */
-  constructor(image, signal) {
-    this.#image = image;
-    this.view.className = "reactor-pointer-preview";
-    this.#marker.className = "reactor-pointer-marker";
-    this.#marker.hidden = true;
-    this.#marker.setAttribute("aria-hidden", "true");
-    this.#state.setAttribute("role", "status");
-    this.status.hidden = true;
-    this.status.append(this.#state, this.#position);
-    this.view.append(image, this.#marker);
-    const resize = new ResizeObserver(this.#place.bind(this));
-    resize.observe(image);
-    image.addEventListener("blur", this.#place.bind(this), { signal });
-    image.addEventListener("focus", this.#place.bind(this), { signal });
-    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
-  }
-  /**
-   * Move the marker to the user's latest pointer position.
-   * @param pointer - The normalized image coordinates and hold state.
-   */
-  move(pointer) {
-    this.#pointer = pointer;
-    this.status.hidden = false;
-    setText(
-      this.#position,
-      message("pointer.position", {
-        x: Math.round(pointer.x * 100),
-        y: Math.round(pointer.y * 100)
-      })
-    );
-    this.#place();
-  }
-  /**
-   * Announce a hold or release after the server accepts it.
-   * @param pointer - The pointer update accepted by the server.
-   */
-  confirm(pointer) {
-    const key = pointer.active ? "pointer.held" : "pointer.released";
-    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
-  }
-  /**
-   * Hide the marker and announce that pointer input has stopped.
-   */
-  stop() {
-    this.#pointer = void 0;
-    this.#marker.hidden = true;
-    if (!this.status.hidden) setText(this.#state, message("pointer.stopped"));
-  }
-  #place() {
-    const pointer = this.#pointer;
-    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
-    if (this.#marker.hidden || !pointer) return;
-    this.#marker.style.left = `${this.#image.offsetLeft + pointer.x * this.#image.clientWidth}px`;
-    this.#marker.style.top = `${this.#image.offsetTop + pointer.y * this.#image.clientHeight}px`;
-  }
-};
-
-// web/live/drag.ts
+// web/scripts/live/drag.ts
 var DragInput = class {
   /**
    * Bind input until the panel's abort signal fires.
@@ -1939,7 +2010,6 @@ var DragInput = class {
     image.tabIndex = 0;
     image.draggable = false;
     image.classList.add("reactor-drag-input");
-    setTextAttribute(image, "aria-label", message("pointer.instructions"));
     image.addEventListener(
       "pointerdown",
       (event) => {
@@ -2056,7 +2126,7 @@ var DragInput = class {
   }
 };
 
-// web/live/controls.ts
+// web/scripts/live/controls.ts
 var panels = /* @__PURE__ */ new Set();
 var ControlPanel = class {
   /**
@@ -2067,30 +2137,36 @@ var ControlPanel = class {
   constructor(owner, fetcher) {
     this.owner = owner;
     this.fetcher = fetcher;
-    this.dialog.className = "reactor-dialog reactor-controls";
-    setTextAttribute(this.dialog, "aria-label", message("controls.title"));
-    setTextAttribute(this.image, "alt", message("live.output"));
-    this.image.hidden = true;
-    this.pointerPreview = owner.pointer ? new PointerPreview(this.image, this.abort.signal) : void 0;
-    this.status.setAttribute("role", "status");
-    this.prompt.value = owner.prompt;
-    this.prompt.maxLength = owner.promptCharacterLimit;
-    this.prompt.rows = 2;
-    this.prompt.disabled = this.update.disabled = true;
-    this.sound = owner.sound ? new SoundControls(owner.audioPrompt, owner.audioPromptCharacterLimit) : void 0;
-    this.camera = owner.webcam ? new Webcam(owner, fetcher, this.stop.bind(this)) : void 0;
-    if (owner.pointer) new DragInput(this.image, this.abort.signal, this.queuePointer.bind(this));
-    this.bindActions();
-    this.appendContent();
+    try {
+      this.dialog.className = "reactor-dialog reactor-controls";
+      setTextAttribute(this.dialog, "aria-label", message("controls.title"));
+      setTextAttribute(this.image, "alt", message("live.output"));
+      this.image.hidden = true;
+      this.pointerPreview = owner.pointer ? new PointerPreview(this.image, this.abort.signal) : void 0;
+      this.status.setAttribute("role", "status");
+      this.prompt.value = owner.prompt;
+      this.prompt.maxLength = owner.promptCharacterLimit;
+      this.prompt.rows = 2;
+      this.prompt.disabled = this.update.disabled = true;
+      this.sound = owner.sound ? new SoundControls(owner.audioPrompt, owner.audioPromptCharacterLimit) : void 0;
+      this.camera = owner.webcam ? new Webcam(owner, fetcher, this.stop.bind(this)) : void 0;
+      if (owner.pointer) new DragInput(this.image, this.abort.signal, this.queuePointer.bind(this));
+      this.bindActions();
+      this.appendContent();
+    } catch (error) {
+      this.dispose();
+      throw error;
+    }
   }
   owner;
   fetcher;
-  prior = document.activeElement;
+  previousFocus = document.activeElement;
   abort = new AbortController();
   dialog = element("dialog");
   image = element("img");
   status = element("p", message("controls.chooseInput"));
   prompt = element("textarea");
+  promptStatus = element("p");
   start = button(message("controls.start"));
   update = button(message("live.applyPrompt"));
   end = button(message("cancel"));
@@ -2100,6 +2176,7 @@ var ControlPanel = class {
   pointers = [];
   ending = false;
   finished = false;
+  disposed = false;
   ready = false;
   sequence = 0;
   actionSequence = 0;
@@ -2109,34 +2186,51 @@ var ControlPanel = class {
   startAttempted = false;
   /** Build the preview, supported inputs, and session actions. */
   appendContent() {
+    const header = element("header");
+    const session = element("div");
+    session.className = "reactor-session-status";
+    session.append(this.status);
+    header.append(element("h2", message("controls.title")), session);
+    this.promptStatus.setAttribute("role", "status");
     this.dialog.append(
-      element("h2", message("controls.title")),
+      header,
       element(
         "p",
         message("live.duration", {
           model: this.owner.modelTitle,
           seconds: this.owner.durationSeconds
         })
-      ),
-      element("p", message("controls.recordingNotice"))
+      )
     );
     if (this.camera) this.dialog.append(this.camera.view);
     this.dialog.append(this.pointerPreview?.view ?? this.image);
-    if (this.owner.pointer) this.dialog.append(element("p", message("controls.dragInstructions")));
+    if (this.owner.pointer) {
+      const instructions = element("p", message("controls.dragInstructions"));
+      instructions.id = `reactor-pointer-help-${crypto.randomUUID()}`;
+      this.image.setAttribute("aria-describedby", instructions.id);
+      this.dialog.append(instructions);
+    }
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
     const label = element(
       "label",
       message(this.owner.promptKind === "edit" ? "live.editPrompt" : "live.scenePrompt")
     );
     label.append(this.prompt);
-    this.dialog.append(label, this.update);
+    this.dialog.append(label, this.update, this.promptStatus);
     if (this.sound) this.dialog.append(this.sound.view);
     const footer = element("footer");
     const actions = element("div");
     actions.className = "reactor-actions";
     actions.append(this.start, this.end);
-    footer.append(this.status, actions);
-    this.dialog.append(footer);
+    footer.append(actions);
+    const help = element("details");
+    help.className = "reactor-help";
+    help.append(
+      element("summary", message("live.help")),
+      element("p", message("live.previewNotice")),
+      element("p", message("live.recordingNotice"))
+    );
+    this.dialog.append(help, footer);
   }
   /** Bind start, prompt, stop, and dialog cleanup actions. */
   bindActions() {
@@ -2151,7 +2245,7 @@ var ControlPanel = class {
     });
     this.update.addEventListener("click", () => {
       if (!this.prompt.value.trim() && !this.owner.allowEmptyPrompt) {
-        setText(this.status, message("controls.emptyPrompt"));
+        setText(this.promptStatus, message("controls.emptyPrompt"));
         return;
       }
       this.pendingPrompt = this.prompt.value;
@@ -2162,18 +2256,7 @@ var ControlPanel = class {
       if (this.finished) this.dialog.close();
       else this.stop();
     });
-    this.dialog.addEventListener(
-      "close",
-      () => {
-        this.stop();
-        this.abort.abort();
-        this.image.removeAttribute("src");
-        this.dialog.remove();
-        panels.delete(this.owner.lease);
-        if (this.prior instanceof HTMLElement && this.prior.isConnected) this.prior.focus();
-      },
-      { once: true }
-    );
+    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   /**
    * Keep pointer releases while combining consecutive held moves.
@@ -2185,22 +2268,22 @@ var ControlPanel = class {
     const previous = this.pointers.at(-1);
     if (previous?.active && next.active) this.pointers.pop();
     if (this.pointers.length >= browserLimits.maxPendingInputs) {
-      this.stop(translate("controls.pointerRateExceeded"));
+      this.stop(message("controls.pointerRateExceeded"));
       return;
     }
     this.pointers.push(next);
   }
   /**
    * Stop sending input while waiting for the server to end the session.
-   * @param message - The reason shown in the panel.
+   * @param reason - The reason shown in the panel.
    */
-  stop(message2 = translate("live.ending")) {
+  stop(reason = message("live.ending")) {
     this.ending = true;
     this.ready = false;
     this.start.disabled = this.update.disabled = true;
     this.sound?.setReady(false);
     this.pointerPreview?.stop();
-    this.status.textContent = message2;
+    setText(this.status, reason);
     this.camera?.close();
   }
   /**
@@ -2227,6 +2310,7 @@ var ControlPanel = class {
   finish(reply) {
     this.finished = true;
     this.camera?.close();
+    this.start.hidden = true;
     this.start.disabled = this.update.disabled = true;
     this.sound?.setReady(false);
     this.pointerPreview?.stop();
@@ -2244,7 +2328,14 @@ var ControlPanel = class {
     if (!this.startRequested) return;
     if (hasFrame) {
       this.startAttempted = true;
-      await sendAction(this.fetcher, this.owner, this.actionSequence++, "start", {});
+      await sendAction(
+        this.fetcher,
+        this.owner,
+        this.actionSequence++,
+        "start",
+        {},
+        this.abort.signal
+      );
       setText(this.end, message("live.endSession"));
       setText(this.status, message("controls.connecting"));
     } else {
@@ -2260,23 +2351,44 @@ var ControlPanel = class {
   async sendControls() {
     if (!this.ready) return;
     if (this.pendingPrompt !== void 0) {
-      await sendAction(this.fetcher, this.owner, this.actionSequence++, "prompt", {
-        prompt: this.pendingPrompt
-      });
+      await sendAction(
+        this.fetcher,
+        this.owner,
+        this.actionSequence++,
+        "prompt",
+        {
+          prompt: this.pendingPrompt
+        },
+        this.abort.signal
+      );
       this.pendingPrompt = void 0;
-      setText(this.status, message("controls.promptSent"));
+      setText(this.promptStatus, message("controls.promptSent"));
     }
     const next = this.pointers.shift();
     if (next) {
-      await sendAction(this.fetcher, this.owner, this.actionSequence++, "pointer", next);
+      await sendAction(
+        this.fetcher,
+        this.owner,
+        this.actionSequence++,
+        "pointer",
+        next,
+        this.abort.signal
+      );
       this.pointerPreview?.confirm(next);
     }
     const audioPrompt = this.sound?.takePrompt();
     if (audioPrompt !== void 0) {
-      await sendAction(this.fetcher, this.owner, this.actionSequence++, "audio_prompt", {
-        prompt: audioPrompt
-      });
-      setText(this.status, message("controls.soundSent"));
+      await sendAction(
+        this.fetcher,
+        this.owner,
+        this.actionSequence++,
+        "audio_prompt",
+        {
+          prompt: audioPrompt
+        },
+        this.abort.signal
+      );
+      if (this.sound) setText(this.sound.status, message("controls.soundSent"));
     }
   }
   /**
@@ -2291,7 +2403,10 @@ var ControlPanel = class {
       {},
       this.ending,
       this.previewSequence,
-      AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
+      AbortSignal.any([
+        this.abort.signal,
+        AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
+      ])
     );
     this.display(reply);
     return reply;
@@ -2307,9 +2422,9 @@ var ControlPanel = class {
       await this.sendControls();
       return reply;
     } catch (error) {
-      const current4 = await this.refresh();
-      if (!current4.closed && !current4.finishing) throw error;
-      return current4;
+      const current3 = await this.refresh();
+      if (!current3.closed && !current3.finishing) throw error;
+      return current3;
     }
   }
   /**
@@ -2332,21 +2447,54 @@ var ControlPanel = class {
    */
   async poll() {
     try {
-      while (!this.finished && !this.abort.signal.aborted) {
-        if (!await this.cycle()) break;
+      while (!this.abort.signal.aborted && await this.cycle()) {
         await pause(browserLimits.pollIntervalMilliseconds, this.abort.signal);
       }
     } catch (error) {
-      this.stop(error instanceof Error ? error.message : translate("controls.connectionEnded"));
+      if (this.disposed) return;
+      this.stop(error instanceof Error ? error.message : message("controls.connectionEnded"));
       this.finished = true;
+      this.start.hidden = true;
       setText(this.end, message("close"));
     }
+  }
+  /** Release panel resources and give the final end request its own deadline. */
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.ending = true;
+    this.ready = false;
+    this.camera?.close();
+    this.pointerPreview?.stop();
+    this.abort.abort();
+    if (!this.finished)
+      void endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
+    this.image.removeAttribute("src");
+    for (const root of [
+      this.dialog,
+      this.image,
+      this.status,
+      this.prompt,
+      this.end,
+      this.start,
+      this.update,
+      this.pointerPreview?.view,
+      this.pointerPreview?.status,
+      this.camera?.view,
+      this.sound?.view
+    ]) {
+      if (root) releaseText(root);
+    }
+    this.dialog.remove();
+    panels.delete(this.owner.lease);
+    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
+      this.previousFocus.focus();
   }
   /** Show the session panel and begin the local status exchange. */
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    this.start.focus();
+    (this.camera?.enable ?? this.start).focus();
     void this.poll();
   }
 };
@@ -2354,18 +2502,18 @@ function openControls(value, fetcher) {
   const owner = parseControlsInvitation(value);
   if (!owner || panels.has(owner.lease)) return;
   panels.add(owner.lease);
-  const panel = new ControlPanel(owner, fetcher);
-  panel.show();
+  let panel;
+  try {
+    panel = new ControlPanel(owner, fetcher);
+    panel.show();
+  } catch (error) {
+    panels.delete(owner.lease);
+    panel?.dispose();
+    throw error;
+  }
 }
 
-// web/discovery/pricing.ts
-var fastContinueNodeId = "ReactorIncFastContinue";
-var nodePricingRules = {
-  excludedNodeIds: ["ReactorIncHeliosAddPrompt", "ReactorIncLongLiveAddShot"],
-  multipliedDurationInputs: {
-    [fastContinueNodeId]: ["clip_seconds", "clip_count"]
-  }
-};
+// web/scripts/discovery/pricing.ts
 function formatCreditSummary(model, seconds) {
   const rate = model.creditsPerSecond;
   if (rate === null) return [message("pricing.rateUnavailable")];
@@ -2387,7 +2535,7 @@ function formatCreditSummary(model, seconds) {
   return summary;
 }
 
-// web/discovery/row.ts
+// web/scripts/discovery/row.ts
 function buildModelRow(model, seconds) {
   const row = element("li");
   row.append(element("h3", model.title), element("code", model.modelSlug));
@@ -2406,35 +2554,18 @@ function buildModelRow(model, seconds) {
   return row;
 }
 
-// web/schema.ts
-var publicErrorSchema = object({
-  error: optional(
-    pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters))
-  )
-});
-function parsePublicError(value) {
-  const result = safeParse(publicErrorSchema, value);
-  if (!result.success) return void 0;
-  return result.output.error;
-}
-
-// web/discovery/schema.ts
+// web/scripts/discovery/schema.ts
 var shortTextSchema = pipe(
   string(),
   minLength(1),
   maxLength(browserLimits.maxTextCharacters)
 );
-function isRetrievalTime(value) {
-  const timestamp = Date.parse(value);
-  const parsedDate = new Date(timestamp);
-  return Number.isFinite(timestamp) && !Number.isNaN(parsedDate.getTime());
-}
 var retrievalTimeSchema = nullable(
   pipe(
     string(),
     minLength(1),
     maxLength(browserLimits.maxRetrievalTimeCharacters),
-    check(isRetrievalTime)
+    check((value) => Number.isFinite(Date.parse(value)))
   )
 );
 var modelSchema = pipe(
@@ -2453,15 +2584,13 @@ var modelSchema = pipe(
     )
   }),
   transform((model) => {
-    const identity = { entryKey: model.key, modelSlug: model.name, title: model.title };
-    const connection = {
+    return {
+      entryKey: model.key,
+      modelSlug: model.name,
+      title: model.title,
       connectionName: model.connect_name,
       documentationUrl: model.documentation_url,
-      creditsPerSecond: model.credits_per_second
-    };
-    return {
-      ...identity,
-      ...connection,
+      creditsPerSecond: model.credits_per_second,
       observed: model.observed,
       support: model.support,
       nodeIds: model.node_ids
@@ -2480,9 +2609,14 @@ var automaticCheckSchema = pipe(
     )
   }),
   transform((check2) => {
-    const schedule = { intervalHours: check2.interval_hours, checkedAt: check2.checked_at };
-    const result = { updateAvailable: check2.update_available, error: check2.error };
-    return { enabled: check2.enabled, running: check2.running, ...schedule, ...result };
+    return {
+      intervalHours: check2.interval_hours,
+      checkedAt: check2.checked_at,
+      updateAvailable: check2.update_available,
+      error: check2.error,
+      enabled: check2.enabled,
+      running: check2.running
+    };
   })
 );
 var modelListSchema = pipe(
@@ -2503,14 +2637,11 @@ var modelListSchema = pipe(
     return true;
   }),
   transform((document2) => {
-    const identity = { revision: document2.revision, retrievedAt: document2.retrieved_at };
-    const permissions = {
-      canRollback: document2.can_rollback,
-      mutationAllowed: document2.mutation_allowed
-    };
     return {
-      ...identity,
-      ...permissions,
+      revision: document2.revision,
+      retrievedAt: document2.retrieved_at,
+      canRollback: document2.can_rollback,
+      mutationAllowed: document2.mutation_allowed,
       models: document2.models,
       ...document2.automatic_check === void 0 ? {} : { automaticCheck: document2.automatic_check }
     };
@@ -2522,7 +2653,7 @@ function parseModelList(value) {
   return result.output;
 }
 
-// web/discovery/api.ts
+// web/scripts/discovery/api.ts
 function modelRoute(action) {
   if (action === "read") return browserRoutes.models.read;
   if (action === "refresh") return browserRoutes.models.refresh;
@@ -2562,7 +2693,7 @@ async function requestModels(fetcher, signal, action, revision) {
   return parseModelList(body);
 }
 
-// web/discovery/dialog.ts
+// web/scripts/discovery/dialog.ts
 var current;
 function automaticStatus(check2) {
   if (!check2) return "";
@@ -2579,13 +2710,11 @@ function automaticStatus(check2) {
 }
 var ModelDialog = class {
   /**
-   * Build the model browser and its optional node filter.
+   * Build the searchable model browser.
    * @param fetcher - ComfyUI's local API client.
-   * @param nodeId - Show models supported by this node, if supplied.
    */
-  constructor(fetcher, nodeId) {
+  constructor(fetcher) {
     this.fetcher = fetcher;
-    this.nodeId = nodeId;
     this.dialog.className = "reactor-dialog reactor-models";
     this.dialog.setAttribute("aria-labelledby", "reactor-models-title");
     const heading = element("h2", message("models.title"));
@@ -2603,16 +2732,20 @@ var ModelDialog = class {
     this.status.setAttribute("aria-live", "polite");
     setTextAttribute(this.list, "aria-label", message("models.title"));
     const sources = element("details");
-    sources.append(element("summary", message("models.sources")), this.checked, this.automatic);
+    sources.append(
+      element("summary", message("models.sources")),
+      this.checked,
+      this.automatic,
+      element("p", message("models.refreshNotice"))
+    );
     this.dialog.append(
       header,
-      element("p", message("models.refreshNotice")),
       this.actions(),
       this.status,
       searchLabel,
+      this.count,
       this.calculation(),
       sources,
-      this.count,
       this.list
     );
     this.search.addEventListener("input", this.updateView.bind(this));
@@ -2620,7 +2753,6 @@ var ModelDialog = class {
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   fetcher;
-  nodeId;
   dialog = element("dialog");
   previousFocus = document.activeElement;
   controller = new AbortController();
@@ -2635,23 +2767,16 @@ var ModelDialog = class {
   list = element("ul");
   modelList;
   /**
-   * Build list updates and the node filter reset.
+   * Build actions to refresh or restore the model list.
    * @returns The model browser actions.
    */
   actions() {
-    const showAll = button(message("models.showAll"));
-    showAll.hidden = !this.nodeId;
-    showAll.addEventListener("click", () => {
-      this.nodeId = void 0;
-      showAll.hidden = true;
-      this.updateView();
-    });
     this.refresh.disabled = this.rollback.disabled = true;
     this.refresh.addEventListener("click", this.updateModels.bind(this, "refresh"));
     this.rollback.addEventListener("click", this.updateModels.bind(this, "rollback"));
     const actions = element("div");
     actions.className = "reactor-actions";
-    actions.append(this.refresh, this.rollback, showAll);
+    actions.append(this.refresh, this.rollback);
     return actions;
   }
   /**
@@ -2661,7 +2786,7 @@ var ModelDialog = class {
   calculation() {
     const label = element("label", message("pricing.sessionTime"));
     this.duration.type = "number";
-    this.duration.min = "0.1";
+    this.duration.min = String(browserLimits.minCalculatorSeconds);
     this.duration.max = String(browserLimits.maxCalculatorSeconds);
     this.duration.step = "any";
     setTextAttribute(this.duration, "placeholder", message("pricing.enterTime"));
@@ -2677,15 +2802,14 @@ var ModelDialog = class {
   /** Update matching models and calculations from the current controls. */
   updateView() {
     const query = this.search.value.trim().toLowerCase();
-    const nodeId = this.nodeId;
     const seconds = this.duration.validity.valid && this.duration.value !== "" ? this.duration.valueAsNumber : void 0;
     const rows = document.createDocumentFragment();
     for (const model of this.modelList?.models ?? []) {
-      if (nodeId && !model.nodeIds.includes(nodeId)) continue;
       const label = `${model.modelSlug} ${model.title} ${model.connectionName ?? ""}`;
       if (label.toLowerCase().includes(query)) rows.appendChild(buildModelRow(model, seconds));
     }
     const visible = rows.childElementCount;
+    releaseText(this.list);
     this.list.replaceChildren();
     this.list.appendChild(rows);
     setText(
@@ -2760,22 +2884,23 @@ var ModelDialog = class {
   /** Stop pending requests and return focus to the caller. */
   dispose() {
     this.controller.abort();
+    releaseText(this.dialog);
     this.dialog.remove();
     if (current === this) current = void 0;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
       this.previousFocus.focus();
   }
 };
-function openModels(fetcher, nodeId) {
+function openModels(fetcher) {
   if (current?.dialog.open) {
     current.dialog.focus();
     return;
   }
-  current = new ModelDialog(fetcher, nodeId);
+  current = new ModelDialog(fetcher);
   current.show();
 }
 
-// web/live/state.ts
+// web/scripts/live/state.ts
 var CameraStates = class {
   current;
   pending;
@@ -2797,10 +2922,11 @@ var CameraStates = class {
   update(keys, release = false) {
     const axes = cameraAxes(keys, this.hasIndependentAxes);
     if (release) this.pending = [];
-    if (release || JSON.stringify(axes) !== JSON.stringify(this.current)) {
+    const changed = axes.movement !== this.current.movement || axes.move_longitudinal !== this.current.move_longitudinal || axes.move_lateral !== this.current.move_lateral || axes.look_horizontal !== this.current.look_horizontal || axes.look_vertical !== this.current.look_vertical;
+    if (release || changed) {
       if (this.pending.length >= browserLimits.maxPendingInputs) {
         this.pending = [{ axes: cameraAxes(/* @__PURE__ */ new Set(), this.hasIndependentAxes), release: true }];
-        if (!Object.values(axes).every(Object.is.bind(null, "idle")))
+        if (Object.values(axes).some((value) => value !== "idle"))
           this.pending.push({ axes, release: false });
       } else this.pending.push({ axes, release });
     }
@@ -2817,7 +2943,7 @@ var CameraStates = class {
   }
 };
 
-// web/live/scene.ts
+// web/scripts/live/scene.ts
 var panels2 = /* @__PURE__ */ new Set();
 var ScenePanel = class {
   /**
@@ -2828,47 +2954,52 @@ var ScenePanel = class {
   constructor(owner, fetcher) {
     this.owner = owner;
     this.fetcher = fetcher;
-    this.dialog.className = "reactor-dialog reactor-live";
-    setTextAttribute(this.dialog, "aria-label", message("live.sceneTitle"));
-    this.status.setAttribute("role", "status");
-    this.promptStatus.setAttribute("role", "status");
-    this.prompt.value = owner.prompt;
-    this.prompt.maxLength = owner.promptCharacterLimit;
-    this.prompt.rows = 2;
-    this.prompt.disabled = this.apply.disabled = true;
-    this.surface.className = "reactor-preview";
-    this.surface.tabIndex = 0;
-    setTextAttribute(this.surface, "aria-label", message("live.movementLabel"));
-    setTextAttribute(this.image, "alt", message("live.output"));
-    this.image.hidden = true;
-    this.surface.append(this.image);
-    this.controls.className = "reactor-actions";
-    const labels = [
-      translate("live.forward"),
-      translate("live.back"),
-      translate("live.moveLeft"),
-      translate("live.moveRight"),
-      translate("live.lookLeft"),
-      translate("live.lookRight"),
-      translate("live.lookUp"),
-      translate("live.lookDown")
-    ];
-    for (const [index, key] of cameraKeys.entries()) {
-      const control = button(labels.at(index) ?? key);
-      control.dataset.key = key;
-      control.disabled = true;
-      this.controls.append(control);
+    try {
+      this.dialog.className = "reactor-dialog reactor-live";
+      setTextAttribute(this.dialog, "aria-label", message("live.sceneTitle"));
+      this.status.setAttribute("role", "status");
+      this.promptStatus.setAttribute("role", "status");
+      this.prompt.value = owner.prompt;
+      this.prompt.maxLength = owner.promptCharacterLimit;
+      this.prompt.rows = 2;
+      this.prompt.disabled = this.apply.disabled = true;
+      this.surface.className = "reactor-preview";
+      this.surface.tabIndex = 0;
+      setTextAttribute(this.surface, "aria-label", message("live.movementLabel"));
+      setTextAttribute(this.image, "alt", message("live.output"));
+      this.image.hidden = true;
+      this.surface.append(this.image);
+      this.controls.className = "reactor-actions";
+      const labels = {
+        w: message("live.forward"),
+        s: message("live.back"),
+        a: message("live.moveLeft"),
+        d: message("live.moveRight"),
+        ArrowLeft: message("live.lookLeft"),
+        ArrowRight: message("live.lookRight"),
+        ArrowUp: message("live.lookUp"),
+        ArrowDown: message("live.lookDown")
+      };
+      for (const [key, label] of Object.entries(labels)) {
+        const control = button(label);
+        control.dataset.key = key;
+        control.disabled = true;
+        this.controls.append(control);
+      }
+      this.states = new CameraStates(Object.hasOwn(owner.axes, "move_longitudinal"));
+      const input = new CameraInput(
+        this.surface,
+        this.controls,
+        this.controller.signal,
+        this.states.update.bind(this.states)
+      );
+      this.release = input.release.bind(input);
+      this.bindActions();
+      this.appendContent();
+    } catch (error) {
+      this.dispose();
+      throw error;
     }
-    this.states = new CameraStates(Object.hasOwn(owner.axes, "move_longitudinal"));
-    const input = new CameraInput(
-      this.surface,
-      this.controls,
-      this.controller.signal,
-      this.states.update.bind(this.states)
-    );
-    this.release = input.release.bind(input);
-    this.bindActions();
-    this.appendContent();
   }
   owner;
   fetcher;
@@ -2876,10 +3007,10 @@ var ScenePanel = class {
   controller = new AbortController();
   dialog = element("dialog");
   status = element("p", message("live.connectingPanel"));
-  elapsed = element("p");
+  elapsed = element("small");
   prompt = element("textarea");
   apply = button(message("live.applyPrompt"));
-  promptStatus = element("p", message("live.promptNotice"));
+  promptStatus = element("p");
   surface = element("div");
   image = element("img");
   controls = element("div");
@@ -2896,9 +3027,23 @@ var ScenePanel = class {
   /** Build the session header, movement controls, and prompt input. */
   appendContent() {
     const header = element("header");
-    header.append(element("h2", message("live.sceneTitle")), this.end);
+    const session = element("div");
+    session.className = "reactor-session-status";
+    session.append(this.status, this.elapsed);
+    header.append(element("h2", message("live.sceneTitle")), session);
+    const footer = element("footer");
+    footer.append(this.end);
     const promptLabel = element("label", message("live.scenePrompt"));
     promptLabel.append(this.prompt);
+    const help = element("details");
+    help.className = "reactor-help";
+    help.append(
+      element("summary", message("live.help")),
+      element("p", message("live.movementInstructions")),
+      element("p", message("live.promptNotice")),
+      element("p", message("live.previewNotice")),
+      element("p", message("live.recordingNotice"))
+    );
     this.dialog.append(
       header,
       element(
@@ -2908,15 +3053,13 @@ var ScenePanel = class {
           seconds: this.owner.durationSeconds
         })
       ),
-      element("p", message("live.movementInstructions")),
       this.surface,
       this.controls,
       promptLabel,
       this.apply,
       this.promptStatus,
-      this.status,
-      this.elapsed,
-      element("p", message("live.recordingNotice"))
+      help,
+      footer
     );
   }
   /** Bind prompt updates, explicit ending, and focus cleanup. */
@@ -2938,20 +3081,7 @@ var ScenePanel = class {
       this.release();
       this.surface.blur();
     });
-    this.dialog.addEventListener(
-      "close",
-      () => {
-        this.stop();
-        this.disposed = true;
-        this.controller.abort();
-        this.image.removeAttribute("src");
-        panels2.delete(this.owner.lease);
-        this.dialog.remove();
-        if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
-          this.previousFocus.focus();
-      },
-      { once: true }
-    );
+    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   /** Stop camera movement and request the end of the session. */
   stop() {
@@ -3017,9 +3147,16 @@ var ScenePanel = class {
   async sendPrompt(result) {
     if (!result.controlsReady || result.finishing || this.ending || this.pendingPrompt === void 0)
       return;
-    await sendAction(this.fetcher, this.owner, this.actionSequence++, "prompt", {
-      prompt: this.pendingPrompt
-    });
+    await sendAction(
+      this.fetcher,
+      this.owner,
+      this.actionSequence++,
+      "prompt",
+      {
+        prompt: this.pendingPrompt
+      },
+      this.controller.signal
+    );
     this.pendingPrompt = void 0;
     setText(this.promptStatus, message("live.promptSent"));
   }
@@ -3038,7 +3175,10 @@ var ScenePanel = class {
           input.axes,
           this.ending,
           this.previewSequence,
-          AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
+          AbortSignal.any([
+            this.controller.signal,
+            AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)
+          ]),
           input.release
         );
         this.previewSequence = result.previewSequence;
@@ -3046,21 +3186,54 @@ var ScenePanel = class {
         if (result.closed) this.finish(result);
         else {
           await this.sendPrompt(result);
-          await pause(browserLimits.pollIntervalMilliseconds);
+          await pause(browserLimits.pollIntervalMilliseconds, this.controller.signal);
         }
       }
     } catch {
+      if (this.disposed) return;
       this.finished = true;
       setText(this.status, message("live.connectionLost"));
     } finally {
       this.release();
       this.controller.abort();
-      this.end.disabled = false;
-      setText(this.end, message("close"));
-      this.prompt.disabled = this.apply.disabled = true;
-      for (const control of this.controls.querySelectorAll("button")) control.disabled = true;
-      if (this.disposed) panels2.delete(this.owner.lease);
+      this.finishPolling();
     }
+  }
+  /** Leave completed panels readable without recreating labels after disposal. */
+  finishPolling() {
+    if (this.disposed) return;
+    this.end.disabled = false;
+    setText(this.end, message("close"));
+    this.prompt.disabled = this.apply.disabled = true;
+    for (const control of this.controls.querySelectorAll("button")) control.disabled = true;
+  }
+  /** Release panel resources and give the final end request its own deadline. */
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.ending = true;
+    this.controller.abort();
+    if (!this.finished)
+      void endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
+    this.image.removeAttribute("src");
+    for (const root of [
+      this.dialog,
+      this.image,
+      this.status,
+      this.prompt,
+      this.end,
+      this.elapsed,
+      this.apply,
+      this.promptStatus,
+      this.surface,
+      this.controls
+    ]) {
+      releaseText(root);
+    }
+    this.dialog.remove();
+    panels2.delete(this.owner.lease);
+    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
+      this.previousFocus.focus();
   }
   /** Show the panel, focus camera input, and begin exchanging session status. */
   show() {
@@ -3074,11 +3247,18 @@ function openSceneControls(value, fetcher) {
   const owner = parseSceneInvitation(value);
   if (!owner || panels2.has(owner.lease)) return;
   panels2.add(owner.lease);
-  const panel = new ScenePanel(owner, fetcher);
-  panel.show();
+  let panel;
+  try {
+    panel = new ScenePanel(owner, fetcher);
+    panel.show();
+  } catch (error) {
+    panels2.delete(owner.lease);
+    panel?.dispose();
+    throw error;
+  }
 }
 
-// web/settings/schema.ts
+// web/scripts/settings/schema.ts
 var unknownRecordSchema = record(string(), unknown());
 var settingNameSchema = pipe(string(), regex(browserPatterns.settingName));
 var settingDefinitionSchema = object({
@@ -3148,7 +3328,7 @@ function parseConfiguration(value) {
   };
 }
 
-// web/settings/api.ts
+// web/scripts/settings/api.ts
 async function requestConfiguration(fetcher, signal, route = browserRoutes.settings.status, method = "GET", body) {
   const options = {
     method,
@@ -3174,12 +3354,18 @@ async function requestConfiguration(fetcher, signal, route = browserRoutes.setti
     throw new Error(translate("settings.unreadableResponse"));
   }
   if (!response.ok) {
-    throw new Error(parsePublicError(document2) ?? translate("settings.saveFailed"));
+    const failures = /* @__PURE__ */ new Map([
+      ["GET", "settings.readFailed"],
+      ["DELETE", "settings.removeFailed"]
+    ]);
+    throw new Error(
+      parsePublicError(document2) ?? translate(failures.get(method) ?? "settings.saveFailed")
+    );
   }
   return parseConfiguration(document2);
 }
 
-// web/settings/dialog.ts
+// web/scripts/settings/dialog.ts
 var current2;
 var SettingsDialog = class {
   /**
@@ -3199,20 +3385,17 @@ var SettingsDialog = class {
     header.append(heading, close);
     this.status.setAttribute("role", "status");
     this.status.setAttribute("aria-live", "polite");
-    this.reload.addEventListener(
-      "click",
-      this.updateSettings.bind(this, message("settings.loaded"), void 0, void 0, void 0)
-    );
+    this.reload.addEventListener("click", () => this.updateSettings(message("settings.loaded")));
+    const footer = element("footer");
+    footer.append(this.status, this.reload);
     this.dialog.append(
       header,
-      this.source,
       this.credentials(),
       element("p", message("settings.keyNotice")),
       this.limits(),
       element("p", message("settings.timeNotice")),
       this.modelUpdates(),
-      this.status,
-      this.reload
+      footer
     );
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
@@ -3247,18 +3430,16 @@ var SettingsDialog = class {
     const clear = button(message("settings.clearKey"));
     clear.addEventListener(
       "click",
-      this.updateSettings.bind(
-        this,
+      () => this.updateSettings(
         message("settings.keyCleared"),
         browserRoutes.settings.credential,
-        "DELETE",
-        void 0
+        "DELETE"
       )
     );
     const actions = element("div");
     actions.className = "reactor-actions";
     actions.append(button(message("settings.saveKey"), "submit"), clear);
-    this.keyFields.append(element("legend", message("settings.credentials")), label, actions);
+    this.keyFields.append(element("legend", message("settings.credentials")), this.source, label, actions);
     form.append(this.keyFields);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -3291,10 +3472,10 @@ var SettingsDialog = class {
    * @param configuration - The validated limits and labels.
    */
   populateLimits(configuration) {
+    releaseText(this.limitFields);
     this.limitFields.replaceChildren(element("legend", message("settings.limits")));
     const additionalLimits = element("details");
     additionalLimits.append(element("summary", message("settings.advancedLimits")));
-    let index = 0;
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       if (name === "catalog_interval_hours") continue;
       const label = element(
@@ -3309,8 +3490,8 @@ var SettingsDialog = class {
       input.required = true;
       this.inputs.set(name, input);
       label.append(input);
-      (index < 2 ? this.limitFields : additionalLimits).append(label);
-      index += 1;
+      const primary = name === "max_capture_seconds" || name === "max_session_seconds";
+      (primary ? this.limitFields : additionalLimits).append(label);
     }
     this.limitFields.append(additionalLimits, button(message("settings.saveLimits"), "submit"));
   }
@@ -3468,6 +3649,7 @@ var SettingsDialog = class {
   dispose() {
     this.key.value = "";
     this.controller.abort();
+    releaseText(this.dialog);
     this.dialog.remove();
     if (current2 === this) current2 = void 0;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
@@ -3483,212 +3665,12 @@ function openSettings(fetcher) {
   current2.show();
 }
 
-// web/nodes/inputs.ts
-function connectedInputs(node) {
-  const names = /* @__PURE__ */ new Set();
-  for (const input of node.inputs) {
-    if (input.link != null) names.add(input.name);
-  }
-  return names;
-}
-function inputValues(node) {
-  const connected = connectedInputs(node);
-  const values = /* @__PURE__ */ new Map();
-  for (const widget of node.widgets ?? []) {
-    if (!values.has(widget.name) && !connected.has(widget.name))
-      values.set(widget.name, widget.value);
-  }
-  return values;
-}
-
-// web/discovery/rate.ts
-function requestedSeconds(node) {
-  const widgets = inputValues(node);
-  function value(name) {
-    const raw = widgets.get(name);
-    if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) return void 0;
-    return raw;
-  }
-  const factors = node.comfyClass ? nodePricingRules.multipliedDurationInputs[node.comfyClass] : void 0;
-  if (factors) {
-    const first = value(factors[0]);
-    const second = value(factors[1]);
-    return first !== void 0 && second !== void 0 ? first * second : void 0;
-  }
-  return value("duration_seconds");
-}
-var boundNodes = /* @__PURE__ */ new WeakSet();
-var current3;
-var CreditDialog = class {
-  /**
-   * Build the calculator for a node.
-   * @param node - The node whose public rate is requested.
-   */
-  constructor(node) {
-    this.node = node;
-    this.dialog.className = "reactor-dialog";
-    this.dialog.setAttribute("aria-labelledby", "reactor-rate-title");
-    const title = element("h2", message("pricing.title"));
-    title.id = "reactor-rate-title";
-    const close = button(message("close"));
-    close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
-    const header = element("header");
-    header.append(title, close);
-    const seconds = requestedSeconds(node);
-    const request = element(
-      "p",
-      seconds === void 0 ? message("pricing.unknownDuration") : message("pricing.requestedDuration", { seconds })
-    );
-    const label = element("label", message("pricing.sessionTime"));
-    this.duration.type = "number";
-    this.duration.min = "0.1";
-    this.duration.max = String(browserLimits.maxCalculatorSeconds);
-    this.duration.step = "any";
-    setTextAttribute(this.duration, "placeholder", message("pricing.enterTime"));
-    if (seconds !== void 0) this.duration.value = String(seconds);
-    label.append(this.duration);
-    this.validation.setAttribute("role", "status");
-    this.status.setAttribute("role", "status");
-    this.rates.setAttribute("aria-live", "polite");
-    this.dialog.append(
-      header,
-      request,
-      label,
-      this.validation,
-      element("p", message("pricing.estimateNotice")),
-      this.status,
-      this.rates
-    );
-    this.duration.addEventListener("input", this.updateView.bind(this));
-    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
-    this.updateView();
-  }
-  node;
-  dialog = element("dialog");
-  previousFocus = document.activeElement;
-  controller = new AbortController();
-  duration = element("input");
-  validation = element("p");
-  status = element("p", message("pricing.loading"));
-  rates = element("div");
-  models = [];
-  /**
-   * Read public rates from the local model list.
-   * @param fetcher - ComfyUI's local API client.
-   * @returns When rates or an error are displayed.
-   */
-  async readRates(fetcher) {
-    try {
-      const modelList = await requestModels(fetcher, this.controller.signal, "read");
-      if (this.controller.signal.aborted) return;
-      this.displayRates(modelList);
-    } catch (error) {
-      if (!this.controller.signal.aborted)
-        setText(
-          this.status,
-          error instanceof Error ? error.message : message("pricing.loadFailed")
-        );
-    }
-  }
-  /**
-   * Display rates for the selected node and update its calculation.
-   * @param modelList - The validated local model list.
-   */
-  displayRates(modelList) {
-    this.models = [];
-    for (const model of modelList.models) {
-      if (model.nodeIds.includes(this.node.comfyClass ?? "")) this.models.push(model);
-    }
-    setText(this.status, metadataStatus(modelList.retrievedAt));
-    if (!this.models.length) setText(this.status, message("pricing.modelUnavailable"));
-    this.updateView();
-  }
-  /** Validate session time and update every rate calculation. */
-  updateView() {
-    const valid = this.duration.value !== "" && this.duration.validity.valid;
-    setText(
-      this.validation,
-      valid ? "" : message("pricing.timeRange", {
-        maximum: browserLimits.maxCalculatorSeconds
-      })
-    );
-    this.rates.replaceChildren();
-    for (const model of this.models) {
-      this.rates.append(element("h3", model.title));
-      const seconds = valid ? this.duration.valueAsNumber : void 0;
-      for (const detail of formatCreditSummary(model, seconds))
-        this.rates.append(element("p", detail));
-    }
-  }
-  /**
-   * Show the calculator and read local rates.
-   * @param fetcher - ComfyUI's local API client.
-   */
-  show(fetcher) {
-    document.body.append(this.dialog);
-    this.dialog.showModal();
-    void this.readRates(fetcher);
-  }
-  /** Stop the request and return focus to the caller. */
-  dispose() {
-    this.controller.abort();
-    this.dialog.remove();
-    if (current3 === this) current3 = void 0;
-    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
-      this.previousFocus.focus();
-  }
-};
-function openCreditRate(node, fetcher) {
-  if (current3?.dialog.open) {
-    current3.dialog.focus();
-    return;
-  }
-  current3 = new CreditDialog(node);
-  current3.show(fetcher);
-}
-function bindCreditRate(node, fetcher) {
-  const id = node.comfyClass;
-  if (!id?.startsWith("ReactorInc") || nodePricingRules.excludedNodeIds.includes(id)) return;
-  if (boundNodes.has(node)) return;
-  boundNodes.add(node);
-  const widget = node.addWidget(
-    "button",
-    translate("pricing.viewRate"),
-    "",
-    openCreditRate.bind(null, node, fetcher),
-    {
-      serialize: false
-    }
-  );
-  widget.serialize = false;
-  const refreshLabel = () => {
-    const label = translate("pricing.viewRate");
-    if (widget.label !== label) {
-      widget.label = label;
-      node.graph?.setDirtyCanvas(true);
-    }
-  };
-  refreshLabel();
-  languageEvents.addEventListener("change", refreshLabel);
-  const removed = node.onRemoved?.bind(node);
-  node.onRemoved = function(...args) {
-    languageEvents.removeEventListener("change", refreshLabel);
-    boundNodes.delete(node);
-    if (current3?.node === node) current3.dialog.close();
-    removed?.apply(this, args);
-  };
-}
-
-// web/extension.ts
+// web/scripts/extension.ts
 app2.registerExtension({
   name: "reactor.inc.configuration",
   init: initializeLanguage,
   setup: () => {
     app2.ui.settings.addEventListener("Comfy.Locale.change", refreshText);
-    app2.ui.settings.addEventListener(
-      "Comfy.Locale.change",
-      languageEvents.dispatchEvent.bind(languageEvents, new Event("change"))
-    );
     const stylesheet = document.createElement("link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = new URL("./extension.css", import.meta.url).href;
@@ -3706,10 +3688,6 @@ app2.registerExtension({
       if (event instanceof CustomEvent) openControls(event.detail, requestLocal);
     });
   },
-  nodeCreated: (node) => {
-    if (!node.comfyClass?.startsWith("ReactorInc")) return;
-    bindCreditRate(node, requestLocal);
-  },
   commands: [
     {
       id: "ReactorInc.OpenSettings",
@@ -3719,7 +3697,7 @@ app2.registerExtension({
     {
       id: "ReactorInc.OpenCatalog",
       label: translate("models.title"),
-      function: openModels.bind(null, requestLocal, void 0)
+      function: openModels.bind(null, requestLocal)
     }
   ],
   menuCommands: [

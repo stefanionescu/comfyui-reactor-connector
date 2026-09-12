@@ -14,8 +14,8 @@ from ..errors import ErrorCode, ConnectorError
 from ..execution.transport import Track, Transport
 
 
-class CameraInteraction:
-    """Watch a LingBot session and stop recording if the browser disconnects."""
+class BrowserInteraction:
+    """Own browser previews, optional camera commands, and disconnect handling."""
 
     def __init__(self, lease: BrowserLease) -> None:
         """Prepare preview, camera-command, and session timing ownership."""
@@ -87,15 +87,19 @@ class CameraInteraction:
             self.controls_seconds = time.monotonic() - self.controls_started_at
         self.lease.finish()
         self.preview.close()
-        if self.track is not None:
-            self.track.off_frame(self.preview.receive)
-            self.track = None
-        if self.worker is not None:
-            self.worker.cancel()
-            await asyncio.gather(self.worker, return_exceptions=True)
-            self.worker = None
-        if self.commands is not None:
-            await self.commands.stop()
+        try:
+            if self.track is not None:
+                self.track.off_frame(self.preview.receive)
+                self.track = None
+        finally:
+            try:
+                if self.worker is not None:
+                    self.worker.cancel()
+                    await asyncio.gather(self.worker, return_exceptions=True)
+                    self.worker = None
+            finally:
+                if self.commands is not None:
+                    await self.commands.stop()
 
     def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
         """Publish the final failure and termination status to the owning client."""

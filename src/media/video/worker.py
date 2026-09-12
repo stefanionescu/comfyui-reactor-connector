@@ -8,6 +8,7 @@ from fractions import Fraction
 from types import TracebackType
 from collections.abc import Iterator
 from typing import Self, cast, Protocol
+from config.media.images import RGB_CHANNELS
 from src.state.workers import SourceSettings
 from av.container.input import InputContainer
 from config.media.video import (
@@ -16,15 +17,15 @@ from config.media.video import (
     ENCODER_PRESET,
     MAX_FRAME_RATE,
     MIN_SOURCE_FRAMES,
+    HDR_TRANSFER_CODES,
     MAX_COMPONENT_BITS,
     MAX_FRAME_DIMENSION,
     MIN_FRAME_DIMENSION,
     ENCODER_PIXEL_FORMAT,
-    BROWSER_RECORDING_FRAME_RATE,
 )
 
 
-BROWSER_WORKER_ARGUMENT_COUNT = 8
+SOURCE_WORKER_ARGUMENT_COUNT = 7
 
 
 class VideoStream(Protocol):
@@ -81,7 +82,7 @@ def prepare(settings: SourceSettings) -> dict[str, int | str]:
             file,
             mode="r",
             options={
-                "format_whitelist": "matroska,webm" if settings.browser_recording else "mov,matroska,webm,avi",
+                "format_whitelist": "mov,matroska,webm,avi",
                 "protocol_whitelist": "pipe",
             },
         ) as reader,
@@ -91,19 +92,10 @@ def prepare(settings: SourceSettings) -> dict[str, int | str]:
             msg = "source_streams"
             raise SourceError(msg)
         input_stream = reader.streams.video[0]
-        if settings.browser_recording and (
-            len(reader.streams) != 1 or input_stream.codec_context.name not in ("vp8", "vp9")
-        ):
-            msg = "recording_video"
-            raise SourceError(msg)
-        if input_stream.codec_context.color_trc in (16, 18):
+        if input_stream.codec_context.color_trc in HDR_TRANSFER_CODES:
             msg = "source_hdr"
             raise SourceError(msg)
         rate = input_stream.average_rate
-        if settings.browser_recording and rate is None:
-            # WebM from MediaRecorder may omit a frame rate. This rate initializes
-            # the encoder; each source timestamp below still sets when its frame appears.
-            rate = Fraction(BROWSER_RECORDING_FRAME_RATE)
         if rate is None or not 1 <= rate <= MAX_FRAME_RATE:
             msg = "source_rate"
             raise SourceError(msg)
@@ -128,7 +120,7 @@ def validate_frame(frame: av.VideoFrame, output: VideoStream, frame_bytes: int) 
         or not MIN_FRAME_DIMENSION <= frame.height <= MAX_FRAME_DIMENSION
         or frame.width % 2
         or frame.height % 2
-        or frame.width * frame.height * 3 > frame_bytes
+        or frame.width * frame.height * RGB_CHANNELS > frame_bytes
         or any(component.bits > MAX_COMPONENT_BITS for component in frame.format.components)
     ):
         msg = "frame_size"
@@ -136,7 +128,7 @@ def validate_frame(frame: av.VideoFrame, output: VideoStream, frame_bytes: int) 
 
 
 def source_frames(reader: InputContainer, settings: SourceSettings) -> Iterator[tuple[av.VideoFrame, Fraction]]:
-    """Select increasing source timestamps and skip duplicate browser timestamps without shifting later frames."""
+    """Select source frames with strictly increasing timestamps."""
     previous_time: Fraction | None = None
     origin: Fraction | None = None
     for frame in reader.decode(reader.streams.video[0]):
@@ -146,14 +138,9 @@ def source_frames(reader: InputContainer, settings: SourceSettings) -> Iterator[
         current = frame.pts * frame.time_base
         if origin is None:
             origin = current
-        if previous_time is not None and (
-            current < previous_time or (current == previous_time and not settings.browser_recording)
-        ):
+        if previous_time is not None and current <= previous_time:
             msg = "timestamps"
             raise SourceError(msg)
-        if current == previous_time:
-            # MediaRecorder can give several frames one timestamp. Keep their original timeline.
-            continue
         previous_time = current
         relative = float(current - origin)
         if relative < settings.start_seconds:
@@ -188,8 +175,9 @@ def copy_frames(
         if settings.destination.exists() and settings.destination.stat().st_size > settings.maximum_bytes:
             msg = "file_limit"
             raise SourceError(msg)
-    if frames < (1 if settings.browser_recording else MIN_SOURCE_FRAMES):
-        raise SourceError("no_frames" if settings.browser_recording else "source_frames")
+    if frames < MIN_SOURCE_FRAMES:
+        msg = "source_frames"
+        raise SourceError(msg)
     for packet in output.encode():
         writer.mux(packet)
     return frames
@@ -197,7 +185,7 @@ def copy_frames(
 
 def read_settings(arguments: list[str]) -> SourceSettings:
     """Parse the fixed worker command without accepting provider text or remote input paths."""
-    if len(arguments) not in (7, 8) or (len(arguments) == BROWSER_WORKER_ARGUMENT_COUNT and arguments[7] != "browser"):
+    if len(arguments) != SOURCE_WORKER_ARGUMENT_COUNT:
         msg = "source_video"
         raise SourceError(msg)
     return SourceSettings(
@@ -207,24 +195,23 @@ def read_settings(arguments: list[str]) -> SourceSettings:
         duration_seconds=float(arguments[4]),
         maximum_bytes=int(arguments[5]),
         frame_bytes=int(arguments[6]),
-        browser_recording=len(arguments) == BROWSER_WORKER_ARGUMENT_COUNT,
     )
 
 
 def main(arguments: list[str]) -> int:
     """Accept only local paths and non-secret preparation limits."""
-    sys.stdout.write(str(json.dumps({"ready": True})) + "\n")
+    sys.stdout.write(json.dumps({"ready": True}) + "\n")
     sys.stdout.flush()
     try:
         result = prepare(read_settings(arguments))
     except SourceError as error:
-        sys.stdout.write(str(json.dumps({"error": str(error)})) + "\n")
+        sys.stdout.write(json.dumps({"error": str(error)}) + "\n")
         sys.stdout.flush()
         return 1
     except Exception:  # noqa: BLE001 -- reason: The worker protocol permits only fixed error codes, never native exception text.
-        sys.stdout.write(str(json.dumps({"error": "source_video"})) + "\n")
+        sys.stdout.write(json.dumps({"error": "source_video"}) + "\n")
         sys.stdout.flush()
         return 1
-    sys.stdout.write(str(json.dumps(result)) + "\n")
+    sys.stdout.write(json.dumps(result) + "\n")
     sys.stdout.flush()
     return 0

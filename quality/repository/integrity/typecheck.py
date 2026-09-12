@@ -39,8 +39,10 @@ def project_python_files(root: Path, relative_config_path: str) -> set[str]:
     if "stubPath" in payload:
         msg = "Use installed dependency types instead of a local stubPath."
         raise JsonConfigError(msg)
-    includes = require_string_list(payload.get("include"), f"{relative_config_path}.include", is_nonempty=True)
-    excludes = require_string_list(payload.get("exclude", []), f"{relative_config_path}.exclude", is_nonempty=True)
+    includes = require_string_list(payload.get("include"), f"{relative_config_path}.include", are_items_nonempty=True)
+    excludes = require_string_list(
+        payload.get("exclude", []), f"{relative_config_path}.exclude", are_items_nonempty=True
+    )
     included_files: set[str] = set()
     for pattern in includes:
         matches = _expand_pattern(resolved_root, config_path, pattern)

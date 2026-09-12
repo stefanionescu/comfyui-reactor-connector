@@ -22,7 +22,7 @@ class ConfigurationGeneration:
             self.invalidate()
 
     def snapshot(self, settings: Settings, credential: Credential) -> ExecutionConfiguration:
-        """Return a random token, independent of key bytes and account identifiers."""
+        """Return settings and credentials with a cache token renewed when execution inputs change."""
         previous = self._previous
         generation = previous.generation if previous is not None else secrets.token_hex(16)
         if previous is not None and (
@@ -43,4 +43,4 @@ def _execution_settings(settings: Settings) -> dict[str, object]:
     }
 
 
-__all__ = ["ConfigurationGeneration", "ExecutionConfiguration"]
+__all__ = ["ConfigurationGeneration"]

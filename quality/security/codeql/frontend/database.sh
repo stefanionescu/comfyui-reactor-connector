@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Configure and run CodeQL database scans.
+# Prepare frontend CodeQL database paths and command arguments, then run the scan.
 # Runtime: Bash 3.2+, macOS and Linux.
 # shellcheck disable=SC2154
 # lint:justify -- reason: scan.sh supplies these values before sourcing and calling this file.
@@ -9,7 +9,8 @@ source "${REPO_ROOT}/quality/security/codeql/cleanup.sh"
 
 # codeql_configure_paths - Validates scan paths and prepares artifact paths.
 # Globals:
-#   Reads repository and CodeQL settings; sets artifact_root, database_dir, and sarif_file.
+#   Reads REPO_ROOT, CODEQL_ARTIFACT_ROOT, CODEQL_DATABASE_DIR_PREFIX,
+#   CODEQL_SARIF_EXTENSION, and language. Sets artifact_root, database_dir, and sarif_file.
 # Arguments:
 #   Source root and scan configuration path.
 # Outputs:
@@ -43,7 +44,8 @@ codeql_configure_paths() {
 
 # codeql_cleanup_database - Removes the database unless retention is enabled.
 # Globals:
-#   Reads keep_database, database_dir, artifact_root, and language.
+#   Reads REPO_ROOT, keep_database, database_dir, artifact_root, language,
+#   and CODEQL_DATABASE_DIR_PREFIX.
 # Arguments:
 #   None.
 # Outputs:
@@ -53,12 +55,12 @@ codeql_configure_paths() {
 codeql_cleanup_database() {
   [[ ${keep_database} == '1' ]] && return 0
   [[ ${database_dir} == "${artifact_root}/${CODEQL_DATABASE_DIR_PREFIX}${language}."* ]] || return 1
-  runtime_remove_owned_path "${REPO_ROOT}" "${database_dir}"
+  codeql_remove_database "${REPO_ROOT}" "${database_dir}"
 }
 
 # codeql_create_arguments - Builds database creation command arguments.
 # Globals:
-#   Reads CodeQL settings and database_dir; writes create_args.
+#   Reads language, threads, ram_mb, and database_dir; writes create_args.
 # Arguments:
 #   Source root and scan configuration path.
 # Outputs:
@@ -88,7 +90,8 @@ codeql_create_arguments() {
 
 # codeql_analyze_arguments - Builds database analysis command arguments.
 # Globals:
-#   Reads CodeQL settings and query_suites; writes analyze_args.
+#   Reads CODEQL_SARIF_FORMAT, sarif_file, threads, ram_mb, database_dir,
+#   and query_suites; writes analyze_args.
 # Arguments:
 #   None.
 # Outputs:

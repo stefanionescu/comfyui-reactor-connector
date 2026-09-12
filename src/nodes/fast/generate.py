@@ -20,18 +20,17 @@ from ....config.generation.fast import (
 
 
 class FastGenerate(io.ComfyNode):
-    """Build one clip, wait for readiness, and save its playback with sound."""
+    """Generate one clip, wait for readiness, and save its playback with sound."""
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("fast-queued-recording-v1")
 
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        controls = generation_controls("fast")
-        controls[1] = io.Float.Input(
+        duration = io.Float.Input(
             "duration_seconds",
             display_name="Video length (seconds)",
             tooltip=(
@@ -47,10 +46,10 @@ class FastGenerate(io.ComfyNode):
             node_id="ReactorIncFastGenerate",
             display_name="Fast H3: Generate Video (Reactor)",
             category="Reactor/Generate",
-            description="Generate a video clip with sound. Help explains clip lengths, images, and saving.",
+            description="Generate a video clip with sound and optional first and last images.",
             search_aliases=["Reactor", "Fast H3", "FastH3", "audio"],
             inputs=[
-                *controls,
+                *generation_controls("fast", duration=duration),
                 io.Combo.Input("aspect", display_name="Aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
                 io.Image.Input(
                     "image",

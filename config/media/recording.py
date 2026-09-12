@@ -10,6 +10,7 @@ COORDINATOR = "https://api.reactor.inc"
 
 RECORDING_STORAGE = {
     "https://reactor-uploads-fpcx.s3.us-east-2.amazonaws.com",
+    "https://reactor-uploads-s906.s3.ap-southeast-1.amazonaws.com",
     "https://reactor-uploads-zl7p.s3.eu-west-3.amazonaws.com",
 }
 

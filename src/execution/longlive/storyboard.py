@@ -12,7 +12,7 @@ from ....config.generation.prompts import OPTIONS_TRANSITION, MAX_SHOTS, MAX_SHO
 def validate_shot(shot: Shot) -> None:
     """Check the later chunk, transition choice, and shot prompt."""
     if type(shot.at_session_chunk) is not int or not 1 <= shot.at_session_chunk <= MAX_SHOT_CHUNK:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotChunk"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotChunk", maximum=MAX_SHOT_CHUNK))
     if shot.transition not in OPTIONS_TRANSITION:
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotTransition"))
     if type(shot.prompt) is not str or not shot.prompt.strip() or len(shot.prompt) > MAX_PROMPT_CHARACTERS:

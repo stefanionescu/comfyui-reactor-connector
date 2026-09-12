@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import yaml
 from pathlib import Path
 from quality.lib.files import read_utf8
 from quality.lib.output import write_error
+from quality.lib.json_config import require_mapping, require_string_list
 
 
 def main() -> int:
@@ -22,18 +24,11 @@ def main() -> int:
 
 def codeql_paths(source_text: str) -> list[str]:
     """Return path entries from the CodeQL YAML config."""
-    paths: list[str] = []
-    is_in_paths = False
-    for line in source_text.splitlines():
-        if line.startswith("paths:"):
-            is_in_paths = True
-            continue
-        if is_in_paths and line and not line.startswith(" "):
-            break
-        if is_in_paths:
-            stripped = line.strip()
-            if stripped.startswith("- "):
-                paths.append(stripped[2:].strip())
+    policy = require_mapping(yaml.safe_load(source_text), "CodeQL configuration")
+    paths = require_string_list(policy.get("paths"), "CodeQL paths", are_items_nonempty=True)
+    if not paths or any(not path.strip() for path in paths):
+        msg = "CodeQL configuration must include a nonempty paths list."
+        raise ValueError(msg)
     return paths
 
 

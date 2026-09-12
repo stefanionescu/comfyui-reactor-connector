@@ -52,7 +52,7 @@ def read_policy(root: str | Path = ".") -> NamingPolicy:
     vocabulary = read_json_mapping(Path(root) / NAMING_TERMS_PATH)
     require_keys(vocabulary, required={"banned_terms"}, context=NAMING_TERMS_PATH)
     banned_terms = require_string_list(
-        vocabulary["banned_terms"], f"{NAMING_TERMS_PATH}.banned_terms", is_nonempty=True
+        vocabulary["banned_terms"], f"{NAMING_TERMS_PATH}.banned_terms", are_items_nonempty=True
     )
     global_policy["banned_terms"] = banned_terms
     validate_languages(require_mapping(payload["languages"], f"{NAMING_POLICY_PATH}.languages"))
@@ -65,12 +65,14 @@ def read_policy(root: str | Path = ".") -> NamingPolicy:
     excluded_paths = require_string_list(
         payload["excluded_paths"],
         f"{NAMING_POLICY_PATH}.excluded_paths",
-        is_nonempty=True,
+        are_items_nonempty=True,
     )
     if any(not value.startswith("/") or not value.endswith("/") for value in excluded_paths):
         message = f"{NAMING_POLICY_PATH}.excluded_paths entries must start and end with /"
         raise JsonConfigError(message)
-    require_string_list(payload["excluded_basenames"], f"{NAMING_POLICY_PATH}.excluded_basenames", is_nonempty=True)
+    require_string_list(
+        payload["excluded_basenames"], f"{NAMING_POLICY_PATH}.excluded_basenames", are_items_nonempty=True
+    )
     return cast("NamingPolicy", payload)
 
 
@@ -92,7 +94,7 @@ def validate_languages(languages: dict[str, object]) -> None:
         require_int(policy["max_characters"], f"{context}.max_characters", minimum=1)
         require_int(policy["max_words"], f"{context}.max_words", minimum=1)
         for category in keys - {"max_characters", "max_words"}:
-            cases = require_string_list(policy[category], f"{context}.{category}", is_nonempty=True)
+            cases = require_string_list(policy[category], f"{context}.{category}", are_items_nonempty=True)
             unknown = sorted(set(cases) - NAMING_CASES)
             if unknown:
                 message = f"{context}.{category} has unknown cases: {', '.join(unknown)}"
@@ -105,11 +107,11 @@ def validate_rules(rules: list[dict[str, object]], banned_terms: set[str]) -> No
         context = f"{NAMING_POLICY_PATH}.name_rules[{index}]"
         require_keys(rule, required={"path_regexes"}, optional=NAMING_RULE_OPTIONAL_KEYS, context=context)
         validate_regexes(
-            require_string_list(rule["path_regexes"], f"{context}.path_regexes", is_nonempty=True), context
+            require_string_list(rule["path_regexes"], f"{context}.path_regexes", are_items_nonempty=True), context
         )
         for key in ("languages", "categories", "names"):
             if key in rule:
-                require_string_list(rule[key], f"{context}.{key}", is_nonempty=True)
+                require_string_list(rule[key], f"{context}.{key}", are_items_nonempty=True)
         if "structural_prefix_regexes" in rule:
             patterns = require_string_list(rule["structural_prefix_regexes"], f"{context}.structural_prefix_regexes")
             validate_regexes(patterns, f"{context}.structural_prefix_regexes")
@@ -122,8 +124,10 @@ def validate_rules(rules: list[dict[str, object]], banned_terms: set[str]) -> No
 
 def validate_term_exception(rule: dict[str, object], context: str, banned_terms: set[str]) -> None:
     """Limit vocabulary exceptions to named declarations and exact banned terms."""
-    names = require_string_list(rule.get("names"), f"{context}.names", is_nonempty=True)
-    terms = require_string_list(rule["allowed_banned_terms"], f"{context}.allowed_banned_terms", is_nonempty=True)
+    names = require_string_list(rule.get("names"), f"{context}.names", are_items_nonempty=True)
+    terms = require_string_list(
+        rule["allowed_banned_terms"], f"{context}.allowed_banned_terms", are_items_nonempty=True
+    )
     reason = rule.get("reason")
     if any(not name.strip() for name in names) or not isinstance(reason, str) or not reason.strip():
         message = f"{context} requires exact nonempty names and a reason"

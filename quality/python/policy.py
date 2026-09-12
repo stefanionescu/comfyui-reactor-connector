@@ -59,7 +59,7 @@ def read_import_policy(root: Path) -> ImportPolicy:
     )
     version = require_version(payload["version"], IMPORT_POLICY_PATH)
     package_roots = require_string_list(
-        payload["package_roots"], f"{IMPORT_POLICY_PATH}.package_roots", is_nonempty=True
+        payload["package_roots"], f"{IMPORT_POLICY_PATH}.package_roots", are_items_nonempty=True
     )
     for package_root in package_roots:
         if not (root / package_root).is_dir():
@@ -112,7 +112,7 @@ def read_package_policy(root: Path) -> PackagePolicy:
     validated_pairs: list[list[str]] = []
     for index, pair in enumerate(pairs):
         values = require_string_list(
-            pair, f"{PACKAGE_POLICY_PATH}.allow_package_api_imports[{index}]", is_nonempty=True
+            pair, f"{PACKAGE_POLICY_PATH}.allow_package_api_imports[{index}]", are_items_nonempty=True
         )
         if len(values) != PACKAGE_API_PAIR_SIZE:
             message = f"{PACKAGE_POLICY_PATH}.allow_package_api_imports[{index}] must contain two names"

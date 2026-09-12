@@ -1,3 +1,4 @@
+import { posix } from 'node:path';
 import { normalizePath } from '#shared/eslint/plugin/path-policy/normalization.js';
 
 /**
@@ -7,19 +8,6 @@ import { normalizePath } from '#shared/eslint/plugin/path-policy/normalization.j
  * @returns `true` when the file is an `index` entry file; otherwise, `false`.
  */
 export const isIndexFile = (filename) => {
-  const normalized = normalizePath(filename);
-  if (
-    normalized === 'index.ts' ||
-    normalized === 'index.tsx' ||
-    normalized === 'index.js' ||
-    normalized === 'index.jsx'
-  ) {
-    return true;
-  }
-  return (
-    normalized.endsWith('/index.ts') ||
-    normalized.endsWith('/index.tsx') ||
-    normalized.endsWith('/index.js') ||
-    normalized.endsWith('/index.jsx')
-  );
+  const filenameOnly = posix.basename(normalizePath(filename));
+  return ['index.ts', 'index.tsx', 'index.js', 'index.jsx'].includes(filenameOnly);
 };

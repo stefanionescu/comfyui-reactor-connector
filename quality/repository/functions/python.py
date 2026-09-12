@@ -165,7 +165,15 @@ class FunctionVisitor(ast.NodeVisitor):
         statements = executable_statements(node)
         is_flat = not any(isinstance(statement, COMPOUND_STATEMENT_TYPES) for statement in statements)
         identity = function_identity(self.record.name, context.qualified_name)
-        is_single_use = self.repository.reference_counts.get(identity, 0) <= 1
+        # A local count cannot establish usage through instances, public APIs, or callbacks.
+        is_local_function = context.name.startswith("_") or context.qualified_name != context.name
+        has_one_direct_reference = (
+            self.repository.reference_counts.get(identity) == 1
+            and identity not in self.repository.indirect_references
+            and context.class_context is None
+            and not context.decorators
+            and is_local_function
+        )
         ast_nodes = sum(
             1 for statement in statements for child in ast.walk(statement) if not isinstance(child, AST_CONTEXT_TYPES)
         )
@@ -175,14 +183,15 @@ class FunctionVisitor(ast.NodeVisitor):
             and 0 < len(statements) <= self.policy["max_trivial_statements"]
             and ast_nodes <= self.policy["max_trivial_ast_nodes"]
             and is_flat
-            and is_single_use
+            and has_one_direct_reference
         ):
             self.violations.append(
                 function_diagnostic(
                     context,
                     node,
                     "python.trivial-function",
-                    f"single-use function has {len(statements)} executable statement(s); inline it",
+                    f"short local function has {len(statements)} executable statement(s) "
+                    "and one resolved call; review inlining",
                 ),
             )
 

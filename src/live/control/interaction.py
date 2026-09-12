@@ -4,7 +4,7 @@ import asyncio
 from .lease import ControlLease
 from ...language import translate
 from ...state.documents import Json
-from ..interaction import CameraInteraction
+from ..interaction import BrowserInteraction
 from ...execution.events import SessionEvents
 from ....config.live import INPUT_POLL_SECONDS
 from ...errors import ErrorCode, ConnectorError
@@ -13,7 +13,7 @@ from ....config.nodes import DEFAULT_POINTER_POSITION
 from ....config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
 
 
-class ControlInteraction(CameraInteraction):
+class ControlInteraction(BrowserInteraction):
     """Apply live editing actions while retaining the camera session lifecycle."""
 
     def __init__(self, lease: ControlLease) -> None:

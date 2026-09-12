@@ -110,7 +110,7 @@
         0,
         false
       ],
-      "title": "Helios: Animate a Local Image"
+      "title": "Helios: Animate a Local Image (Reactor)"
     },
     {
       "id": 4,
@@ -176,8 +176,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

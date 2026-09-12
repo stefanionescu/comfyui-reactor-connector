@@ -30,16 +30,17 @@ class ModuleFunctions:
 
 @dataclass(frozen=True)
 class RepositoryFunctions:
-    """Repository function identities and resolved reference counts."""
+    """Repository function identities, resolved references, and uses as callable values."""
 
     modules: dict[str, ModuleFunctions]
     function_by_dotted_name: dict[str, str]
     class_by_dotted_name: dict[str, str]
     reference_counts: Counter[str]
+    indirect_references: set[str]
 
 
 class ReferenceVisitor(ast.NodeVisitor):
-    """Count unambiguous references to repository-owned functions."""
+    """Count statically resolved function references without inferring instance types."""
 
     def __init__(self, repository: RepositoryFunctions, record: ModuleFunctions) -> None:
         """Create a reference visitor for one module."""
@@ -48,6 +49,11 @@ class ReferenceVisitor(ast.NodeVisitor):
         self.scope: list[str] = []
         self.class_scope: list[Scope] = []
         self.counts: Counter[str] = Counter()
+        self.indirect_references: set[str] = set()
+        tree = record.source.tree
+        self.call_targets: set[ast.expr] = (
+            {node.func for node in ast.walk(tree) if isinstance(node, ast.Call)} if tree else set()
+        )
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Visit one class scope."""
@@ -76,15 +82,21 @@ class ReferenceVisitor(ast.NodeVisitor):
         if isinstance(node.ctx, ast.Load):
             identity = self.name_identity(node.id)
             if identity is not None:
-                self.counts[identity] += 1
+                self.record_reference(identity, node)
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
         """Count one loaded class or module function attribute."""
         if isinstance(node.ctx, ast.Load):
             identity = self.attribute_identity(node)
             if identity is not None:
-                self.counts[identity] += 1
+                self.record_reference(identity, node)
         self.generic_visit(node)
+
+    def record_reference(self, identity: str, node: ast.expr) -> None:
+        """Count a reference and retain whether another caller can invoke its value."""
+        self.counts[identity] += 1
+        if node not in self.call_targets:
+            self.indirect_references.add(identity)
 
     def name_identity(self, name: str) -> str | None:
         """Resolve a local or imported function name."""
@@ -136,6 +148,7 @@ def build_repository_functions(sources: Sequence[PythonSource]) -> RepositoryFun
         function_by_dotted_name=function_by_dotted_name,
         class_by_dotted_name=class_by_dotted_name,
         reference_counts=Counter(),
+        indirect_references=set(),
     )
     for record in completed.values():
         tree = record.source.tree
@@ -143,6 +156,7 @@ def build_repository_functions(sources: Sequence[PythonSource]) -> RepositoryFun
             visitor = ReferenceVisitor(repository, record)
             visitor.visit(tree)
             repository.reference_counts.update(visitor.counts)
+            repository.indirect_references.update(visitor.indirect_references)
     return repository
 
 

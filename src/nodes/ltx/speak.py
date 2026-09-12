@@ -6,7 +6,7 @@ from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...state.generation.ltx import LtxSpeakRequest
-from ...execution.ltx.request import LtxSpeakOperation
+from ...execution.ltx.operation import LtxSpeakOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.speech import (
     DEFAULT_SCRIPT,
@@ -21,7 +21,7 @@ class LtxSpeak(io.ComfyNode):
 
     @classmethod
     async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include current settings and model metadata in the ComfyUI cache key."""
+        """Include the operation revision and private configuration token in the cache key."""
         return await operation_fingerprint("ltx-speech-recording-v1")
 
     @classmethod
@@ -30,7 +30,7 @@ class LtxSpeak(io.ComfyNode):
         return io.Schema(
             node_id="ReactorIncLtxSpeak",
             display_name="LTX: Make a Portrait Speak (Reactor)",
-            description="Animate a portrait speaking a script. Help explains framing, duration, and sound.",
+            description="Animate a portrait speaking a script and return video and separate audio.",
             category="Reactor/Generate",
             search_aliases=["Reactor", "LTX", "speech", "talking portrait"],
             inputs=[

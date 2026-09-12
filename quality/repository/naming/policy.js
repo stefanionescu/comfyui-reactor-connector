@@ -1,8 +1,8 @@
 import { VALID_SCOPES } from '#config/repository/scopes.js';
-import { requireDictionary, requireKeys } from '#shared/json.js';
 import { buildTermEntries } from '#shared/naming/identifier-parts.js';
 import vocabulary from '#config/naming/terms.json' with { type: 'json' };
 import rawPolicy from '#config/naming/javascript.json' with { type: 'json' };
+import { requireArray, requireDictionary, requireKeys } from '#shared/json.js';
 
 import {
   CASE_PATTERNS,
@@ -18,14 +18,6 @@ function policyRecord(value, required, optional, context) {
   return record;
 }
 
-function assertArray(value, key) {
-  if (!Array.isArray(value)) {
-    throw new Error(`${key} must be an array`);
-  }
-
-  return value;
-}
-
 function normalizeTerms(terms, key) {
   const normalized = normalizeOptionalTerms(terms, key);
   if (normalized.length === 0) {
@@ -38,7 +30,7 @@ function normalizeTerms(terms, key) {
 function normalizeOptionalTerms(value, key) {
   if (value === undefined) return [];
   const terms = new Set();
-  for (const term of assertArray(value, key)) {
+  for (const term of requireArray(value, key)) {
     if (typeof term !== 'string' || term.trim().length === 0) {
       throw new Error(`${key} must contain nonempty strings.`);
     }
@@ -74,7 +66,7 @@ function normalizeCases(value, context) {
 
 function buildNameRules(nameRules) {
   const rules = [];
-  for (const [index, entry] of assertArray(nameRules, 'nameRules').entries()) {
+  for (const [index, entry] of requireArray(nameRules, 'nameRules').entries()) {
     const rule = policyRecord(entry, ['pathRegexes'], NAMING_RULE_FIELDS, `nameRules[${index}]`);
     const pathRegexes = normalizeRegexList(rule.pathRegexes, `nameRules[${index}].pathRegexes`);
     if (pathRegexes.length === 0)
@@ -118,7 +110,7 @@ function readExceptions(rule, context) {
 
 function buildLocalTerms(localTerms) {
   const entries = [];
-  for (const [index, value] of assertArray(localTerms, 'local.bannedTerms').entries()) {
+  for (const [index, value] of requireArray(localTerms, 'local.bannedTerms').entries()) {
     const entry = policyRecord(value, ['scopes', 'terms'], [], `local.bannedTerms[${index}]`);
     const scopes = normalizeTerms(entry.scopes, `local.bannedTerms[${index}].scopes`);
 
@@ -163,7 +155,7 @@ function validateLanguage(value) {
 
 function reservedTerms(value) {
   const terms = [];
-  for (const [index, item] of assertArray(value, 'global.reservedTerms').entries()) {
+  for (const [index, item] of requireArray(value, 'global.reservedTerms').entries()) {
     const context = `global.reservedTerms[${index}]`;
     const entry = policyRecord(item, ['term', 'allowedKinds'], [], context);
     const [term] = normalizeTerms([entry.term], `${context}.term`);

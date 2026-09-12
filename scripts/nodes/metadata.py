@@ -1,6 +1,7 @@
 """Read host node schemas and validate registrations and translations."""
 
 import os
+import re
 import sys
 import argparse
 from pathlib import Path
@@ -9,6 +10,7 @@ from .translations import validate_translations
 from ...quality.lib.comfy import host_installation
 from ...src.serialization import parse_json, mapping_value
 from ...quality.lib.process import ProcessContext, run_command
+from ...quality.config.repository.translations import GUIDE_LOCALE_PATTERN
 
 
 def read_schemas() -> dict[str, Json]:
@@ -31,11 +33,16 @@ def validate_metadata(schemas: dict[str, Json]) -> list[str]:
     """Check supplied language resources against registered node schemas."""
     root = Path(__file__).resolve().parents[2]
     issues = validate_translations(root / "locales", schemas)
-    issues.extend(
-        f"Use a registered node ID for the guide {path.name}."
-        for path in sorted((root / "web/docs").glob("*.md"))
-        if path.stem not in schemas
-    )
+    for path in sorted((root / "web/docs").iterdir()):
+        if path.is_file() and path.suffix == ".md":
+            if path.stem not in schemas:
+                issues.append(f"Use a registered node ID for the guide {path.name}.")
+        elif path.is_dir():
+            if path.name not in schemas:
+                issues.append(f"Use a registered node ID for the guide directory {path.name}.")
+            for guide in sorted(path.glob("*.md")):
+                if not guide.is_file() or not re.fullmatch(GUIDE_LOCALE_PATTERN, guide.stem):
+                    issues.append(f"{guide}: Name localized guides with a language tag, such as en.md or zh-TW.md.")
     return issues
 
 

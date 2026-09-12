@@ -19,6 +19,10 @@ so the session has a clear stopping point.
 
 ## Run and save
 
+Saving requires one extra continuation, which uses credits and is excluded from
+the output. It requests up to 14.375 seconds; the session ends once your selected
+recording is ready.
+
 1. Open **fast-h3-05-continue-scene** or **fast-h3-06-continue-image** from Templates.
 2. Set the opening prompt. For the image example, upload a starting image.
 3. Choose a clip length and count. The examples request three clips of about six seconds.
@@ -31,8 +35,6 @@ one continuation ahead while earlier clips play. If the next clip is still
 building, the output holds the previous frame. That wait can lengthen the saved
 video. Allow room in your video duration limit for these waits.
 
-See recording overhead (**Recording overhead** in the bundled `ADVANCED.md`) for the additional
-continuation needed to finish saving.
 Setup, clip building, playback, and recording cleanup all count toward the session
 limit. A timeout discards the unfinished video; the connector does not start a
 replacement session automatically.
@@ -40,7 +42,7 @@ replacement session automatically.
 Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not cancel
 this ordinary workflow. The prompts and clip count are fixed when you select Run.
 
-Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
+For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 

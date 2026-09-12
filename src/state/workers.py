@@ -35,7 +35,6 @@ class SourceSettings:
         duration_seconds: Maximum selected duration.
         maximum_bytes: Maximum encoded output bytes.
         frame_bytes: Maximum decoded frame bytes.
-        browser_recording: Whether the source is a browser recording.
 
     """
 
@@ -45,7 +44,6 @@ class SourceSettings:
     duration_seconds: float
     maximum_bytes: int
     frame_bytes: int
-    browser_recording: bool
 
 
 __all__ = ["EncoderSettings", "SourceSettings"]

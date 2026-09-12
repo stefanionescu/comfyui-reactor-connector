@@ -7,7 +7,6 @@ import argparse
 from pathlib import Path
 from .layout import arrange
 from .notes import sections
-from .example import Example
 from .definitions import EXAMPLES
 from .index import workflow_index
 from ...src.state.documents import Json
@@ -16,46 +15,29 @@ from .models.helios import SEQUENCE_PROMPTS
 from ...src.serialization import mapping_value
 from ...src.language import translate, language_scope
 from ..nodes.metadata import read_schemas, validate_metadata
+from .example import (
+    Example,
+    FIRST_STEP_ID,
+    GENERATION_ID,
+    SAVE_AUDIO_ID,
+    SAVE_VIDEO_ID,
+    SETUP_NOTE_ID,
+    USAGE_NOTE_ID,
+    EXTRA_INPUT_ID,
+    SECOND_STEP_ID,
+    SOURCE_INPUT_ID,
+)
 from .serialize import (
+    build_node,
+    build_input,
+    build_output,
     output_types,
     widget_values,
+    save_workflows,
     validate_sources,
     native_widget_values,
-    validate_connections,
+    validate_node_sockets,
 )
-
-
-def build_node(node_id: int, kind: str, widgets: list[Json], *, title: str | None = None) -> dict[str, Json]:
-    """Create a serialized ComfyUI node with stable widget order and an optional display title."""
-    value: dict[str, Json] = {
-        "id": node_id,
-        "type": kind,
-        "pos": [0, 0],
-        "size": [0, 0],
-        "flags": {},
-        "order": node_id,
-        "mode": 0,
-        "inputs": [],
-        "outputs": [],
-        "properties": {"Node name for S&R": kind},
-        "widgets_values": widgets,
-    }
-    if title:
-        value["title"] = title
-    return value
-
-
-def build_output(name: str, kind: str, links: list[Json]) -> dict[str, Json]:
-    """Describe a serialized output socket and its links."""
-    return {"name": name, "type": kind, "links": links}
-
-
-def build_input(name: str, kind: str, link: int, *, has_widget: bool = False) -> dict[str, Json]:
-    """Describe a connected input and its optional widget binding."""
-    value: dict[str, Json] = {"name": name, "type": kind, "link": link}
-    if has_widget:
-        value["widget"] = {"name": name}
-    return value
 
 
 def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str, Json]) -> dict[str, Json]:
@@ -64,7 +46,7 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
     notes: list[Json] = [
         build_node(number, "MarkdownNote", [text], title=title)
         for number, title, text in zip(
-            (1, 8),
+            (SETUP_NOTE_ID, USAGE_NOTE_ID),
             (translate("workflows", "notes.start"), translate("workflows", "notes.usage")),
             sections(example, model),
             strict=True,
@@ -73,10 +55,10 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
     ]
     validate_sources(schemas[example.node_id], example.sources)
     widgets = widget_values(schemas[example.node_id], example.inputs)
-    generation = build_node(3, example.node_id, widgets, title=example.title)
+    generation = build_node(GENERATION_ID, example.node_id, widgets, title=example.title)
     generation["outputs"] = [build_output("video", "VIDEO", [1]), build_output("metadata", "STRING", [])]
     save = build_node(
-        4,
+        SAVE_VIDEO_ID,
         "SaveVideo",
         native_widget_values("SaveVideo", native["SaveVideo"], f"video/reactor/{example.slug}"),
         title=translate("workflows", "nodes.saveVideo"),
@@ -84,7 +66,7 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
     save["inputs"] = [build_input("video", "VIDEO", 1)]
     save["outputs"] = [build_output("video", "VIDEO", [])]
     nodes: list[Json] = [*notes, generation, save]
-    links: list[Json] = [[1, 3, 0, 4, 0, "VIDEO"]]
+    links: list[Json] = [[1, GENERATION_ID, 0, SAVE_VIDEO_ID, 0, "VIDEO"]]
     if "image" in example.sources:
         append_starting_image(nodes, links, generation, native)
     if "ending_image" in example.sources:
@@ -97,7 +79,7 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
         append_sound_output(example, nodes, links, generation, native)
     if example.plan == "prompts":
         append_prompt_sequence(example, nodes, links, generation, schemas)
-    validate_connections(nodes, schemas | native)
+    validate_node_sockets(nodes, schemas | native)
     extra = arrange(nodes, example, model)
     return {
         "last_node_id": 9,
@@ -116,14 +98,14 @@ def append_starting_image(
 ) -> None:
     """Add the example's starting image and its connections."""
     input_node = build_node(
-        2,
+        SOURCE_INPUT_ID,
         "LoadImage",
         native_widget_values("LoadImage", native["LoadImage"]),
         title=translate("workflows", "nodes.startingImage"),
     )
     input_node["outputs"] = [build_output("IMAGE", "IMAGE", [2]), build_output("MASK", "MASK", [])]
     generation["inputs"] = [build_input("image", "IMAGE", 2)]
-    links.append([2, 2, 0, 3, 0, "IMAGE"])
+    links.append([2, SOURCE_INPUT_ID, 0, GENERATION_ID, 0, "IMAGE"])
     nodes.insert(1, input_node)
 
 
@@ -133,7 +115,7 @@ def append_ending_image(
     """Add the example's ending image and its connections."""
     link_id = len(links) + 1
     ending_image = build_node(
-        5,
+        EXTRA_INPUT_ID,
         "LoadImage",
         native_widget_values("LoadImage", native["LoadImage"]),
         title=translate("workflows", "nodes.endingImage"),
@@ -142,7 +124,7 @@ def append_ending_image(
     incoming: list[Json] = [build_input("image", "IMAGE", 2)] if ("image" in example.sources) else []
     incoming.append(build_input("ending_image", "IMAGE", link_id))
     generation["inputs"] = incoming
-    links.append([link_id, 5, 0, 3, len(incoming) - 1, "IMAGE"])
+    links.append([link_id, EXTRA_INPUT_ID, 0, GENERATION_ID, len(incoming) - 1, "IMAGE"])
     nodes.append(ending_image)
 
 
@@ -151,25 +133,25 @@ def append_source_video(
 ) -> None:
     """Add the example's source video and its connections."""
     input_node = build_node(
-        2,
+        SOURCE_INPUT_ID,
         "LoadVideo",
         native_widget_values("LoadVideo", native["LoadVideo"]),
         title=translate("workflows", "nodes.sourceVideo"),
     )
     input_node["outputs"] = [build_output("VIDEO", "VIDEO", [2])]
     generation["inputs"] = [build_input("source", "VIDEO", 2)]
-    links.append([2, 2, 0, 3, 0, "VIDEO"])
+    links.append([2, SOURCE_INPUT_ID, 0, GENERATION_ID, 0, "VIDEO"])
     nodes.insert(1, input_node)
     if "reference_image" in example.sources:
         reference = build_node(
-            5,
+            EXTRA_INPUT_ID,
             "LoadImage",
             native_widget_values("LoadImage", native["LoadImage"]),
             title=translate("workflows", "nodes.referenceImage"),
         )
         reference["outputs"] = [build_output("IMAGE", "IMAGE", [3]), build_output("MASK", "MASK", [])]
         generation["inputs"] = [build_input("source", "VIDEO", 2), build_input("reference_image", "IMAGE", 3)]
-        links.append([3, 5, 0, 3, 1, "IMAGE"])
+        links.append([3, EXTRA_INPUT_ID, 0, GENERATION_ID, 1, "IMAGE"])
         nodes.append(reference)
 
 
@@ -178,7 +160,7 @@ def append_storyboard(
 ) -> None:
     """Add the example's storyboard and its connections."""
     first = build_node(
-        5,
+        FIRST_STEP_ID,
         "ReactorIncLongLiveAddShot",
         widget_values(
             schemas["ReactorIncLongLiveAddShot"],
@@ -193,7 +175,7 @@ def append_storyboard(
     )
     first["outputs"] = [build_output("storyboard", "STRING", [2])]
     second = build_node(
-        6,
+        SECOND_STEP_ID,
         "ReactorIncLongLiveAddShot",
         widget_values(
             schemas["ReactorIncLongLiveAddShot"],
@@ -209,7 +191,9 @@ def append_storyboard(
     second["inputs"] = [build_input("previous", "STRING", 2, has_widget=True)]
     second["outputs"] = [build_output("storyboard", "STRING", [3])]
     generation["inputs"] = [build_input("storyboard", "STRING", 3, has_widget=True)]
-    links.extend([[2, 5, 0, 6, 0, "STRING"], [3, 6, 0, 3, 0, "STRING"]])
+    links.extend(
+        [[2, FIRST_STEP_ID, 0, SECOND_STEP_ID, 0, "STRING"], [3, SECOND_STEP_ID, 0, GENERATION_ID, 0, "STRING"]]
+    )
     nodes.extend([first, second])
 
 
@@ -224,14 +208,14 @@ def append_sound_output(
         build_output("metadata", "STRING", []),
     ]
     sound = build_node(
-        7,
+        SAVE_AUDIO_ID,
         "SaveAudioAdvanced",
         native_widget_values("SaveAudioAdvanced", native["SaveAudioAdvanced"], f"audio/reactor/{example.slug}"),
         title=translate("workflows", "nodes.saveAudio"),
     )
     sound["inputs"] = [build_input("audio", "AUDIO", link_id)]
     sound["outputs"] = [build_output("audio", "AUDIO", [])]
-    links.append([link_id, 3, 1, 7, 0, "AUDIO"])
+    links.append([link_id, GENERATION_ID, 1, SAVE_AUDIO_ID, 0, "AUDIO"])
     nodes.append(sound)
 
 
@@ -242,7 +226,7 @@ def append_prompt_sequence(
     first_link = len(links) + 1
     second_link = first_link + 1
     first = build_node(
-        5,
+        FIRST_STEP_ID,
         "ReactorIncHeliosAddPrompt",
         widget_values(
             schemas["ReactorIncHeliosAddPrompt"],
@@ -252,7 +236,7 @@ def append_prompt_sequence(
     )
     first["outputs"] = [build_output("sequence", "STRING", [first_link])]
     second = build_node(
-        6,
+        SECOND_STEP_ID,
         "ReactorIncHeliosAddPrompt",
         widget_values(
             schemas["ReactorIncHeliosAddPrompt"],
@@ -267,8 +251,8 @@ def append_prompt_sequence(
     generation["inputs"] = incoming
     links.extend(
         [
-            [first_link, 5, 0, 6, 0, "STRING"],
-            [second_link, 6, 0, 3, len(incoming) - 1, "STRING"],
+            [first_link, FIRST_STEP_ID, 0, SECOND_STEP_ID, 0, "STRING"],
+            [second_link, SECOND_STEP_ID, 0, GENERATION_ID, len(incoming) - 1, "STRING"],
         ]
     )
     nodes.extend([first, second])
@@ -319,18 +303,13 @@ def main() -> int:
             sample_prefix=Path(os.path.relpath(canonical, destination)).as_posix(),
             license_path=Path(os.path.relpath(root / "LICENSE.md", destination)).as_posix(),
         )
-    for path, text in generated.items():
-        if args.check:
-            if not path.exists() or path.read_text() != text:
-                issues.append(f"Rebuild {path.name} with mise run workflows:build.")
-        else:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(text)
     issues.extend(
         f"Review the unindexed workflow {path.name}."
         for path in destination.rglob("*.json")
         if path.relative_to(destination).as_posix() not in expected
     )
+    if not issues:
+        issues.extend(save_workflows(generated, check=args.check))
     for issue in issues:
         sys.stdout.write(issue + "\n")
     return int(bool(issues))

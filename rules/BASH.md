@@ -189,12 +189,14 @@ Rules:
 - Keep generated shell snippets free of invisible bytes before the
   shebang.
 
-If a script has Windows line endings, convert it before review:
+If a script has Windows line endings, use the configured formatter:
 
 ```bash
-tr -d '\r' < "${script}" > "${script}.tmp"
-mv -- "${script}.tmp" "${script}"
+shfmt -w -- "${script}"
 ```
+
+Review the diff after formatting. The formatter also applies Bash formatting;
+it preserves quoted carriage returns and the existing executable mode.
 
 A file that starts with a BOM before `#!` may fail to execute as a script. Treat
 that the same as a broken shebang.
@@ -1057,13 +1059,14 @@ retry_count=$(( retry_count + 1 ))
 Validate external input:
 
 ```bash
-if [[ ! "${port}" =~ ^[0-9]+$ ]]; then
-  printf 'Error: port must be numeric\n' >&2
+if [[ ! "${port}" =~ ^[0-9]{1,5}$ ]]; then
+  printf 'Error: port must contain one to five decimal digits\n' >&2
   return 1
 fi
 
+port=$(( 10#${port} ))
 if (( port < 1 || port > 65535 )); then
-  printf 'Error: port is out of range\n' >&2
+  printf 'Error: port must be between 1 and 65535\n' >&2
   return 1
 fi
 ```
@@ -1381,11 +1384,18 @@ Safe file rewrite:
 
 ```bash
 tmp_file="$(mktemp "${file}.XXXXXX")" || return 1
+cp -p -- "${file}" "${tmp_file}" || {
+  rm -f -- "${tmp_file}"
+  return 1
+}
 sed 's/foo/bar/g' "${file}" >"${tmp_file}" || {
   rm -f -- "${tmp_file}"
   return 1
 }
-mv -- "${tmp_file}" "${file}"
+mv -- "${tmp_file}" "${file}" || {
+  rm -f -- "${tmp_file}"
+  return 1
+}
 ```
 
 Do not do:
@@ -1720,18 +1730,21 @@ printf '%s\n' "$$" >"${lock_dir}/pid" || {
 trap 'runtime_remove_owned_path "${REPO_ROOT}" "${lock_dir}"' EXIT
 ```
 
-Function-scoped cleanup:
+Function-scoped cleanup uses a subshell so its EXIT trap does not replace the
+caller's trap. This example needs only an owned temporary file:
 
 ```bash
-# _generate_in_temp_dir - Generates files in an owned temporary directory.
-_generate_in_temp_dir() {
-  local tmp_dir
-  tmp_dir="$(mktemp -d)" || return 1
-  trap 'rm -rf -- "${tmp_dir}"' RETURN
+# _generate_in_temp_file - Generates output in an owned temporary file.
+_generate_in_temp_file() (
+  local tmp_file
+  tmp_file="$(mktemp)" || return 1
+  trap 'rm -f -- "${tmp_file}"' EXIT
 
-  _write_output_files "${tmp_dir}"
-}
+  _write_output_file "${tmp_file}"
+)
 ```
+
+The caller supplies `_write_output_file`, which receives the temporary filename.
 
 Recursive deletion belongs to its single configured owner. Call that owner
 after validating the target:
@@ -2052,6 +2065,9 @@ set -x
 curl -fsSL "$url" | bash
 ```
 
+For file rewrites, use the checked example in
+[pipelines and redirection](#pipelines-and-redirection).
+
 Preferred replacements:
 
 ```bash
@@ -2095,10 +2111,6 @@ command 2>&1 | grep 'pattern'
 
 find . -type f -exec sh -c 'printf "%s\n" "$1"' sh {} \;
 find . -type f -print0 | xargs -0 command --
-
-tmp_file="$(mktemp "${file}.XXXXXX")" || return 1
-sed 's/foo/bar/' "${file}" >"${tmp_file}"
-mv -- "${tmp_file}" "${file}"
 
 local value
 value="$(command)" || return 1

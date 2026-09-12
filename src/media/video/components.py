@@ -54,7 +54,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         or not MIN_FRAME_DIMENSION <= height <= MAX_FRAME_DIMENSION
         or width % 2
         or height % 2
-        or width * height * 3 > convert_mebibytes_to_bytes(settings.max_queue_megabytes)
+        or width * height * RGB_CHANNELS > convert_mebibytes_to_bytes(settings.max_queue_megabytes)
     ):
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceDimensions"))
     count = min(total, math.ceil(settings.max_capture_seconds * rate))
@@ -65,6 +65,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         """Send selected tensor frames with timestamps and signal the end of input."""
         for index in range(count):
             pixels = await owned_io(partial(_pixels, images[index]))
+            # Zero selects fallback timing; keep every sender timestamp positive.
             timestamp = 1_000_000 + round(index * 1_000_000 / rate)
             writer.write(FRAME_HEADER.pack(width, height, timestamp))
             writer.write(pixels)

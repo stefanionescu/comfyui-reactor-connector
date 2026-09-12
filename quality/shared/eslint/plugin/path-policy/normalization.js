@@ -21,11 +21,7 @@ export const normalizeFilename = (filename) => {
  * @returns The normalized path string.
  */
 export function normalizePath(value) {
-  const pathText = value;
-  if (!pathText.includes('\\')) {
-    return pathText;
-  }
-  return pathText.replaceAll('\\', '/');
+  return value.replaceAll('\\', '/');
 }
 
 /**

@@ -121,7 +121,7 @@
         true,
         false
       ],
-      "title": "Visko Dynamic: Animate an Image with Sound"
+      "title": "Visko Dynamic: Animate an Image with Sound (Reactor)"
     },
     {
       "id": 4,
@@ -232,8 +232,8 @@
     "ds": {
       "scale": 0.6,
       "offset": [
-        20,
-        20
+        160,
+        200
       ]
     }
   },

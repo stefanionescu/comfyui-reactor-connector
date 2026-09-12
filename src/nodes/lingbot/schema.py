@@ -3,6 +3,7 @@
 from comfy_api.latest import io
 from ..controls import video_outputs, generation_controls
 from ....config.generation.world import (
+    CAMERA_AXES,
     DEFAULT_LATERAL,
     OPTIONS_LATERAL,
     DEFAULT_MOVEMENT,
@@ -19,14 +20,12 @@ from ....config.generation.world import (
 
 def _directions(*, world2: bool) -> list[io.Input]:
     """Build movement and rotation controls for the selected LingBot version."""
-    movement = ["idle", "forward", "back"]
-    if not world2:
-        movement.extend(["strafe_left", "strafe_right"])
+    movement = list(CAMERA_AXES["move_longitudinal" if world2 else "movement"])
     controls: list[io.Input] = [
         io.Combo.Input(
             "movement",
             display_name="Movement",
-            tooltip="Keep moving in this direction while recording. Choose Stop to stay in place.",
+            tooltip="Keep moving in this direction while recording. Choose idle to stay in place.",
             options=movement,
             default=DEFAULT_MOVEMENT,
         ),
@@ -60,7 +59,9 @@ def _directions(*, world2: bool) -> list[io.Input]:
             io.Float.Input(
                 "rotation_speed_deg",
                 display_name="Turn per step (degrees)",
-                tooltip="Turn amount per model step, in degrees. Larger values turn faster; 0 stops turning.",
+                tooltip=(
+                    "Degrees per latent frame, an internal model step. Larger values turn faster; 0 stops turning."
+                ),
                 default=DEFAULT_ROTATION_DEGREES,
                 min=MIN_ROTATION_SPEED,
                 max=MAX_ROTATION_SPEED,

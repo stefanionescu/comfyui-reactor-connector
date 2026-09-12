@@ -32,15 +32,15 @@ export function requireArray(value, name) {
 }
 
 /**
- * Requires a plain item value.
+ * Require a JSON object.
  *
  * @param {unknown} value Value to validate.
  * @param {string} name Value name.
- * @returns {Record<string, unknown>} The item value.
+ * @returns {Record<string, unknown>} The JSON object.
  */
 export function requireDictionary(value, name) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`${name} must be an item`);
+    throw new Error(`${name} must be a JSON object`);
   }
   return value;
 }

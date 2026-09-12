@@ -5,12 +5,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .src.extension import ReactorExtension
 
-# ComfyUI web assets
 
 WEB_DIRECTORY = "./web"
-
-
-# ComfyUI node registration
 
 
 async def comfy_entrypoint() -> "ReactorExtension":

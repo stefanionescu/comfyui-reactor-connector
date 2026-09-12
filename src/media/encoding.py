@@ -8,6 +8,7 @@ import numpy as np
 from pathlib import Path
 from fractions import Fraction
 from typing import cast, BinaryIO, Protocol
+from config.media.images import RGB_CHANNELS
 from contextlib import AbstractContextManager
 from src.state.workers import EncoderSettings
 from config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
@@ -65,7 +66,7 @@ def _receive(source: BinaryIO, limit: int) -> tuple[int, int, int, bytes] | None
         msg = "truncated"
         raise EncodingError(msg)
     width, height, timestamp = cast("tuple[int, int, int]", FRAME_HEADER.unpack(header))
-    size = width * height * 3
+    size = width * height * RGB_CHANNELS
     if (
         not (
             MIN_FRAME_DIMENSION <= width <= MAX_FRAME_DIMENSION and MIN_FRAME_DIMENSION <= height <= MAX_FRAME_DIMENSION
@@ -117,7 +118,7 @@ def _encode_frames(
             raise EncodingError(msg)
         if pts >= settings.duration_us:
             break
-        array = np.frombuffer(pixels, dtype=np.uint8).reshape(height, width, 3)
+        array = np.frombuffer(pixels, dtype=np.uint8).reshape(height, width, RGB_CHANNELS)
         frame = av.VideoFrame.from_ndarray(array, format="rgb24")
         frame.pts, frame.time_base = pts, Fraction(1, 1_000_000)
         _mux(container, stream.encode(frame), settings)
@@ -139,7 +140,7 @@ def encode(source: BinaryIO, settings: EncoderSettings) -> dict[str, str | int]:
         stream.time_base = Fraction(1, 1_000_000)
         stream.codec_context.time_base = Fraction(1, 1_000_000)
         stream.options = {"preset": ENCODER_PRESET, "crf": ENCODER_CRF}
-        sys.stdout.write(str(json.dumps({"ready": True})) + "\n")
+        sys.stdout.write(json.dumps({"ready": True}) + "\n")
         sys.stdout.flush()
         frames, mode = _encode_frames(source, container, stream, settings)
     if settings.path.stat().st_size > settings.output_bytes:
@@ -152,7 +153,13 @@ def read_settings(arguments: list[str]) -> EncoderSettings:
     """Parse the fixed capture worker command and require positive encoding limits."""
     if len(arguments) != WORKER_ARGUMENT_COUNT:
         raise ValueError
-    settings = EncoderSettings(Path(arguments[1]), *(int(value) for value in arguments[2:]))
+    settings = EncoderSettings(
+        path=Path(arguments[1]),
+        duration_us=int(arguments[2]),
+        frame_bytes=int(arguments[3]),
+        output_bytes=int(arguments[4]),
+        fps=int(arguments[5]),
+    )
     if min(settings.duration_us, settings.frame_bytes, settings.output_bytes, settings.fps) < 1:
         raise ValueError
     return settings
@@ -163,13 +170,13 @@ def main(arguments: list[str]) -> int:
     try:
         result = encode(sys.stdin.buffer, read_settings(arguments))
     except EncodingError as error:
-        sys.stdout.write(str(json.dumps({"error": str(error)})) + "\n")
+        sys.stdout.write(json.dumps({"error": str(error)}) + "\n")
         sys.stdout.flush()
         return 1
     except Exception:  # noqa: BLE001 -- reason: The worker protocol permits only fixed error codes, never native exception text.
-        sys.stdout.write(str(json.dumps({"error": "encoder_failed"})) + "\n")
+        sys.stdout.write(json.dumps({"error": "encoder_failed"}) + "\n")
         sys.stdout.flush()
         return 1
-    sys.stdout.write(str(json.dumps(result)) + "\n")
+    sys.stdout.write(json.dumps(result) + "\n")
     sys.stdout.flush()
     return 0

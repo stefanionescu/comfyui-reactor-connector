@@ -55,19 +55,26 @@
     },
     "nameRules": [
         {
+            "pathRegexes": ["^web/scripts/live/scene\\.ts$"],
+            "categories": ["properties"],
+            "names": ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"],
+            "caseNames": ["pascal"],
+            "reason": "These are browser KeyboardEvent.key values."
+        },
+        {
             "pathRegexes": ["^quality/config/security/"],
             "categories": ["files"],
             "caseNames": ["kebab"]
         },
         {
-            "pathRegexes": ["^web/live/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/api\\.ts$"],
             "categories": ["properties"],
             "names": ["preview_sequence"],
             "caseNames": ["snake"],
             "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
         },
         {
-            "pathRegexes": ["^web/discovery/schema\\.ts$"],
+            "pathRegexes": ["^web/scripts/discovery/schema\\.ts$"],
             "categories": ["properties"],
             "names": [
                 "automatic_check",
@@ -86,7 +93,7 @@
             "reason": "These fields are deserialized from the local ComfyUI API and must keep their wire names."
         },
         {
-            "pathRegexes": ["^web/live/schema\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/schema\\.ts$"],
             "categories": ["properties"],
             "names": [
                 "allow_empty_prompt",
@@ -105,7 +112,7 @@
             "reason": "These fields are deserialized from private ComfyUI events and must keep their wire names."
         },
         {
-            "pathRegexes": ["^web/settings/schema\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/schema\\.ts$"],
             "categories": ["properties"],
             "names": [
                 "catalog_auto_check",
@@ -152,6 +159,7 @@
                 "@typescript-eslint",
                 "local/import-path-style",
                 "local/no-trivial-functions",
+                "max-lines",
                 "n/no-process-exit",
                 "no-alert",
                 "no-restricted-imports",
@@ -452,154 +460,147 @@
             "reason": "ESLint rule identifiers use these kebab-case names."
         },
         {
-            "pathRegexes": ["^web/discovery/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/discovery/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
             "allowedViolations": ["case"],
             "reason": "HTTP headers retain their protocol names."
         },
         {
-            "pathRegexes": ["^web/discovery/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/discovery/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["X-Reactor-Comfy"],
             "allowedViolations": ["case"],
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/discovery/dialog\\.ts$"],
+            "pathRegexes": ["^web/scripts/discovery/dialog\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/discovery/rate\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["once"],
-            "allowedViolations": ["banned-term"],
-            "reason": "DOM event listeners use the once option."
-        },
-        {
-            "pathRegexes": ["^web/live/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
             "allowedViolations": ["case"],
             "reason": "HTTP headers retain their protocol names."
         },
         {
-            "pathRegexes": ["^web/live/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["X-Reactor-Comfy"],
             "allowedViolations": ["case"],
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/live/commands\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/commands\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
             "allowedViolations": ["case"],
             "reason": "HTTP headers retain their protocol names."
         },
         {
-            "pathRegexes": ["^web/live/commands\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/commands\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["X-Reactor-Comfy"],
             "allowedViolations": ["case"],
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/live/controls\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/controls\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/live/drag\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/drag\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/live/input\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/input\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/live/input\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/input\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["look_horizontal", "look_vertical", "move_lateral", "move_longitudinal"],
             "allowedViolations": ["case"],
             "reason": "Reactor camera commands use these exact field names."
         },
         {
-            "pathRegexes": ["^web/live/pointer\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/pointer\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/live/scene\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/scene\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/live/webcam\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/webcam\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
             "allowedViolations": ["case"],
             "reason": "HTTP headers retain their protocol names."
         },
         {
-            "pathRegexes": ["^web/live/webcam\\.ts$"],
+            "pathRegexes": ["^web/scripts/live/webcam\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["X-Reactor-Capability", "X-Reactor-Comfy", "X-Reactor-Lease", "X-Reactor-Sequence"],
             "allowedViolations": ["case"],
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/settings/schema\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/schema\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["catalog_auto_check", "catalog_interval_hours"],
             "allowedViolations": ["banned-term"],
             "reason": "The local settings API uses these persisted field names."
         },
         {
-            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
             "allowedViolations": ["case"],
             "reason": "HTTP headers retain their protocol names."
         },
         {
-            "pathRegexes": ["^web/settings/api\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["X-Reactor-Comfy"],
             "allowedViolations": ["case"],
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/settings/dialog\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/dialog\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
         },
         {
-            "pathRegexes": ["^web/settings/dialog\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/dialog\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["catalog_auto_check", "catalog_interval_hours"],
             "allowedViolations": ["banned-term", "case"],
             "reason": "The local settings API uses these persisted field names."
         },
         {
-            "pathRegexes": ["^web/settings/dialog\\.ts$"],
+            "pathRegexes": ["^web/scripts/settings/dialog\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["api_key"],
             "allowedViolations": ["case"],

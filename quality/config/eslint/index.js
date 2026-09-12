@@ -146,7 +146,7 @@ export default [
   qualityToolingOverrides,
   ...boundaryOverrides,
   {
-    files: ['web/extension.ts', 'web/language.ts', 'web/http.ts'],
+    files: ['web/scripts/extension.ts', 'web/scripts/language.ts', 'web/scripts/http.ts'],
     rules: {
       // ComfyUI serves these modules outside the connector's bundled directory.
       'local/import-path-style': [
@@ -162,6 +162,13 @@ export default [
           externalSources: ['../../scripts/app.js', '../../scripts/api.js'],
         },
       ],
+    },
+  },
+  {
+    files: ['web/scripts/live/controls.ts'],
+    rules: {
+      // Keep the live panel's setup, request lifetime, and disposal in one owner.
+      'max-lines': ['error', { max: 360, skipBlankLines: true, skipComments: true }],
     },
   },
   prettierConfig,
