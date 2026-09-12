@@ -11,11 +11,11 @@ import logging
 from pathlib import Path
 from functools import partial
 from ...language import translate
-from .state import SessionOutcome
 from ...media.output import owned_io
 from ...serialization import parse_json
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from ...state.session import SessionOutcome
 from ...errors import ErrorCode, ConnectorError
 from ...storage import atomic_write, read_private, private_directory
 

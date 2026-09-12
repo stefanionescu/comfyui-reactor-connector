@@ -4,7 +4,7 @@ import re
 import math
 import textwrap
 from .example import Example
-from ...src.serialization import Json
+from ...src.state.documents import Json
 
 GAP = 60
 INPUT_WIDTH = 400
@@ -22,19 +22,19 @@ def note_height(text: str, width: int) -> int:
     return math.ceil(height / 20) * 20
 
 
-def model_height(example: Example) -> int:
+def model_height(example: Example, model: str) -> int:
     """Reserve prompt space and the controls used by this model."""
     choices = (
         (example.clip_count > 1, 460),
-        (example.model.startswith("visko"), 470),
-        (example.model == "ltx2", 410),
-        (example.model.startswith("lingbot"), 420),
-        (example.model == "x2" and example.mode != "webcam", 360),
+        (model.startswith("visko"), 470),
+        (model == "ltx2", 410),
+        (model.startswith("lingbot"), 420),
+        (model == "x2" and example.mode != "webcam", 360),
     )
     return next((height for applies, height in choices if applies), 330)
 
 
-def arrange(nodes: list[Json], example: Example) -> dict[str, Json]:
+def arrange(nodes: list[Json], example: Example, model: str) -> dict[str, Json]:
     """Align columns while keeping each note and node sized for its content."""
     records = [item for item in nodes if isinstance(item, dict)]
     by_id = {item["id"]: item for item in records if isinstance(item["id"], int)}
@@ -56,7 +56,7 @@ def arrange(nodes: list[Json], example: Example) -> dict[str, Json]:
             top = max(top, 60 + height + GAP)
     positions = {
         2: (40, top, INPUT_WIDTH, 310),
-        3: (model_x, top, MODEL_WIDTH, model_height(example)),
+        3: (model_x, top, MODEL_WIDTH, model_height(example, model)),
         4: (output_x, top, OUTPUT_WIDTH, 310),
         5: (40, top + 310 + GAP, INPUT_WIDTH, 310),
         7: (output_x, top + 310 + GAP, OUTPUT_WIDTH, 130),
@@ -65,7 +65,7 @@ def arrange(nodes: list[Json], example: Example) -> dict[str, Json]:
         positions[5] = (40, top, INPUT_WIDTH, 240)
         positions[6] = (40, top + 340, INPUT_WIDTH, 240)
         if "image" in example.sources:
-            positions[2] = (model_x, top + model_height(example) + GAP, MODEL_WIDTH, 310)
+            positions[2] = (model_x, top + model_height(example, model) + GAP, MODEL_WIDTH, 310)
     elif ("ending_image" in example.sources) and "image" not in example.sources:
         positions[5] = (40, top, INPUT_WIDTH, 310)
     for number, (x, y, width, height) in positions.items():

@@ -59,9 +59,9 @@ does not accept a starting image.
 
 [LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

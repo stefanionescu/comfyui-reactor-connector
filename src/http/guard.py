@@ -1,7 +1,7 @@
 """Apply the same local access and safe error rules to connector routes."""
 
 from aiohttp import web
-from ..serialization import Json
+from ..state.documents import Json
 from ..errors import ConnectorError
 from .security import require_local_request
 from ...config.security import PRIVATE_HEADERS

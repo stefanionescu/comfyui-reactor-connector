@@ -7,8 +7,8 @@ import math
 import asyncio
 from uuid import UUID
 from ...language import translate
-from dataclasses import dataclass
 from typing import cast, TYPE_CHECKING
+from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
 from ....config.generation.fast import FRAME_RATE, MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
 
@@ -16,53 +16,43 @@ if TYPE_CHECKING:
     from ..events import SessionEvents
 
 
-@dataclass(frozen=True, slots=True)
-class FastClip:
-    """A generated Fast H3 clip and its reported frame count, duration, and readiness."""
-
-    clip_id: str
-    seconds: float
-    frames: int
-    ready: bool
-
-    @classmethod
-    def read(cls, payload: dict[str, object]) -> FastClip:
-        """Validate the clip identity, readiness, and agreement between duration and frame count."""
-        raw = payload.get("clip")
-        if not isinstance(raw, dict):
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipMissing"))
-        clip = cast("dict[str, object]", raw)
-        identity, frames, ready = clip.get("clip_id"), clip.get("frames"), clip.get("ready")
-        duration = seconds(clip.get("seconds"))
-        if not isinstance(identity, str):
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier"))
-        try:
-            canonical = str(UUID(identity))
-        except ValueError:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier")) from None
-        if canonical != identity:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier"))
-        if (
-            type(frames) not in (int, float)
-            or not 1 <= cast("float", frames) <= MAX_CLIP_FRAMES
-            or int(cast("float", frames)) != frames
-            or type(ready) is not bool
-            or not math.isclose(duration, cast("float", frames) / FRAME_RATE, abs_tol=0.001)
-        ):
-            raise ConnectorError(
-                ErrorCode.UNAVAILABLE,
-                translate("main", "errors.clipLength"),
-                diagnostic_detail=json.dumps(
-                    {
-                        "frames_type": type(frames).__name__,
-                        "frames": frames if type(frames) in (int, float) else None,
-                        "seconds": duration,
-                        "ready_type": type(ready).__name__,
-                    }
-                ),
-            )
-        count = int(cast("float", frames))
-        return cls(identity, count / FRAME_RATE, count, ready)
+def read_clip(payload: dict[str, object]) -> FastClip:
+    """Validate the clip identity, readiness, and agreement between duration and frame count."""
+    raw = payload.get("clip")
+    if not isinstance(raw, dict):
+        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipMissing"))
+    clip = cast("dict[str, object]", raw)
+    identity, frames, ready = clip.get("clip_id"), clip.get("frames"), clip.get("ready")
+    duration = seconds(clip.get("seconds"))
+    if not isinstance(identity, str):
+        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier"))
+    try:
+        canonical = str(UUID(identity))
+    except ValueError:
+        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier")) from None
+    if canonical != identity:
+        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipIdentifier"))
+    if (
+        type(frames) not in (int, float)
+        or not 1 <= cast("float", frames) <= MAX_CLIP_FRAMES
+        or int(cast("float", frames)) != frames
+        or type(ready) is not bool
+        or not math.isclose(duration, cast("float", frames) / FRAME_RATE, abs_tol=0.001)
+    ):
+        raise ConnectorError(
+            ErrorCode.UNAVAILABLE,
+            translate("main", "errors.clipLength"),
+            diagnostic_detail=json.dumps(
+                {
+                    "frames_type": type(frames).__name__,
+                    "frames": frames if type(frames) in (int, float) else None,
+                    "seconds": duration,
+                    "ready_type": type(ready).__name__,
+                }
+            ),
+        )
+    count = int(cast("float", frames))
+    return FastClip(identity, count / FRAME_RATE, count, ready)
 
 
 class FastClipEvents:
@@ -99,7 +89,7 @@ class FastClipEvents:
         """Validate a clip update and advance generation or playback signals."""
         if kind in ("clip_failed", "clip_stopped"):
             raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.clipUnfinished"))
-        clip = FastClip.read(message_payload(envelope, str(kind)))
+        clip = read_clip(message_payload(envelope, str(kind)))
         if len(self.clips) >= self.limit and clip.clip_id not in self.clips:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipsUnexpected"))
         self.clips[clip.clip_id] = clip

@@ -4,12 +4,11 @@ import time
 import secrets
 import threading
 from collections import deque
-from .state import BrowserInput
 from ..language import translate
-from ..serialization import Json
-from dataclasses import dataclass
+from ..state.documents import Json
 from collections.abc import Callable
 from ..errors import ErrorCode, ConnectorError
+from ..state.live import BrowserInput, BrowserExchange
 from ...config.live import (
     LEASE_BYTES,
     MAX_SEQUENCE,
@@ -20,17 +19,6 @@ from ...config.live import (
     CLIENT_TIMEOUT_SECONDS,
     MAX_PREVIEW_CHARACTERS,
 )
-
-
-@dataclass(frozen=True, slots=True)
-class _BrowserExchange:
-    """Validated input for one browser state exchange."""
-
-    sequence: int
-    axes: dict[str, Json]
-    end: bool
-    release: bool
-    preview_sequence: int
 
 
 class BrowserLease:
@@ -91,7 +79,7 @@ class BrowserLease:
         ):
             raise unavailable()
 
-    def _parse_exchange(self, document: dict[str, Json]) -> _BrowserExchange:
+    def _parse_exchange(self, document: dict[str, Json]) -> BrowserExchange:
         """Validate untrusted browser state before acquiring the session lock."""
         expected = {"lease", "capability", "sequence", "axes", "end", "release", "preview_sequence"}
         if document.keys() != expected:
@@ -113,9 +101,9 @@ class BrowserLease:
             or (release and any(value != "idle" for value in axes.values()))
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraStateRequired"))
-        return _BrowserExchange(sequence, axes, end, release, preview_sequence)
+        return BrowserExchange(sequence, axes, end, release, preview_sequence)
 
-    def _accept_exchange(self, exchange: _BrowserExchange, now: float) -> None:
+    def _accept_exchange(self, exchange: BrowserExchange, now: float) -> None:
         """Apply ordered browser state while the caller holds the session lock."""
         if not self.closed and now - self.last_seen > CLIENT_TIMEOUT_SECONDS:
             self.end = True

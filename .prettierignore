@@ -5,7 +5,9 @@ node_modules/
 bun.lock
 uv.lock
 requirements.txt
-web/dist/
+/node.zip
+web/extension.js
+web/extension.css
 workflows/**/*.json
 workflows/README.md
 rules/DOCUMENTATION.md

@@ -12,13 +12,12 @@
         "allowImportingTsExtensions": true,
         "noEmit": true,
         "types": [],
+        "skipLibCheck": true,
         "paths": {
             "#web/*": ["./web/*"],
-            "#config/*": ["./config/*"],
             "#locales/*": ["./locales/*"]
         },
         "resolveJsonModule": true
     },
-    "include": ["web/**/*.ts", "config/**/*.ts"],
-    "exclude": ["web/dist"]
+    "include": ["web/**/*.ts"]
 }

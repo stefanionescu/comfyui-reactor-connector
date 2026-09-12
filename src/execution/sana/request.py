@@ -1,52 +1,51 @@
 """Prepare the source video before asking SANA to edit it."""
 
 import asyncio
-from pathlib import Path
 from ...models import MODELS
 from ...language import translate
 from ..transport import Transport
 from .contract import source_mode
 from typing import cast, ClassVar
 from ..events import SessionEvents
-from ...settings.schema import Settings
-from ..operation import RecordingWindow
+from ...state.settings import Settings
 from ..interaction import FramePublisher
-from dataclasses import field, dataclass
+from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
+from ...state.generation.sana import SanaRequest
 from ...media.video.publish import VideoPublication
-from ..inputs import VideoInputs, validate_capture_inputs
 from ....config.generation.session import MAX_PROMPT_CHARACTERS
-from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
+from ..inputs import VideoInputOperation, validate_capture_inputs
+from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
 
 
-@dataclass(frozen=True, slots=True)
-class SanaRequest(VideoInputs):
-    """Edit an uploaded clip; source acceptance is separate from upload completion.
+class SanaOperation(VideoInputOperation[SanaRequest]):
+    """Own source publication and model commands for one SANA edit.
 
     Attributes:
-        video: Optional prepared source video path.
-        webcam: Optional live input frame publisher.
-        anchor_interval: Number of chunks between anchors.
+        webcam: Optional browser camera that publishes source frames.
         publication: Owned source video publisher.
 
     """
 
-    video: Path | None = None
-    webcam: FramePublisher | None = None
-    anchor_interval: int = DEFAULT_ANCHOR_INTERVAL
     connection_name: ClassVar[str] = MODELS["sana-streaming"].connection_name
-    publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
+
+    def __init__(self, inputs: SanaRequest, *, webcam: FramePublisher | None = None) -> None:
+        """Bind source inputs, the optional webcam, and their publication owner."""
+        super().__init__(inputs)
+        self.webcam = webcam
+        self.publication = VideoPublication()
 
     def validate(self, settings: Settings) -> None:
         """Check capture limits, source availability, prompt size, and anchor interval."""
-        validate_capture_inputs(self.duration_seconds, self.seed, settings)
-        if type(self.prompt) is not str or len(self.prompt) > MAX_PROMPT_CHARACTERS:
+        inputs = self.inputs
+        validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
+        if type(inputs.prompt) is not str or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sanaPromptLength"))
-        if self.video is None and self.webcam is None:
+        if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         if (
-            type(self.anchor_interval) is not int
-            or not MIN_ANCHOR_INTERVAL <= self.anchor_interval <= MAX_ANCHOR_INTERVAL
+            type(inputs.anchor_interval) is not int
+            or not MIN_ANCHOR_INTERVAL <= inputs.anchor_interval <= MAX_ANCHOR_INTERVAL
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.anchorInterval"))
 
@@ -55,7 +54,8 @@ class SanaRequest(VideoInputs):
     ) -> RecordingWindow:
         """Prepare the source using the declared model contract and start video editing."""
         del max_capture_seconds
-        if self.video is None and self.webcam is None:
+        inputs = self.inputs
+        if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         schema = await events.call("schema", transport.request_schema())
         mode = source_mode(schema, transport)
@@ -63,21 +63,21 @@ class SanaRequest(VideoInputs):
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sanaWebcamUnsupported"))
         if mode == "file":
             await self._accept_file(transport, events)
-        await events.command_reply("set_seed", {"seed": self.seed})
-        if self.prompt.strip():
-            await events.command_reply("set_prompt", {"prompt": self.prompt})
-        await events.command_reply("set_anchor_interval", {"chunks": self.anchor_interval})
+        await events.command_reply("set_seed", {"seed": inputs.seed})
+        if inputs.prompt.strip():
+            await events.command_reply("set_prompt", {"prompt": inputs.prompt})
+        await events.command_reply("set_anchor_interval", {"chunks": inputs.anchor_interval})
         if mode == "file":
             await events.command_reply("set_mode", {"mode": "file"})
         else:
             track = await events.call("publish_camera", transport.publish_track("camera"))
             if self.webcam is not None:
                 await self.webcam.begin(track, events.on_error)
-            elif self.video is not None:
-                await self.publication.begin(self.video, track, events.on_error)
+            elif inputs.video is not None:
+                await self.publication.begin(inputs.video, track, events.on_error)
         await events.command_reply("start", {})
         self.publication.resume()
-        return RecordingWindow(0, self.duration_seconds)
+        return RecordingWindow(0, inputs.duration_seconds)
 
     async def release(self, transport: Transport) -> None:
         """Stop source publication and close any webcam input."""
@@ -88,7 +88,7 @@ class SanaRequest(VideoInputs):
 
     async def _accept_file(self, transport: Transport, events: SessionEvents) -> None:
         """Upload the source and wait for model acceptance, then remove the temporary listener."""
-        if self.video is None:
+        if self.inputs.video is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         accepted = asyncio.Event()
 
@@ -108,9 +108,12 @@ class SanaRequest(VideoInputs):
         transport.on("message", observe)
         try:
             reference = await events.call(
-                "upload", transport.upload_file(self.video, name="input.mp4", mime_type="video/mp4")
+                "upload", transport.upload_file(self.inputs.video, name="input.mp4", mime_type="video/mp4")
             )
             await events.command_reply("set_video", {"video": reference})
             await accepted.wait()
         finally:
             transport.off("message", observe)
+
+
+__all__ = ["SanaOperation"]

@@ -1,4 +1,4 @@
-import { browserLimits } from '#config/web/browser.ts';
+import { browserLimits } from '#web/browser.ts';
 
 /**
  * Convert held keys to the model's supported movement axes.

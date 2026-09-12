@@ -1,8 +1,8 @@
 # ComfyUI Reactor Connector: Advanced Guide
 
 Use this guide for settings, live controls, model updates, and recovery. For
-installation and your first run, see [the setup guide](README.md). Each node's **Help**
-action explains its inputs and model-specific limits.
+installation and your first run, see [the setup guide](README.md). Each node's
+native **Info** explains its inputs and model-specific limits.
 
 ## Contents
 
@@ -14,9 +14,10 @@ action explains its inputs and model-specific limits.
 - [Recording details](#recording-details)
 - [Recording overhead](#recording-overhead)
 - [Recovery](#recovery)
-- [Update, restore, or remove](#update-restore-or-remove)
+- [Update or remove](#update-or-remove)
 - [Language](#language)
 - [Development commands](#development-commands)
+- [Official packaging and publishing](#official-packaging-and-publishing)
 
 ## Keys and access
 
@@ -82,7 +83,7 @@ for actual charges. A missing or unconfirmed rate produces no calculation.
 
 The dialog shows when rates were checked. Refresh the model list for current
 public prices. To compare models, open **Reactor models** and expand **Calculate
-credits for session time**. Help and credit controls are not saved as node inputs.
+credits for session time**. Credit-rate controls are not saved as node inputs.
 
 ## Model updates
 
@@ -128,6 +129,11 @@ list and retry at the configured interval. Closing ComfyUI stops checking.
 Choose a recording duration before running. The live panel belongs to the
 ComfyUI window that started the workflow. Leaving it open does not extend the
 session. Find the examples in the [workflow index](workflows/README.md).
+
+Noninteractive generation can run through the ComfyUI API without a browser.
+Interactive and webcam modes require the browser that submitted the workflow; a
+bare API client cannot supply their controls. A browser is not required for the
+local prompt-sequence and storyboard builders.
 
 | Task                                     | Use                                                     |
 | ---------------------------------------- | ------------------------------------------------------- |
@@ -223,7 +229,6 @@ another node to inspect it; saving the video does not save this text separately.
 | `run_id`                           | Random local execution ID; grants no session access.               |
 | `node_id`, `model_name`            | Node ID and model connection name used for the run.                |
 | `connector_version`, `sdk_version` | Connector and installed Reactor SDK versions.                      |
-| `package_identity`                 | Package content ID, or `null` for a checkout without a manifest.   |
 | `frames`                           | Number of encoded video frames.                                    |
 | `width`, `height`                  | Saved dimensions in pixels.                                        |
 | `file_bytes`                       | Completed MP4 size, including embedded audio.                      |
@@ -265,7 +270,7 @@ to the whole run.
 
 ## Recovery
 
-Read the error and the node's **Help** before trying again. Pausing a video preview does not stop its session.
+Read the error and the node's native **Info** before trying again. Pausing a video preview does not stop its session.
 
 | Problem                      | Next step                                                                                        |
 | ---------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -297,24 +302,22 @@ credential, and URLs are removed. The file is replaced by the next failure.
 It is not served to the window or included in workflow results, but it can contain
 private prompt or model details. Review any excerpt before sharing it.
 
-## Update, restore, or remove
+## Update or remove
 
-Finish or cancel active work, wait for sessions to end, then stop ComfyUI.
-Keep a backup of the connector folder outside `custom_nodes`. Replace the whole
-folder with the new package, install its runtime requirements using ComfyUI's
-Python, and restart. Refresh the ComfyUI window.
+Finish or cancel active work, wait for sessions to end, then stop ComfyUI
+before changing the connector.
+
+After a Registry release exists, update or uninstall the connector through
+**ComfyUI Manager** like any other registered package. For a source checkout,
+replace the whole `custom_nodes/reactor-inc` folder with the new source, install
+its runtime requirements using ComfyUI's Python, and restart. Refresh the
+ComfyUI window.
 
 Keep only one installed copy in `custom_nodes` to avoid duplicate nodes and menus.
 
 Open an updated example in a new workflow tab. Existing tabs and saved graphs
 keep their own notes, prompts, and layout. Copy settings you want to reuse before
 closing the old graph.
-
-Restore a previous package by replacing the whole folder with its backup and
-installing that version's requirements. Back up private state before changing
-versions. An older package may not understand newer state or nodes. Restore a
-matching state backup only after all sessions end; never remove a wait record
-to force a run.
 
 To remove the connector, move its folder outside `custom_nodes` and restart.
 Keep shared Python dependencies that other packs may use. Removing or updating
@@ -355,6 +358,16 @@ Quality tools run from the repository root. ComfyUI starts media workers through
 the root launcher in isolated Python processes; those workers use only the media
 modules and static configuration.
 
+Browser TypeScript and CSS in `web/` build to the served `web/extension.js` and
+`web/extension.css`. Node guides in `web/docs/` are native Markdown.
+Runtime data records live in `src/state/` and import only the standard library
+and each other; import-linter enforces this. Operational behavior stays with its
+existing domain modules. Frontend checks use the official ComfyUI frontend
+types: `skipLibCheck` skips dependency declaration internals, and the Zod 3 peer
+is pinned as an explicit reviewed dev dependency, not a shim. The four-value
+native SaveVideo widget form is checked statically against the backend schema
+and frontend 1.49.6 source; no host workflows were executed.
+
 Python checks read types from your actual ComfyUI installation. Set its source
 directory in your terminal before running development commands:
 
@@ -387,14 +400,13 @@ in the connector package.
 | `mise run type:python`     | Check Python types against the selected ComfyUI installation.                                     |
 | `mise run frontend:build`  | Build the shipped JavaScript and CSS.                                                             |
 | `mise run workflows:build` | Build the example graphs and workflow index.                                                      |
-| `mise run docs:build`      | Build native node help and local HTML guides.                                                     |
 | `mise run deps:export`     | Generate runtime requirements from project metadata.                                              |
 | `mise run models:check`    | Read public prices and guides without saving them.                                                |
 | `mise run models:validate` | Check node registrations and translations.                                                        |
 | `mise run audit:python`    | Check Python dependencies against advisory services.                                              |
 | `mise run audit:frontend`  | Check frontend dependencies against advisory services.                                            |
 | `mise run security:rules`  | Download and verify the pinned Semgrep rule packs.                                                |
-| `mise run release:package` | Check and build a ComfyUI archive without publishing it.                                          |
+| `mise run release:package` | Run checks, then build the official `node.zip` with comfy-cli and inspect it locally.             |
 
 Pre-commit checks scan staged changes for secrets and reject staged private
 settings files. They also check source files, frontend types, and generated output
@@ -403,24 +415,56 @@ directory. Hooks do not stash or rewrite your work.
 
 Builds write generated assets; checks and hooks do not install dependencies or
 start generation. Dependency audits need network access and do not apply fixes.
-Archives include only the public runtime files, with a content hash in their
-filename and a manifest recording their hashes.
 
-To install an archive built from this checkout, pass the actual ComfyUI source
-directory containing `main.py` and `comfy_api`:
-
-```sh
-mise run comfy:install -- --host "/path/to/ComfyUI"
-```
-
-Stop that instance first. The installer preserves a managed previous copy in
-`.reactor-package-backups` beside ComfyUI and refuses to replace an unmanaged
-folder. Install runtime requirements with the host's Python, then restart.
-
-The package includes top-level copies of grouped workflow files because ComfyUI's
-Templates browser reads that level. Source checkouts can open the grouped JSON
-files directly. Rebuild examples before packaging.
+The workflow builder writes flat JSON files under `workflows/`, the
+directory ComfyUI's native Templates browser reads. The same files appear in
+native **Browse Templates → reactor-inc** from a checkout and from an installed
+package. Rebuild examples before packaging.
 
 Python checks use actual ComfyUI and dependency types. Where an upstream API lacks
 complete annotations, the code defines only the interface it consumes. Check
 changed host calls manually in the installed ComfyUI as well.
+
+## Official packaging and publishing
+
+`mise run` tasks are development-only. `mise run release:package` runs the
+project checks, then performs official local packaging and inspection. It does
+not publish.
+
+The packaging flow is:
+
+1. Supply real Registry publisher and repository metadata in `pyproject.toml`;
+   both are currently pending. Review the version and any dependency or lock
+   changes.
+2. Run `mise run deps:export`, `mise run workflows:build`,
+   `mise run frontend:build`, and an authorized `mise run check`.
+3. Pack from tracked, reviewed source with the built assets in place, using
+   comfy-cli 1.20.0:
+
+    ```sh
+    comfy node pack
+    unzip -l node.zip
+    ```
+
+4. Scan the official archive for secrets:
+
+    ```sh
+    gitleaks dir node.zip \
+      --config quality/config/security/gitleaks/config.toml \
+      --max-archive-depth 3 \
+      --no-banner \
+      --redact \
+      --ignore-gitleaks-allow
+    ```
+
+5. `comfy node publish` is a separate command that requires explicit
+   authorization; it is never a task side effect.
+
+`comfy node publish` repacks the current inputs rather than uploading the
+inspected `node.zip`. Keep the tracked-file selection, source, built assets,
+`.comfyignore`, metadata, and CLI version unchanged between the inspected pack
+and publishing, and do not claim a byte-identical upload.
+
+Registry publication is pending the real publisher and repository identity, and
+the version-release selection is deferred. Manager/Registry installation
+acceptance against a published release has not been performed here.

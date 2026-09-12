@@ -1,5 +1,5 @@
 {
-    "name": "comfyui-reactor-connector",
+    "name": "comfyui-reactor-connector-quality",
     "private": true,
     "type": "module",
     "imports": {

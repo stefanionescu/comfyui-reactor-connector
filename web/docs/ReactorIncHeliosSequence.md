@@ -22,7 +22,7 @@ sends all prompts before generation starts.
 
 Choose a recording length that includes the changes you want. A prompt near the
 end may have little visible effect, and a later prompt does not extend the file.
-Use the [live workflow](../../workflows/helios/helios-05-live-prompt.json) when you want to
+Use **helios-05-live-prompt** in native **Browse Templates → reactor-inc** when you want to
 choose changes while watching instead of preparing them in advance.
 
 The text-sequence example starts on a forest path, adds sunlight at chunk 1,
@@ -31,8 +31,8 @@ consistent. It records eight seconds; the optional image stays fixed.
 
 ## Run and save
 
-1. Open the [text sequence](../../workflows/helios/helios-03-prompt-sequence.json) or
-   [image sequence](../../workflows/helios/helios-04-image-sequence.json) template.
+1. Open **helios-03-prompt-sequence** or **helios-04-image-sequence** in native
+   **Browse Templates → reactor-inc**.
 2. Edit the opening prompt and both later prompt builders. For the image
    example, upload your picture in **Upload Your Starting Image**.
 3. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
@@ -54,14 +54,14 @@ order and use an opening prompt that describes the same scene. For image input,
 provide one image within the upload limit; batches are not accepted.
 
 If a change is missing, check its chunk number and the recording length. If
-generation fails, read the reported error and [troubleshooting guide](../../ADVANCED.md#recovery)
+generation fails, read the reported error and troubleshooting guide (**Recovery** in the bundled `ADVANCED.md`)
 before running again.
 
 [Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

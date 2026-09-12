@@ -7,9 +7,9 @@ import struct
 import numpy as np
 from pathlib import Path
 from fractions import Fraction
-from dataclasses import dataclass
 from typing import cast, BinaryIO, Protocol
 from contextlib import AbstractContextManager
+from src.state.workers import EncoderSettings
 from config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
 from config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCODER_PIXEL_FORMAT
 
@@ -54,17 +54,6 @@ class VideoContainer(AbstractContextManager["VideoContainer"], Protocol):
 
 class EncodingError(Exception):
     """Carry a fixed protocol code without exposing native error text."""
-
-
-@dataclass(frozen=True, slots=True)
-class EncoderSettings:
-    """Non-secret limits passed by the owning connector process."""
-
-    path: Path
-    duration_us: int
-    frame_bytes: int
-    output_bytes: int
-    fps: int
 
 
 def _receive(source: BinaryIO, limit: int) -> tuple[int, int, int, bytes] | None:

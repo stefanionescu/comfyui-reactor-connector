@@ -13,6 +13,7 @@ from itertools import chain
 from fractions import Fraction
 from dataclasses import dataclass
 from typing import cast, TYPE_CHECKING
+from src.state.recording import RecordingVideo, RecordingSettings
 from config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE
 from config.media.video import (
     ENCODER_CRF,
@@ -38,20 +39,16 @@ WORKER_ARGUMENT_COUNT = 8
 
 @dataclass(frozen=True, slots=True)
 class RecordingAudio:
-    """Normalized audio samples and their mono or stereo channel layout."""
+    """Normalized audio samples and their channel layout.
+
+    Attributes:
+        samples: Planar float32 audio samples.
+        layout: Mono or stereo channel layout.
+
+    """
 
     samples: NDArray[np.float32]
     layout: str
-
-
-@dataclass(frozen=True, slots=True)
-class RecordingVideo:
-    """The recording origin, frame rate, and dimensions used for conversion."""
-
-    origin: Fraction
-    rate: Fraction
-    width: int
-    height: int
 
 
 class AudioEncoder:
@@ -85,19 +82,6 @@ class AudioEncoder:
         self.through(samples)
         for packet in self.stream.encode(None):
             self.writer.mux(packet)
-
-
-@dataclass(frozen=True, slots=True)
-class RecordingSettings:
-    """Local recording paths, selected interval, and output and memory limits."""
-
-    source: Path
-    destination: Path
-    wav: Path
-    duration: float
-    size_limit: int
-    memory_limit: int
-    start_seconds: float
 
 
 def copy_audio_frame(

@@ -5,15 +5,16 @@ import aiohttp
 import asyncio
 from http import HTTPStatus
 from ..language import translate
+from typing import TYPE_CHECKING
 from datetime import UTC, datetime
 from .navigation import navigation_guides
 from ..errors import ErrorCode, ConnectorError
-from ..serialization import Json, parse_json, mapping_value
-from .contracts import rows, Guide, Price, invalid, Snapshot
+from ..serialization import parse_json, mapping_value
+from ..state.discovery import Snapshot, FORMAT_VERSION
+from .contracts import rows, invalid, parse_guide, parse_price, parse_snapshot
 from ...config.discovery import (
     INDEX_URL,
     PRICING_URL,
-    FORMAT_VERSION,
     NAVIGATION_URL,
     MAX_SOURCE_BYTES,
     SOURCE_USER_AGENT,
@@ -21,6 +22,9 @@ from ...config.discovery import (
     SOURCE_TIMEOUT_SECONDS,
     GUIDE_LINE_PATTERN_TEXT,
 )
+
+if TYPE_CHECKING:
+    from ..state.documents import Json
 
 
 GUIDE_LINE = re.compile(
@@ -41,7 +45,7 @@ def parse_sources(
         rate = mapping_value(row.get("rate"))
         if rate.get("unit") != "credits" or rate.get("denomination") != "second":
             raise invalid()
-        price = Price.parse(
+        price = parse_price(
             {
                 "id": row.get("id"),
                 "name": row.get("name"),
@@ -53,7 +57,7 @@ def parse_sources(
     if len(index_text.encode()) > MAX_SOURCE_BYTES:
         raise invalid()
     guides: list[Json] = [
-        Guide.parse({"slug": slug, "title": title, "observed": True}).to_json()
+        parse_guide({"slug": slug, "title": title, "observed": True}).to_json()
         for title, slug in GUIDE_LINE.findall(index_text)
     ]
     if navigation_text is not None:
@@ -61,7 +65,7 @@ def parse_sources(
             raise invalid()
         indexed = {slug for _, slug in GUIDE_LINE.findall(index_text)}
         guides.extend(guide.to_json() for guide in navigation_guides(navigation_text) if guide.slug not in indexed)
-    return Snapshot.parse(
+    return parse_snapshot(
         {
             "version": FORMAT_VERSION,
             "retrieved_at": retrieved_at,

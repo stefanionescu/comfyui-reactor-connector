@@ -1,8 +1,8 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
+import { browserRoutes } from '#web/routes.ts';
+import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
-import { browserRoutes } from '#config/web/routes.ts';
-import { browserLimits } from '#config/web/browser.ts';
 import { parseConfiguration, type Configuration } from '#web/settings/schema.ts';
 
 /**
@@ -17,8 +17,8 @@ import { parseConfiguration, type Configuration } from '#web/settings/schema.ts'
 export async function requestConfiguration(
   fetcher: Fetcher,
   signal: AbortSignal,
-  route = browserRoutes.settings.status,
-  method = 'GET',
+  route: string = browserRoutes.settings.status,
+  method: string = 'GET',
   body?: unknown,
 ): Promise<Configuration> {
   const options: RequestInit = {

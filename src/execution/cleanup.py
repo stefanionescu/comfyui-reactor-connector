@@ -4,8 +4,8 @@ import sys
 import asyncio
 import logging
 from ..language import translate
-from .session.state import SessionResources
 from ..errors import ErrorCode, ConnectorError
+from .session.resources import SessionResources
 
 
 async def _release(session: SessionResources, *, failed: bool) -> None:

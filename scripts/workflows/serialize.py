@@ -3,7 +3,8 @@
 import math
 from typing import cast
 from collections.abc import Mapping
-from ...src.serialization import Json, mapping_value
+from ...src.state.documents import Json
+from ...src.serialization import mapping_value
 
 
 def widget_values(schema: Json, values: Mapping[str, str | float | bool]) -> list[Json]:
@@ -91,3 +92,62 @@ def output_types(schema: Json) -> list[str]:
         msg = "Node outputs must be a list."
         raise TypeError(msg)
     return [str(mapping_value(item)["type"]) for item in outputs]
+
+
+def native_widget_values(kind: str, schema: Json, filename_prefix: str = "") -> list[Json]:
+    """Check the four native node contracts used by these examples before serialization."""
+    inputs = [mapping_value(item) for item in cast("list[Json]", mapping_value(schema)["inputs"])]
+    expected = {
+        "LoadImage": ["image"],
+        "LoadVideo": ["file"],
+        "SaveVideo": ["video", "filename_prefix", "format", "codec"],
+        "SaveAudioAdvanced": ["audio", "filename_prefix", "format"],
+    }
+    if [item["name"] for item in inputs] != expected[kind]:
+        msg = f"Inspect the changed native input order for {kind}."
+        raise ValueError(msg)
+    if kind in {"LoadImage", "LoadVideo"}:
+        if inputs[0]["type"] != "COMBO":
+            msg = f"Inspect the changed upload input for {kind}."
+            raise ValueError(msg)
+        return ["", "image"]
+    selected = "auto" if kind == "SaveVideo" else "flac"
+    options = cast("list[Json]", inputs[2]["options"])
+    choice = mapping_value(options[0])
+    if inputs[2]["type"] != "COMFY_DYNAMICCOMBO_V3" or choice["key"] != selected:
+        msg = f"Inspect the changed native format selection for {kind}."
+        raise ValueError(msg)
+    if kind == "SaveAudioAdvanced":
+        if any(mapping_value(choice["inputs"]).values()):
+            msg = "Inspect the changed FLAC widget controls."
+            raise ValueError(msg)
+        return [filename_prefix, "flac"]
+    validate_video_codec(inputs[3], choice)
+    return [filename_prefix, "auto", "auto", "auto"]
+
+
+def validate_video_codec(codec: Json, choice: Json) -> None:
+    """Check SaveVideo's hidden codec slot and the codec nested inside its auto format."""
+    control = mapping_value(codec)
+    options = [mapping_value(item) for item in cast("list[Json]", control.get("options", []))]
+    inputs = mapping_value(mapping_value(choice).get("inputs", {}))
+    required = mapping_value(inputs.get("required", {}))
+    nested = cast("list[Json]", required.get("codec") or [])
+    nested_codec = mapping_value(nested[1]) if len(nested) > 1 else {}
+    children = [mapping_value(item) for item in cast("list[Json]", nested_codec.get("options", []))]
+    checks = (
+        control.get("type") == "COMFY_DYNAMICCOMBO_V3"
+        and control.get("optional") is True
+        and control.get("hidden") is True,
+        bool(options)
+        and options[0].get("key") == "auto"
+        and not any(mapping_value(options[0].get("inputs", {})).values()),
+        set(required) == {"codec"} and not inputs.get("optional"),
+        bool(nested) and nested[0] == "COMFY_DYNAMICCOMBO_V3",
+        bool(children)
+        and children[0].get("key") == "auto"
+        and not any(mapping_value(children[0].get("inputs", {})).values()),
+    )
+    if not all(checks):
+        msg = "Inspect the changed native video codec controls."
+        raise ValueError(msg)

@@ -1,8 +1,8 @@
 """Task-specific Helios nodes with native ComfyUI media sockets."""
 
 from comfy_api.latest import io
-from ..schema import translate_schema
-from ...execution.helios.request import HeliosRequest
+from ...state.generation.helios import HeliosRequest
+from ...execution.helios.request import HeliosOperation
 from ...comfy.execution import generate_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
@@ -18,12 +18,14 @@ class HeliosGenerate(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncHeliosGenerate",
-                inputs=[*generation_controls(), live_control()],
-                outputs=video_outputs(),
-            )
+        return io.Schema(
+            node_id="ReactorIncHeliosGenerate",
+            display_name="Helios: Generate Video (Reactor)",
+            category="Reactor/Generate",
+            description="Generate a video with your Reactor account. Help includes usage limits.",
+            search_aliases=["Reactor", "Helios", "text to video"],
+            inputs=[*generation_controls(), live_control()],
+            outputs=video_outputs(),
         )
 
     @classmethod
@@ -40,7 +42,7 @@ class HeliosGenerate(io.ComfyNode):
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
         return await generate_video(
-            HeliosRequest(prompt, duration_seconds, seed),
+            HeliosOperation(HeliosRequest(prompt, duration_seconds, seed)),
             interactive=interactive,
             node_id=cls.define_schema().node_id,
         )

@@ -4,11 +4,11 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from ...config.models.nodes import NODE_MODELS
+from ...src.state.documents import Json
 from .translations import validate_translations
 from ...quality.lib.comfy import host_installation
+from ...src.serialization import parse_json, mapping_value
 from ...quality.lib.process import ProcessContext, run_command
-from ...src.serialization import Json, parse_json, mapping_value
 
 
 def read_schemas() -> dict[str, Json]:
@@ -23,23 +23,27 @@ def read_schemas() -> dict[str, Json]:
         is_failure_raised=True,
         context=ProcessContext(working_directory=root.parent, timeout_seconds=60, environment=environment),
     )
-    return mapping_value(parse_json(result.stdout.decode()))
+    # Native dynamic-combo options nest deeper than the shared transport limit.
+    return mapping_value(parse_json(result.stdout.decode(), max_depth=32))
 
 
 def validate_metadata(schemas: dict[str, Json]) -> list[str]:
-    """Check registered model associations and their language resources."""
-    models = {node_id: mapping_value(schema)["model"] for node_id, schema in schemas.items()}
-    if models != NODE_MODELS:
-        return ["Align model associations with the registered node classes."]
+    """Check supplied language resources against registered node schemas."""
     root = Path(__file__).resolve().parents[2]
-    return validate_translations(root / "locales", schemas)
+    issues = validate_translations(root / "locales", schemas)
+    issues.extend(
+        f"Use a registered node ID for the guide {path.name}."
+        for path in sorted((root / "web/docs").glob("*.md"))
+        if path.stem not in schemas
+    )
+    return issues
 
 
 def main() -> int:
     """Check node registrations and translations against the node schemas."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
-    issues = validate_metadata(read_schemas())
+    issues = validate_metadata(mapping_value(read_schemas()["reactor"]))
     for issue in issues:
         sys.stderr.write(issue + "\n")
     return int(bool(issues))

@@ -110,7 +110,6 @@ ALLOWED_SINGLE_SCRIPT_FOLDERS = {
     "quality/repository/licenses",
     ".mise/tasks/licenses",
     ".mise/tasks/security",
-    ".mise/tasks/comfy",
     ".mise/tasks/release",
     ".mise/tasks/links",
     "quality/config/security/bearer",

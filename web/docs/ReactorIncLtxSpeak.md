@@ -24,7 +24,7 @@ before connection. The image limit is 8192 pixels per side.
 Keep the script short enough for the chosen duration. At 140 words per minute,
 five seconds allows about 11 words. A longer script may be cut off. This node
 sets an explicit take length; it does not infer a longer duration from the script.
-See [recording overhead](../../ADVANCED.md#recording-overhead) for additional
+See recording overhead (**Recording overhead** in the bundled `ADVANCED.md`) for additional
 generation needed to finish saving.
 The session time limit applies to the whole run.
 The usual speech range is 80–220 words per minute. The range reported by the
@@ -33,7 +33,7 @@ connected model applies to your run.
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **ltx2-01-speaking-portrait** in the native Templates browser.
+2. Open **ltx2-01-speaking-portrait** in native **Browse Templates → reactor-inc**.
 3. Upload a portrait in Load Image and edit **Spoken words**.
 4. Select **Run**, then play the video and inspect the separate sound output.
 
@@ -64,9 +64,9 @@ The connector does not retry ambiguous session creation or model commands.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

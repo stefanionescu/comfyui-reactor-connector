@@ -3,9 +3,11 @@
 import sys
 import json
 import inspect
-from comfy_api.latest import io
+from ...config.models import MODEL_IDENTITIES
 from ...src.extension import NODE_REGISTRATIONS
-from ...config.models.identities import MODEL_IDENTITIES
+from .native import describe_schema, native_schemas
+
+CATEGORIES = {f"Reactor/{group}" for group in ("Generate", "Edit", "Live", "Worlds", "Plans")}
 
 
 def main() -> None:
@@ -21,20 +23,11 @@ def main() -> None:
         if parameters != {item.id for item in schema.inputs}:
             msg = f"Align the schema and execution inputs for {schema.node_id}."
             raise ValueError(msg)
-        schemas[schema.node_id] = {
-            "model": model,
-            "inputs": [
-                {
-                    "name": item.id,
-                    "type": item.io_type,
-                    "widget": isinstance(item, io.WidgetInput),
-                    **item.as_dict(),
-                }
-                for item in schema.inputs
-            ],
-            "outputs": [{"type": item.io_type, **item.as_dict()} for item in schema.outputs],
-        }
-    sys.stdout.write(json.dumps(schemas, indent=2) + "\n")
+        if not schema.display_name or not schema.description or schema.category not in CATEGORIES:
+            msg = f"Declare a display name, description, and Reactor category for {schema.node_id}."
+            raise ValueError(msg)
+        schemas[schema.node_id] = {"model": model, **describe_schema(schema)}
+    sys.stdout.write(json.dumps({"reactor": schemas, "native": native_schemas()}, indent=2) + "\n")
 
 
 if __name__ == "__main__":

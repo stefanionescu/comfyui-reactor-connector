@@ -29,7 +29,7 @@ The generation node sets the opening prompt at chunk zero; add only later
 prompts here. A prompt scheduled after recording ends will not appear in the file.
 
 For example, add sunlight at chunk 1, then a clearing at chunk 3. Open the
-[prompt-sequence workflow](../../workflows/helios/helios-03-prompt-sequence.json) for
+**helios-03-prompt-sequence** in native **Browse Templates → reactor-inc** for
 connected nodes and an eight-second recording.
 
 If a sequence is rejected, check the chunk order and connect the previous

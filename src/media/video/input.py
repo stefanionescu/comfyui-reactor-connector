@@ -7,7 +7,8 @@ import asyncio
 from pathlib import Path
 from typing import BinaryIO
 from ...language import translate
-from ...settings.schema import Settings
+from ...paths import EXTENSION_ROOT
+from ...state.settings import Settings
 from tempfile import TemporaryDirectory
 from ..output import owned_io, FileOutput
 from .components import prepare_components
@@ -107,7 +108,7 @@ async def _prepare_file(
         [
             sys.executable,
             "-I",
-            str(Path(__file__).parents[3]),
+            str(EXTENSION_ROOT),
             "video",
             str(source),
             str(destination),

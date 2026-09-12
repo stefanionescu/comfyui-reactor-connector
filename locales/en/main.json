@@ -147,8 +147,6 @@
             "nodeUnregistered": "The Reactor node is not registered.",
             "outputClosed": "The recording output is closed.",
             "outputSize": "The recording exceeds the output size limit.",
-            "packageIdentityInvalid": "The package identity is invalid. Reinstall the package.",
-            "packageIdentityUnreadable": "The package identity could not be read. Reinstall it.",
             "packageVersionMissing": "The connector's version is missing. Reinstall the package.",
             "phase": "{message} Stage: {phase}. Code: {code}.",
             "pointerCoordinates": "Choose pointer coordinates from 0 to 1.",
@@ -261,17 +259,6 @@
             "x2PromptLength": "Use at most 1,000 prompt characters.",
             "x2Unsupported": "This X2 version is not supported. Update the connector."
         },
-        "help": {
-            "label": "Help",
-            "close": "Close node help",
-            "guide": "Reactor node guide",
-            "liveControls": "Live controls",
-            "navigation": "Reactor guides",
-            "newTab": " (opens in a new tab)",
-            "project": "ComfyUI Reactor Connector",
-            "title": "Node help",
-            "workflows": "Workflows"
-        },
         "live": {
             "actionRejected": "The live action was not accepted. The session is ending.",
             "applyPrompt": "Apply prompt",
@@ -340,9 +327,6 @@
             "sources": "Model sources and automatic checks",
             "title": "Reactor models",
             "unreachable": "Cannot reach the Reactor model list. Check ComfyUI and try again."
-        },
-        "nodes": {
-            "seedBehavior": "Seed behavior"
         },
         "pointer": {
             "held": "Pointer held.",

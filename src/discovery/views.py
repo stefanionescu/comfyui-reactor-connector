@@ -1,19 +1,18 @@
 """Join observed metadata to reviewed connector identities without guessing support."""
 
 from ..models import MODELS
-from .contracts import Snapshot
-from ..serialization import Json
-from ...config.models.nodes import NODE_MODELS
+from ..state.documents import Json
+from ..state.discovery import Snapshot
 from ...config.discovery import GUIDE_URL_FORMAT
 
 
-def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
+def model_views(snapshot: Snapshot | None, node_models: dict[str, str]) -> list[dict[str, Json]]:
     """List public models except the excluded HappyOyster family."""
     guides = {guide.slug: guide for guide in snapshot.guides} if snapshot else {}
     prices = {price.name: price for price in snapshot.prices} if snapshot else {}
     associated: set[str] = set()
     models: list[dict[str, Json]] = []
-    for name in sorted(set(prices) | set(NODE_MODELS.values())):
+    for name in sorted(set(prices) | set(node_models.values())):
         price = prices.get(name)
         definition = MODELS.get(name)
         guide_slug = definition.guide_slug if definition else name
@@ -21,7 +20,7 @@ def model_views(snapshot: Snapshot | None) -> list[dict[str, Json]]:
         guide = guides.get(guide_slug)
         if guide:
             associated.add(guide_slug)
-        node_ids: list[Json] = [node_id for node_id, model in NODE_MODELS.items() if model == name]
+        node_ids: list[Json] = [node_id for node_id, model in node_models.items() if model == name]
         model: dict[str, Json] = {
             "key": f"pricing:{price.id}" if price else f"model:{name}",
             "name": name,

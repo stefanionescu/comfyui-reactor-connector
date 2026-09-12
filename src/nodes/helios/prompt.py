@@ -1,8 +1,8 @@
 """Build a Helios prompt sequence using ordinary ComfyUI connections."""
 
 from comfy_api.latest import io
-from ..schema import translate_schema
-from ...execution.helios.prompts import append_prompt, ScheduledPrompt
+from ...execution.helios.prompts import append_prompt
+from ...state.generation.helios import ScheduledPrompt
 from ....config.generation.prompts import MAX_PROMPT_CHUNK, DEFAULT_PROMPTS
 
 
@@ -12,30 +12,39 @@ class HeliosAddPrompt(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncHeliosAddPrompt",
-                inputs=[
-                    io.String.Input(
-                        "previous",
-                        default="[]",
-                        multiline=False,
-                        advanced=True,
-                    ),
-                    io.Int.Input(
-                        "chunk",
-                        default=1,
-                        min=1,
-                        max=MAX_PROMPT_CHUNK,
-                    ),
-                    io.String.Input(
-                        "prompt",
-                        default=DEFAULT_PROMPTS["forest"],
-                        multiline=True,
-                    ),
-                ],
-                outputs=[io.String.Output()],
-            )
+        return io.Schema(
+            node_id="ReactorIncHeliosAddPrompt",
+            display_name="Helios: Add a Prompt (Reactor)",
+            description="Add a later prompt to a Helios sequence.",
+            category="Reactor/Plans",
+            search_aliases=["Reactor", "Helios", "schedule", "prompt"],
+            inputs=[
+                io.String.Input(
+                    "previous",
+                    display_name="Previous prompts (JSON)",
+                    tooltip="Leave [] for the first later prompt, or connect the previous builder.",
+                    default="[]",
+                    multiline=False,
+                    advanced=True,
+                ),
+                io.Int.Input(
+                    "chunk",
+                    display_name="Start chunk",
+                    tooltip="When this prompt starts. A Helios chunk contains 33 frames.",
+                    default=1,
+                    min=1,
+                    max=MAX_PROMPT_CHUNK,
+                ),
+                io.String.Input(
+                    "prompt",
+                    display_name="Scene prompt",
+                    placeholder="Scene prompt",
+                    tooltip="Describe the scene and motion after this change.",
+                    default=DEFAULT_PROMPTS["forest"],
+                    multiline=True,
+                ),
+            ],
+            outputs=[io.String.Output(display_name="Prompt sequence")],
         )
 
     @classmethod

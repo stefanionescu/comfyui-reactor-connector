@@ -4,10 +4,9 @@ import json
 import math
 from typing import cast
 from .language import translate
+from .state.documents import Json
 from .errors import ErrorCode, ConnectorError
 from ..config.serialization import MAX_JSON_BYTES, MAX_JSON_DEPTH
-
-type Json = bool | int | float | str | list[Json] | dict[str, Json] | None
 
 
 def parse_json(text: str, *, max_bytes: int = MAX_JSON_BYTES, max_depth: int = MAX_JSON_DEPTH) -> Json:

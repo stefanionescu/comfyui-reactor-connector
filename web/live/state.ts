@@ -1,5 +1,5 @@
+import { browserLimits } from '#web/browser.ts';
 import { cameraAxes } from '#web/live/input.ts';
-import { browserLimits } from '#config/web/browser.ts';
 
 type CameraState = { axes: Record<string, string>; release: boolean };
 

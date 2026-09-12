@@ -10,17 +10,17 @@
                 "reason": "Invalidates a private generation token after credential changes; callers do not access the stored snapshot."
             },
             {
-                "path": "src/settings/schema.py",
+                "path": "src/state/settings.py",
                 "names": ["Settings.to_json"],
                 "reason": "Defines the public settings response and keeps dataclass serialization inside its owner."
             },
             {
-                "path": "src/credentials.py",
+                "path": "src/state/credentials.py",
                 "names": ["Credential.reveal"],
                 "reason": "Makes intentional access to the redacted credential explicit at authorized private boundaries."
             },
             {
-                "path": "src/execution/helios/prompts.py",
+                "path": "src/state/generation/helios.py",
                 "names": ["ScheduledPrompt.to_dict"],
                 "reason": "Owns the saved Helios command payload independently of the dataclass representation."
             },

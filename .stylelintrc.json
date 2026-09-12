@@ -1,6 +1,6 @@
 {
     "extends": "stylelint-config-standard",
-    "ignoreFiles": ["**/node_modules/**", "web/dist/**"],
+    "ignoreFiles": ["**/node_modules/**", "web/extension.css"],
     "rules": {
         "alpha-value-notation": null,
         "color-function-alias-notation": null,

@@ -10,6 +10,7 @@ __pycache__/
 
 # Build output and check artifacts
 /dist/
+/node.zip
 .artifacts/
 
 # Private settings and credentials

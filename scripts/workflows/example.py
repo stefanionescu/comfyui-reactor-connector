@@ -3,7 +3,6 @@
 from typing import Literal
 from dataclasses import dataclass
 from ...src.language import translate
-from ...config.models.nodes import NODE_MODELS
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,11 +22,6 @@ class Example:
         return translate("workflows", self.slug + ".title")
 
     @property
-    def model(self) -> str:
-        """Return the model associated with the registered node."""
-        return NODE_MODELS[self.node_id]
-
-    @property
     def clip_count(self) -> int:
         """Return the number of clips explicitly requested by a continuation example."""
         return int(self.inputs.get("clip_count", 1))
@@ -41,5 +35,5 @@ class Example:
 
     @property
     def path(self) -> str:
-        """Group editable examples by the model used for generation."""
-        return f"{self.model}/{self.slug}.json"
+        """Name the directly discoverable native workflow file."""
+        return f"{self.slug}.json"

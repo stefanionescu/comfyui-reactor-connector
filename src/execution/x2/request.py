@@ -1,59 +1,52 @@
 """Publish a local source to X2 after its editing controls are ready."""
 
-from pathlib import Path
 from typing import ClassVar
 from ...models import MODELS
-from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
-from ...settings.schema import Settings
-from ..operation import RecordingWindow
+from ...state.settings import Settings
+from ..inputs import VideoInputOperation
 from ..interaction import FramePublisher
-from dataclasses import field, dataclass
+from ...state.generation.x2 import X2Request
+from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
 from ...media.video.publish import VideoPublication
 from ...serialization import mapping_value, validate_json
 from ....config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
-from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
+from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION
 
 
-@dataclass(frozen=True, slots=True)
-class X2Request(VideoInputs):
-    """Edit a clip using an optional reference image and a fixed pointer position.
+class X2Operation(VideoInputOperation[X2Request]):
+    """Own source publication and pointer controls for one edit.
 
     Attributes:
-        video: Optional prepared source video path.
-        webcam: Optional live input frame publisher.
-        keep_backlog: Whether the provider retains queued source frames.
-        pointer_active: Whether pointer control starts active.
-        pointer_x: Normalized horizontal pointer position.
-        pointer_y: Normalized vertical pointer position.
+        webcam: Optional browser camera that publishes source frames.
         publication: Owned source video publisher.
 
     """
 
-    video: Path | None = None
-    webcam: FramePublisher | None = None
-    keep_backlog: bool = False
-    pointer_active: bool = False
-    pointer_x: float = DEFAULT_POINTER_POSITION
-    pointer_y: float = DEFAULT_POINTER_POSITION
     connection_name: ClassVar[str] = MODELS["x2"].connection_name
-    publication: VideoPublication = field(default_factory=VideoPublication, repr=False, compare=False)
+
+    def __init__(self, inputs: X2Request, *, webcam: FramePublisher | None = None) -> None:
+        """Bind edit values, the optional webcam, and their source publication owner."""
+        super().__init__(inputs)
+        self.webcam = webcam
+        self.publication = VideoPublication()
 
     def validate(self, settings: Settings) -> None:
         """Check the source, prompt, backlog option, and normalized pointer coordinates."""
-        super(X2Request, self).validate(settings)
-        if len(self.prompt) > MAX_EDIT_PROMPT_CHARACTERS:
+        super().validate(settings)
+        inputs = self.inputs
+        if len(inputs.prompt) > MAX_EDIT_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.x2PromptLength"))
-        if self.video is None and self.webcam is None:
+        if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
-        if type(self.keep_backlog) is not bool or type(self.pointer_active) is not bool:
+        if type(inputs.keep_backlog) is not bool or type(inputs.pointer_active) is not bool:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerOptionType"))
         if any(
             type(value) not in (int, float) or not MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION
-            for value in (self.pointer_x, self.pointer_y)
+            for value in (inputs.pointer_x, inputs.pointer_y)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerCoordinates"))
 
@@ -62,35 +55,36 @@ class X2Request(VideoInputs):
     ) -> RecordingWindow:
         """Verify X2 commands, set the reference and pointer, and publish the source video."""
         del max_capture_seconds
-        if self.video is None and self.webcam is None:
+        inputs = self.inputs
+        if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
         schema = await events.call("schema", transport.request_schema())
         _validate_contract(schema, transport)
-        if self.image is not None:
+        if inputs.image is not None:
             reference = await events.call(
-                "upload", transport.upload_file(self.image, name="input.png", mime_type="image/png")
+                "upload", transport.upload_file(inputs.image, name="input.png", mime_type="image/png")
             )
             await events.command_reply("set_reference_image", {"reference_image": reference})
-        await events.command_reply("set_keep_backlog", {"keep_backlog": self.keep_backlog})
+        await events.command_reply("set_keep_backlog", {"keep_backlog": inputs.keep_backlog})
         await events.command_reply(
             "set_pointer",
-            {"x": self.pointer_x, "y": self.pointer_y, "active": self.pointer_active},
+            {"x": inputs.pointer_x, "y": inputs.pointer_y, "active": inputs.pointer_active},
         )
-        await events.command_reply("set_prompt", {"prompt": self.prompt})
+        await events.command_reply("set_prompt", {"prompt": inputs.prompt})
         track = await events.call("publish_source", transport.publish_track("source"))
         if self.webcam is not None:
             await self.webcam.begin(track, events.on_error)
-        elif self.video is not None:
-            await self.publication.begin(self.video, track, events.on_error)
+        elif inputs.video is not None:
+            await self.publication.begin(inputs.video, track, events.on_error)
         self.publication.resume()
-        return RecordingWindow(0, self.duration_seconds)
+        return RecordingWindow(0, inputs.duration_seconds)
 
     async def release(self, transport: Transport) -> None:
         """Stop source publication and release the active pointer while connected."""
         await self.publication.close()
         if self.webcam is not None:
             await self.webcam.close()
-        if self.pointer_active and transport.status == "ready":
+        if self.inputs.pointer_active and transport.status == "ready":
             await transport.send_command("set_pointer_active", {"pointer_active": False})
 
 
@@ -117,3 +111,6 @@ def _validate_contract(schema: object, transport: Transport) -> None:
     ]
     if commands != required or len(sources) != 1:
         raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.x2Unsupported"))
+
+
+__all__ = ["X2Operation"]

@@ -61,10 +61,10 @@ The saved video keeps the model's original resolution. This operation has no sou
 **Recording details** describes the saved file and model. For live runs, it also
 lists camera commands the model confirmed receiving and the number of preview
 frames. Receiving a command does not prove that the requested movement is visible.
-See the [field reference](../../ADVANCED.md#recording-details) for the full list.
+See the field reference (**Recording details** in the bundled `ADVANCED.md`) for the full list.
 
 Change **Run number** to request another run with unchanged inputs. See
-[execution limits](../../ADVANCED.md#execution-limits) for session timing and caching.
+execution limits (**Execution limits** in the bundled `ADVANCED.md`) for session timing and caching.
 
 ## Stop and recover
 
@@ -75,11 +75,11 @@ time limit. Wait for confirmation that the session ended before trying again.
 If confirmation is missing, check Reactor Usage and wait for the session limit.
 
 If video stops arriving or a run fails, follow the
-[recovery guide](../../ADVANCED.md#recovery) before trying again.
+recovery guide (**Recovery** in the bundled `ADVANCED.md`) before trying again.
 
 A saved video cannot reopen the scene on Reactor. Playing it again only repeats
 the recording.
 
 [Reactor LingBot World 2 schema](https://docs.reactor.inc/model-api-reference/lingbot-world-2/schema)
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).

@@ -3,11 +3,12 @@
 import asyncio
 from aiohttp import web
 from ..language import translate
+from ..state.documents import Json
 from ..http.guard import local_route
 from .store import ConfigurationStore
 from ..http.request import read_document
+from ..serialization import mapping_value
 from ...config.routes import SETTINGS_PREFIX
-from ..serialization import Json, mapping_value
 from collections.abc import Callable, Awaitable
 
 

@@ -6,8 +6,9 @@ from pathlib import Path
 from ..output import owned_io
 from functools import partial
 from ...language import translate
-from ..state import CaptureResult
-from ...settings.schema import Settings
+from ...paths import EXTENSION_ROOT
+from ...state.settings import Settings
+from ...state.media import CaptureResult
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
@@ -30,7 +31,7 @@ async def prepare_recording(
         [
             sys.executable,
             "-I",
-            str(Path(__file__).parents[3]),
+            str(EXTENSION_ROOT),
             "recording",
             str(source),
             str(destination),

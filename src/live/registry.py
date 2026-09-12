@@ -2,7 +2,7 @@
 
 import threading
 from ..language import translate
-from ..serialization import Json
+from ..state.documents import Json
 from .lease import unavailable, BrowserLease
 from ..errors import ErrorCode, ConnectorError
 from ...config.live import MAX_STORED_SESSIONS, CLOSED_SESSION_RETENTION_SECONDS

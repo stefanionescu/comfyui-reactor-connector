@@ -6,19 +6,11 @@ import asyncio
 import threading
 from collections import deque
 from ..language import translate
-from dataclasses import dataclass
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from ..state.session import AdmissionTicket
 from ..errors import ErrorCode, ConnectorError
 from ...config.generation.session import MAX_SESSION_CAPACITY, DEFAULT_SESSION_CAPACITY
-
-
-@dataclass(eq=False, slots=True)
-class _AdmissionTicket:
-    """A wake-up event owned only by the loop that requested admission."""
-
-    loop: asyncio.AbstractEventLoop
-    changed: asyncio.Event
 
 
 class SessionAdmission:
@@ -31,8 +23,8 @@ class SessionAdmission:
             raise ValueError(msg)
         self._capacity = capacity
         self._lock = threading.Lock()
-        self._waiting: deque[_AdmissionTicket] = deque()
-        self._active: set[_AdmissionTicket] = set()
+        self._waiting: deque[AdmissionTicket] = deque()
+        self._active: set[AdmissionTicket] = set()
         self._blocked_until = 0.0
 
     def block_for(self, seconds: float) -> None:
@@ -52,7 +44,7 @@ class SessionAdmission:
         for ticket in list(self._waiting)[: self._capacity - len(self._active)]:
             ticket.loop.call_soon_threadsafe(ticket.changed.set)
 
-    def _claim(self, ticket: _AdmissionTicket) -> bool:
+    def _claim(self, ticket: AdmissionTicket) -> bool:
         """Admit the first waiter when capacity and the cleanup deadline allow it."""
         with self._lock:
             remaining = self._blocked_until - time.monotonic()
@@ -72,7 +64,7 @@ class SessionAdmission:
     @asynccontextmanager
     async def slot(self, timeout_seconds: float) -> AsyncGenerator[None, None]:
         """Acquire before client construction and release after all session cleanup."""
-        ticket = _AdmissionTicket(asyncio.get_running_loop(), asyncio.Event())
+        ticket = AdmissionTicket(asyncio.get_running_loop(), asyncio.Event())
         with self._lock:
             self._waiting.append(ticket)
         try:

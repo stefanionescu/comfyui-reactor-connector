@@ -13,7 +13,6 @@ main() {
   mise run lint
   mise run type:frontend
   mise run frontend:check
-  mise run docs:check
   mise run workflows:check
   mise run security
   mise run licenses

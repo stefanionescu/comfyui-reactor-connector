@@ -8,25 +8,26 @@ import folder_paths
 from pathlib import Path
 from functools import partial
 from ..language import translate
-from ..serialization import Json
 from ..runtime import get_runtime
+from ..state.documents import Json
 from ..media.output import owned_io
-from ..live.state import LiveOptions
 from ..media.audio import read_audio
-from ..settings.schema import Settings
-from ..media.state import CaptureResult
-from ..execution.report import RunReport
-from comfy_api.latest import io, InputImpl
+from ..state.reports import RunReport
+from ..state.settings import Settings
+from ..live.options import LiveOptions
+from ..state.media import CaptureResult
+from ..state.session import SessionOutcome
 from .interaction import prepare_interaction
+from ..execution.report import prepare_report
 from ..errors import ErrorCode, ConnectorError
 from ..execution.diagnostics import save_failure
 from ..execution.operation import VideoOperation
 from ..live.interaction import CameraInteraction
-from ..execution.session.state import SessionOutcome
+from ..state.settings import ExecutionConfiguration
 from ..media.units import convert_mebibytes_to_bytes
+from comfy_api.latest import io, ComfyAPI, InputImpl
 from contextlib import suppress, asynccontextmanager
 from ..execution.session.capture import capture_video
-from ..settings.execution import ExecutionConfiguration
 from ..media.metadata.read import read_recording_metadata
 from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
@@ -174,10 +175,13 @@ async def generate_video(
     """Return a native video only after encoding and remote cleanup succeed."""
     if type(interactive) is not bool:
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.liveControlType"))
+    progress = ComfyAPI().execution
+    await progress.set_progress(0, 3)
     configuration = get_runtime().configuration
     snapshot = await asyncio.to_thread(configuration.execution_snapshot)
     request.validate(snapshot.settings)
-    report = await owned_io(lambda: RunReport.prepare(node_id, request.connection_name, request.duration_seconds))
+    report = await owned_io(lambda: prepare_report(node_id, request.connection_name, request.duration_seconds))
+    await progress.set_progress(1, 3)
     try:
         async with _temporary_video() as destination:
             task = asyncio.create_task(
@@ -190,8 +194,11 @@ async def generate_video(
                 )
             )
             result, interaction_summary = await wait_for_execution(task)
+            await progress.set_progress(2, 3)
             metadata = await recording_report(report, result, snapshot.settings, interaction_summary)
-            return await node_output(result, metadata, snapshot.settings, interaction_summary)
+            output = await node_output(result, metadata, snapshot.settings, interaction_summary)
+            await progress.set_progress(3, 3)
+            return output
     except ConnectorError as error:
         if error.code == ErrorCode.INTERRUPTED:
             raise InterruptProcessingException from None

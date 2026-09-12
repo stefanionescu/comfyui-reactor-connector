@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
 #
-# Check and build the complete ComfyUI package.
+# Build the official node.zip with comfy-cli and inspect it locally.
 # Runtime: Bash 3.2+, macOS and Linux.
-#MISE description="Check and build the complete ComfyUI package."
+#MISE description="Build the official node.zip with comfy-cli and inspect it locally."
 set -euo pipefail
 
-# main - Check and build the complete ComfyUI package.
+# main - Build the official node.zip with comfy-cli and inspect it locally.
 main() {
   REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
   cd "${REPO_ROOT}" || exit 1
 
   mise run check
-  exec uv run --directory "${REPO_ROOT}/.." --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.release" "$@"
+  comfy node pack "$@"
+  unzip -l node.zip
+  gitleaks dir node.zip \
+    --config quality/config/security/gitleaks/config.toml \
+    --max-archive-depth 3 \
+    --no-banner \
+    --redact \
+    --ignore-gitleaks-allow
 }
 
 main "$@"

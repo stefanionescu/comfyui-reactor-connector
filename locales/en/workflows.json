@@ -37,12 +37,12 @@
     },
     "index": {
         "animated": "Animated forest",
-        "columns": "| Model | Workflow JSON | Input | Guide |",
+        "columns": "| Workflow JSON | Input | Guide |",
         "filesTitle": "Available files",
         "forest": "Forest path",
         "forestUse": "Animate an image, explore a scene, or continue a clip.",
         "guide": "Node guide",
-        "help": "Select a Reactor node and choose **Help** for inputs, limits, and recovery steps. Use **Fit View** to find all nodes.",
+        "help": "Select a Reactor node and open native **Info** for inputs, limits, and recovery steps. Use **Fit View** to find all nodes.",
         "illustration": "Forest illustration",
         "illustrationUse": "Animate a landscape or use it as a reference image.",
         "input": {
@@ -65,11 +65,11 @@
             "webcam": "Webcam and live edit prompt",
             "world": "Image and prompt; live keys or buttons"
         },
-        "intro": "This folder contains {count} editable ComfyUI workflows, grouped by model. Each graph has connected nodes and setup instructions.",
+        "intro": "This folder contains {count} editable ComfyUI workflows. Each graph has connected nodes and setup instructions.",
         "language": "Only English examples are included. Notes and custom node titles are saved in the graph; changing the interface language does not translate them.",
         "limits": "Live workflows stop at the chosen duration. Fast H3 can create a chosen number of consecutive clips. Media inputs start empty; use your own files or the samples below.",
         "limitsTitle": "Limits",
-        "openSteps": "1. Open a JSON file listed below in ComfyUI. Built packages also include these examples in **Templates → reactor-inc**.\n2. Read **Start Here** and upload the required image or video.\n3. Set your key in **Extensions → Reactor → Reactor settings**, then select **Run**.",
+        "openSteps": "1. Open an example from native **Browse Templates → reactor-inc**, or open a JSON file listed below.\n2. Read **Start Here** and upload the required image or video.\n3. Set your key in **Extensions → Reactor → Reactor settings**, then select **Run**.",
         "openTitle": "Open a workflow",
         "portrait": "Fictional portrait",
         "portraitUse": "Make a portrait speak with LTX.",
@@ -115,7 +115,7 @@
     },
     "live": {
         "camera": "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.",
-        "drag": "Drag on the output to steer the subject. Escape releases the pointer. **Help** also explains keyboard controls.",
+        "drag": "Drag on the output to steer the subject. Escape releases the pointer. **Info** also explains keyboard controls.",
         "finish": "Let recording finish to save the video. **End session** stops early and discards it.",
         "move": "In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply prompt** changes later frames.",
         "prompt": "Edit **Scene prompt**, then select **Apply prompt** to change later frames.",

@@ -31,7 +31,7 @@ stays the same throughout the run.
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **visko-stable-01-text-to-video** in the native Templates browser.
+2. Open **visko-stable-01-text-to-video** in native **Browse Templates → reactor-inc**.
 3. Describe a scene and its sound, then select **Run**.
 4. Play the saved video with sound. Use Save Audio to inspect or retain sound alone.
 
@@ -62,7 +62,7 @@ with unchanged inputs.
 
 If the session reaches its limit before recording is ready, try a shorter video
 or increase **Maximum session duration** in Reactor settings. For other failures,
-follow the [recovery guide](../../ADVANCED.md#recovery) before trying again.
+follow the recovery guide (**Recovery** in the bundled `ADVANCED.md`) before trying again.
 
 [Reactor Visko Stable schema](https://docs.reactor.inc/model-api-reference/visko-orbis-stable/schema)
 
@@ -76,11 +76,11 @@ video to hear the result. Sound on/off and resolution stay fixed for the recordi
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
+See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

@@ -1,9 +1,9 @@
 """Build and execute LongLive shots without making users write model commands."""
 
 from comfy_api.latest import io
-from ..schema import translate_schema
-from ...execution.longlive.request import LongLiveRequest
+from ...state.generation.longlive import LongLiveRequest
 from ..controls import video_outputs, generation_controls
+from ...execution.longlive.request import LongLiveOperation
 from ...execution.longlive.storyboard import parse_storyboard
 from ...comfy.execution import generate_video, operation_fingerprint
 
@@ -14,20 +14,24 @@ class LongLiveStoryboard(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncLongLiveStoryboard",
-                inputs=[
-                    *generation_controls(),
-                    io.String.Input(
-                        "storyboard",
-                        default="[]",
-                        multiline=False,
-                        advanced=True,
-                    ),
-                ],
-                outputs=video_outputs(),
-            )
+        return io.Schema(
+            node_id="ReactorIncLongLiveStoryboard",
+            display_name="LongLive: Generate Video from a Storyboard (Reactor)",
+            description="Generate an opening shot and schedule later shots by chunk number.",
+            category="Reactor/Generate",
+            search_aliases=["Reactor", "LongLive", "shots", "cuts"],
+            inputs=[
+                *generation_controls(),
+                io.String.Input(
+                    "storyboard",
+                    display_name="Shots (JSON)",
+                    tooltip="Connect Reactor LongLive: Add a Shot, or enter a validated shot list.",
+                    default="[]",
+                    multiline=False,
+                    advanced=True,
+                ),
+            ],
+            outputs=video_outputs(),
         )
 
     @classmethod
@@ -50,6 +54,6 @@ class LongLiveStoryboard(io.ComfyNode):
         del variation
         shots = parse_storyboard(storyboard)
         return await generate_video(
-            LongLiveRequest(prompt, duration_seconds, seed, shots=shots),
+            LongLiveOperation(LongLiveRequest(prompt, duration_seconds, seed, shots=shots)),
             node_id=cls.define_schema().node_id,
         )

@@ -1,54 +1,56 @@
 """Chain a chosen number of Fast H3 clips in one session and save their sound."""
 
-from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
-from dataclasses import dataclass
 from ..events import SessionEvents
 from ....config.nodes import MAX_SEED
-from ...settings.schema import Settings
-from ..operation import RecordingWindow
-from .generate import FastGenerateRequest
+from ...state.settings import Settings
+from .generate import FastGenerateOperation
+from ...state.session import RecordingWindow
+from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
-from .clip import seconds, FastClip, FastClipEvents, message_payload
+from ...state.generation.fast import FastContinueRequest
+from .clip import seconds, read_clip, FastClipEvents, message_payload
 from ....config.generation.fast import (
     MAX_CLIP_COUNT,
     MIN_CLIP_COUNT,
     OPTIONS_ASPECT,
     MAX_CLIP_SECONDS,
     MIN_CLIP_SECONDS,
-    DEFAULT_CLIP_COUNT,
-    DEFAULT_CLIP_SECONDS,
     MAX_PROMPT_CHARACTERS,
 )
 
 
-@dataclass(frozen=True, slots=True)
-class FastContinueRequest(FastGenerateRequest):
-    """A sequence of Fast H3 clips linked by their final frames.
+class FastContinueOperation(FastGenerateOperation):
+    """Chain the requested clips while preserving their accepted media intervals.
 
     Attributes:
-        clip_seconds: Duration of each generated clip.
-        clip_count: Number of clips to generate.
-        later_prompts: Prompts for subsequent clips.
+        sequence: Clip length, clip count, and later prompts for the chain.
 
     """
 
-    clip_seconds: float = DEFAULT_CLIP_SECONDS
-    clip_count: int = DEFAULT_CLIP_COUNT
-    later_prompts: tuple[str, ...] = ()
+    def __init__(self, inputs: FastContinueRequest) -> None:
+        """Keep the sequence settings that a single Fast H3 clip does not have."""
+        super().__init__(inputs)
+        self.sequence = inputs
 
-    def validate(self, settings: Settings) -> None:
-        """Check sequence length, prompts, and upload limits before starting a session."""
-        VideoInputs.validate(self, settings)
-        if type(self.clip_count) is not int or not MIN_CLIP_COUNT <= self.clip_count <= MAX_CLIP_COUNT:
+    def _validate_clips(self, settings: Settings) -> None:
+        """Check clip count, clip length, aspect ratio, and prompts for the whole chain."""
+        del settings
+        if (
+            type(self.sequence.clip_count) is not int
+            or not MIN_CLIP_COUNT <= self.sequence.clip_count <= MAX_CLIP_COUNT
+        ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.clipCount"))
-        if type(self.clip_seconds) not in (int, float) or not MIN_CLIP_SECONDS <= self.clip_seconds <= MAX_CLIP_SECONDS:
+        if (
+            type(self.sequence.clip_seconds) not in (int, float)
+            or not MIN_CLIP_SECONDS <= self.sequence.clip_seconds <= MAX_CLIP_SECONDS
+        ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.continuedClipDuration"))
-        if self.aspect not in OPTIONS_ASPECT:
+        if self.sequence.aspect not in OPTIONS_ASPECT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.aspectRatio"))
-        prompts = (self.prompt, *self.later_prompts)
-        if len(self.later_prompts) > self.clip_count - 1 or any(
+        prompts = (self.prompt, *self.sequence.later_prompts)
+        if len(self.sequence.later_prompts) > self.sequence.clip_count - 1 or any(
             type(prompt) is not str or not prompt.strip() or len(prompt) > MAX_PROMPT_CHARACTERS for prompt in prompts
         ):
             raise ConnectorError(
@@ -65,16 +67,16 @@ class FastContinueRequest(FastGenerateRequest):
             for track in transport.tracks
         ):
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
-        clips = FastClipEvents(events, limit=self.clip_count + 1)
+        clips = FastClipEvents(events, limit=self.sequence.clip_count + 1)
         await events.command_reply("set_autoplay", {"enabled": False})
         await events.command_reply("set_flush_on_clip_end", {"enabled": False})
-        await events.command_reply("set_canvas", {"aspect": self.aspect})
+        await events.command_reply("set_canvas", {"aspect": self.sequence.aspect})
         state = await self._state(transport, events)
         minimum, maximum = (
             seconds(state.get("clip_seconds_min")),
             seconds(state.get("clip_seconds_max")),
         )
-        if not minimum <= self.clip_seconds <= maximum:
+        if not minimum <= self.sequence.clip_seconds <= maximum:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
                 translate("main", "errors.clipDurationUnsupported"),
@@ -85,7 +87,7 @@ class FastContinueRequest(FastGenerateRequest):
         start_seconds = await self._read_playback_start(transport, events)
         await events.command_reply("set_autoplay", {"enabled": True})
         # Queue one continuation ahead. Each clip opens from the previous clip's last frame.
-        for index in range(1, self.clip_count):
+        for index in range(1, self.sequence.clip_count):
             following = await self._enqueue(events, current, index)
             self._validate_recording_limit(following, max_capture_seconds)
             await events.call("clip_playback", clips.wait_finished(current))
@@ -99,7 +101,7 @@ class FastContinueRequest(FastGenerateRequest):
             )
         events.model_timing.update(saved_start_seconds=start_seconds, saved_duration_seconds=duration)
         # The recorder needs later media to close its final fragment.
-        tail = await self._enqueue(events, current, self.clip_count, duration=maximum)
+        tail = await self._enqueue(events, current, self.sequence.clip_count, duration=maximum)
         await events.call("recording_tail_build", clips.wait_ready(tail))
         await events.command_reply("play", {"clip_id": tail.clip_id})
         return RecordingWindow(start_seconds, duration)
@@ -113,7 +115,7 @@ class FastContinueRequest(FastGenerateRequest):
 
     def _validate_recording_limit(self, clip: FastClip, max_capture_seconds: float) -> None:
         """Reject an accepted clip length that would exceed the configured capture limit."""
-        if clip.seconds * self.clip_count > max_capture_seconds:
+        if clip.seconds * self.sequence.clip_count > max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
                 translate("main", "errors.acceptedSequenceLimit"),
@@ -128,18 +130,20 @@ class FastContinueRequest(FastGenerateRequest):
         duration: float | None = None,
     ) -> FastClip:
         """Queue a clip from the starting image or the previous clip and validate its length."""
-        prompt = self.later_prompts[index - 1] if 0 < index <= len(self.later_prompts) else self.prompt
+        prompt = (
+            self.sequence.later_prompts[index - 1] if 0 < index <= len(self.sequence.later_prompts) else self.prompt
+        )
         payload: dict[str, object] = {
             "prompt": prompt,
-            "seconds": duration or self.clip_seconds,
-            "seed": (self.seed + index) % (MAX_SEED + 1),
+            "seconds": duration or self.sequence.clip_seconds,
+            "seed": (self.sequence.seed + index) % (MAX_SEED + 1),
         }
         if previous is not None:
             payload["continue_from_clip_id"] = previous.clip_id
-        elif self.image is not None:
+        elif self.sequence.image is not None:
             payload["starting_frame"] = await events.call(
                 "upload",
-                events.transport.upload_file(self.image, name="input.png", mime_type="image/png"),
+                events.transport.upload_file(self.sequence.image, name="input.png", mime_type="image/png"),
             )
         reply = await events.command_reply("enqueue", payload)
-        return FastClip.read(message_payload(reply, "clip_queued"))
+        return read_clip(message_payload(reply, "clip_queued"))

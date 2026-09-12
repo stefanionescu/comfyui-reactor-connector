@@ -1,6 +1,6 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
-import { browserRoutes } from '#config/web/routes.ts';
+import { browserRoutes } from '#web/routes.ts';
 import { parseLiveStatus, type Invitation, type LiveStatus } from '#web/live/schema.ts';
 
 /**

@@ -2,30 +2,19 @@
 
 import json
 from ...language import translate
-from dataclasses import dataclass
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
+from ...state.generation.helios import ScheduledPrompt
 from ....config.generation.session import MAX_PROMPT_CHARACTERS
 from ....config.generation.prompts import MAX_PROMPTS, MAX_PROMPT_CHUNK, MAX_SEQUENCE_BYTES
 
 
-@dataclass(frozen=True, slots=True)
-class ScheduledPrompt:
-    """A later prompt on Helios's chunk clock."""
-
-    chunk: int
-    prompt: str
-
-    def validate(self) -> None:
-        """Require a nonempty prompt and a supported later chunk number."""
-        if type(self.chunk) is not int or not 1 <= self.chunk <= MAX_PROMPT_CHUNK:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptChunk"))
-        if type(self.prompt) is not str or not self.prompt.strip() or len(self.prompt) > MAX_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.laterPromptLength"))
-
-    def to_dict(self) -> dict[str, object]:
-        """Encode the scheduled prompt using Reactor command field names."""
-        return {"chunk": self.chunk, "prompt": self.prompt}
+def validate_prompt(prompt: ScheduledPrompt) -> None:
+    """Require a nonempty prompt and a supported later chunk number."""
+    if type(prompt.chunk) is not int or not 1 <= prompt.chunk <= MAX_PROMPT_CHUNK:
+        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptChunk"))
+    if type(prompt.prompt) is not str or not prompt.prompt.strip() or len(prompt.prompt) > MAX_PROMPT_CHARACTERS:
+        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.laterPromptLength"))
 
 
 def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
@@ -45,7 +34,7 @@ def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
         if type(chunk) is not int or type(prompt) is not str:
             raise invalid
         scheduled = ScheduledPrompt(chunk, prompt)
-        scheduled.validate()
+        validate_prompt(scheduled)
         if prompts and scheduled.chunk <= prompts[-1].chunk:
             raise invalid
         prompts.append(scheduled)
@@ -54,7 +43,10 @@ def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
 
 def append_prompt(previous: str, prompt: ScheduledPrompt) -> str:
     """Append one prompt and validate the complete serialized sequence."""
-    prompt.validate()
+    validate_prompt(prompt)
     encoded = json.dumps([item.to_dict() for item in (*parse_sequence(previous), prompt)])
     parse_sequence(encoded)
     return encoded
+
+
+__all__ = ["append_prompt", "parse_sequence", "validate_prompt"]

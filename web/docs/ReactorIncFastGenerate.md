@@ -28,7 +28,7 @@ with room below the limit. A previously unused length may take longer to build.
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **fast-h3-01-text-to-video** in the native Templates browser.
+2. Open **fast-h3-01-text-to-video** in native **Browse Templates → reactor-inc**.
 3. Describe the scene, motion, and sound in **Scene prompt**.
 4. Select **Run**. Wait for the clip to build, play, and become available for saving.
 5. Play the saved video and separate sound output.
@@ -45,7 +45,7 @@ it. Video and sound use the same recording times to stay aligned. Native `VIDEO`
 H.264 video and AAC sound; native `AUDIO` contains 48 kHz samples. AAC decoding
 can include padding beyond the separate audio output's exact duration.
 
-See [recording overhead](../../ADVANCED.md#recording-overhead) for the additional
+See recording overhead (**Recording overhead** in the bundled `ADVANCED.md`) for the additional
 continuation needed to finish saving.
 
 ## Failures and cancellation
@@ -62,9 +62,9 @@ model updates.
 
 [Reactor Fast H3 schema](https://docs.reactor.inc/model-api-reference/fast-h3/schema)
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

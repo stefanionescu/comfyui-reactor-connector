@@ -1,25 +1,8 @@
 """Identify effective execution changes without exposing a secret-derived value."""
 
 import secrets
-from .schema import Settings
-from ..credentials import Credential
-from dataclasses import field, dataclass
-
-
-@dataclass(frozen=True, slots=True)
-class ExecutionConfiguration:
-    """One private settings and credential snapshot for an admitted operation.
-
-    Attributes:
-        settings: Effective execution limits and preferences.
-        credential: Private provider credential excluded from representations.
-        generation: Token identifying the effective execution configuration.
-
-    """
-
-    settings: Settings
-    credential: Credential = field(repr=False)
-    generation: str
+from ..state.credentials import Credential
+from ..state.settings import Settings, ExecutionConfiguration
 
 
 class ConfigurationGeneration:

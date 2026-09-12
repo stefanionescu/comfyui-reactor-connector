@@ -16,20 +16,24 @@ and a Reactor account with credits.
 
 ## Install
 
+Comfy Registry publication is pending publisher and repository metadata. After
+a release exists, install or update the connector through **ComfyUI Manager**.
+Until then, place a trusted source checkout at `ComfyUI/custom_nodes/reactor-inc`.
+The checkout supplies the built browser assets; you do not need Bun, mise, or
+development dependencies to use the connector.
+
 1. Stop ComfyUI after active work finishes.
-2. Extract the connector package into `ComfyUI/custom_nodes/reactor-inc`.
-   Place `__init__.py` and `requirements.txt` directly inside that folder.
+2. Place the connector at `ComfyUI/custom_nodes/reactor-inc`. Put `__init__.py`
+   and `requirements.txt` directly inside that folder.
 3. Install `requirements.txt` using the Python environment that runs ComfyUI.
    Choose the command below for your installation.
 4. Start ComfyUI, then refresh its window.
-
-You do not need Bun, mise, or development dependencies to use the connector.
 
 ### Comfy Desktop
 
 1. On the home screen, open the installation's **⋮** menu and select **Manage**.
 2. Open **About** and copy **Location** to find the installation folder. Inside it,
-   find the `ComfyUI` folder containing `main.py` and extract the connector into
+   find the `ComfyUI` folder containing `main.py` and place the connector at
    `custom_nodes/reactor-inc`.
 3. Open **Terminal** in the same Manage panel. Desktop opens the ComfyUI folder
    and activates that installation's Python environment. Run:
@@ -73,15 +77,16 @@ Run in PowerShell from the folder containing `ComfyUI` and `python_embeded`:
 .\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
 ```
 
-See [update, restore, or remove](ADVANCED.md#update-restore-or-remove) for later
+See [update or remove](ADVANCED.md#update-or-remove) for later
 package changes. Install only runtime requirements into ComfyUI's environment.
 
 ## Make your first video
 
 1. Select the Comfy logo, then **Extensions → Reactor → Reactor settings**.
    Save your Reactor API key there. It stays on the server and out of workflows.
-2. Open **Templates → reactor-inc** and select **helios-01-text-to-video**.
-   You can also drag the [Helios text-to-video workflow](workflows/helios/helios-01-text-to-video.json)
+2. Open native **Browse Templates → reactor-inc** and select
+   **helios-01-text-to-video**. You can also drag the
+   [Helios text-to-video workflow](workflows/helios-01-text-to-video.json)
    onto the canvas.
 3. Read **Start Here**, describe a scene, and choose the video length.
 4. Select **Run**.
@@ -94,9 +99,9 @@ it. Change **Run number** to request another run with unchanged inputs.
 ## Choose a workflow
 
 The [workflow index](workflows/README.md) lists all 33 examples and includes
-[sample images and video](workflows/README.md#sample-inputs). Choose a JSON file
-and drag it onto ComfyUI, or use Templates after installing a built package.
-Examples need only native ComfyUI nodes and this connector.
+[sample images and video](workflows/README.md#sample-inputs). Open an
+example from native **Browse Templates → reactor-inc**, or drag a JSON file onto
+ComfyUI. Examples need only native ComfyUI nodes and this connector.
 
 Use live workflows for scene prompts, Visko sound prompts, X2 dragging, or SANA
 and X2 webcams. LingBot workflows with scene controls let you move with keys or buttons;
@@ -104,8 +109,8 @@ saved video cannot reopen a world. Fast H3 can continue a chosen number of clips
 in one run. See [live controls](ADVANCED.md#live-controls).
 
 After updating, open an example in a new tab. Existing graphs keep their saved
-notes, prompts, and layout. A source checkout can open grouped JSON files directly;
-[packaging](ADVANCED.md#development-commands) also adds them to native Templates.
+notes, prompts, and layout. The same flat `workflows` files appear in
+native Browse Templates from a checkout and from an installed package.
 
 ## Nodes
 
@@ -130,9 +135,8 @@ notes, prompts, and layout. A source checkout can open grouped JSON files direct
 | [Visko Stable: Generate Video](web/docs/ReactorIncViskoStableGenerate.md)              | Scene prompt, sound controls, and optional image          | Video with sound, a separate audio output, and recording details  |
 | [Visko Dynamic: Generate Video](web/docs/ReactorIncViskoDynamicGenerate.md)            | Scene prompt, sound controls, and optional image          | Video with sound, a separate audio output, and recording details  |
 
-Select a Reactor node and choose **Help** for inputs, limits, and examples.
-The same guide appears in ComfyUI's native **Info** panel. If the selection
-toolbar is hidden, use Info or enable **Selection toolbox** in ComfyUI settings.
+Select a Reactor node and open its native **Info** for inputs, limits, and
+examples. Nodes with detailed behavior show their bundled guide there.
 
 In your own graph, connect **Video** to **Save Video**. Models with sound also
 return a separate **Audio** output. [Recording details](ADVANCED.md#recording-details)
@@ -162,14 +166,14 @@ for how checks work and how to restore a previous list.
 | `reactor_sdk` cannot be imported             | Install runtime requirements with that instance's Python.                                      |
 | No matching SDK distribution                 | Use Python 3.12 or later and a platform supported by the required SDK version.                 |
 | `comfy_api` or a native node type is missing | Update ComfyUI through its normal update procedure, then restart.                              |
-| Nodes appear but Reactor menus do not        | Refresh the window; confirm the package includes `web/dist/main.js` and `main.css`.            |
-| Help is missing                              | Restore the complete package, including `web/dist/docs` and `web/dist/guides`.                 |
-| Templates are missing                        | Open a grouped workflow JSON directly, or install the built package.                           |
+| Nodes appear but Reactor menus do not        | Refresh the window; confirm the package includes `web/extension.js` and `web/extension.css`.   |
+| Node help is missing                         | Restore the complete package, including the native guides under `web/docs`.                    |
+| Templates are missing                        | Confirm the package includes `workflows`; you can also open a JSON file there.                 |
 | Duplicate nodes or menus appear              | Keep one connector folder; move backups outside `custom_nodes`.                                |
 | Private settings are disabled                | Use a local, single-user connection. For remote access, set the server environment key.        |
 
 For rejected inputs, timeouts, or session errors, read [recovery](ADVANCED.md#recovery)
-and the node's Help before another run. [Advanced settings](ADVANCED.md)
+and the node's native **Info** before another run. [Advanced settings](ADVANCED.md)
 explains keys, limits, credit calculations, and live controls.
 
 Project-authored code, guides, workflows, and sample assets use the

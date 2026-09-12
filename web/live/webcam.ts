@@ -1,9 +1,9 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
+import { browserRoutes } from '#web/routes.ts';
 import type { Controls } from '#web/live/schema.ts';
-import { browserRoutes } from '#config/web/routes.ts';
+import { browserInput, browserLimits } from '#web/browser.ts';
 import { translate, type MessageKey } from '#web/language.ts';
-import { browserInput, browserLimits } from '#config/web/browser.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
 
 export class Webcam {

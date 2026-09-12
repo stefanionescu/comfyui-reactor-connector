@@ -403,7 +403,7 @@
         {
             "pathRegexes": ["^quality/config/imports/madge\\.cjs$"],
             "categories": ["properties", "functions"],
-            "names": ["#config", "#web", "../../scripts/api.js$", "../../scripts/app.js$"],
+            "names": ["#web", "../../scripts/api.js$", "../../scripts/app.js$"],
             "allowedViolations": ["case"],
             "reason": "Madge uses this option and these module specifiers to trace imports."
         },
@@ -478,48 +478,6 @@
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
-        },
-        {
-            "pathRegexes": ["^web/extension\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["loadedGraphNode"],
-            "allowedViolations": ["banned-term"],
-            "reason": "ComfyUI calls this extension callback by its exact name."
-        },
-        {
-            "pathRegexes": ["^web/help/dialog\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["once"],
-            "allowedViolations": ["banned-term"],
-            "reason": "DOM event listeners use the once option."
-        },
-        {
-            "pathRegexes": ["^web/host\\.d\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["loadedGraphNode"],
-            "allowedViolations": ["banned-term"],
-            "reason": "ComfyUI calls this extension callback by its exact name."
-        },
-        {
-            "pathRegexes": ["^web/host\\.d\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["fetchApi"],
-            "allowedViolations": ["banned-term"],
-            "reason": "ComfyUI exposes its HTTP client under this exact member name."
-        },
-        {
-            "pathRegexes": ["^web/host\\.d\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["extensionManager"],
-            "allowedViolations": ["banned-term"],
-            "reason": "ComfyUI exposes its extension manager under this exact member name."
-        },
-        {
-            "pathRegexes": ["^web/host\\.d\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["getCustomNodesI18n"],
-            "allowedViolations": ["banned-term", "case", "digits", "words"],
-            "reason": "ComfyUI exposes its translation reader under this exact member name."
         },
         {
             "pathRegexes": ["^web/live/api\\.ts$"],
@@ -606,13 +564,6 @@
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/nodes/contracts\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["advanced"],
-            "allowedViolations": ["banned-term"],
-            "reason": "ComfyUI widgets use this property to control advanced inputs."
-        },
-        {
             "pathRegexes": ["^web/settings/schema\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["catalog_auto_check", "catalog_interval_hours"],
@@ -655,6 +606,14 @@
             "reason": "The local credential API accepts this exact request field."
         }
     ],
-    "excludedPaths": ["/.git/", "/.artifacts/", "/dist/", "/node_modules/", "/rules/"],
+    "excludedPaths": [
+        "/.git/",
+        "/.artifacts/",
+        "/dist/",
+        "/node_modules/",
+        "/rules/",
+        "/web/extension.css",
+        "/web/extension.js"
+    ],
     "excludedBasenames": [".markdownlint-cli2.jsonc", "README.md", "AGENTS.md", "bun.lock", "package.json"]
 }

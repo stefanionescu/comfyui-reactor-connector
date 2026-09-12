@@ -10,7 +10,6 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 import { NODE_API_VERSION } from '#config/eslint/runtime.js';
 import { rules as localRules } from '#shared/eslint/plugin/index.js';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
-import { SINGLE_FILE_FOLDER_PATTERNS } from '#config/repository/directories.js';
 
 import {
   ESLINT_BROWSER_GLOBALS,
@@ -29,13 +28,14 @@ const ignores = [
   '**/node_modules/**',
   '.artifacts/**',
   'dist/**',
-  'web/dist/**',
+  'web/extension.js',
+  'web/extension.css',
   '**/.venv/**',
   '**/.git/**',
 ];
 
 const nodeScriptFiles = ['scripts/**/*.mjs'];
-const browserFiles = ['config/**/*.ts', 'web/**/*.ts'];
+const browserFiles = ['web/**/*.ts'];
 const qualityModuleFiles = ['quality/**/*.mjs', 'quality/**/*.js'];
 const qualityCommonjsFiles = ['quality/**/*.cjs'];
 
@@ -146,7 +146,7 @@ export default [
   qualityToolingOverrides,
   ...boundaryOverrides,
   {
-    files: ['web/extension.ts', 'web/help/command.ts', 'web/language.ts', 'web/http.ts'],
+    files: ['web/extension.ts', 'web/language.ts', 'web/http.ts'],
     rules: {
       // ComfyUI serves these modules outside the connector's bundled directory.
       'local/import-path-style': [
@@ -163,10 +163,6 @@ export default [
         },
       ],
     },
-  },
-  {
-    files: SINGLE_FILE_FOLDER_PATTERNS,
-    rules: { 'local/no-single-file-folders': 'off' },
   },
   prettierConfig,
   { rules: eslintSpacingRules },

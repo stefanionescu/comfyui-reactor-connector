@@ -3,7 +3,7 @@
     "workspaces": {
         ".": {
             "entry": ["web/extension.ts", "scripts/frontend.mjs"],
-            "project": ["config/**/*.ts", "web/**/*.ts", "!web/dist/**"],
+            "project": ["web/**/*.ts"],
             "ignoreDependencies": [
                 "@commitlint/cli",
                 "html-validate",

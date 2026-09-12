@@ -3,11 +3,11 @@
 import asyncio
 from functools import partial
 from ...media.output import owned_io
-from ..schema import translate_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
-from ...execution.fast.generate import FastGenerateRequest
+from ...state.generation.fast import FastGenerateRequest
+from ...execution.fast.generate import FastGenerateOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.fast import (
     DEFAULT_ASPECT,
@@ -33,36 +33,43 @@ class FastGenerate(io.ComfyNode):
         controls = generation_controls("fast")
         controls[1] = io.Float.Input(
             "duration_seconds",
+            display_name="Video length (seconds)",
+            tooltip=(
+                "Fast H3 chooses a supported clip length near this value. "
+                "The clip must fit the video duration limit in Reactor settings."
+            ),
             default=DEFAULT_CLIP_SECONDS,
             min=MIN_CLIP_SECONDS,
             max=MAX_CLIP_SECONDS,
             step=STEP_CLIP_SECONDS,
         )
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncFastGenerate",
-                inputs=[
-                    *controls,
-                    io.Combo.Input(
-                        "aspect",
-                        options=OPTIONS_ASPECT,
-                        default=DEFAULT_ASPECT,
-                    ),
-                    io.Image.Input(
-                        "image",
-                        optional=True,
-                    ),
-                    io.Image.Input(
-                        "ending_image",
-                        optional=True,
-                    ),
-                ],
-                outputs=[
-                    io.Video.Output(),
-                    io.Audio.Output(),
-                    io.String.Output(),
-                ],
-            )
+        return io.Schema(
+            node_id="ReactorIncFastGenerate",
+            display_name="Fast H3: Generate Video (Reactor)",
+            category="Reactor/Generate",
+            description="Generate a video clip with sound. Help explains clip lengths, images, and saving.",
+            search_aliases=["Reactor", "Fast H3", "FastH3", "audio"],
+            inputs=[
+                *controls,
+                io.Combo.Input("aspect", display_name="Aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
+                io.Image.Input(
+                    "image",
+                    display_name="Starting image",
+                    optional=True,
+                    tooltip="Optional first frame. Connect Load Image.",
+                ),
+                io.Image.Input(
+                    "ending_image",
+                    display_name="Final image",
+                    optional=True,
+                    tooltip="Optional last frame. Can be used with or without a first frame.",
+                ),
+            ],
+            outputs=[
+                io.Video.Output(display_name="Video"),
+                io.Audio.Output(display_name="Audio"),
+                io.String.Output(display_name="Recording details"),
+            ],
         )
 
     @classmethod
@@ -85,9 +92,7 @@ class FastGenerate(io.ComfyNode):
             """Prepare media inside the owned task before starting the Reactor session."""
             first = await owned_io(partial(encode_png, image)) if image is not None else None
             last = await owned_io(partial(encode_png, ending_image)) if ending_image is not None else None
-            return await generate_video(
-                FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last),
-                node_id=cls.define_schema().node_id,
-            )
+            request = FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last)
+            return await generate_video(FastGenerateOperation(request), node_id=cls.define_schema().node_id)
 
         return await wait_for_execution(asyncio.create_task(generate()))

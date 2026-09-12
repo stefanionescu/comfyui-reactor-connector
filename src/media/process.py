@@ -4,10 +4,11 @@ import os
 import asyncio
 from contextlib import suppress
 from ..language import translate
+from ..state.documents import Json
 from ..errors import ErrorCode, ConnectorError
 from ...config.media.capture import ENCODER_ERRORS
+from ..serialization import parse_json, mapping_value
 from collections.abc import Callable, Sequence, Coroutine
-from ..serialization import Json, parse_json, mapping_value
 from ...config.media.workers import MAX_REPORT_BYTES, SHUTDOWN_TIMEOUT_SECONDS
 
 

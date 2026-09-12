@@ -1,8 +1,8 @@
 """Build and execute LongLive shots without making users write model commands."""
 
 from comfy_api.latest import io
-from ..schema import translate_schema
-from ...execution.longlive.storyboard import Shot, append_shot
+from ...state.generation.longlive import Shot
+from ...execution.longlive.storyboard import append_shot
 from ....config.generation.prompts import MAX_SHOT_CHUNK, DEFAULT_TRANSITION, OPTIONS_TRANSITION, DEFAULT_PROMPTS
 
 
@@ -12,35 +12,46 @@ class LongLiveAddShot(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncLongLiveAddShot",
-                inputs=[
-                    io.String.Input(
-                        "previous",
-                        default="[]",
-                        multiline=False,
-                        advanced=True,
-                    ),
-                    io.Int.Input(
-                        "at_session_chunk",
-                        default=1,
-                        min=1,
-                        max=MAX_SHOT_CHUNK,
-                    ),
-                    io.Combo.Input(
-                        "transition",
-                        options=OPTIONS_TRANSITION,
-                        default=DEFAULT_TRANSITION,
-                    ),
-                    io.String.Input(
-                        "prompt",
-                        default=DEFAULT_PROMPTS["shot"],
-                        multiline=True,
-                    ),
-                ],
-                outputs=[io.String.Output()],
-            )
+        return io.Schema(
+            node_id="ReactorIncLongLiveAddShot",
+            display_name="LongLive: Add a Shot (Reactor)",
+            description="Add a shot to a LongLive storyboard.",
+            category="Reactor/Plans",
+            search_aliases=["Reactor", "LongLive", "schedule", "storyboard"],
+            inputs=[
+                io.String.Input(
+                    "previous",
+                    display_name="Previous shots (JSON)",
+                    tooltip="Leave [] for the first shot, or connect the previous shot node.",
+                    default="[]",
+                    multiline=False,
+                    advanced=True,
+                ),
+                io.Int.Input(
+                    "at_session_chunk",
+                    display_name="Start chunk",
+                    tooltip="When this shot starts. Each chunk is 29 frames, about 1.2 seconds at 24 fps.",
+                    default=1,
+                    min=1,
+                    max=MAX_SHOT_CHUNK,
+                ),
+                io.Combo.Input(
+                    "transition",
+                    display_name="Transition",
+                    tooltip="Soft transition continues from the preceding scene. Hard cut starts a new scene.",
+                    options=OPTIONS_TRANSITION,
+                    default=DEFAULT_TRANSITION,
+                ),
+                io.String.Input(
+                    "prompt",
+                    display_name="Scene prompt",
+                    placeholder="Scene prompt",
+                    tooltip="Describe this later shot.",
+                    default=DEFAULT_PROMPTS["shot"],
+                    multiline=True,
+                ),
+            ],
+            outputs=[io.String.Output(display_name="Shots")],
         )
 
     @classmethod

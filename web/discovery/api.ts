@@ -1,7 +1,7 @@
 import type { Fetcher } from '#web/http.ts';
+import { browserRoutes } from '#web/routes.ts';
+import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
-import { browserRoutes } from '#config/web/routes.ts';
-import { browserLimits } from '#config/web/browser.ts';
 import { translate, formatDate } from '#web/language.ts';
 import { message, type Message } from '#web/localization.ts';
 import { parseModelList, type ModelList } from '#web/discovery/schema.ts';

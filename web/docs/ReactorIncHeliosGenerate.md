@@ -15,7 +15,7 @@ to ComfyUI's **Save Video** node to preview and save the result.
 
 ## Run and save
 
-1. Open [Helios text to video](../../workflows/helios/helios-01-text-to-video.json).
+1. Open **helios-01-text-to-video** in native **Browse Templates → reactor-inc**.
 2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 3. Describe the scene in **Scene prompt**. For example: “A red ball rolls slowly
    across a wooden table. The camera stays still.”
@@ -43,7 +43,7 @@ before they connect. The default queue wait limit is 120 seconds. A rejected
 command or lost connection ends the run; the connector does not retry it.
 
 For invalid inputs, missing video, or connection errors, follow the
-[troubleshooting guide](../../ADVANCED.md#recovery).
+troubleshooting guide (**Recovery** in the bundled `ADVANCED.md`).
 
 [Reactor Helios reference](https://docs.reactor.inc/model-api-reference/helios/overview)
 
@@ -54,11 +54,11 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
+See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

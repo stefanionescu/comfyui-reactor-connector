@@ -2,9 +2,9 @@
 
 import re
 from ...language import translate
-from dataclasses import dataclass
 from urllib.parse import urljoin, urlsplit
 from ...errors import ErrorCode, ConnectorError
+from ...state.recording import RecordingManifest
 from ....config.media.recording import (
     COORDINATOR,
     MAX_SEGMENTS,
@@ -17,14 +17,6 @@ from ....config.media.recording import (
 
 
 INIT_URI = re.compile(INIT_URI_PATTERN_TEXT)
-
-
-@dataclass(frozen=True, slots=True)
-class RecordingManifest:
-    """Validated local filenames for an initialization fragment and recording segments."""
-
-    initialization: str
-    segments: tuple[str, ...]
 
 
 def recording_error(reason: str = "Unsupported recording response.") -> ConnectorError:

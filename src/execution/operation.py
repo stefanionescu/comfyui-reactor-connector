@@ -2,45 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import ClassVar, Protocol, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .transport import Transport
     from .events import SessionEvents
-    from ..settings.schema import Settings
-
-
-@dataclass(frozen=True, slots=True)
-class RecordingWindow:
-    """An interval selected from a provider recording.
-
-    Attributes:
-        start_seconds: Position where the saved interval begins.
-        duration_seconds: Length of the saved interval.
-
-    """
-
-    start_seconds: float
-    duration_seconds: float
-
-
-@dataclass(frozen=True, slots=True)
-class ControlValues:
-    """Provider-neutral values used to construct optional browser controls.
-
-    Attributes:
-        prompt: Text shown in the live prompt control.
-        is_passthrough_enabled: Whether prompt changes continue to the provider immediately.
-        audio_prompt: Text shown in the optional audio prompt control.
-        is_audio_enabled: Whether the audio prompt control starts enabled.
-
-    """
-
-    prompt: str
-    is_passthrough_enabled: bool = False
-    audio_prompt: str = ""
-    is_audio_enabled: bool = False
+    from ..state.settings import Settings
+    from ..state.session import ControlValues, RecordingWindow
 
 
 class VideoOperation(Protocol):
@@ -87,4 +55,4 @@ class VideoOperation(Protocol):
         raise NotImplementedError
 
 
-__all__ = ["ControlValues", "RecordingWindow", "VideoOperation"]
+__all__ = ["VideoOperation"]

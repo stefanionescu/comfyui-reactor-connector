@@ -5,11 +5,11 @@ import folder_paths
 from pathlib import Path
 from dataclasses import replace
 from ...runtime import get_runtime
-from ..schema import translate_schema
 from comfy_api.latest import io, Input
 from ...settings.store import read_settings
 from ...media.video.input import prepared_video
-from ...execution.sana.request import SanaRequest
+from ...state.generation.sana import SanaRequest
+from ...execution.sana.request import SanaOperation
 from ..controls import live_control, video_outputs, generation_controls
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
@@ -26,24 +26,30 @@ class SanaEditVideo(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncSanaEditVideo",
-                inputs=[
-                    io.Video.Input(
-                        "source",
-                    ),
-                    *generation_controls("edit"),
-                    io.Int.Input(
-                        "anchor_interval",
-                        default=DEFAULT_ANCHOR_INTERVAL,
-                        min=MIN_ANCHOR_INTERVAL,
-                        max=MAX_ANCHOR_INTERVAL,
-                    ),
-                    live_control(),
-                ],
-                outputs=video_outputs(),
-            )
+        return io.Schema(
+            node_id="ReactorIncSanaEditVideo",
+            display_name="SANA: Edit Video (Reactor)",
+            description="Edit a video from your computer using a text prompt. Choose the output length.",
+            category="Reactor/Edit",
+            search_aliases=["Reactor", "SANA", "video to video", "edit"],
+            inputs=[
+                io.Video.Input(
+                    "source",
+                    display_name="Source video",
+                    tooltip="Connect one local SDR clip with at least 33 frames.",
+                ),
+                *generation_controls("edit"),
+                io.Int.Input(
+                    "anchor_interval",
+                    display_name="Source refresh interval (chunks)",
+                    tooltip="Return to the source image after this many model chunks. Use 0 to turn this off.",
+                    default=DEFAULT_ANCHOR_INTERVAL,
+                    min=MIN_ANCHOR_INTERVAL,
+                    max=MAX_ANCHOR_INTERVAL,
+                ),
+                live_control(),
+            ],
+            outputs=video_outputs(),
         )
 
     @classmethod
@@ -83,7 +89,7 @@ async def _edit(
     settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
     async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
         return await generate_video(
-            replace(request, video=video),
+            SanaOperation(replace(request, video=video)),
             interactive=interactive,
             node_id=node_id,
         )

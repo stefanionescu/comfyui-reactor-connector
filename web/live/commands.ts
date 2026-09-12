@@ -1,8 +1,8 @@
 import type { Fetcher } from '#web/http.ts';
 import { translate } from '#web/language.ts';
+import { browserRoutes } from '#web/routes.ts';
+import { browserLimits } from '#web/browser.ts';
 import type { Invitation } from '#web/live/schema.ts';
-import { browserRoutes } from '#config/web/routes.ts';
-import { browserLimits } from '#config/web/browser.ts';
 
 /**
  * Send one ordered live action through the local ComfyUI server.

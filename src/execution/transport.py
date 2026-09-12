@@ -5,12 +5,12 @@ import time
 from pathlib import Path
 from ..language import translate
 from typing import cast, Protocol
-from ..credentials import Credential
 from reactor_sdk import Clip, Reactor
 from ..errors import ErrorCode, ConnectorError
+from .authentication import mint_session_token
 from collections.abc import Callable, Sequence
+from ..state.credentials import Credential, SessionToken
 from ..media.recording.download import download_recording
-from .authentication import SessionToken, mint_session_token
 
 
 class Track(Protocol):

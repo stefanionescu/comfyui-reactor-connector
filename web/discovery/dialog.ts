@@ -1,9 +1,9 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import { formatDate } from '#web/language.ts';
+import { browserLimits } from '#web/browser.ts';
 import type { Message } from '#web/localization.ts';
 import { buildModelRow } from '#web/discovery/row.ts';
-import { browserLimits } from '#config/web/browser.ts';
 import type { ModelList } from '#web/discovery/schema.ts';
 import { requestModels, metadataStatus } from '#web/discovery/api.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';

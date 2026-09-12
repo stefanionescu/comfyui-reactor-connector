@@ -1,15 +1,13 @@
 import type { Fetcher } from '#web/http.ts';
-import { translate } from '#web/language.ts';
 import { button, element } from '#web/dom.ts';
+import { browserLimits } from '#web/browser.ts';
 import { inputValues } from '#web/nodes/inputs.ts';
-import { bindWidgetLabel } from '#web/nodes/labels.ts';
-import { browserLimits } from '#config/web/browser.ts';
-import { nodePricingRules } from '#config/web/pricing.ts';
 import type { ReactorNode } from '#web/nodes/contracts.ts';
-import { formatCreditSummary } from '#web/discovery/pricing.ts';
+import { languageEvents, translate } from '#web/language.ts';
 import type { Model, ModelList } from '#web/discovery/schema.ts';
 import { requestModels, metadataStatus } from '#web/discovery/api.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';
+import { formatCreditSummary, nodePricingRules } from '#web/discovery/pricing.ts';
 
 /**
  * Read the requested video length only when it is known in the editor.
@@ -39,6 +37,8 @@ function requestedSeconds(node: ReactorNode): number | undefined {
   return value('duration_seconds');
 }
 
+const boundNodes = new WeakSet<ReactorNode>();
+
 let current: CreditDialog | undefined;
 
 /** Calculate credits from the local public rate and a chosen session time. */
@@ -63,7 +63,7 @@ class CreditDialog {
    * Build the calculator for a node.
    * @param node - The node whose public rate is requested.
    */
-  constructor(private readonly node: ReactorNode) {
+  constructor(readonly node: ReactorNode) {
     this.dialog.className = 'reactor-dialog';
     this.dialog.setAttribute('aria-labelledby', 'reactor-rate-title');
     const title = element('h2', message('pricing.title'));
@@ -199,6 +199,8 @@ function openCreditRate(node: ReactorNode, fetcher: Fetcher): void {
 export function bindCreditRate(node: ReactorNode, fetcher: Fetcher): void {
   const id = node.comfyClass;
   if (!id?.startsWith('ReactorInc') || nodePricingRules.excludedNodeIds.includes(id)) return;
+  if (boundNodes.has(node)) return;
+  boundNodes.add(node);
   const widget = node.addWidget(
     'button',
     translate('pricing.viewRate'),
@@ -208,5 +210,21 @@ export function bindCreditRate(node: ReactorNode, fetcher: Fetcher): void {
       serialize: false,
     },
   );
-  bindWidgetLabel(node, widget, 'pricing.viewRate');
+  widget.serialize = false;
+  const refreshLabel = (): void => {
+    const label = translate('pricing.viewRate');
+    if (widget.label !== label) {
+      widget.label = label;
+      node.graph?.setDirtyCanvas(true);
+    }
+  };
+  refreshLabel();
+  languageEvents.addEventListener('change', refreshLabel);
+  const removed = node.onRemoved?.bind(node);
+  node.onRemoved = function (...args: Parameters<NonNullable<ReactorNode['onRemoved']>>) {
+    languageEvents.removeEventListener('change', refreshLabel);
+    boundNodes.delete(node);
+    if (current?.node === node) current.dialog.close();
+    removed?.apply(this, args);
+  };
 }

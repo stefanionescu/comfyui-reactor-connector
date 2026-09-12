@@ -2,6 +2,11 @@
     "allowed_licenses": ["Apache-2.0", "ISC", "MIT", "Python-2.0"],
     "package_exemptions": [
         {
+            "package": "@comfyorg/comfyui-frontend-types",
+            "licenses": ["GPL-3.0-only"],
+            "reason": "Development type declarations for the ComfyUI frontend. Browser source uses type-only imports, so esbuild copies nothing from this package into web/extension.js."
+        },
+        {
             "package": "@csstools/css-syntax-patches-for-csstree",
             "licenses": ["MIT-0"],
             "reason": "The package uses the MIT No Attribution license."

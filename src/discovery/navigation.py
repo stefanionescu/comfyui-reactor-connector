@@ -1,8 +1,9 @@
 """Extract model guide identities from Reactor's rendered documentation navigation."""
 
 import re
+from .contracts import invalid
 from html.parser import HTMLParser
-from .contracts import Guide, invalid
+from ..state.discovery import Guide
 from ...config.discovery import MAX_MODEL_GUIDES, GUIDE_PATH_PATTERN_TEXT
 
 

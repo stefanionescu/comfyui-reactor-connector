@@ -10,7 +10,8 @@ from ..output import owned_io
 from functools import partial
 from ...language import translate
 from ..process import MediaProcess
-from ...settings.schema import Settings
+from ...paths import EXTENSION_ROOT
+from ...state.settings import Settings
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
@@ -74,7 +75,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         [
             sys.executable,
             "-I",
-            str(Path(__file__).parents[3]),
+            str(EXTENSION_ROOT),
             "capture",
             str(destination),
             str(settings.max_capture_seconds * 1_000_000),

@@ -7,7 +7,7 @@ from comfy.cli_args import args
 from server import PromptServer
 from ..language import translate
 from ..runtime import get_runtime
-from ..live.state import LiveOptions
+from ..live.options import LiveOptions
 from ..models import MODELS_BY_CONNECTION
 from ..live.control.lease import ControlLease
 from ..errors import ErrorCode, ConnectorError
@@ -25,7 +25,7 @@ from ...config.live import (
 
 
 if TYPE_CHECKING:
-    from ..serialization import Json
+    from ..state.documents import Json
     from ..media.webcam import WebcamFrames
     from ..execution.operation import VideoOperation
     from ..live.interaction import CameraInteraction

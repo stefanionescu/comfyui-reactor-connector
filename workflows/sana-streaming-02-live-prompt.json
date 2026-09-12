@@ -1,0 +1,205 @@
+{
+  "last_node_id": 9,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        400,
+        120
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Describe the change you want in **Edit prompt**.\n4. Select **Run** to open the live panel."
+      ],
+      "title": "Start Here"
+    },
+    {
+      "id": 2,
+      "type": "LoadVideo",
+      "pos": [
+        40,
+        260
+      ],
+      "size": [
+        400,
+        310
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadVideo"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ],
+      "title": "Upload Your Source Video"
+    },
+    {
+      "id": 8,
+      "type": "MarkdownNote",
+      "pos": [
+        500,
+        60
+      ],
+      "size": [
+        440,
+        140
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "In the live panel, select **Start session** within 60 seconds.\n\nChange **Edit prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
+      ],
+      "title": "Using This Workflow"
+    },
+    {
+      "id": 3,
+      "type": "ReactorIncSanaEditVideo",
+      "pos": [
+        500,
+        260
+      ],
+      "size": [
+        440,
+        330
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "VIDEO",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "metadata",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ReactorIncSanaEditVideo"
+      },
+      "widgets_values": [
+        "Change the scene to a soft watercolor painting. Keep the movement and composition.",
+        20.0,
+        42,
+        "fixed",
+        0,
+        0,
+        true
+      ],
+      "title": "SANA: Change the Prompt while Recording"
+    },
+    {
+      "id": 4,
+      "type": "SaveVideo",
+      "pos": [
+        1000,
+        260
+      ],
+      "size": [
+        360,
+        310
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "video/reactor/sana-streaming-02-live-prompt",
+        "auto",
+        "auto",
+        "auto"
+      ],
+      "title": "Preview and Save Video"
+    }
+  ],
+  "links": [
+    [
+      1,
+      3,
+      0,
+      4,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.6,
+      "offset": [
+        20,
+        20
+      ]
+    }
+  },
+  "version": 0.4
+}

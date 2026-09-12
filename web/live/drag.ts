@@ -1,4 +1,4 @@
-import { browserInput } from '#config/web/browser.ts';
+import { browserInput } from '#web/browser.ts';
 import { setTextAttribute, message } from '#web/localization.ts';
 
 export type Pointer = { x: number; y: number; active: boolean };

@@ -6,8 +6,8 @@ from comfy.cli_args import args
 from server import PromptServer
 from ..language import translate
 from ..runtime import get_runtime
+from ..paths import EXTENSION_ROOT
 from ..live.routes import LiveRoutes
-from ...config.routes import HELP_PREFIX
 from ..discovery.routes import ModelRoutes
 from ..settings.store import read_settings
 from ..discovery.checker import ModelChecker
@@ -25,19 +25,13 @@ def register_configuration() -> None:
         folder_paths.get_output_directory(),
         folder_paths.get_temp_directory(),
         folder_paths.get_user_directory(),
-        str(Path(__file__).resolve().parents[2]),
+        str(EXTENSION_ROOT),
     )
     if any(directory.is_relative_to(Path(root).resolve()) for root in public_roots):
         raise ConnectorError(
             ErrorCode.CONFIGURATION,
             translate("main", "errors.privateStateLocation"),
         )
-    PromptServer.instance.routes.static(
-        HELP_PREFIX,
-        Path(__file__).resolve().parents[2] / "web/dist/guides",
-        show_index=False,
-        follow_symlinks=False,
-    )
     ConfigurationRoutes(store, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
     LiveRoutes(get_runtime().browsers, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
     checker = ModelChecker(get_runtime().discovery, lambda: read_settings(directory))

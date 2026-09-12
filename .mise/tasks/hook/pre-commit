@@ -23,7 +23,6 @@ main() {
   hook_run_step "source checks" SKIP_LINT mise run lint
   hook_run_step "frontend types" SKIP_LINT mise run type:frontend
   hook_run_step "frontend output" SKIP_LINT mise run frontend:check
-  hook_run_step "help output" SKIP_LINT mise run docs:check
   hook_run_step "workflow output" SKIP_LINT mise run workflows:check
 }
 

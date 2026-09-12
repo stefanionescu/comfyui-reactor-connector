@@ -41,11 +41,11 @@ access and causes the session to end. Losing camera input for three seconds also
 ends the session. Check browser camera permissions and use localhost or HTTPS
 if the camera cannot start.
 
-See the [live controls guide](../../ADVANCED.md#live-controls) for session limits and recovery.
+See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for session limits and recovery.
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

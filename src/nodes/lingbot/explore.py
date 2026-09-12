@@ -4,7 +4,8 @@ import asyncio
 from .schema import lingbot_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
-from ...execution.lingbot.request import LingBotRequest
+from ...state.generation.lingbot import LingBotRequest
+from ...execution.lingbot.request import LingBotOperation
 from ...comfy.execution import generate_video, operation_fingerprint
 
 
@@ -40,17 +41,18 @@ class LingBotExplore(io.ComfyNode):
         # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
         del variation
         encoded = await asyncio.to_thread(encode_png, image)
+        request = LingBotRequest(
+            prompt,
+            duration_seconds,
+            seed,
+            encoded,
+            movement="idle" if interactive else movement,
+            look_horizontal="idle" if interactive else look_horizontal,
+            look_vertical="idle" if interactive else look_vertical,
+            rotation_speed_deg=rotation_speed_deg,
+        )
         return await generate_video(
-            LingBotRequest(
-                prompt,
-                duration_seconds,
-                seed,
-                encoded,
-                "idle" if interactive else movement,
-                "idle" if interactive else look_horizontal,
-                "idle" if interactive else look_vertical,
-                rotation_speed_deg,
-            ),
+            LingBotOperation(request),
             interactive=interactive,
             node_id=cls.define_schema().node_id,
         )

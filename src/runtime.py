@@ -27,25 +27,24 @@ class Runtime:
     configuration: ConfigurationStore
     discovery: ModelStore
 
-    def __init__(self) -> None:
+    def __init__(self, node_models: dict[str, str]) -> None:
         """Create process-wide services and place their state under one private directory."""
         self.sessions = SessionAdmission()
         self.browsers = BrowserRegistry()
         self.configuration = ConfigurationStore(state_directory())
-        self.discovery = ModelStore(self.configuration.directory / "catalog")
+        self.discovery = ModelStore(self.configuration.directory / "catalog", node_models)
 
 
 _runtime: Runtime | None = None
 
 
-def initialize_runtime() -> None:
+def initialize_runtime(node_models: dict[str, str]) -> None:
     """Initialize once through the host's extension lifecycle, without network calls."""
     global _runtime  # noqa: PLW0603 -- reason: ComfyUI initializes one shared runtime during loading.
     for language in available_languages():
-        read_messages("nodeDefs", language)
         read_messages("main", language)
     if _runtime is None:
-        _runtime = Runtime()
+        _runtime = Runtime(node_models)
 
 
 def get_runtime() -> Runtime:

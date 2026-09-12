@@ -3,7 +3,9 @@ extend-exclude = [
     "node_modules",
     ".venv",
     ".artifacts",
-    "web/dist",
+    "web/extension.js",
+    "web/extension.css",
+    "node.zip",
 ]
 
 [default.extend-words]

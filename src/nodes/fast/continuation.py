@@ -3,11 +3,11 @@
 import asyncio
 from functools import partial
 from ...media.output import owned_io
-from ..schema import translate_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
-from ...execution.fast.continuation import FastContinueRequest
+from ...state.generation.fast import FastContinueRequest
+from ...execution.fast.continuation import FastContinueOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.fast import (
     DEFAULT_ASPECT,
@@ -36,43 +36,53 @@ class FastContinue(io.ComfyNode):
         controls = generation_controls("continuation")
         controls[1] = io.Float.Input(
             "clip_seconds",
+            display_name="Clip length (seconds)",
+            tooltip="Length of each clip. Fast H3 chooses the closest supported length.",
             default=DEFAULT_CLIP_SECONDS,
             min=MIN_CLIP_SECONDS,
             max=MAX_CLIP_SECONDS,
             step=STEP_CLIP_SECONDS,
         )
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncFastContinue",
-                inputs=[
-                    *controls,
-                    io.Combo.Input(
-                        "aspect",
-                        options=OPTIONS_ASPECT,
-                        default=DEFAULT_ASPECT,
+        return io.Schema(
+            node_id="ReactorIncFastContinue",
+            display_name="Fast H3: Continue a Scene (Reactor)",
+            description="Chain clips from their previous final frame and save one video with sound.",
+            category="Reactor/Generate",
+            search_aliases=[],
+            inputs=[
+                *controls,
+                io.Combo.Input("aspect", display_name="Aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
+                io.Int.Input(
+                    "clip_count",
+                    display_name="Number of clips",
+                    tooltip="Number of clips in one session. Their combined length must fit the video duration limit.",
+                    default=DEFAULT_CLIP_COUNT,
+                    min=MIN_CLIP_COUNT,
+                    max=MAX_CLIP_COUNT,
+                ),
+                io.String.Input(
+                    "later_prompts",
+                    display_name="Later prompts",
+                    placeholder="Later prompts",
+                    tooltip=(
+                        "Optional later scenes: one prompt per line, starting with clip 2. "
+                        "Empty uses the opening prompt."
                     ),
-                    io.Int.Input(
-                        "clip_count",
-                        default=DEFAULT_CLIP_COUNT,
-                        min=MIN_CLIP_COUNT,
-                        max=MAX_CLIP_COUNT,
-                    ),
-                    io.String.Input(
-                        "later_prompts",
-                        multiline=True,
-                        default="",
-                    ),
-                    io.Image.Input(
-                        "image",
-                        optional=True,
-                    ),
-                ],
-                outputs=[
-                    io.Video.Output(),
-                    io.Audio.Output(),
-                    io.String.Output(),
-                ],
-            )
+                    multiline=True,
+                    default="",
+                ),
+                io.Image.Input(
+                    "image",
+                    display_name="Starting image",
+                    optional=True,
+                    tooltip="Optional first frame for the first clip.",
+                ),
+            ],
+            outputs=[
+                io.Video.Output(display_name="Video"),
+                io.Audio.Output(display_name="Audio"),
+                io.String.Output(display_name="Recording details"),
+            ],
         )
 
     @classmethod
@@ -105,6 +115,6 @@ class FastContinue(io.ComfyNode):
                 clip_count=clip_count,
                 later_prompts=tuple(later_prompts.splitlines()),
             )
-            return await generate_video(request, node_id=cls.define_schema().node_id)
+            return await generate_video(FastContinueOperation(request), node_id=cls.define_schema().node_id)
 
         return await wait_for_execution(asyncio.create_task(generate()))

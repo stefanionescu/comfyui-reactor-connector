@@ -5,9 +5,9 @@ import type { ReactorNode } from '#web/nodes/contracts.ts';
  * @param node - The node being inspected.
  * @returns Names of inputs with a link.
  */
-export function connectedInputs(node: ReactorNode): Set<string> {
+function connectedInputs(node: ReactorNode): Set<string> {
   const names = new Set<string>();
-  for (const input of node.inputs ?? []) {
+  for (const input of node.inputs) {
     if (input.link != null) names.add(input.name);
   }
   return names;

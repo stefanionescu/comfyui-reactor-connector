@@ -3,7 +3,7 @@
 import asyncio
 from .lease import ControlLease
 from ...language import translate
-from ...serialization import Json
+from ...state.documents import Json
 from ..interaction import CameraInteraction
 from ...execution.events import SessionEvents
 from ....config.live import INPUT_POLL_SECONDS

@@ -7,21 +7,22 @@ from pathlib import Path
 from functools import partial
 from ...language import translate
 from ..failures import safe_error
-from .state import SessionOutcome
 from ..events import SessionEvents
-from .state import SessionResources
 from ...media.output import owned_io
 from ..cleanup import finish_session
-from ..diagnostics import FailureReport
-from ...media.state import CaptureResult
+from ..operation import VideoOperation
+from .resources import SessionResources
+from ...state.media import CaptureResult
 from ...media.capture import VideoCapture
+from ...state.reports import FailureReport
+from ..diagnostics import describe_failure
 from ..interaction import SessionInteraction
 from ...errors import ErrorCode, ConnectorError
+from ...state.settings import ExecutionConfiguration
 from ...media.units import convert_mebibytes_to_bytes
-from ..operation import VideoOperation, RecordingWindow
-from ...settings.execution import ExecutionConfiguration
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
+from ...state.session import SessionOutcome, RecordingWindow
 from ....config.generation.session import CAPTURE_DRAIN_SECONDS
 
 
@@ -107,7 +108,7 @@ def session_failure(events: SessionEvents, error: BaseException | None) -> Failu
     """Record the failed operation without replacing its execution error."""
     diagnostic = events.diagnostic
     if diagnostic is None and isinstance(error, ConnectorError):
-        diagnostic = FailureReport.from_error(events.phase, error)
+        diagnostic = describe_failure(events.phase, error)
     if diagnostic is None and isinstance(error, TimeoutError):
         diagnostic = FailureReport(
             events.phase,

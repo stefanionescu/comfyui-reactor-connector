@@ -3,7 +3,8 @@
 import asyncio
 from aiohttp import web
 from ..language import translate
-from ..serialization import Json, parse_json, mapping_value
+from ..state.documents import Json
+from ..serialization import parse_json, mapping_value
 from ...config.settings import MAX_SETTINGS_BYTES, REQUEST_CHUNK_BYTES, SETTINGS_TIMEOUT_SECONDS
 
 

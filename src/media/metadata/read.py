@@ -2,10 +2,10 @@
 
 import sys
 import asyncio
-from pathlib import Path
 from ...language import translate
-from ...serialization import Json
-from ..state import CaptureResult
+from ...paths import EXTENSION_ROOT
+from ...state.documents import Json
+from ...state.media import CaptureResult
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
 from ....config.media.workers import METADATA_TIMEOUT_SECONDS
@@ -18,7 +18,7 @@ async def read_recording_metadata(result: CaptureResult, maximum_bytes: int) -> 
         [
             sys.executable,
             "-I",
-            str(Path(__file__).parents[3]),
+            str(EXTENSION_ROOT),
             "metadata",
             str(result.path),
             str(maximum_bytes),

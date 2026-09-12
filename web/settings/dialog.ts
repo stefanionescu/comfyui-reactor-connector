@@ -1,8 +1,8 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
+import { browserRoutes } from '#web/routes.ts';
 import { type MessageKey } from '#web/language.ts';
 import type { Message } from '#web/localization.ts';
-import { browserRoutes } from '#config/web/routes.ts';
 import { requestConfiguration } from '#web/settings/api.ts';
 import type { Configuration } from '#web/settings/schema.ts';
 import { message, setTextAttribute, setText } from '#web/localization.ts';

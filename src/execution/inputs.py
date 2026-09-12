@@ -3,40 +3,49 @@
 from typing import ClassVar
 from ..language import translate
 from .transport import Transport
-from dataclasses import dataclass
 from ...config.nodes import MAX_SEED
-from .operation import ControlValues
-from ..settings.schema import Settings
+from ..state.settings import Settings
+from ..state.session import ControlValues
 from ..errors import ErrorCode, ConnectorError
+from ..state.generation.inputs import VideoInputs
 from ...config.media.video import DEFAULT_FRAME_RATE
 from ..media.units import convert_mebibytes_to_bytes
 from ...config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
 
 
-@dataclass(frozen=True, slots=True)
-class VideoInputs:
-    """Shared capture inputs; adapters add their own model restrictions.
+class VideoInputOperation[Request: VideoInputs]:
+    """Validate shared request values and provide default session controls.
 
     Attributes:
-        prompt: Opening text sent to the model.
-        duration_seconds: Requested recording length in seconds.
-        seed: Random seed sent to the model.
-        image: Optional encoded opening image.
+        inputs: Immutable values supplied by the node.
+        connection_name: Reviewed provider model connection.
+        fallback_fps: Frame rate used when no timestamp is supplied.
+        requires_audio: Whether the recording must contain audio.
 
     """
 
-    prompt: str
-    duration_seconds: float
-    seed: int
-    image: bytes | None = None
     connection_name: ClassVar[str]
     fallback_fps: ClassVar[int] = DEFAULT_FRAME_RATE
     requires_audio: ClassVar[bool] = False
 
+    def __init__(self, inputs: Request) -> None:
+        """Bind the immutable request to its execution owner."""
+        self.inputs = inputs
+
+    @property
+    def prompt(self) -> str:
+        """Expose the opening prompt to session control preparation."""
+        return self.inputs.prompt
+
+    @property
+    def duration_seconds(self) -> float:
+        """Expose the requested duration to the session owner."""
+        return self.inputs.duration_seconds
+
     def build_control_values(self) -> ControlValues:
         """Return the standard browser-control values for this operation."""
         return ControlValues(
-            self.prompt,
+            self.inputs.prompt,
             is_passthrough_enabled=False,
             audio_prompt="",
             is_audio_enabled=False,
@@ -47,13 +56,14 @@ class VideoInputs:
 
     def validate(self, settings: Settings) -> None:
         """Check prompt, capture, and image limits before a connection."""
-        if type(self.prompt) is not str or not self.prompt.strip() or len(self.prompt) > MAX_PROMPT_CHARACTERS:
+        inputs = self.inputs
+        if type(inputs.prompt) is not str or not inputs.prompt.strip() or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptLength"))
-        validate_capture_inputs(self.duration_seconds, self.seed, settings)
-        if self.image is not None and (
-            type(self.image) is not bytes
-            or not self.image
-            or len(self.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
+        validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
+        if inputs.image is not None and (
+            type(inputs.image) is not bytes
+            or not inputs.image
+            or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.imageUploadLimit"))
 
@@ -67,3 +77,6 @@ def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settin
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.captureLimit"))
     if type(seed) is not int or not 0 <= seed <= MAX_SEED:
         raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.seedRange"))
+
+
+__all__ = ["VideoInputOperation", "validate_capture_inputs"]

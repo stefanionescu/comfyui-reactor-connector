@@ -2,11 +2,11 @@
 
 import asyncio
 from ...media.output import owned_io
-from ..schema import translate_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
-from ...execution.ltx.request import LtxSpeakRequest
+from ...state.generation.ltx import LtxSpeakRequest
+from ...execution.ltx.request import LtxSpeakOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ....config.generation.speech import (
     DEFAULT_SCRIPT,
@@ -27,32 +27,40 @@ class LtxSpeak(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncLtxSpeak",
-                inputs=[
-                    *generation_controls("speech"),
-                    io.String.Input(
-                        "script",
-                        multiline=True,
-                        default=DEFAULT_SCRIPT,
-                    ),
-                    io.Int.Input(
-                        "words_per_minute",
-                        default=DEFAULT_WORDS_PER_MINUTE,
-                        min=MIN_WORDS_PER_MINUTE,
-                        max=MAX_WORDS_PER_MINUTE,
-                    ),
-                    io.Image.Input(
-                        "image",
-                    ),
-                ],
-                outputs=[
-                    io.Video.Output(),
-                    io.Audio.Output(),
-                    io.String.Output(),
-                ],
-            )
+        return io.Schema(
+            node_id="ReactorIncLtxSpeak",
+            display_name="LTX: Make a Portrait Speak (Reactor)",
+            description="Animate a portrait speaking a script. Help explains framing, duration, and sound.",
+            category="Reactor/Generate",
+            search_aliases=["Reactor", "LTX", "speech", "talking portrait"],
+            inputs=[
+                *generation_controls("speech"),
+                io.String.Input(
+                    "script",
+                    display_name="Spoken words",
+                    placeholder="Spoken words",
+                    multiline=True,
+                    default=DEFAULT_SCRIPT,
+                ),
+                io.Int.Input(
+                    "words_per_minute",
+                    display_name="Words per minute",
+                    tooltip="Words spoken per minute. Reactor checks the supported range before generation.",
+                    default=DEFAULT_WORDS_PER_MINUTE,
+                    min=MIN_WORDS_PER_MINUTE,
+                    max=MAX_WORDS_PER_MINUTE,
+                ),
+                io.Image.Input(
+                    "image",
+                    display_name="Starting image",
+                    tooltip="One clear portrait with the whole head visible.",
+                ),
+            ],
+            outputs=[
+                io.Video.Output(display_name="Video"),
+                io.Audio.Output(display_name="Audio"),
+                io.String.Output(display_name="Recording details"),
+            ],
         )
 
     @classmethod
@@ -74,16 +82,14 @@ class LtxSpeak(io.ComfyNode):
         async def generate() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             encoded = await owned_io(lambda: encode_png(image))
-            return await generate_video(
-                LtxSpeakRequest(
-                    prompt,
-                    duration_seconds,
-                    seed,
-                    image=encoded,
-                    script=script,
-                    words_per_minute=words_per_minute,
-                ),
-                node_id=cls.define_schema().node_id,
+            request = LtxSpeakRequest(
+                prompt,
+                duration_seconds,
+                seed,
+                image=encoded,
+                script=script,
+                words_per_minute=words_per_minute,
             )
+            return await generate_video(LtxSpeakOperation(request), node_id=cls.define_schema().node_id)
 
         return await wait_for_execution(asyncio.create_task(generate()))

@@ -1,11 +1,11 @@
 """Generate a Helios video from connected, scheduled prompts."""
 
 import asyncio
-from ..schema import translate_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
-from ...execution.helios.request import HeliosRequest
+from ...state.generation.helios import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
+from ...execution.helios.request import HeliosOperation
 from ..controls import video_outputs, generation_controls
 from ...comfy.execution import generate_video, operation_fingerprint
 
@@ -16,24 +16,30 @@ class HeliosSequence(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncHeliosSequence",
-                inputs=[
-                    *generation_controls(),
-                    io.String.Input(
-                        "sequence",
-                        default="[]",
-                        multiline=False,
-                        advanced=True,
-                    ),
-                    io.Image.Input(
-                        "image",
-                        optional=True,
-                    ),
-                ],
-                outputs=video_outputs(),
-            )
+        return io.Schema(
+            node_id="ReactorIncHeliosSequence",
+            display_name="Helios: Generate Video from a Prompt Sequence (Reactor)",
+            description="Generate a Helios video with later prompts scheduled by chunk number.",
+            category="Reactor/Generate",
+            search_aliases=["Reactor", "Helios", "schedule", "prompt sequence"],
+            inputs=[
+                *generation_controls(),
+                io.String.Input(
+                    "sequence",
+                    display_name="Prompt sequence (JSON)",
+                    tooltip="Connect Reactor Helios: Add a Prompt. [] keeps the opening prompt.",
+                    default="[]",
+                    multiline=False,
+                    advanced=True,
+                ),
+                io.Image.Input(
+                    "image",
+                    display_name="Starting image",
+                    tooltip="Optionally connect one starting RGB image.",
+                    optional=True,
+                ),
+            ],
+            outputs=video_outputs(),
         )
 
     @classmethod
@@ -58,6 +64,6 @@ class HeliosSequence(io.ComfyNode):
         prompts = parse_sequence(sequence)
         encoded = await asyncio.to_thread(encode_png, image) if image is not None else None
         return await generate_video(
-            HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts),
+            HeliosOperation(HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts)),
             node_id=cls.define_schema().node_id,
         )

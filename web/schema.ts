@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { browserLimits } from '#config/web/browser.ts';
+import { browserLimits } from '#web/browser.ts';
 
 const publicErrorSchema = v.object({
   error: v.optional(

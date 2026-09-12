@@ -6,11 +6,11 @@ from pathlib import Path
 from dataclasses import replace
 from ...runtime import get_runtime
 from ...media.output import owned_io
-from ..schema import translate_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...settings.store import read_settings
-from ...execution.x2.request import X2Request
+from ...state.generation.x2 import X2Request
+from ...execution.x2.request import X2Operation
 from ...media.video.input import prepared_video
 from ..controls import live_control, video_outputs
 from ....config.generation.prompts import DEFAULT_PROMPTS
@@ -41,44 +41,58 @@ class X2EditVideo(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncX2EditVideo",
-                inputs=[
-                    io.Video.Input(
-                        "source",
-                    ),
-                    io.String.Input(
-                        "prompt",
-                        multiline=True,
-                        default=DEFAULT_PROMPTS["edit"],
-                    ),
-                    io.Float.Input(
-                        "duration_seconds",
-                        default=DEFAULT_DURATION_SECONDS,
-                        min=MIN_DURATION_SECONDS,
-                        max=MAX_DURATION_SECONDS,
-                        step=STEP_DURATION_SECONDS,
-                    ),
-                    io.Int.Input(
-                        "variation",
-                        default=DEFAULT_VARIATION,
-                        min=MIN_VARIATION,
-                        max=MAX_VARIATION,
-                    ),
-                    io.Boolean.Input(
-                        "keep_backlog",
-                        default=False,
-                    ),
-                    *pointer_controls(),
-                    io.Image.Input(
-                        "reference_image",
-                        optional=True,
-                    ),
-                    live_control(),
-                ],
-                outputs=video_outputs(),
-            )
+        return io.Schema(
+            node_id="ReactorIncX2EditVideo",
+            display_name="X2: Edit Video (Reactor)",
+            description="Edit a local clip. Help explains X2 references and pointer controls.",
+            category="Reactor/Edit",
+            search_aliases=["Reactor", "X2", "video to video", "reference"],
+            inputs=[
+                io.Video.Input(
+                    "source",
+                    display_name="Source video",
+                    tooltip="Connect one local SDR clip of at least 33 frames.",
+                ),
+                io.String.Input(
+                    "prompt",
+                    display_name="Edit prompt",
+                    placeholder="Edit prompt",
+                    tooltip="Describe the edit in 1 to 1,000 characters.",
+                    multiline=True,
+                    default=DEFAULT_PROMPTS["edit"],
+                ),
+                io.Float.Input(
+                    "duration_seconds",
+                    display_name="Video length (seconds)",
+                    default=DEFAULT_DURATION_SECONDS,
+                    min=MIN_DURATION_SECONDS,
+                    max=MAX_DURATION_SECONDS,
+                    step=STEP_DURATION_SECONDS,
+                ),
+                io.Int.Input(
+                    "variation",
+                    display_name="Run number",
+                    tooltip="Change this number to run again with unchanged inputs. This does not change the seed.",
+                    default=DEFAULT_VARIATION,
+                    min=MIN_VARIATION,
+                    max=MAX_VARIATION,
+                ),
+                io.Boolean.Input(
+                    "keep_backlog",
+                    display_name="Keep queued frames",
+                    default=False,
+                    tooltip="Keep source frames in order. This can increase output delay.",
+                ),
+                *pointer_controls(),
+                io.Image.Input(
+                    "reference_image",
+                    display_name="Reference image",
+                    optional=True,
+                    tooltip="Optional single RGB image of the subject to insert or replace.",
+                ),
+                live_control(),
+            ],
+            outputs=video_outputs(),
         )
 
     @classmethod
@@ -124,10 +138,14 @@ def pointer_controls() -> list[io.Input]:
     return [
         io.Boolean.Input(
             "pointer_active",
+            display_name="Hold pointer",
             default=False,
+            tooltip="Hold the pointer at the chosen position while recording.",
         ),
         io.Float.Input(
             "pointer_x",
+            display_name="Horizontal position (0-1)",
+            tooltip="0 is the left edge; 1 is the right edge.",
             default=DEFAULT_POINTER_POSITION,
             min=MIN_POINTER_POSITION,
             max=MAX_POINTER_POSITION,
@@ -135,6 +153,8 @@ def pointer_controls() -> list[io.Input]:
         ),
         io.Float.Input(
             "pointer_y",
+            display_name="Vertical position (0-1)",
+            tooltip="0 is the top edge; 1 is the bottom edge.",
             default=DEFAULT_POINTER_POSITION,
             min=MIN_POINTER_POSITION,
             max=MAX_POINTER_POSITION,
@@ -156,7 +176,7 @@ async def _edit(
     image = None if reference_image is None else await owned_io(lambda: encode_png(reference_image))
     async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
         return await generate_video(
-            replace(request, image=image, video=video),
+            X2Operation(replace(request, image=image, video=video)),
             interactive=interactive,
             node_id=node_id,
         )

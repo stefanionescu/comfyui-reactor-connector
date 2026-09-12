@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 import json
-from pathlib import Path
 from functools import cache
+from .paths import EXTENSION_ROOT
 from contextvars import ContextVar
 from contextlib import contextmanager
 from ..config.security import LANGUAGE_PATTERN
@@ -16,13 +16,13 @@ if TYPE_CHECKING:
 
 _language = ContextVar("reactor_language", default="en")
 
-type MessageFile = Literal["nodeDefs", "main", "commands", "workflows"]
+type MessageFile = Literal["main", "commands", "workflows"]
 
 
 @cache
 def available_languages() -> frozenset[str]:
     """List the language folders installed with the package."""
-    root = Path(__file__).resolve().parents[1] / "locales"
+    root = EXTENSION_ROOT / "locales"
     return frozenset(
         path.name for path in root.iterdir() if path.is_dir() and re.fullmatch(LANGUAGE_PATTERN, path.name)
     )
@@ -31,7 +31,7 @@ def available_languages() -> frozenset[str]:
 @cache
 def read_messages(name: MessageFile, language: str = "en") -> dict[str, object]:
     """Read a checked package resource once; callers leave its contents unchanged."""
-    path = Path(__file__).resolve().parents[1] / "locales" / language / f"{name}.json"
+    path = EXTENSION_ROOT / "locales" / language / f"{name}.json"
     if language != "en" and not path.is_file():
         return {}
     return cast("dict[str, object]", json.loads(path.read_text(encoding="utf-8")))

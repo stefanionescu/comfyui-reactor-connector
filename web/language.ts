@@ -86,7 +86,7 @@ export function selectedLocale(): string {
  * @param locale - The requested language tag.
  * @returns Exact, language-level, and English fallback keys in preference order.
  */
-export function localeCandidates(locale: string): string[] {
+function localeCandidates(locale: string): string[] {
   const exact = locale.replaceAll('_', '-').toLowerCase();
   const base = exact.split('-')[0] ?? 'en';
   let chinese = false;

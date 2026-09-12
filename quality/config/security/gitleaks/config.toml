@@ -19,10 +19,3 @@ commits = ["043cd548a82b84fa5328d9220bc2ce2d3cdf5ad4"]
 paths = ['''(?:^|[\\/])reactor_comfy[\\/]http_guard\.py$''']
 regexTarget = "match"
 regexes = ['''^response_key else result, headers=PRIVATE_HEADERS$''']
-
-[[rules.allowlists]]
-description = "Generated package manifest entries contain SHA-256 file hashes."
-condition = "AND"
-paths = ['''(?:^|[\\/!])reactor-inc[\\/]\.reactor-package\.json$''']
-regexTarget = "match"
-regexes = ['''^(?:credentials|authentication)\.py": "[a-f0-9]{64}"$''']

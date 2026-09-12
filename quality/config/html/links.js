@@ -1,10 +1,9 @@
 export const LINK_ALIASES = [
-  ['web/dist/', 'extensions/reactor-inc'],
-  ['web/dist/', 'extensions/comfyui-reactor-connector'],
-  ['web/dist/guides/', 'reactor-inc/v1/help'],
+  ['web/', 'extensions/reactor-inc'],
+  ['web/', 'extensions/comfyui-reactor-connector'],
 ];
 
-export const LINK_TEMPLATES = ['web/help/template.html'];
+export const LINK_TEMPLATES = [];
 
 export const LINK_MODES = ['--local', '--external'];
 export const LINK_USAGE = 'Usage: bun quality/web/links/check.mjs [--local|--external]';

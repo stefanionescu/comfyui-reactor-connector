@@ -31,7 +31,7 @@ one continuation ahead while earlier clips play. If the next clip is still
 building, the output holds the previous frame. That wait can lengthen the saved
 video. Allow room in your video duration limit for these waits.
 
-See [recording overhead](../../ADVANCED.md#recording-overhead) for the additional
+See recording overhead (**Recording overhead** in the bundled `ADVANCED.md`) for the additional
 continuation needed to finish saving.
 Setup, clip building, playback, and recording cleanup all count toward the session
 limit. A timeout discards the unfinished video; the connector does not start a
@@ -40,9 +40,9 @@ replacement session automatically.
 Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not cancel
 this ordinary workflow. The prompts and clip count are fixed when you select Run.
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

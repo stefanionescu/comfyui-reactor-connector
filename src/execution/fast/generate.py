@@ -3,19 +3,19 @@
 import json
 from typing import ClassVar
 from ...models import MODELS
-from ..inputs import VideoInputs
 from ...language import translate
 from ..transport import Transport
-from dataclasses import dataclass
 from ..events import SessionEvents
-from ...settings.schema import Settings
-from ..operation import RecordingWindow
+from ...state.settings import Settings
+from ..inputs import VideoInputOperation
+from ...state.session import RecordingWindow
+from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
 from ...media.units import convert_mebibytes_to_bytes
-from .clip import seconds, FastClip, FastClipEvents, message_payload
+from ...state.generation.fast import FastGenerateRequest
+from .clip import seconds, read_clip, FastClipEvents, message_payload
 from ....config.generation.fast import (
     FRAME_RATE,
-    DEFAULT_ASPECT,
     OPTIONS_ASPECT,
     MAX_CLIP_SECONDS,
     MIN_CLIP_SECONDS,
@@ -23,34 +23,29 @@ from ....config.generation.fast import (
 )
 
 
-@dataclass(frozen=True, slots=True)
-class FastGenerateRequest(VideoInputs):
-    """A Fast H3 request with its image endpoints, aspect ratio, and recording interval.
+class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
+    """Build and play a clip with the requested image endpoints and aspect ratio."""
 
-    Attributes:
-        aspect: Requested output aspect ratio.
-        ending_image: Optional encoded ending image.
-
-    """
-
-    aspect: str = DEFAULT_ASPECT
-    ending_image: bytes | None = None
     connection_name: ClassVar[str] = MODELS["fast-h3"].connection_name
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
+        """Check the shared capture limits, then the Fast H3 clip settings."""
+        super().validate(settings)
+        self._validate_clips(settings)
+
+    def _validate_clips(self, settings: Settings) -> None:
         """Check Fast H3 prompt, duration, aspect ratio, and ending-image limits."""
-        super(FastGenerateRequest, self).validate(settings)
         if len(self.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastPromptLength"))
         if not MIN_CLIP_SECONDS <= self.duration_seconds <= MAX_CLIP_SECONDS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastDuration"))
-        if self.aspect not in OPTIONS_ASPECT:
+        if self.inputs.aspect not in OPTIONS_ASPECT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastAspectRatio"))
-        if self.ending_image is not None and (
-            type(self.ending_image) is not bytes
-            or not self.ending_image
-            or len(self.ending_image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
+        if self.inputs.ending_image is not None and (
+            type(self.inputs.ending_image) is not bytes
+            or not self.inputs.ending_image
+            or len(self.inputs.ending_image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.endingImageUploadLimit"))
 
@@ -66,7 +61,7 @@ class FastGenerateRequest(VideoInputs):
         clips = FastClipEvents(events)
         await events.command_reply("set_autoplay", {"enabled": False})
         await events.command_reply("set_flush_on_clip_end", {"enabled": False})
-        await events.command_reply("set_canvas", {"aspect": self.aspect})
+        await events.command_reply("set_canvas", {"aspect": self.inputs.aspect})
         state = await self._state(transport, events)
         minimum, maximum = (
             seconds(state.get("clip_seconds_min")),
@@ -88,14 +83,14 @@ class FastGenerateRequest(VideoInputs):
                 {
                     "prompt": self.prompt,
                     "seconds": maximum,
-                    "seed": self.seed,
+                    "seed": self.inputs.seed,
                     "continue_from_clip_id": clip.clip_id,
                 },
             ),
         )
         events.on_message(reply)
         events.check()
-        tail = FastClip.read(message_payload(reply, "clip_queued"))
+        tail = read_clip(message_payload(reply, "clip_queued"))
         if tail.seconds > maximum:
             raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.continuationLength"))
         await events.call("recording_tail_build", clips.wait_ready(tail))
@@ -107,9 +102,9 @@ class FastGenerateRequest(VideoInputs):
         payload: dict[str, object] = {
             "prompt": self.prompt,
             "seconds": self.duration_seconds,
-            "seed": self.seed,
+            "seed": self.inputs.seed,
         }
-        for name, image in (("starting_frame", self.image), ("ending_frame", self.ending_image)):
+        for name, image in (("starting_frame", self.inputs.image), ("ending_frame", self.inputs.ending_image)):
             if image is not None:
                 payload[name] = await events.call(
                     "upload", transport.upload_file(image, name="input.png", mime_type="image/png")
@@ -117,7 +112,7 @@ class FastGenerateRequest(VideoInputs):
         reply = await events.call("enqueue", transport.send_command("enqueue", payload))
         events.on_message(reply)
         events.check()
-        clip = FastClip.read(message_payload(reply, "clip_queued"))
+        clip = read_clip(message_payload(reply, "clip_queued"))
         if clip.seconds > max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,

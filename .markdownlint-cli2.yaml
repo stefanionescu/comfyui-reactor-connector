@@ -10,5 +10,4 @@ ignores:
     - '.artifacts/**'
     - '.venv/**'
     - 'node_modules/**'
-    - 'web/dist/**'
     - 'rules/DOCUMENTATION.md'

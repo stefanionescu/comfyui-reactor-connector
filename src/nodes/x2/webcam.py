@@ -4,11 +4,11 @@ import asyncio
 from functools import partial
 from ...media.output import owned_io
 from ..controls import video_outputs
-from ..schema import translate_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...media.webcam import WebcamFrames
-from ...execution.x2.request import X2Request
+from ...state.generation.x2 import X2Request
+from ...execution.x2.request import X2Operation
 from ...comfy.interaction import build_live_options
 from ....config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
@@ -20,6 +20,7 @@ from ....config.nodes import (
     MIN_WEBCAM_SECONDS,
     STEP_WEBCAM_SECONDS,
     DEFAULT_WEBCAM_SECONDS,
+    DEFAULT_POINTER_POSITION,
 )
 
 
@@ -34,35 +35,44 @@ class X2Webcam(io.ComfyNode):
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return translate_schema(
-            io.Schema(
-                node_id="ReactorIncX2Webcam",
-                inputs=[
-                    io.String.Input(
-                        "prompt",
-                        multiline=True,
-                        default=DEFAULT_PROMPTS["webcam"],
-                    ),
-                    io.Float.Input(
-                        "duration_seconds",
-                        default=DEFAULT_WEBCAM_SECONDS,
-                        min=MIN_WEBCAM_SECONDS,
-                        max=MAX_WEBCAM_SECONDS,
-                        step=STEP_WEBCAM_SECONDS,
-                    ),
-                    io.Int.Input(
-                        "variation",
-                        default=DEFAULT_VARIATION,
-                        min=MIN_VARIATION,
-                        max=MAX_VARIATION,
-                    ),
-                    io.Image.Input(
-                        "reference_image",
-                        optional=True,
-                    ),
-                ],
-                outputs=video_outputs(),
-            )
+        return io.Schema(
+            node_id="ReactorIncX2Webcam",
+            display_name="X2: Edit a Webcam (Reactor)",
+            description="Edit webcam video and drag on the output to steer the subject.",
+            category="Reactor/Live",
+            search_aliases=[],
+            inputs=[
+                io.String.Input(
+                    "prompt",
+                    display_name="Edit prompt",
+                    placeholder="Edit prompt",
+                    multiline=True,
+                    default=DEFAULT_PROMPTS["webcam"],
+                ),
+                io.Float.Input(
+                    "duration_seconds",
+                    display_name="Video length (seconds)",
+                    default=DEFAULT_WEBCAM_SECONDS,
+                    min=MIN_WEBCAM_SECONDS,
+                    max=MAX_WEBCAM_SECONDS,
+                    step=STEP_WEBCAM_SECONDS,
+                ),
+                io.Int.Input(
+                    "variation",
+                    display_name="Run number",
+                    tooltip="Change this number to run again with unchanged inputs. This does not change the seed.",
+                    default=DEFAULT_VARIATION,
+                    min=MIN_VARIATION,
+                    max=MAX_VARIATION,
+                ),
+                io.Image.Input(
+                    "reference_image",
+                    display_name="Reference image",
+                    optional=True,
+                    tooltip="Optional picture of a subject to insert or replace.",
+                ),
+            ],
+            outputs=video_outputs(),
         )
 
     @classmethod
@@ -83,7 +93,17 @@ class X2Webcam(io.ComfyNode):
             camera = WebcamFrames()
             try:
                 image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))
-                request = X2Request(prompt, duration_seconds, 0, image=image, webcam=camera)
+                request = X2Operation(
+                    X2Request(
+                        prompt,
+                        duration_seconds,
+                        0,
+                        image=image,
+                        pointer_x=DEFAULT_POINTER_POSITION,
+                        pointer_y=DEFAULT_POINTER_POSITION,
+                    ),
+                    webcam=camera,
+                )
                 return await generate_video(
                     request,
                     controls=build_live_options(request, webcam=camera),

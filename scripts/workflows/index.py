@@ -1,27 +1,17 @@
 """List every built workflow so new examples cannot disappear from the index."""
 
 from .example import Example
+from ...src.models import MODELS
 from .definitions import EXAMPLES
 from .serialize import output_types
 from ...src.language import translate
-from ...src.serialization import Json
-
-GUIDES = {
-    "fast-h3": ("Fast H3", "fast-h3"),
-    "helios": ("Helios", "helios"),
-    "lingbot": ("LingBot", "lingbot"),
-    "lingbot-world-2": ("LingBot World 2", "lingbot"),
-    "longlive-v2": ("LongLive", "longlive"),
-    "ltx2": ("LTX", "ltx"),
-    "sana-streaming": ("SANA", "sana"),
-    "visko-orbis-dynamic": ("Visko Dynamic", "visko"),
-    "visko-orbis-stable": ("Visko Stable", "visko"),
-    "x2": ("X2", "x2"),
-}
+from ...src.state.documents import Json
+from ...src.serialization import mapping_value
 
 
 def input_summary(example: Example, schema: Json) -> str:
     """Describe the inputs and controls needed by one workflow."""
+    model = str(mapping_value(schema)["model"])
     choices = (
         ((example.mode == "webcam"), translate("workflows", "index.input.webcam")),
         (
@@ -38,7 +28,7 @@ def input_summary(example: Example, schema: Json) -> str:
             if ("image" in example.sources)
             else translate("workflows", "index.input.liveText"),
         ),
-        (example.model == "ltx2", translate("workflows", "index.input.speech")),
+        (model == "ltx2", translate("workflows", "index.input.speech")),
         ((example.plan == "shots"), translate("workflows", "index.input.shots")),
         (
             (example.plan == "prompts"),
@@ -73,15 +63,20 @@ def input_summary(example: Example, schema: Json) -> str:
 
 
 def workflow_rows(schemas: dict[str, Json], guide_prefix: str) -> list[str]:
-    """List each graph with its inputs and node guide."""
+    """List each model's graphs under its own heading with their inputs and node guides."""
+    groups: dict[str, list[Example]] = {}
+    for example in sorted(EXAMPLES, key=lambda item: item.slug):
+        groups.setdefault(str(mapping_value(schemas[example.node_id])["model"]), []).append(example)
     lines: list[str] = []
     guide = translate("workflows", "index.guide")
-    for example in sorted(EXAMPLES, key=lambda item: item.slug):
-        name, _ = GUIDES[example.model]
-        lines.append(
-            f"| {name} | [{example.title.split(': ', 1)[-1]}]({example.path}) | "
+    for model, examples in groups.items():
+        lines.extend([f"### {MODELS[model].title}", "", translate("workflows", "index.columns"), "| --- | --- | --- |"])
+        lines.extend(
+            f"| [{example.title.split(': ', 1)[-1]}]({example.path}) | "
             f"{input_summary(example, schemas[example.node_id])} | [{guide}]({guide_prefix}/{example.node_id}.md) |"
+            for example in examples
         )
+        lines.append("")
     return lines
 
 
@@ -119,14 +114,7 @@ def workflow_index(
         ("filesTitle", "## "),
     ):
         lines.extend([heading + translate("workflows", "index." + key, count=len(EXAMPLES)), ""])
-    lines.extend(
-        [
-            translate("workflows", "index.columns"),
-            "| --- | --- | --- | --- |",
-            *workflow_rows(schemas, guide_prefix),
-            "",
-        ]
-    )
+    lines.extend(workflow_rows(schemas, guide_prefix))
     for key, heading in (
         ("saveTitle", "## "),
         ("save", ""),

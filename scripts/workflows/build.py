@@ -10,13 +10,19 @@ from .notes import sections
 from .example import Example
 from .definitions import EXAMPLES
 from .index import workflow_index
-from ...src.serialization import Json
-from ..docs.build import inventory_issues
+from ...src.state.documents import Json
 from .models.longlive import SHOT_PROMPTS
 from .models.helios import SEQUENCE_PROMPTS
+from ...src.serialization import mapping_value
 from ...src.language import translate, language_scope
 from ..nodes.metadata import read_schemas, validate_metadata
-from .serialize import widget_values, validate_sources, validate_connections, output_types
+from .serialize import (
+    output_types,
+    widget_values,
+    validate_sources,
+    native_widget_values,
+    validate_connections,
+)
 
 
 def build_node(node_id: int, kind: str, widgets: list[Json], *, title: str | None = None) -> dict[str, Json]:
@@ -52,14 +58,15 @@ def build_input(name: str, kind: str, link: int, *, has_widget: bool = False) ->
     return value
 
 
-def build_workflow(example: Example, schemas: dict[str, Json]) -> dict[str, Json]:
+def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str, Json]) -> dict[str, Json]:
     """Assemble one example with its notes, connected inputs, outputs, and arranged layout."""
+    model = str(mapping_value(schemas[example.node_id])["model"])
     notes: list[Json] = [
         build_node(number, "MarkdownNote", [text], title=title)
         for number, title, text in zip(
             (1, 8),
             (translate("workflows", "notes.start"), translate("workflows", "notes.usage")),
-            sections(example),
+            sections(example, model),
             strict=True,
         )
         if text
@@ -71,26 +78,27 @@ def build_workflow(example: Example, schemas: dict[str, Json]) -> dict[str, Json
     save = build_node(
         4,
         "SaveVideo",
-        [f"video/reactor/{example.slug}", "auto", "auto"],
+        native_widget_values("SaveVideo", native["SaveVideo"], f"video/reactor/{example.slug}"),
         title=translate("workflows", "nodes.saveVideo"),
     )
     save["inputs"] = [build_input("video", "VIDEO", 1)]
+    save["outputs"] = [build_output("video", "VIDEO", [])]
     nodes: list[Json] = [*notes, generation, save]
     links: list[Json] = [[1, 3, 0, 4, 0, "VIDEO"]]
     if "image" in example.sources:
-        append_starting_image(nodes, links, generation)
+        append_starting_image(nodes, links, generation, native)
     if "ending_image" in example.sources:
-        append_ending_image(example, nodes, links, generation)
+        append_ending_image(example, nodes, links, generation, native)
     if "source" in example.sources:
-        append_source_video(example, nodes, links, generation)
+        append_source_video(example, nodes, links, generation, native)
     if example.plan == "shots":
         append_storyboard(nodes, links, generation, schemas)
     if "AUDIO" in output_types(schemas[example.node_id]):
-        append_sound_output(example, nodes, links, generation)
+        append_sound_output(example, nodes, links, generation, native)
     if example.plan == "prompts":
         append_prompt_sequence(example, nodes, links, generation, schemas)
-    validate_connections(nodes, schemas)
-    extra = arrange(nodes, example)
+    validate_connections(nodes, schemas | native)
+    extra = arrange(nodes, example, model)
     return {
         "last_node_id": 9,
         "last_link_id": len(links),
@@ -103,12 +111,14 @@ def build_workflow(example: Example, schemas: dict[str, Json]) -> dict[str, Json
     }
 
 
-def append_starting_image(nodes: list[Json], links: list[Json], generation: dict[str, Json]) -> None:
+def append_starting_image(
+    nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
+) -> None:
     """Add the example's starting image and its connections."""
     input_node = build_node(
         2,
         "LoadImage",
-        ["", "image"],
+        native_widget_values("LoadImage", native["LoadImage"]),
         title=translate("workflows", "nodes.startingImage"),
     )
     input_node["outputs"] = [build_output("IMAGE", "IMAGE", [2]), build_output("MASK", "MASK", [])]
@@ -117,13 +127,15 @@ def append_starting_image(nodes: list[Json], links: list[Json], generation: dict
     nodes.insert(1, input_node)
 
 
-def append_ending_image(example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json]) -> None:
+def append_ending_image(
+    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
+) -> None:
     """Add the example's ending image and its connections."""
     link_id = len(links) + 1
     ending_image = build_node(
         5,
         "LoadImage",
-        ["", "image"],
+        native_widget_values("LoadImage", native["LoadImage"]),
         title=translate("workflows", "nodes.endingImage"),
     )
     ending_image["outputs"] = [build_output("IMAGE", "IMAGE", [link_id]), build_output("MASK", "MASK", [])]
@@ -134,12 +146,14 @@ def append_ending_image(example: Example, nodes: list[Json], links: list[Json], 
     nodes.append(ending_image)
 
 
-def append_source_video(example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json]) -> None:
+def append_source_video(
+    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
+) -> None:
     """Add the example's source video and its connections."""
     input_node = build_node(
         2,
         "LoadVideo",
-        [""],
+        native_widget_values("LoadVideo", native["LoadVideo"]),
         title=translate("workflows", "nodes.sourceVideo"),
     )
     input_node["outputs"] = [build_output("VIDEO", "VIDEO", [2])]
@@ -150,7 +164,7 @@ def append_source_video(example: Example, nodes: list[Json], links: list[Json], 
         reference = build_node(
             5,
             "LoadImage",
-            ["", "image"],
+            native_widget_values("LoadImage", native["LoadImage"]),
             title=translate("workflows", "nodes.referenceImage"),
         )
         reference["outputs"] = [build_output("IMAGE", "IMAGE", [3]), build_output("MASK", "MASK", [])]
@@ -199,7 +213,9 @@ def append_storyboard(
     nodes.extend([first, second])
 
 
-def append_sound_output(example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json]) -> None:
+def append_sound_output(
+    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
+) -> None:
     """Add the example's sound output and its connections."""
     link_id = len(links) + 1
     generation["outputs"] = [
@@ -210,7 +226,7 @@ def append_sound_output(example: Example, nodes: list[Json], links: list[Json], 
     sound = build_node(
         7,
         "SaveAudioAdvanced",
-        [f"audio/reactor/{example.slug}", "flac"],
+        native_widget_values("SaveAudioAdvanced", native["SaveAudioAdvanced"], f"audio/reactor/{example.slug}"),
         title=translate("workflows", "nodes.saveAudio"),
     )
     sound["inputs"] = [build_input("audio", "AUDIO", link_id)]
@@ -278,9 +294,10 @@ def main() -> int:
     if args.language.lower() != "en" and (destination == canonical or destination.is_relative_to(canonical)):
         sys.stderr.write("Choose --output-directory outside workflows/ for a non-English build.\n")
         return 2
-    schemas = read_schemas()
+    schema_export = read_schemas()
+    schemas = mapping_value(schema_export["reactor"])
+    native = mapping_value(schema_export["native"])
     issues = validate_metadata(schemas)
-    issues.extend(inventory_issues(root / "web/docs", root / "web/dist/docs", set(schemas)))
     covered = {example.node_id for example in EXAMPLES}
     if any((example.plan == "shots") for example in EXAMPLES):
         covered.add("ReactorIncLongLiveAddShot")
@@ -290,7 +307,9 @@ def main() -> int:
     expected = {example.path for example in EXAMPLES}
     with language_scope(args.language):
         generated = {
-            destination / example.path: json.dumps(build_workflow(example, schemas), indent=2, ensure_ascii=False)
+            destination / example.path: json.dumps(
+                build_workflow(example, schemas, native), indent=2, ensure_ascii=False
+            )
             + "\n"
             for example in EXAMPLES
         }

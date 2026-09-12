@@ -5,7 +5,7 @@ from aiohttp import web
 from functools import partial
 from .lease import unavailable
 from ..language import translate
-from ..serialization import Json
+from ..state.documents import Json
 from ..media.output import owned_io
 from ..http.guard import local_route
 from .registry import BrowserRegistry

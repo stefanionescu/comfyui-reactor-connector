@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { translate } from '#web/language.ts';
-import { browserLimits, browserPatterns } from '#config/web/browser.ts';
+import { browserLimits, browserPatterns } from '#web/browser.ts';
 
 type SettingDefinition = { label: string; minimum: number; maximum: number };
 

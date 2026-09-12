@@ -6,10 +6,9 @@ import time
 import aiohttp
 from http import HTTPStatus
 from ..language import translate
-from ..credentials import Credential
-from dataclasses import field, dataclass
 from ..errors import ErrorCode, ConnectorError
 from ..serialization import parse_json, mapping_value
+from ..state.credentials import Credential, SessionToken
 from ...config.security import (
     JWT_PATTERN_TEXT,
     SESSION_ENDPOINT,
@@ -26,21 +25,6 @@ from ...config.security import (
 
 MODEL_NAME = re.compile(MODEL_NAME_PATTERN_TEXT)
 TOKEN_TEXT = re.compile(JWT_PATTERN_TEXT)
-
-
-@dataclass(frozen=True, slots=True, repr=False)
-class SessionToken:
-    """A private session token with a validated provider expiry."""
-
-    value: str = field(repr=False)
-
-    def __repr__(self) -> str:
-        """Hide the token from object representations."""
-        return "SessionToken(<redacted>)"
-
-    def __str__(self) -> str:
-        """Hide the token from formatted text."""
-        return "<redacted>"
 
 
 def authentication_error() -> ConnectorError:

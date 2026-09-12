@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { cameraAxes } from '#web/live/input.ts';
-import { browserLimits, browserPatterns } from '#config/web/browser.ts';
+import { browserLimits, browserPatterns } from '#web/browser.ts';
 
 const invitationEntries = {
   lease: v.pipe(v.string(), v.regex(browserPatterns.lease)),

@@ -2,7 +2,7 @@
     "threshold": 4,
     "reporters": ["console"],
     "format": ["css"],
-    "ignore": ["**/node_modules/**", "**/dist/**", "**/.artifacts/**"],
+    "ignore": ["**/node_modules/**", "**/dist/**", "**/.artifacts/**", "web/extension.css"],
     "minLines": 6,
     "minTokens": 40,
     "mode": "strict",

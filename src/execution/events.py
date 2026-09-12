@@ -1,14 +1,17 @@
 """Observe session failures alongside commands and media capture."""
 
 import asyncio
-from typing import cast
 from ..language import translate
 from .transport import Transport
 from .failures import phase_error
-from .diagnostics import FailureReport
+from typing import cast, TYPE_CHECKING
+from .diagnostics import describe_failure
 from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Coroutine
 from ...config.generation.session import MAX_MESSAGE_TYPES
+
+if TYPE_CHECKING:
+    from ..state.reports import FailureReport
 
 
 class SessionEvents:
@@ -50,7 +53,7 @@ class SessionEvents:
 
     def on_error(self, error: object) -> None:
         """Stop without retrying a potentially billable operation."""
-        self.diagnostic = self.diagnostic or FailureReport.from_error(self.phase, error)
+        self.diagnostic = self.diagnostic or describe_failure(self.phase, error)
         self._fail(phase_error(error, self.phase))
 
     def on_message(self, message: object) -> None:
@@ -125,7 +128,7 @@ class SessionEvents:
         try:
             return await operation
         except Exception as error:  # noqa: BLE001 -- reason: Translate arbitrary SDK failures and keep their details only in private diagnostics.
-            self.diagnostic = self.diagnostic or FailureReport.from_error(phase, error)
+            self.diagnostic = self.diagnostic or describe_failure(phase, error)
             raise phase_error(error, phase) from None
 
     async def guard[T](self, operation: Coroutine[object, object, T]) -> T:

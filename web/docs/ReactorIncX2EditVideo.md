@@ -40,7 +40,7 @@ metadata are omitted. Preparation has a 60-second deadline and supports cancel.
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **x2-01-edit-video** in the native Templates browser.
+2. Open **x2-01-edit-video** in native **Browse Templates → reactor-inc**.
 3. Upload a short local video. Keep the example watercolor prompt for a first run.
 4. Select **Run**, then play the result in Save Video.
 
@@ -58,7 +58,7 @@ and prompt changes. The reference image stays fixed. Release the pointer to stop
 
 In the live panel, a circle marks the point you choose. **Pointer held** or
 **Pointer released** confirms that the control was accepted. The position is
-measured from the picture's left and top edges. See [live controls](../../ADVANCED.md#drag-in-x2)
+measured from the picture's left and top edges. See live controls (**Drag in X2** in the bundled `ADVANCED.md`)
 for keyboard use.
 
 The outputs are native `VIDEO` and recording details as `STRING`. Save Video
@@ -85,11 +85,11 @@ live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-See the [live controls guide](../../ADVANCED.md#live-controls) for input, privacy, and stopping rules.
+See the live controls guide (**Live controls** in the bundled `ADVANCED.md`) for input, privacy, and stopping rules.
 
-Select **View credit rate** for a [session estimate](../../ADVANCED.md#credit-rates).
+Select **View credit rate** for a session estimate (**Credit rates** in the bundled `ADVANCED.md`).
 
 ## Recording details
 
 This output describes the saved file and model. See the
-[field reference](../../ADVANCED.md#recording-details) for timing, privacy, and cache behavior.
+field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

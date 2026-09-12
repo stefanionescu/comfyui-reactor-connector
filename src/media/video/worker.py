@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 from fractions import Fraction
 from types import TracebackType
-from dataclasses import dataclass
 from collections.abc import Iterator
 from typing import Self, cast, Protocol
+from src.state.workers import SourceSettings
 from av.container.input import InputContainer
 from config.media.video import (
     ENCODER_CRF,
@@ -69,19 +69,6 @@ class VideoContainer(Protocol):
 
 class SourceError(Exception):
     """Report a fixed code without exposing input paths or decoder messages."""
-
-
-@dataclass(frozen=True, slots=True)
-class SourceSettings:
-    """Local source paths, selected time interval, and limits for one preparation worker."""
-
-    source: Path
-    destination: Path
-    start_seconds: float
-    duration_seconds: float
-    maximum_bytes: int
-    frame_bytes: int
-    browser_recording: bool
 
 
 def prepare(settings: SourceSettings) -> dict[str, int | str]:

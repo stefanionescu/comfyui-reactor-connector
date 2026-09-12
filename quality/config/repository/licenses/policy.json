@@ -32,6 +32,11 @@
             "reason": "The installed 0.4.6 distribution includes the BSD-3-Clause license; its legacy metadata reports only BSD. Development dependency; not bundled in the connector."
         },
         {
+            "package": "comfyui-frontend-package",
+            "licenses": ["UNKNOWN"],
+            "reason": "The distribution publishes no license metadata. Its source, Comfy-Org/ComfyUI_frontend, is licensed under GPL-3.0. ComfyUI serves these frontend files; connector modules do not import or ship them."
+        },
+        {
             "package": "fastjsonschema",
             "licenses": ["BSD"],
             "reason": "The installed 2.22.2 distribution includes the BSD-3-Clause license; its legacy metadata reports only BSD. Development dependency; not bundled in the connector."

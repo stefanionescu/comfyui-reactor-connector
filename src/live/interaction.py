@@ -4,7 +4,7 @@ import time
 import asyncio
 from .lease import BrowserLease
 from ..language import translate
-from ..serialization import Json
+from ..state.documents import Json
 from .preview import PreviewFrames
 from ..media.output import owned_io
 from .commands import CameraCommands

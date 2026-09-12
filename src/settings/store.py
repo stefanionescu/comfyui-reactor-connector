@@ -4,19 +4,21 @@ import json
 import hashlib
 import threading
 from pathlib import Path
+from dataclasses import fields
 from ..language import translate
+from ..state.documents import Json
 from .conflict import SettingsConflictError
-from .schema import Settings, parse_settings
-from .execution import ExecutionConfiguration
 from ..errors import ErrorCode, ConnectorError
 from .execution import ConfigurationGeneration
+from .schema import parse_settings, default_settings
+from ..serialization import parse_json, mapping_value
 from ...config.security import MAX_CREDENTIAL_CHARACTERS
-from ..serialization import Json, parse_json, mapping_value
+from ..state.settings import Settings, ExecutionConfiguration
 from ..storage import atomic_write, read_private, private_directory
 from ...config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
-from ..credentials import Credential, read_credential, save_credential, credential_source
+from ..credentials import parse_credential, read_credential, save_credential, credential_source
 
-EDITABLE_SETTINGS = frozenset(Settings().to_json())
+EDITABLE_SETTINGS = frozenset(item.name for item in fields(Settings))
 
 
 class ConfigurationStore:
@@ -86,7 +88,7 @@ class ConfigurationStore:
 
     def save_credential(self, value: str) -> dict[str, Json]:
         """Save a validated secret and return only the effective source."""
-        credential = Credential(value)
+        credential = parse_credential(value)
         with self.lock:
             save_credential(self.directory, credential)
             if credential_source(self.directory) != "environment":
@@ -111,7 +113,7 @@ def read_settings(directory: Path) -> Settings:
     """Read settings without creating files or directories."""
     path = directory / "settings.json"
     if not path.exists():
-        return Settings()
+        return default_settings()
     return parse_settings(mapping_value(parse_json(read_private(path, max_bytes=MAX_SETTINGS_FILE_BYTES).decode())))
 
 

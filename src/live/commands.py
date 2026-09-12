@@ -2,11 +2,10 @@
 
 import time
 import asyncio
-from .state import BrowserInput
-from .state import CameraChange
 from ..language import translate
 from ..execution.events import SessionEvents
 from ..errors import ErrorCode, ConnectorError
+from ..state.live import BrowserInput, CameraChange
 from ...config.live import MAX_QUEUED_MOVEMENTS, COMMAND_TIMEOUT_SECONDS, MAX_QUEUED_MOVEMENT_SECONDS
 
 

@@ -9,9 +9,10 @@ from pathlib import Path
 from http import HTTPStatus
 from ..output import FileOutput
 from ...language import translate
+from ...state.credentials import SessionToken
 from ...errors import ErrorCode, ConnectorError
-from ...execution.authentication import SessionToken
-from .manifest import recording_url, coordinator_url, recording_error, RecordingManifest, parse_recording_manifest
+from ...state.recording import RecordingManifest
+from .manifest import recording_url, coordinator_url, recording_error, parse_recording_manifest
 from ....config.media.recording import (
     MAX_RETRY_SECONDS,
     MEDIA_CHUNK_BYTES,
