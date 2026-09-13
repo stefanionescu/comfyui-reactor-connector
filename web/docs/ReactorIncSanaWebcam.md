@@ -19,10 +19,10 @@ Your camera remains off until you enable it in the live panel.
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 2. Open **sana-streaming-03-webcam** in **Browse Templates → reactor-inc**.
 3. Describe an edit, such as “Turn the scene into a watercolor painting.”
-4. Select **Run**, then **Enable camera** in the live panel. Allow camera access.
-5. Check the camera preview. To change cameras, choose one and select **Use selected camera**.
-6. Select **Start session** within 60 seconds.
-7. To change the edit, enter a live prompt and select **Apply prompt**.
+4. Select **Run**, then **Enable Camera** in the live panel. Allow camera access.
+5. Check the camera preview. To change cameras, choose one and select **Switch Camera**.
+6. Select **Start Session** within 60 seconds.
+7. To change the edit, enter a live prompt and select **Apply Prompt**.
 8. Let recording finish. **Save Video** saves the result.
 
 The node returns **video** without sound and **recording details** as text. SANA may take one
@@ -31,7 +31,7 @@ or more groups of frames to apply a prompt change. Camera frames use up to
 the connector repeats the latest frame on the model's 24 fps input.
 It sends no microphone audio and stores no separate camera recording.
 
-**End session** discards the unfinished video. Camera input stops when the
+**End Session** discards the unfinished video. Camera input stops when the
 panel closes or recording ends. Losing camera input for three seconds ends
 the session. The session time limit also applies during setup and generation.
 

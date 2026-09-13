@@ -97,7 +97,7 @@ This folder contains 33 editable ComfyUI workflows. Each graph has connected nod
 
 **Save Video** writes to `video/reactor/` under the ComfyUI output folder. Examples with sound also save a separate audio file.
 
-Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End session** stops early and discards the unfinished video.
+Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End Session** stops early and discards the unfinished video.
 
 Select a Reactor node and open native **Info** for inputs, limits, and recovery steps. Use **Fit View** to find all nodes.
 

@@ -79,7 +79,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "In the live panel, select **Start session** within 60 seconds.\n\nChange **edit prompt**, then select **Apply prompt** to change later frames.\n\nDrag on the output to steer the subject. Escape releases the pointer. **Info** also explains keyboard controls.\n\nLet recording finish to save the video. **End session** stops early and discards it.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
+        "In the live panel, select **Start Session** within 60 seconds.\n\nChange **edit prompt**, then select **Apply Prompt** to change later frames.\n\nDrag on the output to steer the subject. Escape releases the pointer. **Info** also explains keyboard controls.\n\nLet recording finish to save the video. **End Session** stops early and discards it.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
       ],
       "title": "Using This Workflow"
     },

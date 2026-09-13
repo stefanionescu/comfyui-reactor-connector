@@ -8,6 +8,7 @@ import { sendAction } from '#web/live/commands.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
 import { exchange, endSession } from '#web/live/api.ts';
 import { DragInput, type Pointer } from '#web/live/drag.ts';
+import { promptSection, sessionHeader } from '#web/live/layout.ts';
 
 import {
   type ControlsInvitation,
@@ -115,45 +116,30 @@ class ControlPanel {
 
   /** Build the preview, supported inputs, and session actions. */
   private appendContent(): void {
-    const header = element('header');
-    const session = element('div');
-    session.className = 'reactor-session-status';
-    session.append(this.status);
-    header.append(
-      element('h2', message('controls.title', { model: this.owner.modelTitle })),
-      session,
+    const header = sessionHeader(
+      message('controls.title', { model: this.owner.modelTitle }),
+      message('live.duration', { seconds: this.owner.durationSeconds }),
+      this.status,
     );
     this.promptStatus.setAttribute('role', 'status');
-    this.dialog.append(
-      header,
-      element(
-        'p',
-        message('live.duration', {
-          model: this.owner.modelTitle,
-          seconds: this.owner.durationSeconds,
-        }),
-      ),
-    );
+    this.dialog.append(header);
     if (this.camera) this.dialog.append(this.camera.view);
     this.dialog.append(this.pointerPreview?.view ?? this.image);
-    if (this.owner.pointer) {
-      const instructions = element('p', message('controls.dragInstructions'));
-      instructions.id = `reactor-pointer-help-${crypto.randomUUID()}`;
-      this.image.setAttribute('aria-describedby', instructions.id);
-      this.dialog.append(instructions);
-    }
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
-    const label = element(
-      'label',
-      message(this.owner.promptKind === 'edit' ? 'live.editPrompt' : 'live.scenePrompt'),
+    this.dialog.append(
+      promptSection(
+        message(this.owner.promptKind === 'edit' ? 'live.editPrompt' : 'live.scenePrompt'),
+        this.prompt,
+        this.update,
+        this.promptStatus,
+      ),
     );
-    label.append(this.prompt);
-    this.dialog.append(label, this.update, this.promptStatus);
     if (this.sound) this.dialog.append(this.sound.view);
     const footer = element('footer');
     const actions = element('div');
     actions.className = 'reactor-actions';
-    actions.append(this.start, this.end);
+    this.start.className = 'reactor-primary';
+    actions.append(this.end, this.start);
     footer.append(actions);
     const help = element('details');
     help.className = 'reactor-help';
@@ -162,6 +148,12 @@ class ControlPanel {
       element('p', message('live.previewNotice')),
       element('p', message('live.recordingNotice')),
     );
+    if (this.owner.pointer) {
+      const instructions = element('p', message('controls.dragInstructions'));
+      instructions.id = `reactor-pointer-help-${crypto.randomUUID()}`;
+      this.image.setAttribute('aria-describedby', instructions.id);
+      help.append(instructions);
+    }
     this.dialog.append(help, footer);
   }
 
@@ -171,10 +163,7 @@ class ControlPanel {
       if (event.target === this.start) {
         this.startRequested = true;
         this.start.disabled = true;
-      } else if (event.target === this.end) {
-        if (this.finished) this.dialog.close();
-        else this.stop();
-      }
+      } else if (event.target === this.end) this.dispose();
     });
     this.update.addEventListener('click', () => {
       if (!this.prompt.value.trim() && !this.owner.allowEmptyPrompt) {
@@ -186,8 +175,7 @@ class ControlPanel {
     });
     this.dialog.addEventListener('cancel', (event) => {
       event.preventDefault();
-      if (this.finished) this.dialog.close();
-      else this.stop();
+      this.dispose();
     });
     this.dialog.addEventListener('close', this.dispose.bind(this), { once: true });
   }
@@ -401,6 +389,7 @@ class ControlPanel {
       this.start.hidden = true;
       setText(this.end, message('close'));
     }
+    if (this.finished) this.dialog.classList.add('reactor-finished');
   }
 
   /** Release panel resources and give the final end request its own deadline. */

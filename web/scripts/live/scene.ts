@@ -6,6 +6,7 @@ import { CameraInput } from '#web/live/input.ts';
 import { CameraStates } from '#web/live/state.ts';
 import { sendAction } from '#web/live/commands.ts';
 import { exchange, endSession } from '#web/live/api.ts';
+import { promptSection, sessionHeader } from '#web/live/layout.ts';
 import { releaseText, message, setTextAttribute, setText } from '#web/localization.ts';
 import { type SceneInvitation, parseSceneInvitation, type LiveStatus } from '#web/live/schema.ts';
 
@@ -82,7 +83,7 @@ class ScenePanel {
       setTextAttribute(this.surface, 'aria-label', message('live.movementLabel'));
       setTextAttribute(this.image, 'alt', message('live.output'));
       this.image.hidden = true;
-      this.surface.append(this.image);
+      this.surface.append(this.image, element('p', message('live.waitingVideo')));
       this.controls.className = 'reactor-actions';
       const labels = {
         w: message('live.forward'),
@@ -118,18 +119,14 @@ class ScenePanel {
 
   /** Build the session header, movement controls, and prompt input. */
   private appendContent(): void {
-    const header = element('header');
-    const session = element('div');
-    session.className = 'reactor-session-status';
-    session.append(this.status, this.elapsed);
-    header.append(
-      element('h2', message('live.sceneTitle', { model: this.owner.modelTitle })),
-      session,
+    const header = sessionHeader(
+      message('live.sceneTitle', { model: this.owner.modelTitle }),
+      message('live.duration', { seconds: this.owner.durationSeconds }),
+      this.status,
+      this.elapsed,
     );
     const footer = element('footer');
     footer.append(this.end);
-    const promptLabel = element('label', message('live.scenePrompt'));
-    promptLabel.append(this.prompt);
     const help = element('details');
     help.className = 'reactor-help';
     help.append(
@@ -141,18 +138,9 @@ class ScenePanel {
     );
     this.dialog.append(
       header,
-      element(
-        'p',
-        message('live.duration', {
-          model: this.owner.modelTitle,
-          seconds: this.owner.durationSeconds,
-        }),
-      ),
       this.surface,
       this.controls,
-      promptLabel,
-      this.apply,
-      this.promptStatus,
+      promptSection(message('live.scenePrompt'), this.prompt, this.apply, this.promptStatus),
       help,
       footer,
     );
@@ -168,25 +156,13 @@ class ScenePanel {
       this.pendingPrompt = this.prompt.value;
       this.apply.disabled = true;
     });
-    this.end.addEventListener('click', () => {
-      if (this.finished) this.dialog.close();
-      else this.stop();
-    });
+    this.end.addEventListener('click', this.dispose.bind(this));
     this.dialog.addEventListener('cancel', (event) => {
       event.preventDefault();
       this.release();
       this.surface.blur();
     });
     this.dialog.addEventListener('close', this.dispose.bind(this), { once: true });
-  }
-
-  /** Stop camera movement and request the end of the session. */
-  private stop(): void {
-    this.ending = true;
-    this.release();
-    this.end.disabled = true;
-    this.apply.disabled = this.prompt.disabled = true;
-    setText(this.status, message('live.ending'));
   }
 
   /**

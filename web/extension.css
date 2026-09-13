@@ -5,18 +5,19 @@
   max-height: calc(100vh - 2rem);
   overflow: auto;
   border: 1px solid var(--border-color, GrayText);
-  border-radius: 0.6rem;
-  padding: 1.5rem;
+  border-radius: 0.9rem;
+  padding: 1.25rem;
   color: var(--fg-color, CanvasText);
   background: var(--comfy-menu-bg, Canvas);
   font: inherit;
+  box-shadow: 0 1.5rem 5rem #0006;
 }
 .reactor-dialog::backdrop {
   background: #0008;
 }
 .reactor-dialog > header {
   position: sticky;
-  top: -1.5rem;
+  top: -1.25rem;
   z-index: 2;
   padding: 0.75rem 0;
   background: var(--comfy-menu-bg, Canvas);
@@ -50,21 +51,22 @@
   gap: 0.35rem;
   margin: 0.8rem 0;
 }
-.reactor-dialog input {
+.reactor-dialog input,
+.reactor-dialog textarea {
   box-sizing: border-box;
   width: 100%;
-  padding: 0.55rem;
+  padding: 0.75rem;
   border: 1px solid var(--border-color, GrayText);
-  border-radius: 0.25rem;
+  border-radius: 0.45rem;
   color: var(--input-text, CanvasText);
   background: var(--comfy-input-bg, Field);
   font: inherit;
 }
 .reactor-dialog button {
   font: inherit;
-  padding: 0.45rem 0.75rem;
+  padding: 0.65rem 1rem;
   border: 1px solid var(--border-color, GrayText);
-  border-radius: 0.25rem;
+  border-radius: 0.45rem;
   color: var(--input-text, ButtonText);
   background: var(--comfy-input-bg, ButtonFace);
   cursor: pointer;
@@ -73,11 +75,6 @@
   width: auto;
   padding: 0;
   margin: 0;
-}
-.reactor-dialog label:has(input[type=checkbox]) {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
 }
 .reactor-dialog button:disabled {
   cursor: default;
@@ -151,11 +148,10 @@
 }
 .reactor-dialog > footer {
   position: sticky;
-  bottom: -1.5rem;
+  bottom: -1.25rem;
   z-index: 1;
   margin-top: 0.5rem;
   padding: 0.75rem 0;
-  border-top: 1px solid var(--border-color, GrayText);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -174,7 +170,7 @@
 }
 .reactor-webcam {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 160px;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.75rem 1rem;
   align-items: center;
   border: 1px solid var(--border-color, GrayText);
@@ -201,10 +197,30 @@
 }
 .reactor-camera-controls {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
-.reactor-webcam:has(select:disabled) .reactor-camera-controls {
-  display: none;
+.reactor-webcam:has(video[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.reactor-webcam > [role=status] {
+  grid-column: 1 / -1;
+}
+.reactor-select {
+  position: relative;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.reactor-select::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
 }
 .reactor-webcam video {
   width: 160px;
@@ -218,11 +234,12 @@
   width: 100%;
   min-width: 0;
   font: inherit;
-  padding: 0.5rem;
+  appearance: none;
+  padding: 0.75rem 2.75rem 0.75rem 0.75rem;
   color: var(--input-text, CanvasText);
   background: var(--comfy-input-bg, Field);
   border: 1px solid var(--border-color, GrayText);
-  border-radius: 0.25rem;
+  border-radius: 0.45rem;
 }
 @media (max-width: 600px) {
   .reactor-webcam {
@@ -273,7 +290,8 @@
   margin: 0.6rem 0;
 }
 .reactor-live .reactor-preview {
-  min-height: 0;
+  min-height: 8rem;
+  border-radius: 0.45rem;
   background: #111;
   display: grid;
   place-items: center;
@@ -304,6 +322,87 @@
 .reactor-dialog .reactor-help summary {
   cursor: pointer;
 }
+.reactor-prompt {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.4rem;
+}
+.reactor-prompt label {
+  margin: 0;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+.reactor-prompt textarea {
+  min-height: 6rem;
+  resize: vertical;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.reactor-prompt form {
+  margin: 0;
+}
+.reactor-prompt small {
+  display: block;
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+.reactor-prompt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.reactor-prompt-actions [role=status] {
+  flex: 1 1 10rem;
+  margin: 0;
+}
+.reactor-dialog .reactor-primary,
+.reactor-dialog > form button[type=submit] {
+  background: var(--primary-color, #2563eb);
+  color: var(--primary-color-text, white);
+}
+.reactor-dialog button:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+.reactor-dialog textarea:disabled {
+  opacity: 0.7;
+}
+.reactor-dialog label:has(input[type=checkbox]) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
 .reactor-dialog [role=status]:empty {
+  display: none;
+}
+.reactor-preview:has(img[src]) p {
+  display: none;
+}
+.reactor-camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.reactor-camera-state {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+}
+.reactor-camera-state span {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color, GrayText);
+  border-radius: 0.3rem;
+}
+.reactor-webcam[hidden],
+.reactor-camera-state[hidden],
+.reactor-finished .reactor-prompt,
+.reactor-finished .reactor-help {
   display: none;
 }

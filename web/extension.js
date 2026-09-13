@@ -17,19 +17,19 @@ var main_default = {
       browserRequirements: "Camera access needs localhost or HTTPS and a supported browser.",
       busy: "Close other apps using the camera, then try again.",
       default: "Default camera",
-      disabled: "Off",
       disconnected: "The camera disconnected. The session is ending.",
-      enable: "Enable camera",
-      enabled: "On · microphone off",
+      enable: "Enable Camera",
+      enabled: "Camera On",
       label: "Camera",
       notFound: "Connect a camera, then try again.",
       number: "Camera {number}",
       permissionDenied: "Allow camera access in the app or browser settings, then try again.",
       preview: "Webcam preview",
       readFailed: "Camera frames could not be read.",
-      select: "Use selected camera",
+      select: "Switch Camera",
       unavailableSelection: "The selected camera is unavailable. Choose another camera.",
-      uploadFailed: "Camera frames could not reach the session."
+      uploadFailed: "Camera frames could not reach the session.",
+      microphone: "Microphone Off"
     },
     cancel: "Cancel",
     close: "Close",
@@ -44,9 +44,9 @@ var main_default = {
       pointerRateExceeded: "Pointer input arrived too quickly. The session is ending.",
       promptSent: "Prompt sent.",
       recording: "Recording. Live controls are ready.",
-      recordingNotStarted: "Recording did not start.",
+      recordingNotStarted: "Recording did not start. Close this panel and run the workflow again.",
       soundSent: "Audio prompt sent.",
-      start: "Start session",
+      start: "Start Session",
       title: "{model}: Live Controls (Reactor)"
     },
     errors: {
@@ -58,7 +58,7 @@ var main_default = {
       audioIncomplete: "The recording audio is incomplete.",
       audioLimit: "Cannot load the recording audio. Its format is unsupported or it exceeds the memory limit in Reactor settings.",
       authenticationFailed: "Reactor could not authenticate. Check your saved key and network connection.",
-      automaticCheckFailed: "Automatic model check failed. Use Refresh models to retry.",
+      automaticCheckFailed: "Automatic model check failed. Use Refresh Models to retry.",
       automaticChecksType: "Use true or false for automatic model checks.",
       browserOwnerMissing: "The executing prompt has no browser owner.",
       cameraCommandLimit: "Camera input exceeded its pending command limit.",
@@ -273,26 +273,26 @@ var main_default = {
     },
     live: {
       actionRejected: "The live action was not accepted. The session is ending.",
-      applyPrompt: "Apply prompt",
-      back: "Move backward",
+      applyPrompt: "Apply Prompt",
+      back: "Move Backward",
       connectingPanel: "Connecting the live panel…",
       connectionLost: "The live connection was lost. The connector will ask Reactor to stop after five seconds without a browser connection. Check Reactor Usage to confirm the session has ended before another run.",
       discarded: "Session ended without saving a video.",
-      duration: "{model} · {seconds} seconds of video",
+      duration: "{seconds} seconds of video",
       elapsed: "Elapsed: {seconds} s",
       emptyScenePrompt: "Enter a scene prompt before applying it.",
-      endSession: "End session",
+      endSession: "End Session",
       ended: "Session ended.",
       ending: "Ending the session…",
-      forward: "Move forward",
+      forward: "Move Forward",
       help: "Help",
       invalidStatus: "The live panel received an invalid status.",
-      lookDown: "Look down",
-      lookLeft: "Look left",
-      lookRight: "Look right",
-      lookUp: "Look up",
-      moveLeft: "Move left",
-      moveRight: "Move right",
+      lookDown: "Look Down",
+      lookLeft: "Look Left",
+      lookRight: "Look Right",
+      lookUp: "Look Up",
+      moveLeft: "Move Left",
+      moveRight: "Move Right",
       movementInstructions: "Click the picture, then use W A S D to move and arrow keys to turn. Click a button for a brief movement, or hold it to keep moving. Escape stops camera movement.",
       movementLabel: "Live view. W A S D moves. Arrow keys turn. Escape stops camera movement.",
       output: "Generated video preview",
@@ -300,13 +300,13 @@ var main_default = {
       previewReady: "Live preview. Controls are active.",
       promptNotice: "Prompt changes affect later frames. The starting image stays fixed.",
       promptSent: "Prompt sent.",
-      recordingNotice: "End session stops early and discards the unfinished video.",
-      scenePrompt: "scene prompt",
+      recordingNotice: "End Session stops early and discards the unfinished video.",
+      scenePrompt: "Scene Prompt",
       unconfirmedEnd: "Reactor has not confirmed that the session ended. Wait for its time limit before another run.",
       unreachable: "Live controls could not reach their session.",
       waitingVideo: "Waiting for model video…",
       sceneTitle: "{model}: Scene Controls (Reactor)",
-      editPrompt: "edit prompt"
+      editPrompt: "Edit Prompt"
     },
     models: {
       checkDue: "An automatic model check is due. Checks do not change this list.",
@@ -318,10 +318,10 @@ var main_default = {
       connectName: "Model ID: {name}",
       count: "{visible} of {total} models",
       guideUnavailable: "No matching public guide was found.",
-      installedList: "Showing installed nodes. Refresh models to load public prices and guides.",
+      installedList: "Showing installed nodes. Refresh Models to load public prices and guides.",
       invalidResponse: "ComfyUI returned an invalid Reactor model list.",
       lastRefresh: "Public prices and guides checked {date}.",
-      listChanged: "The model list has changed. Select Refresh models to update your list.",
+      listChanged: "The model list has changed. Select Refresh Models to update your list.",
       loadFailed: "Cannot load models.",
       loaded: "Local model list loaded.",
       loading: "Loading model list…",
@@ -329,11 +329,11 @@ var main_default = {
       nodeUnavailable: "No connector node available.",
       nodesAvailable: "Nodes available.",
       openGuide: "Reactor model guide (opens in a new tab)",
-      refresh: "Refresh models",
+      refresh: "Refresh Models",
       refreshNotice: "Refresh updates public prices and model information. New models need support in the connector.",
       refreshed: "Model list refreshed.",
       requestFailed: "The model list request failed.",
-      restore: "Restore previous list",
+      restore: "Restore Previous List",
       restored: "Previous model list restored. This does not change which models Reactor offers.",
       search: "Search models",
       searchPlaceholder: "Model name or ID",
@@ -364,7 +364,7 @@ var main_default = {
       checkInterval: "check interval (hours)",
       checkNotice: "Checks read public prices and model guides. Open Reactor models to see changes and refresh your list.",
       checksSaved: "Model check settings saved. Changes take effect within one minute.",
-      clearKey: "Clear saved key",
+      clearKey: "Clear Saved Key",
       close: "Close Reactor settings",
       credentialLabel: "Reactor API key",
       credentials: "Credentials",
@@ -398,11 +398,11 @@ var main_default = {
       noCheckChanges: "No model check changes to save.",
       noLimitChanges: "No limit changes to save.",
       readOnly: "Changes are disabled in this host's multi-user mode.",
-      reload: "Reload settings",
-      saveChecks: "Save model check settings",
+      reload: "Reload Settings",
+      saveChecks: "Save Model Check Settings",
       saveFailed: "ComfyUI could not save Reactor settings.",
-      saveKey: "Save key",
-      saveLimits: "Save limits",
+      saveKey: "Save Key",
+      saveLimits: "Save Limits",
       savedKey: "A saved key is configured on this server.",
       timeNotice: "Session time includes setup and generation.",
       title: "Reactor Settings",
@@ -414,10 +414,9 @@ var main_default = {
       menu: "Reactor settings"
     },
     sound: {
-      applyPrompt: "Apply audio prompt",
-      prompt: "audio prompt",
-      promptNotice: "Describe the sound briefly. Leave blank to use the picture alone.",
-      title: "Audio"
+      applyPrompt: "Apply Audio Prompt",
+      prompt: "Audio Prompt",
+      promptNotice: "Describe the sound briefly. Leave blank to use the picture alone."
     },
     working: "Working…",
     mediaErrors: {
@@ -477,6 +476,7 @@ async function initializeLanguage() {
 function translate(key, values = {}, fallback) {
   let message2;
   for (const language of localeCandidates(selectedLocale())) {
+    if (language === "en" || language.startsWith("en-")) break;
     message2 = readMessage(messages.get(language), `reactorInc.${key}`);
     if (message2 !== void 0) break;
   }
@@ -683,7 +683,7 @@ var Webcam = class {
     this.fail = fail;
     this.view.className = "reactor-webcam";
     const heading = element("header");
-    heading.append(element("h3", message("camera.label")), this.status);
+    heading.append(element("h3", message("camera.label")));
     this.status.setAttribute("role", "status");
     setTextAttribute(this.select, "aria-label", message("camera.label"));
     const defaultCamera = element("option", message("camera.default"));
@@ -696,8 +696,24 @@ var Webcam = class {
     setTextAttribute(this.video, "aria-label", message("camera.preview"));
     const controls = element("div");
     controls.className = "reactor-camera-controls";
-    controls.append(this.select, this.enable);
-    this.view.append(heading, controls, this.video);
+    const selection = element("div");
+    selection.className = "reactor-select";
+    selection.append(this.select);
+    const actions = element("div");
+    actions.className = "reactor-camera-actions";
+    this.indicators.className = "reactor-camera-state";
+    this.indicators.hidden = true;
+    this.indicators.setAttribute("role", "status");
+    this.indicators.append(
+      element("span", message("camera.enabled")),
+      element("span", message("camera.microphone"))
+    );
+    actions.append(this.indicators, this.enable);
+    controls.append(selection, actions);
+    this.view.append(heading, controls, this.video, this.status);
+    this.select.addEventListener("change", () => {
+      this.enable.disabled = this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
+    });
     this.enable.addEventListener("click", () => {
       this.enable.disabled = true;
       const selected = this.select.value;
@@ -711,7 +727,8 @@ var Webcam = class {
   video = element("video");
   enable = button(message("camera.enable"));
   select = element("select");
-  status = element("p", message("camera.disabled"));
+  status = element("p");
+  indicators = element("div");
   stream;
   closed = false;
   sequence = 0;
@@ -724,9 +741,11 @@ var Webcam = class {
       await this.listCameras();
       if (this.closed) return;
       setText(this.enable, message("camera.select"));
-      setText(this.status, message("camera.enabled"));
+      setText(this.status, "");
+      this.indicators.hidden = false;
     } catch (error) {
       this.stopCamera();
+      setText(this.enable, message("camera.enable"));
       if (this.closed) return;
       const errors = /* @__PURE__ */ new Map([
         ["NotAllowedError", "camera.permissionDenied"],
@@ -742,7 +761,8 @@ var Webcam = class {
         )
       );
     } finally {
-      if (!this.closed) this.enable.disabled = false;
+      if (!this.closed)
+        this.enable.disabled = this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
     }
   }
   /**
@@ -865,10 +885,11 @@ var Webcam = class {
     this.controller.abort();
     this.stopCamera();
     this.select.disabled = this.enable.disabled = true;
-    setText(this.status, message("camera.disabled"));
+    this.view.hidden = true;
     this.canvas.width = this.canvas.height = 0;
   }
   stopCamera() {
+    this.indicators.hidden = true;
     this.video.hidden = true;
     for (const track of this.stream?.getTracks() ?? []) {
       track.stop();
@@ -894,7 +915,7 @@ async function pause(milliseconds, signal) {
 
 // web/scripts/live/sound.ts
 var SoundControls = class {
-  view = element("fieldset");
+  view = element("section");
   status = element("p");
   prompt = element("textarea");
   apply = button(message("sound.applyPrompt"), "submit");
@@ -912,8 +933,12 @@ var SoundControls = class {
     label.append(this.prompt);
     const form = element("form");
     this.status.setAttribute("role", "status");
-    form.append(label, this.apply, this.status, element("small", message("sound.promptNotice")));
-    this.view.append(element("legend", message("sound.title")), form);
+    this.view.className = "reactor-prompt";
+    const actions = element("div");
+    actions.className = "reactor-prompt-actions";
+    actions.append(this.status, this.apply);
+    form.append(label, element("small", message("sound.promptNotice")), actions);
+    this.view.append(form);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       this.pending = this.prompt.value;
@@ -2128,6 +2153,28 @@ var DragInput = class {
   }
 };
 
+// web/scripts/live/layout.ts
+function promptSection(title, input, apply, status) {
+  const section = element("section");
+  section.className = "reactor-prompt";
+  const label = element("label", title);
+  label.append(input);
+  const actions = element("div");
+  actions.className = "reactor-prompt-actions";
+  actions.append(status, apply);
+  section.append(label, actions);
+  return section;
+}
+function sessionHeader(title, duration, status, elapsed) {
+  const header = element("header");
+  const state = element("div");
+  state.className = "reactor-session-status";
+  state.append(status);
+  if (elapsed) state.append(elapsed);
+  header.append(element("h2", title), element("small", duration), state);
+  return header;
+}
+
 // web/scripts/live/controls.ts
 var panels = /* @__PURE__ */ new Set();
 var ControlPanel = class {
@@ -2192,45 +2239,30 @@ var ControlPanel = class {
   startAttempted = false;
   /** Build the preview, supported inputs, and session actions. */
   appendContent() {
-    const header = element("header");
-    const session = element("div");
-    session.className = "reactor-session-status";
-    session.append(this.status);
-    header.append(
-      element("h2", message("controls.title", { model: this.owner.modelTitle })),
-      session
+    const header = sessionHeader(
+      message("controls.title", { model: this.owner.modelTitle }),
+      message("live.duration", { seconds: this.owner.durationSeconds }),
+      this.status
     );
     this.promptStatus.setAttribute("role", "status");
-    this.dialog.append(
-      header,
-      element(
-        "p",
-        message("live.duration", {
-          model: this.owner.modelTitle,
-          seconds: this.owner.durationSeconds
-        })
-      )
-    );
+    this.dialog.append(header);
     if (this.camera) this.dialog.append(this.camera.view);
     this.dialog.append(this.pointerPreview?.view ?? this.image);
-    if (this.owner.pointer) {
-      const instructions = element("p", message("controls.dragInstructions"));
-      instructions.id = `reactor-pointer-help-${crypto.randomUUID()}`;
-      this.image.setAttribute("aria-describedby", instructions.id);
-      this.dialog.append(instructions);
-    }
     if (this.pointerPreview) this.dialog.append(this.pointerPreview.status);
-    const label = element(
-      "label",
-      message(this.owner.promptKind === "edit" ? "live.editPrompt" : "live.scenePrompt")
+    this.dialog.append(
+      promptSection(
+        message(this.owner.promptKind === "edit" ? "live.editPrompt" : "live.scenePrompt"),
+        this.prompt,
+        this.update,
+        this.promptStatus
+      )
     );
-    label.append(this.prompt);
-    this.dialog.append(label, this.update, this.promptStatus);
     if (this.sound) this.dialog.append(this.sound.view);
     const footer = element("footer");
     const actions = element("div");
     actions.className = "reactor-actions";
-    actions.append(this.start, this.end);
+    this.start.className = "reactor-primary";
+    actions.append(this.end, this.start);
     footer.append(actions);
     const help = element("details");
     help.className = "reactor-help";
@@ -2239,6 +2271,12 @@ var ControlPanel = class {
       element("p", message("live.previewNotice")),
       element("p", message("live.recordingNotice"))
     );
+    if (this.owner.pointer) {
+      const instructions = element("p", message("controls.dragInstructions"));
+      instructions.id = `reactor-pointer-help-${crypto.randomUUID()}`;
+      this.image.setAttribute("aria-describedby", instructions.id);
+      help.append(instructions);
+    }
     this.dialog.append(help, footer);
   }
   /** Bind start, prompt, stop, and dialog cleanup actions. */
@@ -2247,10 +2285,7 @@ var ControlPanel = class {
       if (event.target === this.start) {
         this.startRequested = true;
         this.start.disabled = true;
-      } else if (event.target === this.end) {
-        if (this.finished) this.dialog.close();
-        else this.stop();
-      }
+      } else if (event.target === this.end) this.dispose();
     });
     this.update.addEventListener("click", () => {
       if (!this.prompt.value.trim() && !this.owner.allowEmptyPrompt) {
@@ -2262,8 +2297,7 @@ var ControlPanel = class {
     });
     this.dialog.addEventListener("cancel", (event) => {
       event.preventDefault();
-      if (this.finished) this.dialog.close();
-      else this.stop();
+      this.dispose();
     });
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
@@ -2466,6 +2500,7 @@ var ControlPanel = class {
       this.start.hidden = true;
       setText(this.end, message("close"));
     }
+    if (this.finished) this.dialog.classList.add("reactor-finished");
   }
   /** Release panel resources and give the final end request its own deadline. */
   dispose() {
@@ -2981,7 +3016,7 @@ var ScenePanel = class {
       setTextAttribute(this.surface, "aria-label", message("live.movementLabel"));
       setTextAttribute(this.image, "alt", message("live.output"));
       this.image.hidden = true;
-      this.surface.append(this.image);
+      this.surface.append(this.image, element("p", message("live.waitingVideo")));
       this.controls.className = "reactor-actions";
       const labels = {
         w: message("live.forward"),
@@ -3039,18 +3074,14 @@ var ScenePanel = class {
   previewSequence = 0;
   /** Build the session header, movement controls, and prompt input. */
   appendContent() {
-    const header = element("header");
-    const session = element("div");
-    session.className = "reactor-session-status";
-    session.append(this.status, this.elapsed);
-    header.append(
-      element("h2", message("live.sceneTitle", { model: this.owner.modelTitle })),
-      session
+    const header = sessionHeader(
+      message("live.sceneTitle", { model: this.owner.modelTitle }),
+      message("live.duration", { seconds: this.owner.durationSeconds }),
+      this.status,
+      this.elapsed
     );
     const footer = element("footer");
     footer.append(this.end);
-    const promptLabel = element("label", message("live.scenePrompt"));
-    promptLabel.append(this.prompt);
     const help = element("details");
     help.className = "reactor-help";
     help.append(
@@ -3062,18 +3093,9 @@ var ScenePanel = class {
     );
     this.dialog.append(
       header,
-      element(
-        "p",
-        message("live.duration", {
-          model: this.owner.modelTitle,
-          seconds: this.owner.durationSeconds
-        })
-      ),
       this.surface,
       this.controls,
-      promptLabel,
-      this.apply,
-      this.promptStatus,
+      promptSection(message("live.scenePrompt"), this.prompt, this.apply, this.promptStatus),
       help,
       footer
     );
@@ -3088,24 +3110,13 @@ var ScenePanel = class {
       this.pendingPrompt = this.prompt.value;
       this.apply.disabled = true;
     });
-    this.end.addEventListener("click", () => {
-      if (this.finished) this.dialog.close();
-      else this.stop();
-    });
+    this.end.addEventListener("click", this.dispose.bind(this));
     this.dialog.addEventListener("cancel", (event) => {
       event.preventDefault();
       this.release();
       this.surface.blur();
     });
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
-  }
-  /** Stop camera movement and request the end of the session. */
-  stop() {
-    this.ending = true;
-    this.release();
-    this.end.disabled = true;
-    this.apply.disabled = this.prompt.disabled = true;
-    setText(this.status, message("live.ending"));
   }
   /**
    * Update camera controls and the preview while the panel is visible.

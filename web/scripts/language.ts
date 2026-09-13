@@ -56,6 +56,8 @@ export async function initializeLanguage(): Promise<void> {
 export function translate(key: MessageKey, values: MessageValues = {}, fallback?: string): string {
   let message: string | undefined;
   for (const language of localeCandidates(selectedLocale())) {
+    // Bundled English matches this interface version; ComfyUI may cache older resources.
+    if (language === 'en' || language.startsWith('en-')) break;
     message = readMessage(messages.get(language), `reactorInc.${key}`);
     if (message !== undefined) break;
   }

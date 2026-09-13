@@ -46,7 +46,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "In the live panel, select **Start session** within 60 seconds.\n\nEdit **scene prompt**, then select **Apply prompt** to change later frames.\n\n**Apply audio prompt** changes later sound. The live preview is silent.\n\nLet recording finish to save the video. **End session** stops early and discards it."
+        "In the live panel, select **Start Session** within 60 seconds.\n\nEdit **scene prompt**, then select **Apply Prompt** to change later frames.\n\n**Apply Audio Prompt** changes later sound. The live preview is silent.\n\nLet recording finish to save the video. **End Session** stops early and discards it."
       ],
       "title": "Using This Workflow"
     },

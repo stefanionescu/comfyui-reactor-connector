@@ -43,13 +43,13 @@ Select Run with **live controls** on. Wait for the live picture, then click it t
 **W, A, S, D** to move and the **arrow keys** to look around. Click a direction
 button for a short movement, or hold it to keep moving.
 
-Edit **scene prompt** and select **Apply prompt** to change later frames. Use
+Edit **scene prompt** and select **Apply Prompt** to change later frames. Use
 up to 1,000 characters. For example: “A sunny clearing opens ahead.” The starting
 image stays fixed, and the saved workflow keeps its original prompt. Clicking
 the text field releases held camera movement.
 
 **Escape**, changing window focus, or hiding the tab releases held movement.
-Let recording finish to save the video. **End session** stops early and discards
+Let recording finish to save the video. **End Session** stops early and discards
 the video from that run. These controls work in the ComfyUI window that started the workflow. Multi-user mode is not supported.
 
 The preview shows up to ten frames per second at up to 640 × 360 pixels.

@@ -27,7 +27,7 @@ The saved value is never returned to the window or written into a workflow.
 Saving a key does not validate it with Reactor.
 
 `REACTOR_API_KEY` in the ComfyUI server environment takes precedence over a saved
-key. **Clear saved key** removes only the saved value. Change an environment key
+key. **Clear Saved Key** removes only the saved value. Change an environment key
 where ComfyUI is launched, then restart ComfyUI.
 
 Private settings and live controls require a local, single-user connection.
@@ -89,7 +89,7 @@ Each entry shows its last checked rate, any available guide, and node support.
 Models supported by the installed nodes appear before the first refresh. Refresh the list to load public
 prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.
 
-**Refresh models** reads Reactor's public prices and model guides. Entries come from
+**Refresh Models** reads Reactor's public prices and model guides. Entries come from
 published prices or guides; your account determines which models you can run.
 
 | Status                                              | Meaning                                                                                                            |
@@ -101,7 +101,7 @@ published prices or guides; your account determines which models you can run.
 Refreshing does not add nodes, change their connections, or change active
 workflows. New models need support in the connector before they can run.
 
-A failed refresh leaves the current list intact. **Restore previous list** restores
+A failed refresh leaves the current list intact. **Restore Previous List** restores
 the list saved before the latest refresh. Both actions keep your search text.
 Only the local ComfyUI user can change the list.
 
@@ -114,7 +114,7 @@ minute; an active check can take up to 25 seconds to finish.
 
 Checks use the same public sources as refresh. They report changes without
 replacing the saved list. Expand **Model sources and automatic checks** in the
-model dialog, then select **Refresh models** to save the checked list. Reopen the
+model dialog, then select **Refresh Models** to save the checked list. Reopen the
 dialog to see a check that finished after you opened it. Failed checks keep the
 list and retry at the configured interval. Closing ComfyUI stops checking.
 
@@ -143,10 +143,10 @@ Ordinary Helios, LongLive, Visko, SANA, and X2 generation nodes have a **live co
 ### Change prompts or use a webcam
 
 1. Set the prompt and video length, then select **Run**.
-2. For a webcam node, select **Enable camera** and allow camera access. Check the
-   preview. To switch cameras, choose one and select **Use selected camera**.
-3. Select **Start session** within 60 seconds.
-4. When controls are ready, edit the prompt and select **Apply prompt**.
+2. For a webcam node, select **Enable Camera** and allow camera access. Check the
+   preview. To switch cameras, choose one and select **Switch Camera**.
+3. Select **Start Session** within 60 seconds.
+4. When controls are ready, edit the prompt and select **Apply Prompt**.
 5. Let the chosen recording duration finish to save the result.
 
 Changes affect later frames and leave the saved workflow prompt unchanged.
@@ -165,7 +165,7 @@ separate preview uses up to 640 × 360 pixels at ten frames per second without s
 ### Change Visko audio
 
 Turn **generate audio** on before running. During recording, edit **audio prompt**
-and select **Apply audio prompt**. Leave it blank to let the picture guide sound.
+and select **Apply Audio Prompt**. Leave it blank to let the picture guide sound.
 Changes affect later sound; play the saved video to hear it. Resolution and sound
 on/off stay fixed during the session. Changing them requires a new run.
 
@@ -187,7 +187,7 @@ button briefly or hold it to keep moving. Escape releases movement. World 2 can
 combine forward and sideways movement.
 
 Rapid changes can skip earlier movements; old movement is released before the
-latest direction is applied. Edit **scene prompt** and select **Apply prompt**
+latest direction is applied. Edit **scene prompt** and select **Apply Prompt**
 to change later frames. Editing the prompt releases held movement. The starting
 image and saved workflow prompt stay unchanged. Saved video cannot reopen a world,
 and clicking its playback does not move the camera.
@@ -195,7 +195,7 @@ and clicking its playback does not move the camera.
 ### Save or stop
 
 Let recording finish. **Save Video** writes the result under ComfyUI's
-output folder. **End session** stops early and discards the unfinished video.
+output folder. **End Session** stops early and discards the unfinished video.
 ComfyUI cancellation also ends the run. Closing a workflow tab does not cancel it.
 
 The session ends if the live panel stops responding for five seconds. Webcam input
@@ -274,7 +274,7 @@ Read the error and the node's native **Info** before trying again. Pausing a vid
 | Session end is unconfirmed   | Wait for the configured session limit; do not repeatedly queue or clear wait records.            |
 | Model refresh fails          | Keep the current list and retry the public-source refresh later.                                 |
 | A live panel expires         | Let cleanup finish before running again.                                                         |
-| Camera is unavailable        | Allow access, select **Enable camera**, and release the camera in another application if needed. |
+| Camera is unavailable        | Allow access, select **Enable Camera**, and release the camera in another application if needed. |
 
 ### Recover after a restart
 

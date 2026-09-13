@@ -55,9 +55,9 @@ This node does not accept a starting image.
 
 ## Live controls
 
-Turn **live controls** on, select **Run**, then select **Start session** in the
-live panel within 60 seconds. Use **Apply prompt** to change later frames.
-Let recording finish to save the result. **End session** discards the unfinished
+Turn **live controls** on, select **Run**, then select **Start Session** in the
+live panel within 60 seconds. Use **Apply Prompt** to change later frames.
+Let recording finish to save the result. **End Session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
 Keep the live panel open until recording finishes. Closing it or losing its

@@ -145,14 +145,14 @@ Models supported by the installed nodes appear before the first refresh.
 Refresh the list to load public prices and guides.
 
 Open **Extensions → Reactor → Reactor models** to search the list and select
-**Refresh models** for the latest public prices and guides.
+**Refresh Models** for the latest public prices and guides.
 
 **Refreshing the list does not install new nodes.** A model can run only when the
 connector includes code and nodes that support it. Entries show whether nodes
 are available. Your Reactor account determines access to each provider model.
 
 Reactor settings can enable automatic checks. They report changes; select
-**Refresh models** to save the updated list. See [model updates](ADVANCED.md#model-updates)
+**Refresh Models** to save the updated list. See [model updates](ADVANCED.md#model-updates)
 for how checks work and how to restore a previous list.
 
 ## Fix a setup problem

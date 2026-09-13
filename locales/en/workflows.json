@@ -83,7 +83,7 @@
         "samplesTitle": "Sample inputs",
         "save": "**{save_video}** writes to `video/reactor/` under the ComfyUI output folder. Examples with sound also save a separate audio file.",
         "saveTitle": "Save, stop, and get help",
-        "stop": "Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End session** stops early and discards the unfinished video.",
+        "stop": "Use ComfyUI's cancel control to stop a queued run. Closing a tab does not cancel it. In a live panel, **End Session** stops early and discards the unfinished video.",
         "stream": "Stream over rocks",
         "title": "Reactor Workflows",
         "update": "Updates do not replace graphs already open in ComfyUI. Save your changes, then open the new example in another tab. Copy any prompts or settings you want to keep.",
@@ -114,14 +114,14 @@
         "title": "LingBot World 2: Explore an Image with Live Controls"
     },
     "live": {
-        "camera": "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.",
+        "camera": "Select **Enable Camera**, allow access, then **Start Session**. Reactor receives camera video without microphone audio.",
         "drag": "Drag on the output to steer the subject. Escape releases the pointer. **Info** also explains keyboard controls.",
-        "finish": "Let recording finish to save the video. **End session** stops early and discards it.",
-        "move": "This controls a virtual camera, not your webcam. In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply prompt** changes later frames.",
-        "prompt": "Edit **scene prompt**, then select **Apply prompt** to change later frames.",
-        "sound": "**Apply audio prompt** changes later sound. The live preview is silent.",
-        "start": "In the live panel, select **Start session** within 60 seconds.",
-        "editPrompt": "Change **edit prompt**, then select **Apply prompt** to change later frames.",
+        "finish": "Let recording finish to save the video. **End Session** stops early and discards it.",
+        "move": "This controls a virtual camera, not your webcam. In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply Prompt** changes later frames.",
+        "prompt": "Edit **scene prompt**, then select **Apply Prompt** to change later frames.",
+        "sound": "**Apply Audio Prompt** changes later sound. The live preview is silent.",
+        "start": "In the live panel, select **Start Session** within 60 seconds.",
+        "editPrompt": "Change **edit prompt**, then select **Apply Prompt** to change later frames.",
         "examplePrompt": "Try: {prompt}"
     },
     "longlive-v2-01-text-to-video": {

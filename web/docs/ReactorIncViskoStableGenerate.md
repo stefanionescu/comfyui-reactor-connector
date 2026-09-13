@@ -75,12 +75,12 @@ is unconfirmed, wait for its stated time limit before starting another run.
 
 ## Live controls
 
-Turn **live controls** on, select **Run**, then select **Start session** in the
-live panel within 60 seconds. Use **Apply prompt** to change later frames.
-When sound is enabled, use **Apply audio prompt** to change later sound. Leave
+Turn **live controls** on, select **Run**, then select **Start Session** in the
+live panel within 60 seconds. Use **Apply Prompt** to change later frames.
+When sound is enabled, use **Apply Audio Prompt** to change later sound. Leave
 it blank to let the picture guide sound. The preview is silent; play the saved
 video to hear the result. Sound on/off and resolution stay fixed for the recording.
-Let recording finish to save the result. **End session** discards the unfinished
+Let recording finish to save the result. **End Session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
 For current session rates, open **Extensions → Reactor → Reactor models**.

@@ -15,7 +15,9 @@ export class Webcam {
 
   readonly select = element('select');
 
-  readonly status = element('p', message('camera.disabled'));
+  readonly status = element('p');
+
+  private readonly indicators = element('div');
 
   private stream: MediaStream | undefined;
 
@@ -42,7 +44,7 @@ export class Webcam {
   ) {
     this.view.className = 'reactor-webcam';
     const heading = element('header');
-    heading.append(element('h3', message('camera.label')), this.status);
+    heading.append(element('h3', message('camera.label')));
     this.status.setAttribute('role', 'status');
     setTextAttribute(this.select, 'aria-label', message('camera.label'));
     const defaultCamera = element('option', message('camera.default'));
@@ -55,8 +57,25 @@ export class Webcam {
     setTextAttribute(this.video, 'aria-label', message('camera.preview'));
     const controls = element('div');
     controls.className = 'reactor-camera-controls';
-    controls.append(this.select, this.enable);
-    this.view.append(heading, controls, this.video);
+    const selection = element('div');
+    selection.className = 'reactor-select';
+    selection.append(this.select);
+    const actions = element('div');
+    actions.className = 'reactor-camera-actions';
+    this.indicators.className = 'reactor-camera-state';
+    this.indicators.hidden = true;
+    this.indicators.setAttribute('role', 'status');
+    this.indicators.append(
+      element('span', message('camera.enabled')),
+      element('span', message('camera.microphone')),
+    );
+    actions.append(this.indicators, this.enable);
+    controls.append(selection, actions);
+    this.view.append(heading, controls, this.video, this.status);
+    this.select.addEventListener('change', () => {
+      this.enable.disabled =
+        this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
+    });
     this.enable.addEventListener('click', () => {
       this.enable.disabled = true;
       const selected = this.select.value;
@@ -70,9 +89,11 @@ export class Webcam {
       await this.listCameras();
       if (this.closed) return;
       setText(this.enable, message('camera.select'));
-      setText(this.status, message('camera.enabled'));
+      setText(this.status, '');
+      this.indicators.hidden = false;
     } catch (error) {
       this.stopCamera();
+      setText(this.enable, message('camera.enable'));
       if (this.closed) return;
       const errors = new Map<string, MessageKey>([
         ['NotAllowedError', 'camera.permissionDenied'],
@@ -90,7 +111,9 @@ export class Webcam {
         ),
       );
     } finally {
-      if (!this.closed) this.enable.disabled = false;
+      if (!this.closed)
+        this.enable.disabled =
+          this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
     }
   }
 
@@ -220,11 +243,12 @@ export class Webcam {
     this.controller.abort();
     this.stopCamera();
     this.select.disabled = this.enable.disabled = true;
-    setText(this.status, message('camera.disabled'));
+    this.view.hidden = true;
     this.canvas.width = this.canvas.height = 0;
   }
 
   private stopCamera(): void {
+    this.indicators.hidden = true;
     this.video.hidden = true;
     for (const track of this.stream?.getTracks() ?? []) {
       track.stop();

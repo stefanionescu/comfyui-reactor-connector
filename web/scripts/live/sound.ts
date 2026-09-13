@@ -2,7 +2,7 @@ import { button, element } from '#web/dom.ts';
 import { message } from '#web/localization.ts';
 
 export class SoundControls {
-  readonly view = element('fieldset');
+  readonly view = element('section');
 
   readonly status = element('p');
 
@@ -25,8 +25,12 @@ export class SoundControls {
     label.append(this.prompt);
     const form = element('form');
     this.status.setAttribute('role', 'status');
-    form.append(label, this.apply, this.status, element('small', message('sound.promptNotice')));
-    this.view.append(element('legend', message('sound.title')), form);
+    this.view.className = 'reactor-prompt';
+    const actions = element('div');
+    actions.className = 'reactor-prompt-actions';
+    actions.append(this.status, this.apply);
+    form.append(label, element('small', message('sound.promptNotice')), actions);
+    this.view.append(form);
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
