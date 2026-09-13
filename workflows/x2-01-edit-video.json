@@ -11,7 +11,7 @@
       ],
       "size": [
         400,
-        160
+        140
       ],
       "flags": {},
       "order": 1,
@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Upload Your Source Video** (at least 33 frames).\n3. Describe the change you want in **Edit prompt**.\n4. Select **Run** to create and save the video.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload a video in **Load Source Video** (at least 33 frames).\n3. Describe the change you want in **edit prompt**.\n4. Select **Run** to create and save the video.\n\nUse standard dynamic range (SDR) video. The edited output has no sound."
       ],
       "title": "Start Here"
     },
@@ -31,7 +31,7 @@
       "type": "LoadVideo",
       "pos": [
         40,
-        280
+        260
       ],
       "size": [
         400,
@@ -57,14 +57,14 @@
         "",
         "image"
       ],
-      "title": "Upload Your Source Video"
+      "title": "Load Source Video"
     },
     {
       "id": 3,
       "type": "ReactorIncX2EditVideo",
       "pos": [
         500,
-        280
+        260
       ],
       "size": [
         440,
@@ -107,14 +107,14 @@
         0.5,
         false
       ],
-      "title": "X2: Edit a Local Video (Reactor)"
+      "title": "X2: Edit Video (Reactor)"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        280
+        260
       ],
       "size": [
         360,
@@ -146,7 +146,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     }
   ],
   "links": [

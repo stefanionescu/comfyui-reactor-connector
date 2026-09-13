@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload Your Starting Image**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Load Starting Image**.\n3. Edit **scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload Your Starting Image"
+      "title": "Load Starting Image"
     },
     {
       "id": 3,
@@ -110,7 +110,7 @@
         0,
         false
       ],
-      "title": "Helios: Animate a Local Image (Reactor)"
+      "title": "Helios: Animate an Image (Reactor)"
     },
     {
       "id": 4,
@@ -149,7 +149,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     }
   ],
   "links": [

@@ -87,11 +87,11 @@ package changes. Install only runtime requirements into ComfyUI's environment.
    onto the canvas.
 3. Read **Start Here**, describe a scene, and choose the video length.
 4. Select **Run**.
-5. Play the result in **Preview and Save Video**. It also saves the file under
+5. Play the result in **Save Video**. It also saves the file under
    ComfyUI's output folder.
 
 Use ComfyUI's cancel control to stop a run. Closing a workflow tab does not cancel
-it. Change **Run number** to request another run with unchanged inputs.
+it. Change **run number** to request another run with unchanged inputs.
 
 ## Choose a workflow
 
@@ -112,30 +112,30 @@ notes, prompts, and layout.
 
 | Node                                                                                   | Input                                                     | Output                            |
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------- |
-| [Fast H3: Generate Video](web/docs/ReactorIncFastGenerate.md)                          | Scene and sound prompt, optional first and last images    | Video with sound, separate audio  |
-| [Fast H3: Continue a Scene](web/docs/ReactorIncFastContinue.md)                        | Clip count, prompts, and optional starting image          | Video with sound, separate audio  |
-| [Helios: Generate Video](web/docs/ReactorIncHeliosGenerate.md)                         | Prompt                                                    | Video without sound               |
-| [Helios: Animate an Image](web/docs/ReactorIncHeliosAnimate.md)                        | One image and a prompt                                    | Video without sound               |
-| [Helios: Add a Prompt](web/docs/ReactorIncHeliosAddPrompt.md)                          | Chunk number, prompt, and optional earlier prompts        | A prompt sequence                 |
-| [Helios: Generate Video from a Prompt Sequence](web/docs/ReactorIncHeliosSequence.md)  | Opening prompt, scheduled changes, and optional image     | Video without sound               |
-| [LingBot: Explore an Image](web/docs/ReactorIncLingBotExplore.md)                      | Image, prompt, and camera directions                      | Video without sound               |
-| [LingBot World 2: Explore an Image](web/docs/ReactorIncLingBotWorld2Explore.md)        | Image, prompt, and camera directions                      | Video without sound               |
-| [LongLive: Generate Video](web/docs/ReactorIncLongLiveGenerate.md)                     | Opening shot prompt                                       | Video without sound               |
-| [LongLive: Add a Shot](web/docs/ReactorIncLongLiveAddShot.md)                          | Shot prompt, transition, and chunk number                 | A storyboard                      |
-| [LongLive: Generate Video from a Storyboard](web/docs/ReactorIncLongLiveStoryboard.md) | Opening prompt and scheduled shots                        | Video without sound               |
-| [LTX: Make a Portrait Speak](web/docs/ReactorIncLtxSpeak.md)                           | Portrait, script, and speech pace                         | Video with speech, separate audio |
-| [SANA: Edit Video](web/docs/ReactorIncSanaEditVideo.md)                                | Local video and edit prompt                               | Video without sound               |
-| [SANA: Edit a Webcam](web/docs/ReactorIncSanaWebcam.md)                                | Camera and live edit prompt                               | Video without sound               |
-| [Visko Stable: Generate Video](web/docs/ReactorIncViskoStableGenerate.md)              | Scene prompt, sound controls, and optional image          | Video with sound, separate audio  |
-| [Visko Dynamic: Generate Video](web/docs/ReactorIncViskoDynamicGenerate.md)            | Scene prompt, sound controls, and optional image          | Video with sound, separate audio  |
-| [X2: Edit Video](web/docs/ReactorIncX2EditVideo.md)                                    | Local video, edit prompt, and optional reference image    | Video without sound               |
-| [X2: Edit a Webcam](web/docs/ReactorIncX2Webcam.md)                                    | Camera, optional subject image, live prompt, and dragging | Video without sound               |
+| [Fast H3: Generate Video (Reactor)](web/docs/ReactorIncFastGenerate.md)                          | Scene and sound prompt, optional first and last images    | Video with sound, separate audio  |
+| [Fast H3: Continue a Scene (Reactor)](web/docs/ReactorIncFastContinue.md)                        | Clip count, prompts, and optional starting image          | Video with sound, separate audio  |
+| [Helios: Generate Video (Reactor)](web/docs/ReactorIncHeliosGenerate.md)                         | Prompt                                                    | Video without sound               |
+| [Helios: Animate an Image (Reactor)](web/docs/ReactorIncHeliosAnimate.md)                        | One image and a prompt                                    | Video without sound               |
+| [Helios: Add a Prompt (Reactor)](web/docs/ReactorIncHeliosAddPrompt.md)                          | Chunk number, prompt, and optional earlier prompts        | A prompt sequence                 |
+| [Helios: Generate Video from a Prompt Sequence (Reactor)](web/docs/ReactorIncHeliosSequence.md)  | Opening prompt, scheduled changes, and optional image     | Video without sound               |
+| [LingBot: Explore an Image (Reactor)](web/docs/ReactorIncLingBotExplore.md)                      | Image, prompt, and camera directions                      | Video without sound               |
+| [LingBot World 2: Explore an Image (Reactor)](web/docs/ReactorIncLingBotWorld2Explore.md)        | Image, prompt, and camera directions                      | Video without sound               |
+| [LongLive: Generate Video (Reactor)](web/docs/ReactorIncLongLiveGenerate.md)                     | Opening shot prompt                                       | Video without sound               |
+| [LongLive: Add a Shot (Reactor)](web/docs/ReactorIncLongLiveAddShot.md)                          | Shot prompt, transition, and chunk number                 | A storyboard                      |
+| [LongLive: Generate Video from a Storyboard (Reactor)](web/docs/ReactorIncLongLiveStoryboard.md) | Opening prompt and scheduled shots                        | Video without sound               |
+| [LTX: Make a Portrait Speak (Reactor)](web/docs/ReactorIncLtxSpeak.md)                           | Portrait, script, and speech pace                         | Video with speech, separate audio |
+| [SANA: Edit Video (Reactor)](web/docs/ReactorIncSanaEditVideo.md)                                | Local video and edit prompt                               | Video without sound               |
+| [SANA: Edit Webcam Video (Reactor)](web/docs/ReactorIncSanaWebcam.md)                                | Camera and live edit prompt                               | Video without sound               |
+| [Visko Stable: Generate Video (Reactor)](web/docs/ReactorIncViskoStableGenerate.md)              | Scene prompt, sound controls, and optional image          | Video with sound, separate audio  |
+| [Visko Dynamic: Generate Video (Reactor)](web/docs/ReactorIncViskoDynamicGenerate.md)            | Scene prompt, sound controls, and optional image          | Video with sound, separate audio  |
+| [X2: Edit Video (Reactor)](web/docs/ReactorIncX2EditVideo.md)                                    | Local video, edit prompt, and optional reference image    | Video without sound               |
+| [X2: Edit a Webcam (Reactor)](web/docs/ReactorIncX2Webcam.md)                                    | Camera, optional subject image, live prompt, and dragging | Video without sound               |
 
 Select a Reactor node and open its native **Info** for inputs, limits, and
 examples. Nodes with detailed behavior show their bundled guide there.
 
-In your own graph, connect **Video** to **Save Video**. Models with sound also
-return a separate **Audio** output. Generation nodes also return [Recording details](ADVANCED.md#recording-details),
+In your own graph, connect **video** to **Save Video**. Models with sound also
+return a separate **audio** output. Generation nodes also return [Recording details](ADVANCED.md#recording-details),
 which describes the saved file and its model. Prompt and shot builders work
 locally without contacting Reactor. HappyOyster is not supported.
 

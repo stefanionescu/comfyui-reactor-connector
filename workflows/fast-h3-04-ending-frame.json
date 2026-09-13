@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload the ending image in **Choose the Final Frame**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload the ending image in **Load Final Image**.\n3. Edit **scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -142,7 +142,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     },
     {
       "id": 5,
@@ -180,7 +180,7 @@
         "",
         "image"
       ],
-      "title": "Choose the Final Frame"
+      "title": "Load Final Image"
     },
     {
       "id": 7,
@@ -217,7 +217,7 @@
         "audio/reactor/fast-h3-04-ending-frame",
         "flac"
       ],
-      "title": "Preview and Save Audio"
+      "title": "Save Audio"
     }
   ],
   "links": [

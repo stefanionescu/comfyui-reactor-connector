@@ -11,7 +11,7 @@ def setup_steps(example: Example, model: str) -> list[str]:
     image_key = "setup.portrait" if model == "ltx2" else "setup.image"
     sources = (
         ("source", "setup.video", "sourceVideo"),
-        ("image", image_key, "startingImage"),
+        ("image", image_key, "portraitImage" if model == "ltx2" else "startingImage"),
         ("reference_image", "setup.reference", "referenceImage"),
         ("ending_image", "setup.endingImage", "endingImage"),
     )
@@ -24,14 +24,14 @@ def setup_steps(example: Example, model: str) -> list[str]:
     if example.plan == "shots":
         prompt_key = "setup.shots"
         prompt_titles = {
-            "first": translate("workflows", "nodes.softTransition"),
-            "second": translate("workflows", "nodes.hardCut"),
+            "first": translate("workflows", "nodes.softTransition") + " (Reactor)",
+            "second": translate("workflows", "nodes.hardCut") + " (Reactor)",
         }
     elif example.plan == "prompts":
         prompt_key = "setup.sequence"
         prompt_titles = {
-            "first": translate("workflows", "nodes.sunlight"),
-            "second": translate("workflows", "nodes.clearing"),
+            "first": translate("workflows", "nodes.sunlight") + " (Reactor)",
+            "second": translate("workflows", "nodes.clearing") + " (Reactor)",
         }
     elif "image" in example.sources and model.startswith("visko-"):
         prompt_key = "setup.viskoImage"

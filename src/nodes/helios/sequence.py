@@ -26,7 +26,7 @@ class HeliosSequence(io.ComfyNode):
                 *generation_controls(),
                 io.String.Input(
                     "sequence",
-                    display_name="Prompt sequence (JSON)",
+                    display_name="prompt sequence (JSON)",
                     tooltip="Connect Reactor Helios: Add a Prompt. [] keeps the opening prompt.",
                     default="[]",
                     multiline=False,
@@ -34,7 +34,7 @@ class HeliosSequence(io.ComfyNode):
                 ),
                 io.Image.Input(
                     "image",
-                    display_name="Starting image",
+                    display_name="starting image",
                     tooltip="Optionally connect one starting RGB image.",
                     optional=True,
                 ),

@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit the opening prompt, **1. Let Sunlight Through**, and **2. Enter a Clearing**.\n3. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit the opening prompt, **1. Let Sunlight Through (Reactor)**, and **2. Enter a Clearing (Reactor)**.\n3. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -46,7 +46,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Each Helios chunk contains 33 frames. Connect prompts in order and use increasing **Start chunk** values. The opening prompt starts at chunk 0. Later prompts do not extend the recording."
+        "Each Helios chunk contains 33 frames. Connect prompts in order and use increasing **start chunk** values. The opening prompt starts at chunk 0. Later prompts do not extend the recording."
       ],
       "title": "Using This Workflow"
     },
@@ -138,7 +138,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     },
     {
       "id": 5,

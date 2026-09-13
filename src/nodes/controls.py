@@ -17,7 +17,7 @@ from ...config.nodes import (
 
 def generation_controls(prompt_key: str = "video", *, duration: io.Input | None = None) -> list[io.Input]:
     """Build the shared prompt, duration, seed, and repeat-run controls."""
-    prompt_label = "Edit prompt" if prompt_key in {"edit", "webcam"} else "Scene prompt"
+    prompt_label = "edit prompt" if prompt_key in {"edit", "webcam"} else "scene prompt"
     return [
         io.String.Input(
             "prompt",
@@ -30,7 +30,7 @@ def generation_controls(prompt_key: str = "video", *, duration: io.Input | None 
         if duration is not None
         else io.Float.Input(
             "duration_seconds",
-            display_name="Video length (seconds)",
+            display_name="video duration (seconds)",
             tooltip="Video length in seconds. Setup also counts toward the session time limit.",
             default=DEFAULT_DURATION_SECONDS,
             min=MIN_DURATION_SECONDS,
@@ -39,7 +39,7 @@ def generation_controls(prompt_key: str = "video", *, duration: io.Input | None 
         ),
         io.Int.Input(
             "seed",
-            display_name="Seed",
+            display_name="seed",
             tooltip="Number used by the model to generate the video. Results can change after model updates.",
             default=DEFAULT_SEED,
             min=0,
@@ -48,7 +48,7 @@ def generation_controls(prompt_key: str = "video", *, duration: io.Input | None 
         ),
         io.Int.Input(
             "variation",
-            display_name="Run number",
+            display_name="run number",
             tooltip="Change this number to run again with unchanged inputs. This does not change the seed.",
             default=DEFAULT_VARIATION,
             min=MIN_VARIATION,
@@ -59,14 +59,14 @@ def generation_controls(prompt_key: str = "video", *, duration: io.Input | None 
 
 def video_outputs() -> list[io.Output]:
     """Declare the native video and recording-details output sockets."""
-    return [io.Video.Output(display_name="Video"), io.String.Output(display_name="Recording details")]
+    return [io.Video.Output(display_name="video"), io.String.Output(display_name="recording details")]
 
 
 def live_control() -> io.Input:
     """Declare the switch that opens live controls for the executing client."""
     return io.Boolean.Input(
         "interactive",
-        display_name="Live controls",
+        display_name="live controls",
         tooltip="Open live controls in this ComfyUI window. Start the session there.",
         default=False,
     )

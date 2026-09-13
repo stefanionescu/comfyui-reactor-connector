@@ -21,15 +21,15 @@ class HeliosAddPrompt(io.ComfyNode):
             inputs=[
                 io.String.Input(
                     "previous",
-                    display_name="Previous prompts (JSON)",
-                    tooltip="Leave [] for the first later prompt, or connect the previous builder.",
+                    display_name="previous prompts (JSON)",
+                    tooltip="Leave [] for the first later prompt, or connect the previous Add a Prompt node.",
                     default="[]",
                     multiline=False,
                     advanced=True,
                 ),
                 io.Int.Input(
                     "chunk",
-                    display_name="Start chunk",
+                    display_name="start chunk",
                     tooltip="When this prompt starts. A Helios chunk contains 33 frames.",
                     default=1,
                     min=1,
@@ -37,14 +37,14 @@ class HeliosAddPrompt(io.ComfyNode):
                 ),
                 io.String.Input(
                     "prompt",
-                    display_name="Scene prompt",
-                    placeholder="Scene prompt",
+                    display_name="scene prompt",
+                    placeholder="scene prompt",
                     tooltip="Describe the scene and motion after this change.",
                     default=DEFAULT_PROMPTS["forest"],
                     multiline=True,
                 ),
             ],
-            outputs=[io.String.Output(display_name="Prompt sequence")],
+            outputs=[io.String.Output(display_name="prompt sequence")],
         )
 
     @classmethod

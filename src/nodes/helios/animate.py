@@ -27,7 +27,7 @@ class HeliosAnimate(io.ComfyNode):
             description="Animate one image through Reactor. Prompt and image are applied together.",
             search_aliases=["Reactor", "Helios", "image to video"],
             inputs=[
-                io.Image.Input("image", display_name="Starting image", tooltip="Connect one RGB image."),
+                io.Image.Input("image", display_name="starting image", tooltip="Connect one RGB image."),
                 *generation_controls(),
                 live_control(),
             ],

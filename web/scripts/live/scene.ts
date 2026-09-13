@@ -66,7 +66,11 @@ class ScenePanel {
   ) {
     try {
       this.dialog.className = 'reactor-dialog reactor-live';
-      setTextAttribute(this.dialog, 'aria-label', message('live.sceneTitle'));
+      setTextAttribute(
+        this.dialog,
+        'aria-label',
+        message('live.sceneTitle', { model: this.owner.modelTitle }),
+      );
       this.status.setAttribute('role', 'status');
       this.promptStatus.setAttribute('role', 'status');
       this.prompt.value = owner.prompt;
@@ -118,7 +122,10 @@ class ScenePanel {
     const session = element('div');
     session.className = 'reactor-session-status';
     session.append(this.status, this.elapsed);
-    header.append(element('h2', message('live.sceneTitle')), session);
+    header.append(
+      element('h2', message('live.sceneTitle', { model: this.owner.modelTitle })),
+      session,
+    );
     const footer = element('footer');
     footer.append(this.end);
     const promptLabel = element('label', message('live.scenePrompt'));

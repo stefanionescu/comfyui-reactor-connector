@@ -3,25 +3,25 @@
         "inputs": {
             "movement": {
                 "options": {
-                    "idle": "Stop",
-                    "forward": "Forward",
-                    "back": "Back",
-                    "strafe_left": "Move left",
-                    "strafe_right": "Move right"
+                    "idle": "none",
+                    "forward": "forward",
+                    "back": "move backward",
+                    "strafe_left": "move left",
+                    "strafe_right": "move right"
                 }
             },
             "look_horizontal": {
                 "options": {
-                    "idle": "Stop",
-                    "left": "Left",
-                    "right": "Right"
+                    "idle": "none",
+                    "left": "left",
+                    "right": "right"
                 }
             },
             "look_vertical": {
                 "options": {
-                    "idle": "Stop",
-                    "up": "Up",
-                    "down": "Down"
+                    "idle": "none",
+                    "up": "up",
+                    "down": "down"
                 }
             }
         }
@@ -30,30 +30,30 @@
         "inputs": {
             "movement": {
                 "options": {
-                    "idle": "Stop",
-                    "forward": "Forward",
-                    "back": "Back"
+                    "idle": "none",
+                    "forward": "forward",
+                    "back": "move backward"
                 }
             },
             "lateral": {
                 "options": {
-                    "idle": "Stop",
-                    "strafe_left": "Move left",
-                    "strafe_right": "Move right"
+                    "idle": "none",
+                    "strafe_left": "move left",
+                    "strafe_right": "move right"
                 }
             },
             "look_horizontal": {
                 "options": {
-                    "idle": "Stop",
-                    "left": "Left",
-                    "right": "Right"
+                    "idle": "none",
+                    "left": "left",
+                    "right": "right"
                 }
             },
             "look_vertical": {
                 "options": {
-                    "idle": "Stop",
-                    "up": "Up",
-                    "down": "Down"
+                    "idle": "none",
+                    "up": "up",
+                    "down": "down"
                 }
             }
         }
@@ -62,8 +62,8 @@
         "inputs": {
             "transition": {
                 "options": {
-                    "soft": "Soft transition",
-                    "cut": "Hard cut"
+                    "soft": "soft transition",
+                    "cut": "hard cut"
                 }
             }
         }

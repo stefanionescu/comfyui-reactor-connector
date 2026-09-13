@@ -23,7 +23,7 @@ class SanaWebcam(io.ComfyNode):
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
             node_id="ReactorIncSanaWebcam",
-            display_name="SANA: Edit a Webcam (Reactor)",
+            display_name="SANA: Edit Webcam Video (Reactor)",
             description="Enable a webcam in the live panel, then record an edited video.",
             category="Reactor/Live",
             search_aliases=[],
@@ -31,7 +31,7 @@ class SanaWebcam(io.ComfyNode):
                 *generation_controls("webcam"),
                 io.Int.Input(
                     "anchor_interval",
-                    display_name="Source refresh interval (chunks)",
+                    display_name="source refresh interval (chunks)",
                     tooltip="Return to the camera source after this many model chunks. Use 0 to turn this off.",
                     default=DEFAULT_ANCHOR_INTERVAL,
                     min=MIN_ANCHOR_INTERVAL,

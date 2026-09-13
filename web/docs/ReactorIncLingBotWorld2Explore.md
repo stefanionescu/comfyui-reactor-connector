@@ -1,38 +1,38 @@
-# Reactor LingBot World 2: Explore an Image
+# LingBot World 2: Explore an Image (Reactor)
 
 Move through a scene from your image and save a video. Choose a direction for
-the camera to follow, or turn on **Live controls** to steer with keys and buttons.
+the camera to follow, or turn on **live controls** to steer with keys and buttons.
 Recording stops after the duration you choose.
 
 ## Set up and run
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 2. Open **lingbot-world-2-01-explore-image** in **Browse Templates → reactor-inc**.
-   Upload one picture in **Upload Your Starting Image**.
-3. Describe the scene in **Scene prompt** and choose the video length in **Video length (seconds)**.
-4. Choose camera directions, or turn on **Live controls** to use keys and buttons.
+   Upload one picture in **Load Starting Image**.
+3. Describe the scene in **scene prompt** and choose the video length in **video duration (seconds)**.
+4. Choose camera directions, or turn on **live controls** to use keys and buttons.
 5. Select **Run**.
-6. Play the result in **Preview and Save Video**. It also saves the file.
+6. Play the result in **Save Video**. It also saves the file.
 
-For a first run, use a picture of a path or room with clear depth. Set **Movement**
-to `forward`, set **Turn left or right** and **Look up or down** to `idle` (stop),
-set **Sideways movement** to `idle`, and record two seconds.
+For a first run, use a picture of a path or room with clear depth. Set **movement**
+to `forward`, set **turn left or right** and **look up or down** to `idle` (stop),
+set **sideways movement** to `idle`, and record two seconds.
 
 ## Inputs
 
 | Input                   | What it does                                                                                                                            |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Starting image          | Starting picture. Connect one image from Load Image; batches are not supported.                                                         |
-| Scene prompt            | Describe the scene and motion in 1 to 1,000 characters.                                                                                 |
-| Video length (seconds)  | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                                             |
-| Seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                 |
-| Run number              | Change this number to request another run with the same other settings. Default: 0.                                                     |
-| Movement                | `forward`, `back`, or `idle` (stop).                                                                                                    |
-| Sideways movement       | `strafe_left` (move left), `strafe_right` (move right), or `idle` (stop). Combine with forward or backward movement to move diagonally. |
-| Turn left or right      | `left` or `right` keeps turning the camera. Choose `idle` to stop turning.                                                              |
-| Look up or down         | `up` or `down` keeps tilting the camera. Choose `idle` to stop tilting. Combine with horizontal look if needed.                         |
-| Turn per step (degrees) | Degrees per latent frame (an internal model step). Larger values turn faster; 0 stops turning. Range: 0–30; default: 5.                 |
-| Live controls           | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.                   |
+| starting image          | Starting picture. Connect one image from Load Image; batches are not supported.                                                         |
+| scene prompt            | Describe the scene and motion in 1 to 1,000 characters.                                                                                 |
+| video duration (seconds)  | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                                             |
+| seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                 |
+| run number              | Change this number to request another run with the same other settings. Default: 0.                                                     |
+| movement                | `forward`, `back`, or `idle` (stop).                                                                                                    |
+| sideways movement       | `strafe_left` (move left), `strafe_right` (move right), or `idle` (stop). Combine with forward or backward movement to move diagonally. |
+| turn left or right      | `left` or `right` keeps turning the camera. Choose `idle` to stop turning.                                                              |
+| look up or down         | `up` or `down` keeps tilting the camera. Choose `idle` to stop tilting. Combine with horizontal look if needed.                         |
+| turn per step (degrees) | Degrees per latent frame (an internal model step). Larger values turn faster; 0 stops turning. Range: 0–30; default: 5.                 |
+| live controls           | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.                   |
 
 You can move forward or back and sideways at the same time.
 Camera changes take time to appear because the model applies them as it generates
@@ -40,11 +40,11 @@ new frames. Once set, a direction stays active until you change or release it.
 
 ## Live controls
 
-Select Run with **Live controls** on. Wait for the live picture, then click it to use
+Select Run with **live controls** on. Wait for the live picture, then click it to use
 **W, A, S, D** to move and the **arrow keys** to look around. Click a direction
 button for a short movement, or hold it to keep moving.
 
-Edit **Scene prompt** and select **Apply prompt** to change later frames. Use
+Edit **scene prompt** and select **Apply prompt** to change later frames. Use
 up to 1,000 characters. For example: “A sunny clearing opens ahead.” The starting
 image stays fixed, and the saved workflow keeps its original prompt. Clicking
 the text field releases held camera movement.
@@ -58,19 +58,18 @@ The saved video keeps the model's original resolution. This operation has no sou
 
 ## Outputs
 
-**Video** connects to **Save Video** or another ComfyUI video node.
-**Recording details** describes the saved file and model. For live runs, it also
+**video** connects to **Save Video** or another ComfyUI video node.
+**recording details** describes the saved file and model. For live runs, it also
 lists camera commands the model confirmed receiving and the number of preview
 frames. Receiving a command does not prove that the requested movement is visible.
 
-Unchanged inputs may reuse ComfyUI's cached video and report. Change **Run number**
+Unchanged inputs may reuse ComfyUI's cached video and report. Change **run number**
 for another generation. Setup also uses session time, so the saved video length
 is not the billed duration.
 
 ## Stop and recover
 
-Use ComfyUI's cancel control to stop a queued or running workflow. With **Live
-controls** off, closing the browser does not cancel it. With live controls on,
+Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel it. With live controls on,
 closing the live panel ends the session. A lost browser connection ends the
 session after five seconds without contact. Both discard unfinished video. Cleanup has its own
 time limit. Wait for confirmation that the session ended before trying again.

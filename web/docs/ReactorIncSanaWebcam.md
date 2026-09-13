@@ -1,4 +1,4 @@
-# Reactor SANA: Edit a Webcam
+# SANA: Edit Webcam Video (Reactor)
 
 Turn your camera video into an edited scene and save the result without sound.
 Use a local, single-user ComfyUI installation with camera access.
@@ -8,11 +8,11 @@ Your camera remains off until you enable it in the live panel.
 
 | Input                            | What to provide                                                                                                 |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Edit prompt                      | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
-| Video length (seconds)           | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds.                   |
-| Seed                             | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
-| Run number                       | Change this value for another run. Default: 0.                                                                  |
-| Source refresh interval (chunks) | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
+| edit prompt                      | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
+| video duration (seconds)           | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 5 seconds.                   |
+| seed                             | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
+| run number                       | Change this value for another run. Default: 0.                                                                  |
+| source refresh interval (chunks) | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
 
 ## Run and save
 
@@ -23,9 +23,9 @@ Your camera remains off until you enable it in the live panel.
 5. Check the camera preview. To change cameras, choose one and select **Use selected camera**.
 6. Select **Start session** within 60 seconds.
 7. To change the edit, enter a live prompt and select **Apply prompt**.
-8. Let recording finish. **Preview and Save Video** saves the result.
+8. Let recording finish. **Save Video** saves the result.
 
-The node returns **Video** without sound and **Recording details** as text. SANA may take one
+The node returns **video** without sound and **recording details** as text. SANA may take one
 or more groups of frames to apply a prompt change. Camera frames use up to
 640 × 480 pixels. The browser sends at most ten new frames per second, and
 the connector repeats the latest frame on the model's 24 fps input.
@@ -46,6 +46,6 @@ For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-**Recording details** describes the saved file, model, and timing. It does not
+**recording details** describes the saved file, model, and timing. It does not
 measure visual quality or billed time. ComfyUI can reuse a cached report; do not
 run another paid generation solely to refresh it.

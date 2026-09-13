@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload Your Starting Image**.\n3. Edit **Scene prompt** to name what is in your image and describe its motion. The example prompt describes a forest path.\n4. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Load Starting Image**.\n3. Edit **scene prompt** to name what is in your image and describe its motion. The example prompt describes a forest path.\n4. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload Your Starting Image"
+      "title": "Load Starting Image"
     },
     {
       "id": 3,
@@ -121,7 +121,7 @@
         true,
         false
       ],
-      "title": "Visko Dynamic: Animate an Image with Sound (Reactor)"
+      "title": "Visko Dynamic: Animate an Image with Audio (Reactor)"
     },
     {
       "id": 4,
@@ -160,7 +160,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     },
     {
       "id": 7,
@@ -197,7 +197,7 @@
         "audio/reactor/visko-dynamic-02-image-to-video",
         "flac"
       ],
-      "title": "Preview and Save Audio"
+      "title": "Save Audio"
     }
   ],
   "links": [

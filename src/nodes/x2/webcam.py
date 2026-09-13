@@ -37,21 +37,21 @@ class X2Webcam(io.ComfyNode):
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
             node_id="ReactorIncX2Webcam",
-            display_name="X2: Edit a Webcam (Reactor)",
+            display_name="X2: Edit Webcam Video (Reactor)",
             description="Edit webcam video and drag on the output to steer the subject.",
             category="Reactor/Live",
             search_aliases=[],
             inputs=[
                 io.String.Input(
                     "prompt",
-                    display_name="Edit prompt",
-                    placeholder="Edit prompt",
+                    display_name="edit prompt",
+                    placeholder="edit prompt",
                     multiline=True,
                     default=DEFAULT_PROMPTS["webcam"],
                 ),
                 io.Float.Input(
                     "duration_seconds",
-                    display_name="Video length (seconds)",
+                    display_name="video duration (seconds)",
                     default=DEFAULT_WEBCAM_SECONDS,
                     min=MIN_WEBCAM_SECONDS,
                     max=MAX_WEBCAM_SECONDS,
@@ -59,7 +59,7 @@ class X2Webcam(io.ComfyNode):
                 ),
                 io.Int.Input(
                     "variation",
-                    display_name="Run number",
+                    display_name="run number",
                     tooltip="Change this number to run again with unchanged inputs.",
                     default=DEFAULT_VARIATION,
                     min=MIN_VARIATION,
@@ -67,7 +67,7 @@ class X2Webcam(io.ComfyNode):
                 ),
                 io.Image.Input(
                     "reference_image",
-                    display_name="Reference image",
+                    display_name="reference image",
                     optional=True,
                     tooltip="Optional picture of a subject to insert or replace.",
                 ),

@@ -25,7 +25,7 @@ var main_default = {
       notFound: "Connect a camera, then try again.",
       number: "Camera {number}",
       permissionDenied: "Allow camera access in the app or browser settings, then try again.",
-      preview: "Your camera input",
+      preview: "Webcam preview",
       readFailed: "Camera frames could not be read.",
       select: "Use selected camera",
       unavailableSelection: "The selected camera is unavailable. Choose another camera.",
@@ -45,15 +45,15 @@ var main_default = {
       promptSent: "Prompt sent.",
       recording: "Recording. Live controls are ready.",
       recordingNotStarted: "Recording did not start.",
-      soundSent: "Sound prompt sent.",
+      soundSent: "Audio prompt sent.",
       start: "Start session",
-      title: "Reactor live controls"
+      title: "{model}: Live Controls (Reactor)"
     },
     errors: {
       acceptedClipChanged: "Fast H3 changed a clip's accepted length.",
       acceptedSequenceLimit: "The accepted clip lengths exceed the video duration limit. Choose fewer clips.",
       accessRefused: "Reactor refused access. Check your key and model access.",
-      anchorInterval: "Choose Source refresh interval (chunks) from 0 to 1,000.",
+      anchorInterval: "Choose source refresh interval (chunks) from 0 to 1,000.",
       aspectRatio: "Choose an offered aspect ratio.",
       audioIncomplete: "The recording audio is incomplete.",
       audioLimit: "Cannot load the recording audio. Its format is unsupported or it exceeds the memory limit in Reactor settings.",
@@ -73,13 +73,13 @@ var main_default = {
       cameraJpegRequired: "Send a camera JPEG.",
       cameraStateRequired: "Send a complete listed camera state.",
       captureDisconnected: "The Reactor connection ended before capture finished.",
-      captureLimit: "Choose a video length within Maximum video duration (seconds) in Reactor settings.",
+      captureLimit: "Choose a video length within maximum video duration (seconds) in Reactor settings.",
       captureQueueFull: "Video arrived faster than it could be saved. Free CPU and disk capacity by stopping other demanding tasks before trying again.",
       captureStopped: "Video capture was stopped.",
       cleanupRestartRequired: "The remote session ended, but local cleanup failed. Restart ComfyUI.",
       cleanupUnconfirmed: "Session cleanup failed; termination is unconfirmed. The server lifetime cap applies.",
       clearKeyBody: "Do not include a body when clearing a saved key.",
-      clipCaptureLimit: "The accepted clip length exceeds Maximum video duration (seconds) in Reactor settings. Choose a shorter clip.",
+      clipCaptureLimit: "The accepted clip length exceeds maximum video duration (seconds) in Reactor settings. Choose a shorter clip.",
       clipCount: "Choose 2 to 8 clips.",
       clipDurationRange: "The requested length is outside this deployment's clip limits.",
       clipDurationUnsupported: "This deployment does not support the requested clip length.",
@@ -122,7 +122,7 @@ var main_default = {
       keyUnreadable: "Cannot read the saved Reactor key. Check its private file.",
       keyWhitespace: "The API key cannot contain whitespace.",
       laterPromptLength: "Enter a later prompt of 1 to 20,000 characters.",
-      lateralDirection: "Choose an option listed under Sideways movement.",
+      lateralDirection: "Choose an option listed under sideways movement.",
       liveActionValues: "Choose a supported live action and valid values.",
       liveActionWait: "Wait for the previous live action.",
       liveCameraUnsupported: "This model does not support live scene controls.",
@@ -130,7 +130,7 @@ var main_default = {
       liveCaptureCancelled: "The live capture was cancelled.",
       liveCommandUnfinished: "A live command did not finish. The session is ending.",
       liveControlType: "Choose whether live controls are enabled.",
-      liveHostRequirements: "Live controls need a local, single-user ComfyUI browser.",
+      liveHostRequirements: "live controls need a local, single-user ComfyUI browser.",
       liveInputOrder: "The live input is out of order.",
       livePanelClosed: "The live panel was closed.",
       livePanelEnded: "The live panel ended or disconnected. The capture has been stopped.",
@@ -161,7 +161,7 @@ var main_default = {
       packageVersionMissing: "The connector's version is missing. Reinstall the package.",
       phase: "{message} Stage: {phase}. Code: {code}.",
       pointerCoordinates: "Choose pointer coordinates from 0 to 1.",
-      pointerOptionType: "Use true or false for Keep queued frames and Hold pointer.",
+      pointerOptionType: "Use true or false for keep queued frames and hold pointer.",
       portraitRequired: "Provide one portrait.",
       portraitUploadLimit: "Provide one portrait within the upload limit.",
       priceListIncomplete: "The pricing list may be incomplete. The previous list is unchanged.",
@@ -186,7 +186,7 @@ var main_default = {
       reservationReused: "Create a new reservation for each session.",
       resolutionName: "Leave Resolution blank or enter a model resolution name with at most {maximum} characters.",
       resolutionUnavailable: "This model does not offer that resolution. Leave it blank for the default.",
-      rotationSpeed: "Choose Turn per step (degrees) from 0 to 30.",
+      rotationSpeed: "Choose turn per step (degrees) from 0 to 30.",
       runFailed: "Reactor could not complete this run. Check your connection and account status.",
       runTimeout: "Reactor did not finish within the configured time limit.",
       runtimeNotReady: "Reactor has not finished loading. Restart ComfyUI.",
@@ -204,7 +204,7 @@ var main_default = {
       sessionDeadline: "The session deadline expired during this operation.",
       sessionDisconnected: "The Reactor session is not connected.",
       sessionInOtherProcess: "Another ComfyUI process is using Reactor. Let its run finish before trying again.",
-      sessionLimitTooShort: "Set Maximum session duration (seconds) higher than Maximum video duration (seconds) to allow setup and cleanup.",
+      sessionLimitTooShort: "Set maximum session duration (seconds) higher than maximum video duration (seconds) to allow setup and cleanup.",
       sessionLockLink: "The session lock cannot be a link.",
       sessionLockPermissions: "Restrict the session lock file to its owner.",
       sessionRecordDamaged: "The saved Reactor session record is damaged. Check Reactor Usage before repairing the session record in the connector's private settings folder.",
@@ -237,9 +237,9 @@ var main_default = {
       sourceReaderClosed: "The prepared video reader is closed.",
       sourceTimestampMissing: "The prepared video has no frame timestamp.",
       sourceVideoFormat: "Use an SDR RGB video at 1 to 120 frames per second.",
-      sourceVideoRequired: "Connect a video to Source video before running.",
+      sourceVideoRequired: "Connect a video to source video before running.",
       speechLength: "Enter a script of 1 to 10,000 characters.",
-      speechPace: "Set Words per minute to a whole number from {minimum} to {maximum}.",
+      speechPace: "Set words per minute to a whole number from {minimum} to {maximum}.",
       speechPaceMissing: "LTX did not report its accepted speech pace.",
       speechPaceRange: "Use a speech pace from {minimum} to {maximum}.",
       startingImageRequired: "Connect one starting image.",
@@ -274,7 +274,7 @@ var main_default = {
     live: {
       actionRejected: "The live action was not accepted. The session is ending.",
       applyPrompt: "Apply prompt",
-      back: "Back",
+      back: "Move backward",
       connectingPanel: "Connecting the live panel…",
       connectionLost: "The live connection was lost. The connector will ask Reactor to stop after five seconds without a browser connection. Check Reactor Usage to confirm the session has ended before another run.",
       discarded: "Session ended without saving a video.",
@@ -284,7 +284,7 @@ var main_default = {
       endSession: "End session",
       ended: "Session ended.",
       ending: "Ending the session…",
-      forward: "Forward",
+      forward: "Move forward",
       help: "Help",
       invalidStatus: "The live panel received an invalid status.",
       lookDown: "Look down",
@@ -295,18 +295,18 @@ var main_default = {
       moveRight: "Move right",
       movementInstructions: "Click the picture, then use W A S D to move and arrow keys to turn. Click a button for a brief movement, or hold it to keep moving. Escape stops camera movement.",
       movementLabel: "Live view. W A S D moves. Arrow keys turn. Escape stops camera movement.",
-      output: "Live model output",
+      output: "Generated video preview",
       previewNotice: "The preview has no sound. The saved video can have a higher frame rate.",
       previewReady: "Live preview. Controls are active.",
       promptNotice: "Prompt changes affect later frames. The starting image stays fixed.",
       promptSent: "Prompt sent.",
       recordingNotice: "End session stops early and discards the unfinished video.",
-      scenePrompt: "Scene prompt",
+      scenePrompt: "scene prompt",
       unconfirmedEnd: "Reactor has not confirmed that the session ended. Wait for its time limit before another run.",
       unreachable: "Live controls could not reach their session.",
       waitingVideo: "Waiting for model video…",
-      sceneTitle: "Reactor scene controls",
-      editPrompt: "Edit prompt"
+      sceneTitle: "{model}: Scene Controls (Reactor)",
+      editPrompt: "edit prompt"
     },
     models: {
       checkDue: "An automatic model check is due. Checks do not change this list.",
@@ -338,8 +338,9 @@ var main_default = {
       search: "Search models",
       searchPlaceholder: "Model name or ID",
       sources: "Model sources and automatic checks",
-      title: "Reactor models",
-      unreachable: "Cannot reach the Reactor model list. Check ComfyUI and try again."
+      title: "Reactor Models",
+      unreachable: "Cannot reach the Reactor model list. Check ComfyUI and try again.",
+      menu: "Reactor models"
     },
     pointer: {
       held: "Pointer held.",
@@ -354,13 +355,13 @@ var main_default = {
       rate: "{rate} credits per session second.",
       rateOutdated: "This rate was not found in the latest source check. Refresh Reactor models before relying on a calculation.",
       rateUnavailable: "A current rate is not available. Refresh Reactor models to check for a rate.",
-      sessionTime: "Session time to calculate (seconds)",
+      sessionTime: "session time to calculate (seconds)",
       totalTimeNotice: "Use total session time, including setup and recording."
     },
     settings: {
       advancedLimits: "Advanced limits",
       automaticChecks: "Check for model updates automatically",
-      checkInterval: "Check interval (hours)",
+      checkInterval: "check interval (hours)",
       checkNotice: "Checks read public prices and model guides. Open Reactor models to see changes and refresh your list.",
       checksSaved: "Model check settings saved. Changes take effect within one minute.",
       clearKey: "Clear saved key",
@@ -377,19 +378,19 @@ var main_default = {
       keyNotice: "The saved key stays on the ComfyUI server. An environment key takes precedence. Keys are not checked with Reactor here.",
       keySaved: "Key saved on this server. Reactor checks it when you start a session.",
       limit: {
-        catalog_interval_hours: "Check interval (hours)",
-        cleanup_timeout_seconds: "Disconnect timeout (seconds)",
-        connect_timeout_seconds: "Connection timeout (seconds)",
-        first_frame_timeout_seconds: "First-frame timeout (seconds)",
-        max_capture_megabytes: "Maximum video file size (MiB)",
-        max_capture_seconds: "Maximum video duration (seconds)",
-        max_queue_megabytes: "Maximum queued frame data (MiB)",
-        max_session_seconds: "Maximum session duration (seconds)",
-        max_upload_megabytes: "Maximum upload size (MiB)",
-        queue_timeout_seconds: "Queue wait timeout (seconds)"
+        catalog_interval_hours: "check interval (hours)",
+        cleanup_timeout_seconds: "disconnect timeout (seconds)",
+        connect_timeout_seconds: "connection timeout (seconds)",
+        first_frame_timeout_seconds: "first-frame timeout (seconds)",
+        max_capture_megabytes: "maximum video file size (MiB)",
+        max_capture_seconds: "maximum video duration (seconds)",
+        max_queue_megabytes: "maximum queued frame data (MiB)",
+        max_session_seconds: "maximum session duration (seconds)",
+        max_upload_megabytes: "maximum upload size (MiB)",
+        queue_timeout_seconds: "queue wait timeout (seconds)"
       },
-      limits: "Execution limits",
-      limitsSaved: "Limits saved. They apply to new executions.",
+      limits: "Session limits",
+      limitsSaved: "Limits saved. They apply to new sessions.",
       loaded: "Local settings loaded.",
       loading: "Loading local settings…",
       missingKey: "No Reactor key is configured.",
@@ -404,18 +405,19 @@ var main_default = {
       saveLimits: "Save limits",
       savedKey: "A saved key is configured on this server.",
       timeNotice: "Session time includes setup and generation.",
-      title: "Reactor settings",
+      title: "Reactor Settings",
       unreachable: "Cannot reach Reactor settings. Check ComfyUI and try again.",
       unreadableResponse: "ComfyUI returned an unreadable Reactor settings response.",
       updateFailed: "Reactor settings could not be saved.",
       readFailed: "ComfyUI could not read Reactor settings.",
-      removeFailed: "ComfyUI could not clear the saved Reactor key."
+      removeFailed: "ComfyUI could not clear the saved Reactor key.",
+      menu: "Reactor settings"
     },
     sound: {
-      applyPrompt: "Apply sound prompt",
-      prompt: "Sound prompt",
+      applyPrompt: "Apply audio prompt",
+      prompt: "audio prompt",
       promptNotice: "Describe the sound briefly. Leave blank to use the picture alone.",
-      title: "Sound"
+      title: "Audio"
     },
     working: "Working…",
     mediaErrors: {
@@ -2139,7 +2141,11 @@ var ControlPanel = class {
     this.fetcher = fetcher;
     try {
       this.dialog.className = "reactor-dialog reactor-controls";
-      setTextAttribute(this.dialog, "aria-label", message("controls.title"));
+      setTextAttribute(
+        this.dialog,
+        "aria-label",
+        message("controls.title", { model: this.owner.modelTitle })
+      );
       setTextAttribute(this.image, "alt", message("live.output"));
       this.image.hidden = true;
       this.pointerPreview = owner.pointer ? new PointerPreview(this.image, this.abort.signal) : void 0;
@@ -2190,7 +2196,10 @@ var ControlPanel = class {
     const session = element("div");
     session.className = "reactor-session-status";
     session.append(this.status);
-    header.append(element("h2", message("controls.title")), session);
+    header.append(
+      element("h2", message("controls.title", { model: this.owner.modelTitle })),
+      session
+    );
     this.promptStatus.setAttribute("role", "status");
     this.dialog.append(
       header,
@@ -2956,7 +2965,11 @@ var ScenePanel = class {
     this.fetcher = fetcher;
     try {
       this.dialog.className = "reactor-dialog reactor-live";
-      setTextAttribute(this.dialog, "aria-label", message("live.sceneTitle"));
+      setTextAttribute(
+        this.dialog,
+        "aria-label",
+        message("live.sceneTitle", { model: this.owner.modelTitle })
+      );
       this.status.setAttribute("role", "status");
       this.promptStatus.setAttribute("role", "status");
       this.prompt.value = owner.prompt;
@@ -3030,7 +3043,10 @@ var ScenePanel = class {
     const session = element("div");
     session.className = "reactor-session-status";
     session.append(this.status, this.elapsed);
-    header.append(element("h2", message("live.sceneTitle")), session);
+    header.append(
+      element("h2", message("live.sceneTitle", { model: this.owner.modelTitle })),
+      session
+    );
     const footer = element("footer");
     footer.append(this.end);
     const promptLabel = element("label", message("live.scenePrompt"));
@@ -3691,12 +3707,12 @@ app2.registerExtension({
   commands: [
     {
       id: "ReactorInc.OpenSettings",
-      label: translate("settings.title"),
+      label: translate("settings.menu"),
       function: openSettings.bind(null, requestLocal)
     },
     {
       id: "ReactorInc.OpenCatalog",
-      label: translate("models.title"),
+      label: translate("models.menu"),
       function: openModels.bind(null, requestLocal)
     }
   ],

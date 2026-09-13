@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -77,7 +77,7 @@
         false,
         false
       ],
-      "title": "Visko Stable: Video with Sound (Reactor)"
+      "title": "Visko Stable: Generate Video with Audio (Reactor)"
     },
     {
       "id": 4,
@@ -116,7 +116,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     },
     {
       "id": 7,
@@ -153,7 +153,7 @@
         "audio/reactor/visko-stable-01-text-to-video",
         "flac"
       ],
-      "title": "Preview and Save Audio"
+      "title": "Save Audio"
     }
   ],
   "links": [

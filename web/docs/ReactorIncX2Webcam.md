@@ -1,4 +1,4 @@
-# Reactor X2: Edit a Webcam
+# X2: Edit Webcam Video (Reactor)
 
 Edit a live camera scene and drag on the output to steer the subject. Save the
 result as a video without sound. X2 requires a non-empty edit prompt.
@@ -9,19 +9,19 @@ remains off until you enable it in the live panel.
 
 | Input                  | What to provide                                                                                |
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
-| Edit prompt            | Describe the edit in 1 to 1,000 characters.                                                    |
-| Video length (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 10 seconds. |
-| Run number             | Change this value for another run. Default: 0.                                                 |
-| Reference image        | Optional single RGB image of a subject to insert or replace. Connect Load Image.               |
+| edit prompt            | Describe the edit in 1 to 1,000 characters.                                                    |
+| video duration (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 10 seconds. |
+| run number             | Change this value for another run. Default: 0.                                                 |
+| reference image        | Optional single RGB image of a subject to insert or replace. Connect Load Image.               |
 
 X2 has no seed control. The reference image is set before generation and stays
-fixed during the session. The node returns **Video** without sound and **Recording details** as text.
+fixed during the session. The node returns **video** without sound and **recording details** as text.
 
 ## Run and save
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 2. Open **x2-03-webcam** in **Browse Templates → reactor-inc**.
-3. Describe the edit. Optionally connect a subject image to **Reference image**.
+3. Describe the edit. Optionally connect a subject image to **reference image**.
 4. Select **Run**, then **Enable camera** in the live panel. Allow camera access.
 5. Check the preview. Choose another camera and select **Use selected camera** if needed.
 6. Select **Start session** within 60 seconds.
@@ -53,6 +53,6 @@ For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-**Recording details** describes the saved file, model, and timing. It does not
+**recording details** describes the saved file, model, and timing. It does not
 measure visual quality or billed time. ComfyUI can reuse a cached report; do not
 run another paid generation solely to refresh it.

@@ -101,7 +101,10 @@ def append_starting_image(
         SOURCE_INPUT_ID,
         "LoadImage",
         native_widget_values("LoadImage", native["LoadImage"]),
-        title=translate("workflows", "nodes.startingImage"),
+        title=translate(
+            "workflows",
+            "nodes.portraitImage" if generation["type"] == "ReactorIncLtxSpeak" else "nodes.startingImage",
+        ),
     )
     input_node["outputs"] = [build_output("IMAGE", "IMAGE", [2]), build_output("MASK", "MASK", [])]
     generation["inputs"] = [build_input("image", "IMAGE", 2)]

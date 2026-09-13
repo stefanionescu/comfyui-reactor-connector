@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload Your Starting Image**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Load Starting Image**.\n3. Edit **scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel."
       ],
       "title": "Start Here"
     },
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload Your Starting Image"
+      "title": "Load Starting Image"
     },
     {
       "id": 8,
@@ -84,7 +84,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "In the live panel, select **Start session** within 60 seconds.\n\nEdit **Scene prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
+        "In the live panel, select **Start session** within 60 seconds.\n\nEdit **scene prompt**, then select **Apply prompt** to change later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
       ],
       "title": "Using This Workflow"
     },
@@ -173,7 +173,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     }
   ],
   "links": [

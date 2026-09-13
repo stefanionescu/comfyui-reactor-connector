@@ -50,20 +50,20 @@ class X2EditVideo(io.ComfyNode):
             inputs=[
                 io.Video.Input(
                     "source",
-                    display_name="Source video",
+                    display_name="source video",
                     tooltip="Connect one local SDR clip of at least 33 frames.",
                 ),
                 io.String.Input(
                     "prompt",
-                    display_name="Edit prompt",
-                    placeholder="Edit prompt",
+                    display_name="edit prompt",
+                    placeholder="edit prompt",
                     tooltip="Describe the edit in 1 to 1,000 characters.",
                     multiline=True,
                     default=DEFAULT_PROMPTS["edit"],
                 ),
                 io.Float.Input(
                     "duration_seconds",
-                    display_name="Video length (seconds)",
+                    display_name="video duration (seconds)",
                     default=DEFAULT_DURATION_SECONDS,
                     min=MIN_DURATION_SECONDS,
                     max=MAX_DURATION_SECONDS,
@@ -71,7 +71,7 @@ class X2EditVideo(io.ComfyNode):
                 ),
                 io.Int.Input(
                     "variation",
-                    display_name="Run number",
+                    display_name="run number",
                     tooltip="Change this number to run again with unchanged inputs.",
                     default=DEFAULT_VARIATION,
                     min=MIN_VARIATION,
@@ -79,14 +79,14 @@ class X2EditVideo(io.ComfyNode):
                 ),
                 io.Boolean.Input(
                     "keep_backlog",
-                    display_name="Keep queued frames",
+                    display_name="keep queued frames",
                     default=False,
                     tooltip="Keep source frames in order. This can increase output delay.",
                 ),
                 *pointer_controls(),
                 io.Image.Input(
                     "reference_image",
-                    display_name="Reference image",
+                    display_name="reference image",
                     optional=True,
                     tooltip="Optional single RGB image of the subject to insert or replace.",
                 ),
@@ -138,13 +138,13 @@ def pointer_controls() -> list[io.Input]:
     return [
         io.Boolean.Input(
             "pointer_active",
-            display_name="Hold pointer",
+            display_name="hold pointer",
             default=False,
             tooltip="Hold the pointer at the chosen position while recording.",
         ),
         io.Float.Input(
             "pointer_x",
-            display_name="Horizontal position (0-1)",
+            display_name="pointer x (0-1)",
             tooltip="0 is the left edge; 1 is the right edge.",
             default=DEFAULT_POINTER_POSITION,
             min=MIN_POINTER_POSITION,
@@ -153,7 +153,7 @@ def pointer_controls() -> list[io.Input]:
         ),
         io.Float.Input(
             "pointer_y",
-            display_name="Vertical position (0-1)",
+            display_name="pointer y (0-1)",
             tooltip="0 is the top edge; 1 is the bottom edge.",
             default=DEFAULT_POINTER_POSITION,
             min=MIN_POINTER_POSITION,

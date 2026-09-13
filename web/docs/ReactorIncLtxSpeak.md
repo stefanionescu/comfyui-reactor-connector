@@ -1,20 +1,20 @@
-# Reactor LTX: Make a Portrait Speak
+# LTX: Make a Portrait Speak (Reactor)
 
-Animate one portrait speaking a script. Connect **Load Image** to **Starting image**, **Video**
-to **Save Video**, and **Audio** to **Save Audio (Advanced)**. The video includes
+Animate one portrait speaking a script. Connect **Load Image** to **portrait image**, **video**
+to **Save Video**, and **audio** to **Save Audio (Advanced)**. The video includes
 sound; the separate audio output lets you save or process the speech alone.
 
 ## Inputs
 
 | Input                  | What to provide                                                                                                       |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Starting image         | One clear RGB portrait, with the whole head visible in a wide frame. Required.                                        |
-| Scene prompt           | Optional scene description, up to 800 characters.                                                                     |
-| Spoken words           | Spoken words, from 1 to 10,000 characters. Required.                                                                  |
-| Video length (seconds) | Requested saved video length, at least 4 seconds and within the video duration limit in Reactor settings. Default: 5. |
-| Words per minute       | Speech pace. Default: 140. Reactor checks the supported range before generation.                                      |
-| Seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                         |
-| Run number             | Change this integer to request another run. Default: 0.                                                               |
+| portrait image         | One clear RGB portrait, with the whole head visible in a wide frame. Required.                                        |
+| scene prompt           | Optional scene description, up to 800 characters.                                                                     |
+| spoken words           | Spoken words, from 1 to 10,000 characters. Required.                                                                  |
+| video duration (seconds) | Requested saved video length, at least 4 seconds and within the video duration limit in Reactor settings. Default: 5. |
+| words per minute       | Speech pace. Default: 140. Reactor checks the supported range before generation.                                      |
+| seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                         |
+| run number             | Change this integer to request another run. Default: 0.                                                               |
 
 Use a front-facing portrait of one person. LTX fits the picture to a wide canvas;
 a tall portrait can lose the top of the head. Frame the image before uploading.
@@ -34,7 +34,7 @@ reported by the connected model before starting.
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 2. Open **ltx2-01-speaking-portrait** in native **Browse Templates → reactor-inc**.
-3. Upload a portrait in Load Image and edit **Spoken words**.
+3. Upload a portrait in Load Image and edit **spoken words**.
 4. Select **Run**, then play the video and inspect the separate sound output.
 
 The connector uploads the portrait and sends the script, speech pace, duration,
@@ -58,7 +58,7 @@ removes partial media. The connector never substitutes a silent video for a fail
 recording.
 
 Use ComfyUI's cancel control to stop. Closing a tab or pausing playback does not
-end generation. Unchanged inputs may reuse the host cache. Change **Run number** for
+end generation. Unchanged inputs may reuse the host cache. Change **run number** for
 another run; seeds do not guarantee identical output across model revisions.
 The connector does not retry ambiguous session creation or model commands.
 
@@ -69,4 +69,4 @@ For current session rates, open **Extensions → Reactor → Reactor models**.
 ## Recording details
 
 This output describes the saved file and model. See the
-field reference (**Recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.
+field reference (**recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

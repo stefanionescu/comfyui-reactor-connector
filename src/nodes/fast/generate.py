@@ -32,7 +32,7 @@ class FastGenerate(io.ComfyNode):
         """Define the inputs and outputs saved in ComfyUI workflows."""
         duration = io.Float.Input(
             "duration_seconds",
-            display_name="Video length (seconds)",
+            display_name="video duration (seconds)",
             tooltip=(
                 "Fast H3 chooses a supported clip length near this value. "
                 "The clip must fit the video duration limit in Reactor settings."
@@ -50,24 +50,24 @@ class FastGenerate(io.ComfyNode):
             search_aliases=["Reactor", "Fast H3", "FastH3", "audio"],
             inputs=[
                 *generation_controls("fast", duration=duration),
-                io.Combo.Input("aspect", display_name="Aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
+                io.Combo.Input("aspect", display_name="aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
                 io.Image.Input(
                     "image",
-                    display_name="Starting image",
+                    display_name="starting image",
                     optional=True,
                     tooltip="Optional first frame. Connect Load Image.",
                 ),
                 io.Image.Input(
                     "ending_image",
-                    display_name="Final image",
+                    display_name="final image",
                     optional=True,
                     tooltip="Optional last frame. Can be used with or without a first frame.",
                 ),
             ],
             outputs=[
-                io.Video.Output(display_name="Video"),
-                io.Audio.Output(display_name="Audio"),
-                io.String.Output(display_name="Recording details"),
+                io.Video.Output(display_name="video"),
+                io.Audio.Output(display_name="audio"),
+                io.String.Output(display_name="recording details"),
             ],
         )
 

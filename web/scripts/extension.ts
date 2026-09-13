@@ -37,12 +37,12 @@ app.registerExtension({
   commands: [
     {
       id: 'ReactorInc.OpenSettings',
-      label: translate('settings.title'),
+      label: translate('settings.menu'),
       function: openSettings.bind(null, requestLocal),
     },
     {
       id: 'ReactorInc.OpenCatalog',
-      label: translate('models.title'),
+      label: translate('models.menu'),
       function: openModels.bind(null, requestLocal),
     },
   ],

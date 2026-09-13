@@ -1,11 +1,11 @@
-# Reactor X2: Edit Video
+# X2: Edit Video (Reactor)
 
 Edit a local video through X2. Connect native **Load Video** or **Create Video**
-to **Source video**, and connect **Video** to **Save Video**. To replace or insert a subject,
-connect one **Load Image** output to **Reference image** and describe the change.
+to **source video**, and connect **video** to **Save Video**. To replace or insert a subject,
+connect one **Load Image** output to **reference image** and describe the change.
 The result contains video without audio.
 
-Start with **Keep queued frames** and **Hold pointer** disabled. When using a
+Start with **keep queued frames** and **hold pointer** disabled. When using a
 reference, describe what to replace and what to preserve. Review the subject
 and background at the beginning, middle, and end; the model may apply only part
 of the requested change.
@@ -14,18 +14,18 @@ of the requested change.
 
 | Input                     | What to provide                                                                                             |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Source video              | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
-| Edit prompt               | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
-| Video length (seconds)    | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.            |
-| Run number                | Change this integer to request another run. Default: 0.                                                     |
-| Keep queued frames        | Keep source frames in order when true. False favors recent frames and limits delay.                         |
-| Hold pointer              | Hold the pointer at the chosen position while true. Default: false.                                         |
-| Horizontal position (0-1) | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                                   |
-| Vertical position (0-1)   | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                                     |
-| Reference image           | Optional single RGB image of the subject to insert or replace. Batches are rejected.                        |
-| Live controls             | Open live controls in the ComfyUI window that runs the workflow. Default: false.                            |
+| source video              | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
+| edit prompt               | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
+| video duration (seconds)    | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.            |
+| run number                | Change this integer to request another run. Default: 0.                                                     |
+| keep queued frames        | Keep source frames in order when true. False favors recent frames and limits delay.                         |
+| hold pointer              | Hold the pointer at the chosen position while true. Default: false.                                         |
+| pointer x (0-1) | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                                   |
+| pointer y (0-1)   | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                                     |
+| reference image           | Optional single RGB image of the subject to insert or replace. Batches are rejected.                        |
+| live controls             | Open live controls in the ComfyUI window that runs the workflow. Default: false.                            |
 
-X2 has no seed command. **Run number** controls ComfyUI caching; it is not a model
+X2 has no seed command. **run number** controls ComfyUI caching; it is not a model
 seed and does not guarantee reproducibility.
 
 Source clips must have even dimensions, at most 4096 pixels per side, and a frame
@@ -41,8 +41,8 @@ metadata are omitted. Preparation has a 60-second deadline and supports cancel.
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 2. Open **x2-01-edit-video** in **Browse Templates → reactor-inc**.
-3. Upload a short clip in **Upload Your Source Video**. Keep the example watercolor prompt for a first run.
-4. Select **Run**. **Preview and Save Video** saves the result and lets you play it.
+3. Upload a short clip in **Load Source Video**. Keep the example watercolor prompt for a first run.
+4. Select **Run**. **Save Video** saves the result and lets you play it.
 
 Use **x2-02-reference-edit** to provide a subject image as well. Choose an image
 with a clear subject and describe what to replace in the source clip.
@@ -53,7 +53,7 @@ Keeping queued source frames can delay the model's response; it does not guarant
 saved video includes every source frame. X2 controls output resolution.
 
 The pointer refers to the output frame. This node holds one position during a
-run when **Live controls** is off. Turn **Live controls** on for live dragging
+run when **live controls** is off. Turn **live controls** on for live dragging
 and prompt changes. The reference image stays fixed. Release the pointer to stop steering; cleanup also releases it.
 
 In the live panel, a circle marks the point you choose. **Pointer held** or
@@ -63,8 +63,8 @@ output picture and position the pointer with the arrow keys. Hold Space to hold
 the pointer; release Space or press Escape to release it. Losing focus also
 releases the pointer.
 
-The outputs are **Video** without sound and **Recording details** as text. In
-your own graph, connect **Video** to ComfyUI's **Save Video** to keep the result
+The outputs are **video** without sound and **recording details** as text. In
+your own graph, connect **video** to ComfyUI's **Save Video** to keep the result
 after ComfyUI clears its temporary storage. Input copies
 are removed when the session ends or execution fails.
 
@@ -72,20 +72,19 @@ are removed when the session ends or execution fails.
 
 Session time includes setup and can
 exceed output duration. The configured recording and server session limits apply.
-Use ComfyUI's cancel control to stop a queued or running workflow. With **Live
-controls** off, closing the browser does not cancel it. With live controls on,
+Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel it. With live controls on,
 losing the live panel ends the session and discards unfinished video.
 The connector disconnects after recording, failure, or cancellation. It does not
 automatically retry failed commands or uncertain session creation.
 
-Unchanged inputs may reuse ComfyUI's cache. Change **Run number** for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
+Unchanged inputs may reuse ComfyUI's cache. Change **run number** for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
 reference or prompt, review those inputs before deciding to run again.
 
 [Reactor X2 schema](https://docs.reactor.inc/model-api-reference/x2/schema)
 
 ## Live controls
 
-Turn **Live controls** on, select **Run**, then select **Start session** in the
+Turn **live controls** on, select **Run**, then select **Start session** in the
 live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
@@ -98,6 +97,6 @@ For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-**Recording details** describes the saved file, model, and timing. It does not
+**recording details** describes the saved file, model, and timing. It does not
 measure visual quality or billed time. ComfyUI can reuse a cached report; do not
 run another paid generation solely to refresh it.

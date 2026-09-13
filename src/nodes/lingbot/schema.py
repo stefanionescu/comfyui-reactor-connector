@@ -24,7 +24,7 @@ def _directions(*, world2: bool) -> list[io.Input]:
     controls: list[io.Input] = [
         io.Combo.Input(
             "movement",
-            display_name="Movement",
+            display_name="movement",
             tooltip="Keep moving in this direction while recording. Choose idle to stay in place.",
             options=movement,
             default=DEFAULT_MOVEMENT,
@@ -34,7 +34,7 @@ def _directions(*, world2: bool) -> list[io.Input]:
         controls.append(
             io.Combo.Input(
                 "lateral",
-                display_name="Sideways movement",
+                display_name="sideways movement",
                 tooltip="Sideways movement combines with forward or backward movement.",
                 options=OPTIONS_LATERAL,
                 default=DEFAULT_LATERAL,
@@ -44,21 +44,21 @@ def _directions(*, world2: bool) -> list[io.Input]:
         [
             io.Combo.Input(
                 "look_horizontal",
-                display_name="Turn left or right",
+                display_name="turn left or right",
                 tooltip="Keep turning the camera left or right while recording.",
                 options=OPTIONS_LOOK_HORIZONTAL,
                 default=DEFAULT_LOOK_HORIZONTAL,
             ),
             io.Combo.Input(
                 "look_vertical",
-                display_name="Look up or down",
+                display_name="look up or down",
                 tooltip="Keep looking up or down while recording.",
                 options=OPTIONS_LOOK_VERTICAL,
                 default=DEFAULT_LOOK_VERTICAL,
             ),
             io.Float.Input(
                 "rotation_speed_deg",
-                display_name="Turn per step (degrees)",
+                display_name="turn per step (degrees)",
                 tooltip=(
                     "Degrees per latent frame, an internal model step. Larger values turn faster; 0 stops turning."
                 ),
@@ -84,14 +84,14 @@ def lingbot_schema(*, world2: bool) -> io.Schema:
         inputs=[
             io.Image.Input(
                 "image",
-                display_name="Starting image",
+                display_name="starting image",
                 tooltip="Upload one image to use as the starting scene.",
             ),
             *generation_controls(),
             *_directions(world2=world2),
             io.Boolean.Input(
                 "interactive",
-                display_name="Live controls",
+                display_name="live controls",
                 tooltip="Move with keys or buttons and edit the scene prompt. The camera starts still.",
                 default=False,
                 optional=True,

@@ -85,7 +85,11 @@ class ControlPanel {
   ) {
     try {
       this.dialog.className = 'reactor-dialog reactor-controls';
-      setTextAttribute(this.dialog, 'aria-label', message('controls.title'));
+      setTextAttribute(
+        this.dialog,
+        'aria-label',
+        message('controls.title', { model: this.owner.modelTitle }),
+      );
       setTextAttribute(this.image, 'alt', message('live.output'));
       this.image.hidden = true;
       this.pointerPreview = owner.pointer
@@ -115,7 +119,10 @@ class ControlPanel {
     const session = element('div');
     session.className = 'reactor-session-status';
     session.append(this.status);
-    header.append(element('h2', message('controls.title')), session);
+    header.append(
+      element('h2', message('controls.title', { model: this.owner.modelTitle })),
+      session,
+    );
     this.promptStatus.setAttribute('role', 'status');
     this.dialog.append(
       header,

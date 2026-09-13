@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload Your Starting Image**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Load Starting Image**.\n3. Edit **scene prompt** to describe the scene or change you want.\n4. Select **Run** to open the live panel."
       ],
       "title": "Start Here"
     },
@@ -31,7 +31,7 @@
       "type": "LoadImage",
       "pos": [
         40,
-        220
+        240
       ],
       "size": [
         400,
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload Your Starting Image"
+      "title": "Load Starting Image"
     },
     {
       "id": 8,
@@ -73,7 +73,7 @@
       ],
       "size": [
         440,
-        100
+        120
       ],
       "flags": {},
       "order": 8,
@@ -84,7 +84,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply prompt** changes later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
+        "This controls a virtual camera, not your webcam. In the live panel, click the picture. W A S D moves; arrow keys turn. Escape stops movement. **Apply prompt** changes later frames.\n\nLet recording finish to save the video. **End session** stops early and discards it."
       ],
       "title": "Using This Workflow"
     },
@@ -93,7 +93,7 @@
       "type": "ReactorIncLingBotExplore",
       "pos": [
         500,
-        220
+        240
       ],
       "size": [
         440,
@@ -138,14 +138,14 @@
         5.0,
         true
       ],
-      "title": "LingBot: Move through an Image (Reactor)"
+      "title": "LingBot: Explore an Image with Live Controls (Reactor)"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
         1000,
-        220
+        240
       ],
       "size": [
         360,
@@ -177,7 +177,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     }
   ],
   "links": [

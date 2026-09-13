@@ -35,7 +35,7 @@ class FastContinue(io.ComfyNode):
         """Define the inputs and outputs saved in ComfyUI workflows."""
         duration = io.Float.Input(
             "clip_seconds",
-            display_name="Clip length (seconds)",
+            display_name="clip duration (seconds)",
             tooltip="Length of each clip. Fast H3 chooses the closest supported length.",
             default=DEFAULT_CLIP_SECONDS,
             min=MIN_CLIP_SECONDS,
@@ -50,10 +50,10 @@ class FastContinue(io.ComfyNode):
             search_aliases=[],
             inputs=[
                 *generation_controls("continuation", duration=duration),
-                io.Combo.Input("aspect", display_name="Aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
+                io.Combo.Input("aspect", display_name="aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
                 io.Int.Input(
                     "clip_count",
-                    display_name="Number of clips",
+                    display_name="number of clips",
                     tooltip="Number of clips in one session. Their combined length must fit the video duration limit.",
                     default=DEFAULT_CLIP_COUNT,
                     min=MIN_CLIP_COUNT,
@@ -61,8 +61,8 @@ class FastContinue(io.ComfyNode):
                 ),
                 io.String.Input(
                     "later_prompts",
-                    display_name="Later prompts",
-                    placeholder="Later prompts",
+                    display_name="later clip prompts",
+                    placeholder="later clip prompts",
                     tooltip=(
                         "Optional later scenes: one prompt per line, starting with clip 2. "
                         "Empty uses the opening prompt."
@@ -72,15 +72,15 @@ class FastContinue(io.ComfyNode):
                 ),
                 io.Image.Input(
                     "image",
-                    display_name="Starting image",
+                    display_name="starting image",
                     optional=True,
                     tooltip="Optional first frame for the first clip.",
                 ),
             ],
             outputs=[
-                io.Video.Output(display_name="Video"),
-                io.Audio.Output(display_name="Audio"),
-                io.String.Output(display_name="Recording details"),
+                io.Video.Output(display_name="video"),
+                io.Audio.Output(display_name="audio"),
+                io.String.Output(display_name="recording details"),
             ],
         )
 

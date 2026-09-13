@@ -7,7 +7,7 @@ native **Info** explains its inputs and model-specific limits.
 ## Contents
 
 - [Keys and access](#keys-and-access)
-- [Execution limits](#execution-limits)
+- [Session limits](#session-limits)
 - [Credit rates](#credit-rates)
 - [Model updates](#model-updates)
 - [Live controls](#live-controls)
@@ -48,10 +48,9 @@ be outside the package, ComfyUI source, and configured input, output, temporary,
 and user folders. Files use owner-only permissions where supported. They are
 not encrypted; other code running as the same operating-system user can read them.
 
-## Execution limits
+## Session limits
 
-**Maximum video duration** limits the requested output length. **Maximum session
-duration** limits the whole Reactor session and must allow additional time for
+**maximum video duration** limits the requested output length. **maximum session duration** limits the whole Reactor session and must allow additional time for
 setup. **Advanced limits** controls connection, first-frame, disconnect, and queue
 timeouts, plus media size limits. One MiB is 1,048,576 bytes.
 
@@ -62,7 +61,7 @@ A rejected command or uncertain connection is not retried automatically.
 New runs use saved settings. A running session keeps its original key and limits.
 Changing the effective key or execution limits prevents reuse of an earlier
 ComfyUI result on the next run.
-Model-update settings do not affect reuse of saved results. Change **Run number** to
+Model-update settings do not affect reuse of saved results. Change **run number** to
 request a new run with otherwise unchanged inputs. A seed does not guarantee
 identical results after a provider update.
 
@@ -139,8 +138,7 @@ local prompt-sequence and storyboard builders.
 | Move through an image                    | LingBot or LingBot World 2 workflow with scene controls |
 | Continue several clips                   | Fast H3 continued-scene workflow                        |
 
-Ordinary Helios, LongLive, Visko, SANA, and X2 generation nodes have a **Live
-controls** switch, off by default. LongLive storyboards keep their prepared shots.
+Ordinary Helios, LongLive, Visko, SANA, and X2 generation nodes have a **live controls** switch, off by default. LongLive storyboards keep their prepared shots.
 
 ### Change prompts or use a webcam
 
@@ -152,7 +150,7 @@ controls** switch, off by default. LongLive storyboards keep their prepared shot
 5. Let the chosen recording duration finish to save the result.
 
 Changes affect later frames and leave the saved workflow prompt unchanged.
-LongLive uses a soft shot transition; Visko keeps **Use prompt unchanged** as set
+LongLive uses a soft shot transition; Visko keeps **use prompt unchanged** as set
 on the node. Starting and reference images stay fixed throughout the session.
 
 Webcams need localhost or HTTPS, camera permission, and local single-user access.
@@ -164,10 +162,10 @@ Input uses up to 640 × 480 pixels and ten new frames per second. The latest fra
 is repeated on a 24 fps input. Saved output uses the model's resolution. The
 separate preview uses up to 640 × 360 pixels at ten frames per second without sound.
 
-### Change Visko sound
+### Change Visko audio
 
-Turn **Include sound** on before running. During recording, edit **Sound prompt**
-and select **Apply sound prompt**. Leave it blank to let the picture guide sound.
+Turn **generate audio** on before running. During recording, edit **audio prompt**
+and select **Apply audio prompt**. Leave it blank to let the picture guide sound.
 Changes affect later sound; play the saved video to hear it. Resolution and sound
 on/off stay fixed during the session. Changing them requires a new run.
 
@@ -189,14 +187,14 @@ button briefly or hold it to keep moving. Escape releases movement. World 2 can
 combine forward and sideways movement.
 
 Rapid changes can skip earlier movements; old movement is released before the
-latest direction is applied. Edit **Scene prompt** and select **Apply prompt**
+latest direction is applied. Edit **scene prompt** and select **Apply prompt**
 to change later frames. Editing the prompt releases held movement. The starting
 image and saved workflow prompt stay unchanged. Saved video cannot reopen a world,
 and clicking its playback does not move the camera.
 
 ### Save or stop
 
-Let recording finish. **Preview and Save Video** writes the result under ComfyUI's
+Let recording finish. **Save Video** writes the result under ComfyUI's
 output folder. **End session** stops early and discards the unfinished video.
 ComfyUI cancellation also ends the run. Closing a workflow tab does not cancel it.
 
@@ -214,7 +212,7 @@ clips. Set the video duration limit high enough for their combined length.
 
 ## Recording details
 
-The **Recording details** output is a JSON string describing the saved media.
+The **recording details** output is a JSON string describing the saved media.
 Its serialized socket name remains `metadata`. Connect it to a text display or
 another node to inspect it; saving the video does not save this text separately.
 

@@ -35,13 +35,13 @@ class SanaEditVideo(io.ComfyNode):
             inputs=[
                 io.Video.Input(
                     "source",
-                    display_name="Source video",
+                    display_name="source video",
                     tooltip="Connect one local SDR clip with at least 33 frames.",
                 ),
                 *generation_controls("edit"),
                 io.Int.Input(
                     "anchor_interval",
-                    display_name="Source refresh interval (chunks)",
+                    display_name="source refresh interval (chunks)",
                     tooltip="Return to the source image after this many model chunks. Use 0 to turn this off.",
                     default=DEFAULT_ANCHOR_INTERVAL,
                     min=MIN_ANCHOR_INTERVAL,

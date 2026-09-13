@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Describe the change you want in **Edit prompt**.\n3. Select **Run** to open the live panel."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Describe the change you want in **edit prompt**.\n3. Select **Run** to open the live panel."
       ],
       "title": "Start Here"
     },
@@ -46,7 +46,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.\n\nChange **Edit prompt**, then select **Apply prompt** to change later frames.\n\nDrag on the output to steer the subject. Escape releases the pointer. **Info** also explains keyboard controls.\n\nLet recording finish to save the video. **End session** stops early and discards it."
+        "Select **Enable camera**, allow access, then **Start session**. Reactor receives camera video without microphone audio.\n\nChange **edit prompt**, then select **Apply prompt** to change later frames.\n\nDrag on the output to steer the subject. Escape releases the pointer. **Info** also explains keyboard controls.\n\nLet recording finish to save the video. **End session** stops early and discards it."
       ],
       "title": "Using This Workflow"
     },
@@ -87,7 +87,7 @@
         20.0,
         0
       ],
-      "title": "X2: Edit and Drag a Webcam Scene (Reactor)"
+      "title": "X2: Edit Webcam Video with Pointer Controls (Reactor)"
     },
     {
       "id": 4,
@@ -126,7 +126,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     }
   ],
   "links": [

@@ -1,7 +1,7 @@
-# Reactor SANA: Edit Video
+# SANA: Edit Video (Reactor)
 
 Apply an edit prompt to a local video clip. Connect native **Load Video** or
-**Create Video** to **Source video**, then connect **Video** to **Save Video**. The output
+**Create Video** to **source video**, then connect **video** to **Save Video**. The output
 contains video without audio.
 
 Start with a clear subject and simple movement. For example, ask for a watercolor
@@ -12,13 +12,13 @@ to compare SANA’s reconstruction with the original before asking for an edit.
 
 | Input                            | What to provide                                                                                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Source video                     | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
-| Edit prompt                      | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
-| Video length (seconds)           | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
-| Seed                             | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
-| Run number                       | Change this value for another run. Default: 0.                                                                                                   |
-| Source refresh interval (chunks) | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
-| Live controls                    | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
+| source video                     | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
+| edit prompt                      | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
+| video duration (seconds)           | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
+| seed                             | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
+| run number                       | Change this value for another run. Default: 0.                                                                                                   |
+| source refresh interval (chunks) | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
+| live controls                    | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
 
 Use a clip with even dimensions, no more than 4096 pixels on either side, and a
 frame rate from 1 to 120 fps. HDR, multiple video streams, unsupported containers,
@@ -34,8 +34,8 @@ Preparation stops if it takes more than 60 seconds. You can cancel it in ComfyUI
 
 1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 2. Open **sana-streaming-01-edit-video** in **Browse Templates → reactor-inc**.
-3. Upload a short clip in **Upload Your Source Video** and describe the edit.
-4. Select **Run**. **Preview and Save Video** saves the result and lets you play it.
+3. Upload a short clip in **Load Source Video** and describe the edit.
+4. Select **Run**. **Save Video** saves the result and lets you play it.
 
 Start with a three- to five-second landscape clip. For example, enter
 “Change the scene to a soft watercolor painting. Keep the movement and composition.”
@@ -50,8 +50,8 @@ Recording stops at the chosen video length or when Reactor reports that the clip
 has finished. The output can be shorter than requested. The session time limit
 in Reactor settings also applies.
 
-The node returns **Video** without sound and **Recording details** as text. In
-your own graph, connect **Video** to ComfyUI's **Save Video** to keep the result
+The node returns **video** without sound and **recording details** as text. In
+your own graph, connect **video** to ComfyUI's **Save Video** to keep the result
 after ComfyUI clears its temporary storage. Input copies are
 removed after the session ends or the operation fails.
 
@@ -62,9 +62,8 @@ so it can exceed the output duration. The host recording and session limits appl
 The connector disconnects after recording, failure, or cancellation and does not
 automatically retry rejected commands or uncertain session creation.
 
-Use ComfyUI's cancel control to stop a queued or running workflow. With **Live
-controls** off, closing the browser does not cancel the workflow. With live
-controls on, losing the live panel ends the session and discards unfinished video. Unchanged inputs may reuse ComfyUI's cache; change **Run number**
+Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel the workflow. With live
+controls on, losing the live panel ends the session and discards unfinished video. Unchanged inputs may reuse ComfyUI's cache; change **run number**
 to request another run. Seeds do not guarantee identical output after a
 provider update.
 
@@ -78,7 +77,7 @@ rejects the clip or prompt, the session ends without an automatic retry.
 
 ## Live controls
 
-Turn **Live controls** on, select **Run**, then select **Start session** in the
+Turn **live controls** on, select **Run**, then select **Start session** in the
 live panel within 60 seconds. Use **Apply prompt** to change later frames.
 Let recording finish to save the result. **End session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
@@ -91,6 +90,6 @@ For current session rates, open **Extensions → Reactor → Reactor models**.
 
 ## Recording details
 
-**Recording details** describes the saved file, model, and timing. It does not
+**recording details** describes the saved file, model, and timing. It does not
 measure visual quality or billed time. ComfyUI can reuse a cached report; do not
 run another paid generation solely to refresh it.

@@ -21,7 +21,7 @@ class LongLiveAddShot(io.ComfyNode):
             inputs=[
                 io.String.Input(
                     "previous",
-                    display_name="Previous shots (JSON)",
+                    display_name="previous shots (JSON)",
                     tooltip="Leave [] for the first shot, or connect the previous shot node.",
                     default="[]",
                     multiline=False,
@@ -29,7 +29,7 @@ class LongLiveAddShot(io.ComfyNode):
                 ),
                 io.Int.Input(
                     "at_session_chunk",
-                    display_name="Start chunk",
+                    display_name="start chunk",
                     tooltip="When this shot starts. Each chunk is 29 frames, about 1.2 seconds at 24 fps.",
                     default=1,
                     min=1,
@@ -37,21 +37,21 @@ class LongLiveAddShot(io.ComfyNode):
                 ),
                 io.Combo.Input(
                     "transition",
-                    display_name="Transition",
+                    display_name="transition",
                     tooltip="Soft transition continues from the preceding scene. Hard cut starts a new scene.",
                     options=OPTIONS_TRANSITION,
                     default=DEFAULT_TRANSITION,
                 ),
                 io.String.Input(
                     "prompt",
-                    display_name="Scene prompt",
-                    placeholder="Scene prompt",
+                    display_name="scene prompt",
+                    placeholder="scene prompt",
                     tooltip="Describe this later shot.",
                     default=DEFAULT_PROMPTS["shot"],
                     multiline=True,
                 ),
             ],
-            outputs=[io.String.Output(display_name="Shots")],
+            outputs=[io.String.Output(display_name="shots")],
         )
 
     @classmethod

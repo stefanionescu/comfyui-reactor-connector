@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **Scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -46,7 +46,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "The 3 clips continue from each previous final frame. Put one prompt per line in **Later prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length. Saving starts one extra continuation that uses credits and is excluded from the output."
+        "The 3 clips continue from each previous final frame. Put one prompt per line in **later clip prompts**, starting with clip 2. Leave it empty to repeat the opening prompt.\n\nThis example requests 18 seconds in total. In Reactor settings, **Maximum video duration (seconds)** must allow the combined length. The model may round each clip up.\n\nFast H3 rounds each clip to a supported length. Saving starts one extra continuation that uses credits and is excluded from the output."
       ],
       "title": "Using This Workflow"
     },
@@ -138,7 +138,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     },
     {
       "id": 7,
@@ -175,7 +175,7 @@
         "audio/reactor/fast-h3-05-continue-scene",
         "flac"
       ],
-      "title": "Preview and Save Audio"
+      "title": "Save Audio"
     }
   ],
   "links": [

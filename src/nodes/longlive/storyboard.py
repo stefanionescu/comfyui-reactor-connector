@@ -24,7 +24,7 @@ class LongLiveStoryboard(io.ComfyNode):
                 *generation_controls(),
                 io.String.Input(
                     "storyboard",
-                    display_name="Shots (JSON)",
+                    display_name="shots (JSON)",
                     tooltip="Connect Reactor LongLive: Add a Shot, or enter a validated shot list.",
                     default="[]",
                     multiline=False,

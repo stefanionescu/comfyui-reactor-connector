@@ -22,7 +22,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Upload Your Starting Image**.\n3. Edit **Scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Load Starting Image**.\n3. Edit **scene prompt** to describe the scene or change you want.\n4. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
@@ -62,7 +62,7 @@
         "",
         "image"
       ],
-      "title": "Upload Your Starting Image"
+      "title": "Load Starting Image"
     },
     {
       "id": 8,
@@ -141,7 +141,7 @@
         0,
         "16:9"
       ],
-      "title": "Fast H3: Animate a Starting Image (Reactor)"
+      "title": "Fast H3: Animate an Image (Reactor)"
     },
     {
       "id": 4,
@@ -180,7 +180,7 @@
         "auto",
         "auto"
       ],
-      "title": "Preview and Save Video"
+      "title": "Save Video"
     },
     {
       "id": 7,
@@ -217,7 +217,7 @@
         "audio/reactor/fast-h3-02-image-to-video",
         "flac"
       ],
-      "title": "Preview and Save Audio"
+      "title": "Save Audio"
     }
   ],
   "links": [

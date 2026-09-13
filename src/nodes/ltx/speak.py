@@ -37,14 +37,14 @@ class LtxSpeak(io.ComfyNode):
                 *generation_controls("speech"),
                 io.String.Input(
                     "script",
-                    display_name="Spoken words",
-                    placeholder="Spoken words",
+                    display_name="spoken words",
+                    placeholder="spoken words",
                     multiline=True,
                     default=DEFAULT_SCRIPT,
                 ),
                 io.Int.Input(
                     "words_per_minute",
-                    display_name="Words per minute",
+                    display_name="words per minute",
                     tooltip="Words spoken per minute. Reactor checks the supported range before generation.",
                     default=DEFAULT_WORDS_PER_MINUTE,
                     min=MIN_WORDS_PER_MINUTE,
@@ -52,14 +52,14 @@ class LtxSpeak(io.ComfyNode):
                 ),
                 io.Image.Input(
                     "image",
-                    display_name="Starting image",
+                    display_name="portrait image",
                     tooltip="One clear portrait with the whole head visible.",
                 ),
             ],
             outputs=[
-                io.Video.Output(display_name="Video"),
-                io.Audio.Output(display_name="Audio"),
-                io.String.Output(display_name="Recording details"),
+                io.Video.Output(display_name="video"),
+                io.Audio.Output(display_name="audio"),
+                io.String.Output(display_name="recording details"),
             ],
         )
 
