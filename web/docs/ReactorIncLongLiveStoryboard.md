@@ -6,13 +6,13 @@ within the scene; cuts start a new scene.
 
 ## Inputs
 
-| Input                  | What to provide                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| scene prompt           | Describe the opening scene and motion. Use 1 to 20,000 characters.                    |
-| video duration (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.              |
-| seed                   | Integer from 0 to 4,294,967,295; default: 42.                                         |
-| run number             | Change this number for another run; default: 0.                                       |
-| shots (JSON)           | Connect LongLive: Add a Shot (Reactor). An empty list `[]` means the opening shot only. |
+| Input                    | What to provide                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| scene prompt             | Describe the opening scene and motion. Use 1 to 20,000 characters.                      |
+| video duration (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.                |
+| seed                     | Integer from 0 to 4,294,967,295; default: 42.                                           |
+| run number               | Change this number for another run; default: 0.                                         |
+| shots (JSON)             | Connect LongLive: Add a Shot (Reactor). An empty list `[]` means the opening shot only. |
 
 LongLive generates frames in groups called **chunks**. Each chunk contains
 29 frames, about 1.2 seconds at 24 frames per second. Count chunks from the start

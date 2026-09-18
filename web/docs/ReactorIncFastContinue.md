@@ -6,16 +6,16 @@ so the session has a clear stopping point.
 
 ## Inputs
 
-| Input                 | What to provide                                                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| scene prompt          | Opening scene and sound, using 1 to 800 characters. Also used for later clips without their own prompt.                               |
+| Input                   | What to provide                                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| scene prompt            | Opening scene and sound, using 1 to 800 characters. Also used for later clips without their own prompt.                               |
 | clip duration (seconds) | Requested length of each clip: 5.167–14.375 seconds. Default: 6. Fast H3 chooses the nearest supported length.                        |
-| seed                  | Starting number from 0 to 4,294,967,295. Each later clip adds one, wrapping to zero at the upper limit. Default: 42.                  |
-| run number            | Change this value for another run. Default: 0.                                                                                        |
-| aspect ratio          | Frame shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                                  |
-| number of clips       | Total clips, from 2 to 8. Default: 3. Their combined length must fit your video duration limit.                                       |
-| later clip prompts         | Optional prompts, one per line, starting with clip 2. Each line allows 1 to 800 characters. Leave empty to repeat the opening prompt. |
-| starting image        | Optional RGB first frame for clip 1. Connect Load Image.                                                                              |
+| seed                    | Starting number from 0 to 4,294,967,295. Each later clip adds one, wrapping to zero at the upper limit. Default: 42.                  |
+| run number              | Change this value for another run. Default: 0.                                                                                        |
+| aspect ratio            | Frame shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                                  |
+| number of clips         | Total clips, from 2 to 8. Default: 3. Their combined length must fit your video duration limit.                                       |
+| later clip prompts      | Optional prompts, one per line, starting with clip 2. Each line allows 1 to 800 characters. Leave empty to repeat the opening prompt. |
+| starting image          | Optional RGB first frame for clip 1. Connect Load Image.                                                                              |
 
 ## Run and save
 

@@ -3466,7 +3466,12 @@ var SettingsDialog = class {
     const actions = element("div");
     actions.className = "reactor-actions";
     actions.append(button(message("settings.saveKey"), "submit"), clear);
-    this.keyFields.append(element("legend", message("settings.credentials")), this.source, label, actions);
+    this.keyFields.append(
+      element("legend", message("settings.credentials")),
+      this.source,
+      label,
+      actions
+    );
     form.append(this.keyFields);
     form.addEventListener("submit", (event) => {
       event.preventDefault();

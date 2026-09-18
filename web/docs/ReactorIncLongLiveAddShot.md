@@ -17,7 +17,7 @@ editing JSON.
 
 | Input                 | Meaning                                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| previous shots (JSON) | The earlier shot list. Default: `[]`. Connect another LongLive: Add a Shot (Reactor) node to extend its list.      |
+| previous shots (JSON) | The earlier shot list. Default: `[]`. Connect another LongLive: Add a Shot (Reactor) node to extend its list.    |
 | start chunk           | Chunk number from the start of generation, from 1 to 100,000. Each later shot needs a larger number. Default: 1. |
 | transition            | `soft` changes the prompt within the scene. `cut` starts a new scene. Default: `soft`.                           |
 | scene prompt          | The later shot's description, from 1 to 20,000 characters.                                                       |

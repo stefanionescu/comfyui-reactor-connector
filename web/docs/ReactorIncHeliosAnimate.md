@@ -5,14 +5,14 @@ Image** to **starting image** and connect **video** to **Save Video**.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                   |
-| ---------------------- | ------------------------------------------------------------------------------------------------- |
-| starting image         | One native RGB image. Image batches and non-finite pixels are rejected.                           |
-| scene prompt           | Describe the intended scene and motion. Required; cannot be empty.                                |
+| Input                    | What to provide                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| starting image           | One native RGB image. Image batches and non-finite pixels are rejected.                           |
+| scene prompt             | Describe the intended scene and motion. Required; cannot be empty.                                |
 | video duration (seconds) | Requested video duration within the video duration limit in Reactor settings. Default: 5 seconds. |
-| seed                   | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                      |
-| run number             | Change this number to request another run with identical prompt and seed.                         |
-| live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                  |
+| seed                     | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                      |
+| run number               | Change this number to request another run with identical prompt and seed.                         |
+| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false.                  |
 
 The image is uploaded as PNG, then applied together with the prompt before
 generation starts. Reactor may crop or resize it for the model. Images over

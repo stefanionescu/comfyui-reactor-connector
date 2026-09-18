@@ -6,14 +6,14 @@ You can also connect one starting image.
 
 ## Inputs
 
-| Input                  | What to provide                                                                         |
-| ---------------------- | --------------------------------------------------------------------------------------- |
-| scene prompt           | The opening scene and motion, from 1 to 20,000 characters.                              |
+| Input                    | What to provide                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| scene prompt             | The opening scene and motion, from 1 to 20,000 characters.                              |
 | video duration (seconds) | Recording length. Default: 5 seconds. Reactor settings limit the maximum.               |
-| seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                           |
-| run number             | Change this number for another run with the same other inputs. Default: 0.              |
-| prompt sequence (JSON) | Connect the last Add a Prompt node. `[]` keeps only the opening prompt.                 |
-| starting image         | Optional single RGB image. The same reference remains in place throughout the sequence. |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                           |
+| run number               | Change this number for another run with the same other inputs. Default: 0.              |
+| prompt sequence (JSON)   | Connect the last Add a Prompt node. `[]` keeps only the opening prompt.                 |
+| starting image           | Optional single RGB image. The same reference remains in place throughout the sequence. |
 
 Give later prompts distinct, increasing chunk numbers. The sequence allows up
 to 32 later prompts and 128 KB. The opening prompt is set at chunk zero. Each

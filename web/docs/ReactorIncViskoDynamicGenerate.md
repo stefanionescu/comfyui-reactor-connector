@@ -6,18 +6,18 @@ one **Load Image** output to the optional **starting image** input.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
-| scene prompt           | Describe the scene in 1 to 20,000 characters. This is the connector's input limit.               |
+| Input                    | What to provide                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| scene prompt             | Describe the scene in 1 to 20,000 characters. This is the connector's input limit.               |
 | video duration (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds. |
-| seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                    |
-| run number             | Change this integer for another run. Default: 0.                                                 |
-| audio prompt           | A short description of sound, up to 1,000 characters. Blank uses the picture alone.              |
-| resolution             | Leave blank to use the model default. See the resolution guidance below for custom names.        |
-| generate audio          | Generate sound when true. False asks the model to provide silence. Default: true.                |
-| use prompt unchanged   | Send your exact scene prompt when true. False lets Reactor rewrite it first.                     |
-| starting image         | Optional single RGB image, at most 8192 pixels per side and within the upload limit.             |
-| live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                                    |
+| run number               | Change this integer for another run. Default: 0.                                                 |
+| audio prompt             | A short description of sound, up to 1,000 characters. Blank uses the picture alone.              |
+| resolution               | Leave blank to use the model default. See the resolution guidance below for custom names.        |
+| generate audio           | Generate sound when true. False asks the model to provide silence. Default: true.                |
+| use prompt unchanged     | Send your exact scene prompt when true. False lets Reactor rewrite it first.                     |
+| starting image           | Optional single RGB image, at most 8192 pixels per side and within the upload limit.             |
+| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false.                 |
 
 Describe instruments, voices, materials, or ambience in **audio prompt**. Keep it
 to about one sentence: the provider uses roughly the first 128 tokens. An audio

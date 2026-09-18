@@ -5,15 +5,15 @@ to **Save Audio (Advanced)**. Optional images can set its first and last frames.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| scene prompt           | Required scene and sound description, up to 800 characters.                                                              |
+| Input                    | What to provide                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| scene prompt             | Required scene and sound description, up to 800 characters.                                                              |
 | video duration (seconds) | Requested clip length, from 5.167 to 14.375 seconds and within the video duration limit in Reactor settings. Default: 6. |
-| seed                   | Integer from 0 to 4,294,967,295. Default: 42.                                                                            |
-| run number             | Change this integer for another run. Default: 0.                                                                         |
-| aspect ratio           | Canvas shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                    |
-| starting image         | Optional first frame from Load Image.                                                                                    |
-| final image            | Optional last frame from a second Load Image.                                                                            |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                                                            |
+| run number               | Change this integer for another run. Default: 0.                                                                         |
+| aspect ratio             | Canvas shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                    |
+| starting image           | Optional first frame from Load Image.                                                                                    |
+| final image              | Optional last frame from a second Load Image.                                                                            |
 
 Each image must contain one RGB frame, at most 8192 pixels per side, and fit
 the upload limit in Reactor settings. The model fits images to its canvas. Use matching image shapes to reduce

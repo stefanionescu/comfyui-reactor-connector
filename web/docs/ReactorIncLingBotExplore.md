@@ -20,18 +20,18 @@ and record two seconds.
 
 ## Inputs
 
-| Input                   | What it does                                                                                                            |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| starting image          | Starting picture. Connect one image from Load Image; batches are not supported.                                         |
-| scene prompt            | Describe the scene and motion in 1 to 1,000 characters.                                                                 |
-| video duration (seconds)  | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                             |
-| seed                    | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                 |
-| run number              | Change this number to request another run with the same other settings. Default: 0.                                     |
-| movement                | `forward`, `back`, `strafe_left` (move left), `strafe_right` (move right), or `idle` (stop).                            |
-| turn left or right      | `left` or `right` keeps turning the camera. Choose `idle` to stop turning.                                              |
-| look up or down         | `up` or `down` keeps tilting the camera. Choose `idle` to stop tilting. Combine with horizontal look if needed.         |
-| turn per step (degrees) | Degrees per latent frame (an internal model step). Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. |
-| live controls           | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.   |
+| Input                    | What it does                                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| starting image           | Starting picture. Connect one image from Load Image; batches are not supported.                                         |
+| scene prompt             | Describe the scene and motion in 1 to 1,000 characters.                                                                 |
+| video duration (seconds) | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                             |
+| seed                     | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                 |
+| run number               | Change this number to request another run with the same other settings. Default: 0.                                     |
+| movement                 | `forward`, `back`, `strafe_left` (move left), `strafe_right` (move right), or `idle` (stop).                            |
+| turn left or right       | `left` or `right` keeps turning the camera. Choose `idle` to stop turning.                                              |
+| look up or down          | `up` or `down` keeps tilting the camera. Choose `idle` to stop tilting. Combine with horizontal look if needed.         |
+| turn per step (degrees)  | Degrees per latent frame (an internal model step). Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. |
+| live controls            | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.   |
 
 Choose one movement direction at a time. In the live panel, forward or back takes priority over sideways movement.
 Camera changes take time to appear because the model applies them as it generates

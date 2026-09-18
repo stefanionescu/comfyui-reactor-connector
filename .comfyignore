@@ -10,11 +10,6 @@
 /rules/
 /AGENTS.md
 /CLAUDE.md
-/PLAN.md
-/NAMING-REVIEW.md
-/RESEARCH.md
-/IMPLEMENTATION.md
-/POLICY-PROPOSAL.md
 
 # Development dependencies and configuration
 /package.json
@@ -42,7 +37,6 @@
 /.artifacts/
 /.cache/
 /.ruff_cache/
-/node.zip
 
 # Python caches
 **/__pycache__/
@@ -51,7 +45,6 @@
 # Private settings and credentials
 **/.env
 **/.env.*
-/.reactor-private/
 
 # Logs and operating system files
 **/*.log

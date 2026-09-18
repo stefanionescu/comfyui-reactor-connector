@@ -9,13 +9,13 @@ __pycache__/
 
 # Build output and check artifacts
 /dist/
-/node.zip
 .artifacts/
+.import_linter_cache/
 
 # Private settings and credentials
 .env
 .env.*
-.reactor-private/
+.mise.local.toml
 
 # Logs and operating system files
 *.log

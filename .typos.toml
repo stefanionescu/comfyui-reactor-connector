@@ -5,7 +5,6 @@ extend-exclude = [
     ".artifacts",
     "web/extension.js",
     "web/extension.css",
-    "node.zip",
 ]
 
 [default.extend-words]

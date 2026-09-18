@@ -7,12 +7,12 @@ remains off until you enable it in the live panel.
 
 ## Inputs
 
-| Input                  | What to provide                                                                                |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| edit prompt            | Describe the edit in 1 to 1,000 characters.                                                    |
+| Input                    | What to provide                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| edit prompt              | Describe the edit in 1 to 1,000 characters.                                                    |
 | video duration (seconds) | Output length from 0.1 to 60 seconds, within your Reactor settings limit. Default: 10 seconds. |
-| run number             | Change this value for another run. Default: 0.                                                 |
-| reference image        | Optional single RGB image of a subject to insert or replace. Connect Load Image.               |
+| run number               | Change this value for another run. Default: 0.                                                 |
+| reference image          | Optional single RGB image of a subject to insert or replace. Connect Load Image.               |
 
 X2 has no seed control. The reference image is set before generation and stays
 fixed during the session. The node returns **video** without sound and **recording details** as text.

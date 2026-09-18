@@ -4,13 +4,13 @@ Generate a short video from an opening shot prompt with LongLive.
 
 ## Inputs
 
-| Input                  | What to provide                                                                  |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| scene prompt           | Describe the opening scene and motion. Use 1 to 20,000 characters.               |
+| Input                    | What to provide                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| scene prompt             | Describe the opening scene and motion. Use 1 to 20,000 characters.               |
 | video duration (seconds) | Video length; default: 5 seconds. The limit in Reactor settings applies.         |
-| seed                   | Integer from 0 to 4,294,967,295; default: 42.                                    |
-| run number             | Change this number for another run; default: 0.                                  |
-| live controls          | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+| seed                     | Integer from 0 to 4,294,967,295; default: 42.                                    |
+| run number               | Change this number for another run; default: 0.                                  |
+| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
 
 Example prompt: “A fox walks along a forest path. The camera follows slowly.”
 Use 2 seconds for a first video. For later shots and cuts, open the

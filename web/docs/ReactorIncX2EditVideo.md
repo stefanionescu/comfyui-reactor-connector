@@ -12,18 +12,18 @@ of the requested change.
 
 ## Inputs
 
-| Input                     | What to provide                                                                                             |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| source video              | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
-| edit prompt               | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
-| video duration (seconds)    | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.            |
-| run number                | Change this integer to request another run. Default: 0.                                                     |
-| keep queued frames        | Keep source frames in order when true. False favors recent frames and limits delay.                         |
-| hold pointer              | Hold the pointer at the chosen position while true. Default: false.                                         |
-| pointer x (0-1) | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                                   |
-| pointer y (0-1)   | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                                     |
-| reference image           | Optional single RGB image of the subject to insert or replace. Batches are rejected.                        |
-| live controls             | Open live controls in the ComfyUI window that runs the workflow. Default: false.                            |
+| Input                    | What to provide                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| source video             | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
+| edit prompt              | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
+| video duration (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.            |
+| run number               | Change this integer to request another run. Default: 0.                                                     |
+| keep queued frames       | Keep source frames in order when true. False favors recent frames and limits delay.                         |
+| hold pointer             | Hold the pointer at the chosen position while true. Default: false.                                         |
+| pointer x (0-1)          | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                                   |
+| pointer y (0-1)          | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                                     |
+| reference image          | Optional single RGB image of the subject to insert or replace. Batches are rejected.                        |
+| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false.                            |
 
 X2 has no seed command. **run number** controls ComfyUI caching; it is not a model
 seed and does not guarantee reproducibility.
