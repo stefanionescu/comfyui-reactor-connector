@@ -7,9 +7,9 @@ import struct
 import numpy as np
 from pathlib import Path
 from fractions import Fraction
+from typing import cast, BinaryIO
 from .protocol import report_outcome
-from typing import cast, BinaryIO, Protocol
-from contextlib import AbstractContextManager
+from .streams import VideoStream, MediaWriter
 from src.state.workers import EncoderSettings
 from ..config.media.images import RGB_CHANNELS
 from ..config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
@@ -19,39 +19,6 @@ from ..config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCO
 WORKER_ARGUMENT_COUNT = 6
 
 FRAME_HEADER = struct.Struct(FRAME_HEADER_FORMAT)
-
-
-class VideoCodecContext(Protocol):
-    """Keep sender timestamp precision in the encoder's clock."""
-
-    time_base: Fraction
-
-
-class VideoStream(Protocol):
-    """The encoder fields and packets used by incremental RGB capture."""
-
-    width: int
-    height: int
-    pix_fmt: str
-    time_base: Fraction
-    options: dict[str, str]
-    codec_context: VideoCodecContext
-
-    def encode(self, frame: av.VideoFrame | None = None) -> list[object]:
-        """Encode one video frame, or flush pending packets when the frame is None."""
-        raise NotImplementedError
-
-
-class VideoContainer(AbstractContextManager["VideoContainer"], Protocol):
-    """The output-container operations used by the capture worker."""
-
-    def add_stream(self, _codec_name: str, /, rate: Fraction) -> VideoStream:
-        """Create an encoder for the selected video codec and frame rate."""
-        raise NotImplementedError
-
-    def mux(self, packet: object) -> None:
-        """Write an encoded packet into the output container."""
-        raise NotImplementedError
 
 
 class EncodingError(Exception):
@@ -85,7 +52,7 @@ def _receive(source: BinaryIO, limit: int) -> tuple[int, int, int, bytes] | None
     return width, height, timestamp, pixels
 
 
-def _mux(container: VideoContainer, packets: list[object], settings: EncoderSettings) -> None:
+def _mux(container: MediaWriter, packets: list[object], settings: EncoderSettings) -> None:
     """Write encoded packets while enforcing the output file limit."""
     for packet in packets:
         container.mux(packet)
@@ -95,7 +62,7 @@ def _mux(container: VideoContainer, packets: list[object], settings: EncoderSett
 
 
 def _encode_frames(
-    source: BinaryIO, container: VideoContainer, stream: VideoStream, settings: EncoderSettings
+    source: BinaryIO, container: MediaWriter, stream: VideoStream, settings: EncoderSettings
 ) -> tuple[int, str]:
     """Encode increasing timestamps within the requested duration and flush the final packets."""
     first_timestamp: int | None = None
@@ -134,7 +101,7 @@ def _encode_frames(
 
 def encode(source: BinaryIO, settings: EncoderSettings) -> dict[str, str | int]:
     """Write an MP4 within the recording limits and report its size, timing, or errors."""
-    output = cast("VideoContainer", av.open(str(settings.path), mode="w", format="mp4"))
+    output = cast("MediaWriter", av.open(str(settings.path), mode="w", format="mp4"))
     with output as container:
         stream = container.add_stream(ENCODER_NAME, rate=Fraction(settings.fps))
         stream.pix_fmt = ENCODER_PIXEL_FORMAT

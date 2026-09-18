@@ -133,10 +133,6 @@ lint.pylint.max-public-methods = 12
 lint.pylint.max-returns = 4
 lint.pylint.max-statements = 30
 
-[tool.ruff.lint.per-file-ignores]
-# This Protocol has overloaded declarations without an implementation to document.
-"src/media/recording/streams.py" = [ "D418" ]
-
 [tool.interrogate]
 fail-under = 100
 ignore-init-method = true
@@ -149,7 +145,7 @@ ignore-module = false
 ignore-nested-functions = false
 ignore-nested-classes = false
 ignore-setters = false
-ignore-overloaded-functions = false
+ignore-overloaded-functions = true
 exclude = [ ".artifacts", ".git", ".venv", "node_modules" ]
 verbose = 1
 omit-covered-files = false

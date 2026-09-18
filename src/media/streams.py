@@ -1,4 +1,4 @@
-"""Describe the PyAV writer boundary for static checks only."""
+"""The PyAV encoder and container operations the media workers use."""
 
 import av
 from fractions import Fraction
@@ -12,13 +12,13 @@ class AudioStream(Protocol):
     layout: str
     time_base: Fraction
 
-    def encode(self, frame: av.AudioFrame | None) -> list[object]:
+    def encode(self, frame: av.AudioFrame | None = None) -> list[object]:
         """Encode one audio frame, or flush pending packets when the frame is None."""
         raise NotImplementedError
 
 
 class VideoStream(Protocol):
-    """Video encoder fields and packet operations used by the local media worker."""
+    """Video encoder fields and packet operations used by the media workers."""
 
     width: int
     height: int
@@ -27,7 +27,7 @@ class VideoStream(Protocol):
     codec_context: av.VideoCodecContext
     options: dict[str, str]
 
-    def encode(self, frame: av.VideoFrame | None) -> list[object]:
+    def encode(self, frame: av.VideoFrame | None = None) -> list[object]:
         """Encode one video frame, or flush pending packets when the frame is None."""
         raise NotImplementedError
 
@@ -37,12 +37,10 @@ class MediaWriter(AbstractContextManager["MediaWriter"], Protocol):
 
     @overload
     def add_stream(self, _codec: Literal["aac"], /, *, rate: int) -> AudioStream:
-        """Create the selected audio or video encoder with its output rate."""
         raise NotImplementedError
 
     @overload
     def add_stream(self, _codec: Literal["libx264"], /, *, rate: Fraction) -> VideoStream:
-        """Create the selected audio or video encoder with its output rate."""
         raise NotImplementedError
 
     def mux(self, packet: object) -> None:

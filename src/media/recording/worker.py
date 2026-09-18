@@ -38,8 +38,8 @@ from ...config.media.video import (
 )
 
 if TYPE_CHECKING:
-    from .streams import MediaWriter
     from numpy.typing import NDArray
+    from ..streams import MediaWriter
     from collections.abc import Iterator
     from av.container.input import InputContainer
 

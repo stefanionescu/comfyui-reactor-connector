@@ -3,14 +3,14 @@
 import av
 import sys
 import json
+from typing import cast
 from pathlib import Path
 from fractions import Fraction
-from types import TracebackType
 from collections.abc import Iterator
 from ..protocol import report_outcome
-from typing import Self, cast, Protocol
 from src.state.workers import SourceSettings
 from av.container.input import InputContainer
+from ..streams import VideoStream, MediaWriter
 from ...config.media.images import RGB_CHANNELS
 from ...config.media.video import (
     ENCODER_CRF,
@@ -27,46 +27,6 @@ from ...config.media.video import (
 
 
 SOURCE_WORKER_ARGUMENT_COUNT = 7
-
-
-class VideoStream(Protocol):
-    """Video encoder fields and packet operations used by the local media worker."""
-
-    width: int
-    height: int
-    pix_fmt: str
-    time_base: Fraction
-    options: dict[str, str]
-    codec_context: av.VideoCodecContext
-
-    def encode(self, frame: av.VideoFrame | None = None) -> list[object]:
-        """Encode one video frame, or flush pending packets when the frame is None."""
-        raise NotImplementedError
-
-
-class VideoContainer(Protocol):
-    """Container operations used to create and write an encoded video track."""
-
-    def __enter__(self) -> Self:
-        """Return the open video container."""
-        raise NotImplementedError
-
-    def __exit__(
-        self,
-        _exception_type: type[BaseException] | None,
-        _exception: BaseException | None,
-        _traceback: TracebackType | None,
-    ) -> bool | None:
-        """Close the container when its context ends."""
-        raise NotImplementedError
-
-    def add_stream(self, _codec_name: str, /, rate: Fraction) -> VideoStream:
-        """Create an encoder for the selected video codec and frame rate."""
-        raise NotImplementedError
-
-    def mux(self, packet: object) -> None:
-        """Write an encoded packet into the output container."""
-        raise NotImplementedError
 
 
 class SourceError(Exception):
@@ -87,7 +47,7 @@ def prepare(settings: SourceSettings) -> dict[str, int | str]:
                 "protocol_whitelist": "pipe",
             },
         ) as reader,
-        cast("VideoContainer", av.open(str(settings.destination), "w", format="mp4")) as writer,
+        cast("MediaWriter", av.open(str(settings.destination), "w", format="mp4")) as writer,
     ):
         if len(reader.streams.video) != 1:
             msg = "source_streams"
@@ -154,7 +114,7 @@ def source_frames(reader: InputContainer, settings: SourceSettings) -> Iterator[
 def copy_frames(
     reader: InputContainer,
     output: VideoStream,
-    writer: VideoContainer,
+    writer: MediaWriter,
     settings: SourceSettings,
 ) -> int:
     """Copy the chosen source interval while preserving usable frame timestamps."""
