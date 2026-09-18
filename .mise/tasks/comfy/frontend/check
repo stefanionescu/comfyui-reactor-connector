@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #
-# Check that browser files match their source.
+# Check the shipped browser bundle.
 # Runtime: Bash 3.2+, macOS and Linux.
-#MISE description="Check that browser files match their source."
+#MISE description="Check the shipped browser bundle."
 set -euo pipefail
 
-# main - Check that browser files match their source.
+# main - Check the shipped browser bundle.
 main() {
   REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-  cd "${REPO_ROOT}" || exit 1
+  cd "${REPO_ROOT}/.." || exit 1
 
-  exec bun scripts/frontend.mjs --check "$@"
+  exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.frontend" --check "$@"
 }
 
 main "$@"

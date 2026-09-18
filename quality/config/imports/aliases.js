@@ -1,4 +1,4 @@
-export const DEFAULT_SCOPE = ['web', 'scripts/frontend.mjs', 'quality'];
+export const DEFAULT_SCOPE = ['web', 'quality'];
 export const PREFIXED_FILES_SCOPE = ['web', 'scripts', 'quality', '.githooks', '.mise/tasks'];
 export const ALIAS_ROOTS = [
   { segment: 'quality/config', aliasPrefix: '#config/' },

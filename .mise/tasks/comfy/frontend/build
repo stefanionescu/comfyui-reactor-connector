@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #
-# Build browser files for ComfyUI.
+# Build the browser bundle.
 # Runtime: Bash 3.2+, macOS and Linux.
-#MISE description="Build browser files for ComfyUI."
+#MISE description="Build the browser bundle."
 set -euo pipefail
 
-# main - Build browser files for ComfyUI.
+# main - Build the browser bundle.
 main() {
   REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-  cd "${REPO_ROOT}" || exit 1
+  cd "${REPO_ROOT}/.." || exit 1
 
-  exec bun scripts/frontend.mjs "$@"
+  exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.frontend" "$@"
 }
 
 main "$@"

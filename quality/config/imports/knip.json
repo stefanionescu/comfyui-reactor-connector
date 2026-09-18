@@ -2,10 +2,11 @@
     "$schema": "https://unpkg.com/knip@6/schema.json",
     "workspaces": {
         ".": {
-            "entry": ["web/scripts/extension.ts", "scripts/frontend.mjs"],
+            "entry": ["web/scripts/extension.ts"],
             "project": ["web/**/*.ts"],
             "ignoreDependencies": [
                 "@commitlint/cli",
+                "esbuild",
                 "html-validate",
                 "jscpd",
                 "license-checker",
