@@ -125,7 +125,7 @@ lint.unfixable = []
 lint.mccabe.max-complexity = 8
 # ComfyUI imports the hyphenated repository directory as a Python package.
 lint.pep8-naming.extend-ignore-names = [ "comfyui-reactor-connector" ]
-lint.pylint.max-args = 5
+lint.pylint.max-args = 7
 lint.pylint.max-bool-expr = 4
 lint.pylint.max-branches = 8
 lint.pylint.max-locals = 10

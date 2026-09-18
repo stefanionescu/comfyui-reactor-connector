@@ -1,17 +1,21 @@
 """Generate a Helios video from connected, scheduled prompts."""
 
 import asyncio
+from typing import ClassVar
+from ..base import VideoNode
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
+from ...comfy.execution import generate_video
 from ...state.generation.helios import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
 from ...execution.helios.operation import HeliosOperation
 from ..controls import video_outputs, generation_controls
-from ...comfy.execution import generate_video, operation_fingerprint
 
 
-class HeliosSequence(io.ComfyNode):
+class HeliosSequence(VideoNode):
     """Generate a video with prompt changes prepared before the run."""
+
+    contract: ClassVar[str] = "helios-sequence-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -43,24 +47,16 @@ class HeliosSequence(io.ComfyNode):
         )
 
     @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("helios-sequence-v1")
-
-    @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(
         cls,
         *,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         sequence: str,
         image: Input.Image | None = None,
     ) -> io.NodeOutput:
         """Run the Helios prompt sequence and return the recorded video."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         prompts = parse_sequence(sequence)
         encoded = await asyncio.to_thread(encode_png, image) if image is not None else None
         return await generate_video(

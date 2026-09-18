@@ -1,6 +1,8 @@
 """Expose a queued Fast H3 clip through native ComfyUI media sockets."""
 
 import asyncio
+from typing import ClassVar
+from ..base import VideoNode
 from functools import partial
 from ...media.output import owned_io
 from ...media.images import encode_png
@@ -8,7 +10,7 @@ from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...state.generation.fast import FastGenerateRequest
 from ...execution.fast.generate import FastGenerateOperation
-from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution
 from ...config.generation.fast import (
     DEFAULT_ASPECT,
     OPTIONS_ASPECT,
@@ -19,13 +21,10 @@ from ...config.generation.fast import (
 )
 
 
-class FastGenerate(io.ComfyNode):
+class FastGenerate(VideoNode):
     """Generate one clip, wait for readiness, and save its playback with sound."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("fast-queued-recording-v1")
+    contract: ClassVar[str] = "fast-queued-recording-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -72,26 +71,23 @@ class FastGenerate(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(
         cls,
         *,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         aspect: str,
         image: Input.Image | None = None,
         ending_image: Input.Image | None = None,
     ) -> io.NodeOutput:
         """Generate a Fast H3 video with optional starting and ending images."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
 
-        async def generate() -> io.NodeOutput:
+        async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             first = await owned_io(partial(encode_png, image)) if image is not None else None
             last = await owned_io(partial(encode_png, ending_image)) if ending_image is not None else None
             request = FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last)
             return await generate_video(FastGenerateOperation(request), node_id=cls.define_schema().node_id)
 
-        return await wait_for_execution(asyncio.create_task(generate()))
+        return await wait_for_execution(asyncio.create_task(start()))

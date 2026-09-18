@@ -3,6 +3,8 @@
 import asyncio
 import folder_paths
 from pathlib import Path
+from typing import ClassVar
+from ..base import VideoNode
 from dataclasses import replace
 from ...runtime import get_runtime
 from ...media.output import owned_io
@@ -14,7 +16,7 @@ from ...media.video.input import prepared_video
 from ...execution.x2.operation import X2Operation
 from ..controls import live_control, video_outputs
 from ...config.generation.prompts import DEFAULT_PROMPTS
-from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution
 from ...config.nodes import (
     MAX_VARIATION,
     MIN_VARIATION,
@@ -30,13 +32,10 @@ from ...config.nodes import (
 )
 
 
-class X2EditVideo(io.ComfyNode):
+class X2EditVideo(VideoNode):
     """Edit a local video using a prompt, an optional subject image, and a pointer position."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("x2-source-v1")
+    contract: ClassVar[str] = "x2-source-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -96,13 +95,12 @@ class X2EditVideo(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
         cls,
         *,
         source: Input.Video,
         prompt: str,
         duration_seconds: float,
-        variation: int,
         keep_backlog: bool,
         pointer_active: bool,
         pointer_x: float,
@@ -111,8 +109,6 @@ class X2EditVideo(io.ComfyNode):
         interactive: bool = False,
     ) -> io.NodeOutput:
         """Edit the source video with X2 and optional reference-image or live controls."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         task = asyncio.create_task(
             _edit(
                 X2Request(

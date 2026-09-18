@@ -1,16 +1,20 @@
 """Record a LingBot World 2 scene with separate forward and sideways controls."""
 
 import asyncio
+from typing import ClassVar
+from ..base import VideoNode
 from .schema import lingbot_schema
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
+from ...comfy.execution import generate_video
 from ...state.generation.lingbot import LingBotWorldRequest
 from ...execution.lingbot.operation import LingBotWorldOperation
-from ...comfy.execution import generate_video, operation_fingerprint
 
 
-class LingBotWorldExplore(io.ComfyNode):
+class LingBotWorldExplore(VideoNode):
     """Record World 2 with separate forward/back and sideways controls."""
+
+    contract: ClassVar[str] = "lingbot-world-2-video-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -18,19 +22,13 @@ class LingBotWorldExplore(io.ComfyNode):
         return lingbot_schema(world2=True)
 
     @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("lingbot-world-2-video-v2")
-
-    @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
         cls,
         *,
         image: Input.Image,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         movement: str,
         lateral: str,
         look_horizontal: str,
@@ -39,8 +37,6 @@ class LingBotWorldExplore(io.ComfyNode):
         interactive: bool = False,
     ) -> io.NodeOutput:
         """Explore the starting image with LingBot World 2 movement and camera controls."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         encoded = await asyncio.to_thread(encode_png, image)
         request = LingBotWorldRequest(
             prompt=prompt,

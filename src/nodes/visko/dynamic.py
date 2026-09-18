@@ -10,4 +10,5 @@ class ViskoDynamicGenerate(ViskoStableGenerate):
 
     node_id: ClassVar[str] = "ReactorIncViskoDynamicGenerate"
     display_name: ClassVar[str] = "Visko Dynamic: Generate Video (Reactor)"
+    contract: ClassVar[str] = "ReactorIncViskoDynamicGenerate-recording-v1"
     operation_type: ClassVar[type[ViskoStableOperation]] = ViskoDynamicOperation

@@ -3,6 +3,8 @@
 import asyncio
 import folder_paths
 from pathlib import Path
+from typing import ClassVar
+from ..base import VideoNode
 from dataclasses import replace
 from ...runtime import get_runtime
 from comfy_api.latest import io, Input
@@ -10,18 +12,15 @@ from ...settings.store import read_settings
 from ...media.video.input import prepared_video
 from ...state.generation.sana import SanaRequest
 from ...execution.sana.operation import SanaOperation
+from ...comfy.execution import generate_video, wait_for_execution
 from ..controls import live_control, video_outputs, generation_controls
-from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
 from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
-class SanaEditVideo(io.ComfyNode):
+class SanaEditVideo(VideoNode):
     """Apply a written edit to a video clip."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("sana-source-v2")
+    contract: ClassVar[str] = "sana-source-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -53,20 +52,17 @@ class SanaEditVideo(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(
         cls,
         *,
         source: Input.Video,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         anchor_interval: int,
         interactive: bool = False,
     ) -> io.NodeOutput:
         """Edit the source video with SANA and return the recorded result."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         task = asyncio.create_task(
             _edit(
                 SanaRequest(prompt, duration_seconds, seed, anchor_interval=anchor_interval),

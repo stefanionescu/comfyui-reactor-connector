@@ -66,84 +66,24 @@
                 "reason": "Opens the source in an owned worker thread and keeps its handle in the enclosing cleanup scope."
             },
             {
-                "path": "src/nodes/fast/continuation.py",
-                "names": ["FastContinue.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/fast/generate.py",
-                "names": ["FastGenerate.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/helios/animate.py",
-                "names": ["HeliosAnimate.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/helios/generate.py",
-                "names": ["HeliosGenerate.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/helios/sequence.py",
-                "names": ["HeliosSequence.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
                 "path": "src/nodes/lingbot/explore.py",
-                "names": ["LingBotExplore.define_schema", "LingBotExplore.fingerprint_inputs"],
+                "names": ["LingBotExplore.define_schema"],
                 "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
             },
             {
                 "path": "src/nodes/lingbot/world.py",
-                "names": ["LingBotWorldExplore.define_schema", "LingBotWorldExplore.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/longlive/generate.py",
-                "names": ["LongLiveGenerate.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/longlive/storyboard.py",
-                "names": ["LongLiveStoryboard.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/ltx/speak.py",
-                "names": ["LtxSpeak.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/sana/edit.py",
-                "names": ["SanaEditVideo.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/sana/webcam.py",
-                "names": ["SanaWebcam.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/visko/stable.py",
-                "names": ["ViskoStableGenerate.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/x2/edit.py",
-                "names": ["X2EditVideo.fingerprint_inputs"],
-                "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
-            },
-            {
-                "path": "src/nodes/x2/webcam.py",
-                "names": ["X2Webcam.fingerprint_inputs"],
+                "names": ["LingBotWorldExplore.define_schema"],
                 "reason": "ComfyUI invokes these named callbacks for schema discovery or cache invalidation."
             },
             {
                 "path": "src/extension.py",
                 "names": ["ReactorExtension.get_node_list"],
                 "reason": "ComfyUI calls this required extension hook to obtain the registered node classes."
+            },
+            {
+                "path": "src/nodes/base.py",
+                "names": ["VideoNode.fingerprint_inputs", "VideoNode.execute"],
+                "reason": "ComfyUI invokes these named callbacks for cache invalidation and execution."
             }
         ]
     },

@@ -1,6 +1,8 @@
 """Continue a scene across several clips without queuing another ComfyUI run."""
 
 import asyncio
+from typing import ClassVar
+from ..base import VideoNode
 from functools import partial
 from ...media.output import owned_io
 from ...media.images import encode_png
@@ -8,7 +10,7 @@ from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...state.generation.fast import FastContinueRequest
 from ...execution.fast.continuation import FastContinueOperation
-from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution
 from ...config.generation.fast import (
     DEFAULT_ASPECT,
     MAX_CLIP_COUNT,
@@ -22,13 +24,10 @@ from ...config.generation.fast import (
 )
 
 
-class FastContinue(io.ComfyNode):
+class FastContinue(VideoNode):
     """Join a sequence of Fast H3 clips that continue from each previous final frame."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("fast-continue-v1")
+    contract: ClassVar[str] = "fast-continue-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -85,23 +84,20 @@ class FastContinue(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(
         cls,
         *,
         prompt: str,
         clip_seconds: float,
         seed: int,
-        variation: int,
         aspect: str,
         clip_count: int,
         later_prompts: str,
         image: Input.Image | None = None,
     ) -> io.NodeOutput:
         """Join a sequence of Fast H3 clips that continue from each previous final frame."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
 
-        async def generate() -> io.NodeOutput:
+        async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             encoded = None if image is None else await owned_io(partial(encode_png, image))
             request = FastContinueRequest(
@@ -116,4 +112,4 @@ class FastContinue(io.ComfyNode):
             )
             return await generate_video(FastContinueOperation(request), node_id=cls.define_schema().node_id)
 
-        return await wait_for_execution(asyncio.create_task(generate()))
+        return await wait_for_execution(asyncio.create_task(start()))

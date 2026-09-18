@@ -1,13 +1,15 @@
 """Expose LTX speech with a required native portrait and synchronized media."""
 
 import asyncio
+from typing import ClassVar
+from ..base import VideoNode
 from ...media.output import owned_io
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ..controls import generation_controls
 from ...state.generation.ltx import LtxSpeakRequest
 from ...execution.ltx.operation import LtxSpeakOperation
-from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution
 from ...config.generation.speech import (
     DEFAULT_SCRIPT,
     MAX_WORDS_PER_MINUTE,
@@ -16,13 +18,10 @@ from ...config.generation.speech import (
 )
 
 
-class LtxSpeak(io.ComfyNode):
+class LtxSpeak(VideoNode):
     """Animate one portrait speaking the supplied script."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("ltx-speech-recording-v1")
+    contract: ClassVar[str] = "ltx-speech-recording-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -64,22 +63,19 @@ class LtxSpeak(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
+    async def generate(
         cls,
         *,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         script: str,
         words_per_minute: int,
         image: Input.Image,
     ) -> io.NodeOutput:
         """Animate the portrait speaking the script and return video, audio, and recording details."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
 
-        async def generate() -> io.NodeOutput:
+        async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             encoded = await owned_io(lambda: encode_png(image))
             request = LtxSpeakRequest(
@@ -92,4 +88,4 @@ class LtxSpeak(io.ComfyNode):
             )
             return await generate_video(LtxSpeakOperation(request), node_id=cls.define_schema().node_id)
 
-        return await wait_for_execution(asyncio.create_task(generate()))
+        return await wait_for_execution(asyncio.create_task(start()))

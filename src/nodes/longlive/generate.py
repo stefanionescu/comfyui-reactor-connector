@@ -1,14 +1,18 @@
 """Generate a LongLive scene from an opening shot prompt."""
 
+from typing import ClassVar
+from ..base import VideoNode
 from comfy_api.latest import io
+from ...comfy.execution import generate_video
 from ...state.generation.longlive import LongLiveRequest
 from ...execution.longlive.operation import LongLiveOperation
-from ...comfy.execution import generate_video, operation_fingerprint
 from ..controls import live_control, video_outputs, generation_controls
 
 
-class LongLiveGenerate(io.ComfyNode):
+class LongLiveGenerate(VideoNode):
     """Start a LongLive scene from its opening shot prompt."""
+
+    contract: ClassVar[str] = "longlive-video-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -24,23 +28,15 @@ class LongLiveGenerate(io.ComfyNode):
         )
 
     @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("longlive-video-v2")
-
-    @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.
+    async def generate(
         cls,
         *,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         interactive: bool = False,
     ) -> io.NodeOutput:
         """Generate a LongLive video with optional live prompt changes."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         return await generate_video(
             LongLiveOperation(LongLiveRequest(prompt, duration_seconds, seed)),
             interactive=interactive,

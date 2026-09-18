@@ -1,15 +1,19 @@
 """Generate a LongLive video from scheduled shots and transitions."""
 
+from typing import ClassVar
+from ..base import VideoNode
 from comfy_api.latest import io
+from ...comfy.execution import generate_video
 from ...state.generation.longlive import LongLiveRequest
 from ..controls import video_outputs, generation_controls
 from ...execution.longlive.operation import LongLiveOperation
 from ...execution.longlive.storyboard import parse_storyboard
-from ...comfy.execution import generate_video, operation_fingerprint
 
 
-class LongLiveStoryboard(io.ComfyNode):
+class LongLiveStoryboard(VideoNode):
     """Generate a video from scheduled shots and transitions."""
+
+    contract: ClassVar[str] = "longlive-storyboard-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -35,23 +39,15 @@ class LongLiveStoryboard(io.ComfyNode):
         )
 
     @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("longlive-storyboard-v1")
-
-    @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.
+    async def generate(
         cls,
         *,
         prompt: str,
         duration_seconds: float,
         seed: int,
-        variation: int,
         storyboard: str,
     ) -> io.NodeOutput:
         """Run the scheduled LongLive shots and record their transitions."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         shots = parse_storyboard(storyboard)
         return await generate_video(
             LongLiveOperation(LongLiveRequest(prompt, duration_seconds, seed, shots=shots)),

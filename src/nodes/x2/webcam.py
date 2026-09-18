@@ -1,6 +1,8 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
 import asyncio
+from typing import ClassVar
+from ..base import VideoNode
 from functools import partial
 from ...media.output import owned_io
 from ..controls import video_outputs
@@ -11,7 +13,7 @@ from ...state.generation.x2 import X2Request
 from ...execution.x2.operation import X2Operation
 from ...comfy.interaction import build_live_options
 from ...config.generation.prompts import DEFAULT_PROMPTS
-from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
+from ...comfy.execution import generate_video, wait_for_execution
 from ...config.nodes import (
     MAX_VARIATION,
     MIN_VARIATION,
@@ -24,13 +26,10 @@ from ...config.nodes import (
 )
 
 
-class X2Webcam(io.ComfyNode):
+class X2Webcam(VideoNode):
     """Open X2 webcam and dragging controls and record the resulting video."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("x2-webcam-v1")
+    contract: ClassVar[str] = "x2-webcam-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -76,19 +75,16 @@ class X2Webcam(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.
+    async def generate(
         cls,
         *,
         prompt: str,
         duration_seconds: float,
-        variation: int,
         reference_image: Input.Image | None = None,
     ) -> io.NodeOutput:
         """Open X2 webcam and dragging controls and record the resulting video."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
 
-        async def generate() -> io.NodeOutput:
+        async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             camera = WebcamFrames()
             try:
@@ -112,4 +108,4 @@ class X2Webcam(io.ComfyNode):
             finally:
                 await camera.close()
 
-        return await wait_for_execution(asyncio.create_task(generate()))
+        return await wait_for_execution(asyncio.create_task(start()))

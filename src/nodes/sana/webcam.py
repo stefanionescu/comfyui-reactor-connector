@@ -1,22 +1,21 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
+from typing import ClassVar
+from ..base import VideoNode
 from comfy_api.latest import io
 from ...media.webcam import WebcamFrames
+from ...comfy.execution import generate_video
 from ...state.generation.sana import SanaRequest
 from ...comfy.interaction import build_live_options
 from ...execution.sana.operation import SanaOperation
 from ..controls import video_outputs, generation_controls
-from ...comfy.execution import generate_video, operation_fingerprint
 from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
-class SanaWebcam(io.ComfyNode):
+class SanaWebcam(VideoNode):
     """Open the webcam controls and record the SANA video edit."""
 
-    @classmethod
-    async def fingerprint_inputs(cls, **_kwargs: object) -> str:
-        """Include the operation revision and private configuration token in the cache key."""
-        return await operation_fingerprint("sana-webcam-v1")
+    contract: ClassVar[str] = "sana-webcam-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
@@ -42,12 +41,8 @@ class SanaWebcam(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI calls by schema.
-        cls, *, prompt: str, duration_seconds: float, seed: int, variation: int, anchor_interval: int
-    ) -> io.NodeOutput:
+    async def generate(cls, *, prompt: str, duration_seconds: float, seed: int, anchor_interval: int) -> io.NodeOutput:
         """Open the webcam controls and record the SANA video edit."""
-        # ComfyUI uses variation to invalidate its cache; Reactor does not consume it.
-        del variation
         camera = WebcamFrames()
         try:
             request = SanaOperation(
