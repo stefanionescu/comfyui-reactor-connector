@@ -132,7 +132,7 @@ class SettingsDialog {
 
   /**
    * Build fields from the backend's setting definitions.
-   * @param configuration - The validated limits and labels.
+   * @param configuration - The validated limits.
    */
   private populateLimits(configuration: Configuration): void {
     releaseText(this.limitFields);
@@ -141,10 +141,7 @@ class SettingsDialog {
     additionalLimits.append(element('summary', message('settings.advancedLimits')));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       if (name === 'catalog_interval_hours') continue;
-      const label = element(
-        'label',
-        message(`settings.limit.${name}` as MessageKey, {}, definition.label),
-      );
+      const label = element('label', message(`settings.limit.${name}` as MessageKey));
       const input = element('input');
       input.type = 'number';
       input.min = String(definition.minimum);

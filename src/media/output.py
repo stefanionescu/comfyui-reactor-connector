@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from ..language import translate
 from ..tasks import wait_shielded
 from typing import BinaryIO, TYPE_CHECKING
 from ..errors import ErrorCode, ConnectorError
+from ..config.messages.media import OUTPUT_SIZE, OUTPUT_CLOSED
 
 if TYPE_CHECKING:
     from typing import Self
@@ -34,9 +34,9 @@ class FileOutput:
     def _write(self, content: bytes) -> None:
         """Write only while the output is open and the byte limit allows it."""
         if self.stream is None:
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.outputClosed"))
+            raise ConnectorError(ErrorCode.CAPTURE, OUTPUT_CLOSED)
         if self.written + len(content) > self.maximum_bytes:
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.outputSize"))
+            raise ConnectorError(ErrorCode.CAPTURE, OUTPUT_SIZE)
         self.stream.write(content)
         self.written += len(content)
 

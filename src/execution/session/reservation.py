@@ -10,7 +10,6 @@ import errno
 import logging
 from pathlib import Path
 from functools import partial
-from ...language import translate
 from ...media.output import owned_io
 from ...serialization import parse_json
 from collections.abc import AsyncGenerator
@@ -19,6 +18,16 @@ from ...state.session import SessionOutcome
 from ...errors import ErrorCode, ConnectorError
 from ...storage import atomic_write, read_private, private_directory
 from ...config.generation.session import MAX_SESSION_RECORD_BYTES, MAX_SESSION_RECORD_DEPTH
+from ...config.messages.session import (
+    SESSION_WAIT,
+    SESSION_LOCK_LINK,
+    SESSION_RECORD_DAMAGED,
+    SESSION_IN_OTHER_PROCESS,
+    SESSION_LOCK_PERMISSIONS,
+    SESSION_RECORD_UNREADABLE,
+    SESSION_RECORD_PERMISSIONS,
+    SESSION_RECORD_UPDATE_FAILED,
+)
 
 
 class SessionReservation:
@@ -26,33 +35,29 @@ class SessionReservation:
 
     def __init__(self, directory: Path, seconds: float) -> None:
         """Prepare a single-use reservation with a finite positive lifetime."""
-        if not math.isfinite(seconds) or seconds <= 0:
-            msg = translate("main", "errors.sessionWaitTime")
-            raise ValueError(msg)
         self.directory = directory
         self.seconds = seconds
         self._descriptor: int | None = None
         self._recorded = False
-        self._used = False
 
     def _acquire(self) -> None:
         """Lock private session storage and record a deadline before connecting."""
         private_directory(self.directory)
         path = self.directory / "session.lock"
         if path.is_symlink():
-            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.sessionLockLink"))
+            raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LOCK_LINK)
         flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
         descriptor = os.open(path, flags, 0o600)
         self._descriptor = descriptor
         reservation = os.fstat(descriptor)
         if not stat.S_ISREG(reservation.st_mode) or (os.name != "nt" and reservation.st_mode & 0o077):
-            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.sessionLockPermissions"))
+            raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LOCK_PERMISSIONS)
         _lock(descriptor)
         remaining = _remaining(self.directory / "session.json")
         if remaining > 0:
             raise ConnectorError(
                 ErrorCode.CLEANUP,
-                translate("main", "errors.sessionWait", seconds=math.ceil(remaining)),
+                SESSION_WAIT.format(seconds=math.ceil(remaining)),
             )
         atomic_write(
             self.directory / "session.json",
@@ -77,17 +82,13 @@ class SessionReservation:
     @asynccontextmanager
     async def protect(self, outcome: SessionOutcome) -> AsyncGenerator[None, None]:
         """Write before connecting; never clear a record after an uncertain shutdown."""
-        if self._used:
-            msg = translate("main", "errors.reservationReused")
-            raise ValueError(msg)
-        self._used = True
         try:
             try:
                 await owned_io(self._acquire)
             except OSError:
                 raise ConnectorError(
                     ErrorCode.CONFIGURATION,
-                    translate("main", "errors.sessionRecordUnreadable"),
+                    SESSION_RECORD_UNREADABLE,
                 ) from None
             yield
         finally:
@@ -98,10 +99,10 @@ class SessionReservation:
                 if primary_error is None:
                     raise ConnectorError(
                         ErrorCode.CONFIGURATION,
-                        translate("main", "errors.sessionRecordPermissions"),
+                        SESSION_RECORD_PERMISSIONS,
                     ) from None
                 logging.getLogger(__name__).error(  # noqa: TRY400 -- reason: Tracebacks may expose private state.
-                    translate("main", "errors.sessionRecordUpdateFailed")
+                    SESSION_RECORD_UPDATE_FAILED
                 )
 
 
@@ -121,7 +122,7 @@ def _lock(descriptor: int) -> None:
             raise
         raise ConnectorError(
             ErrorCode.CLEANUP,
-            translate("main", "errors.sessionInOtherProcess"),
+            SESSION_IN_OTHER_PROCESS,
         ) from None
 
 
@@ -133,7 +134,7 @@ def _remaining(path: Path) -> float:
         return 0
     invalid = ConnectorError(
         ErrorCode.CONFIGURATION,
-        translate("main", "errors.sessionRecordDamaged"),
+        SESSION_RECORD_DAMAGED,
     )
     try:
         value = parse_json(raw.decode("utf-8"), max_bytes=MAX_SESSION_RECORD_BYTES, max_depth=MAX_SESSION_RECORD_DEPTH)

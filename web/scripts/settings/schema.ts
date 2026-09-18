@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import { translate } from '#web/language.ts';
-import { browserLimits, browserPatterns } from '#web/browser.ts';
+import { browserPatterns } from '#web/browser.ts';
 
-type SettingDefinition = { label: string; minimum: number; maximum: number };
+type SettingDefinition = { minimum: number; maximum: number };
 
 export type Configuration = {
   revision: string;
@@ -21,7 +21,6 @@ const unknownRecordSchema = v.record(v.string(), v.unknown());
 const settingNameSchema = v.pipe(v.string(), v.regex(browserPatterns.settingName));
 
 const settingDefinitionSchema = v.object({
-  label: v.pipe(v.string(), v.minLength(1), v.maxLength(browserLimits.maxTextCharacters)),
   minimum: v.pipe(v.number(), v.safeInteger()),
   maximum: v.pipe(v.number(), v.safeInteger()),
 });

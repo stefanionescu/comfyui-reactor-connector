@@ -6,7 +6,6 @@ import math
 import asyncio
 from pathlib import Path
 from typing import BinaryIO
-from ...language import translate
 from ...paths import EXTENSION_ROOT
 from ...state.settings import Settings
 from tempfile import TemporaryDirectory
@@ -19,6 +18,7 @@ from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
 from ...config.media.workers import INPUT_TIMEOUT_SECONDS
+from ...config.messages.media import LOCAL_SOURCE_REQUIRED
 from ...config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
 
 
@@ -26,7 +26,7 @@ def input_error() -> ConnectorError:
     """Describe the accepted local video input without exposing a source path."""
     return ConnectorError(
         ErrorCode.INVALID_INPUT,
-        translate("main", "errors.localSourceRequired"),
+        LOCAL_SOURCE_REQUIRED,
     )
 
 

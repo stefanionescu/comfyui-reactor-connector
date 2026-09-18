@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from comfy.cli_args import args
 from server import PromptServer
-from ..language import translate
 from ..runtime import get_runtime
 from ..live.options import LiveOptions
 from ..models import MODELS_BY_CONNECTION
@@ -21,6 +20,13 @@ from ..config.live import (
     MAX_CLIENT_ID_CHARACTERS,
     CAMERA_INVITATION_TIMEOUT_SECONDS,
     CONTROL_INVITATION_TIMEOUT_SECONDS,
+)
+from ..config.messages.live import (
+    LIVE_CANCELLED,
+    LIVE_PANEL_CLOSED,
+    BROWSER_OWNER_MISSING,
+    LIVE_HOST_REQUIREMENTS,
+    LIVE_CAMERA_UNSUPPORTED,
 )
 
 
@@ -43,7 +49,7 @@ def _owner() -> tuple[str, str]:
     """Find the executing prompt client and reject shared or unowned sessions."""
     context = get_executing_context()
     if args.multi_user or context is None:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveHostRequirements"))
+        raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_HOST_REQUIREMENTS)
     running, _ = cast(
         "tuple[list[tuple[object, ...]], list[object]]",
         PromptServer.instance.prompt_queue.get_current_queue_volatile(),
@@ -53,7 +59,7 @@ def _owner() -> tuple[str, str]:
             client = cast("dict[str, object]", item[3]).get("client_id")
             if isinstance(client, str) and 1 <= len(client) <= MAX_CLIENT_ID_CHARACTERS:
                 return client, context.node_id
-    raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.browserOwnerMissing"))
+    raise ConnectorError(ErrorCode.UNAVAILABLE, BROWSER_OWNER_MISSING)
 
 
 async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> None:
@@ -62,8 +68,8 @@ async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> Non
         while not lease.is_ready():
             if lease.read().end:
                 if lease.was_ended_by_user():
-                    raise ConnectorError(ErrorCode.INTERRUPTED, translate("main", "errors.liveCancelled"))
-                raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.livePanelClosed"))
+                    raise ConnectorError(ErrorCode.INTERRUPTED, LIVE_CANCELLED)
+                raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_PANEL_CLOSED)
             await asyncio.sleep(INPUT_POLL_SECONDS)
 
 
@@ -72,7 +78,7 @@ async def _prepare_camera(options: LiveOptions, duration_seconds: float) -> Brow
     client, node = _owner()
     axes = MODELS_BY_CONNECTION[options.connection_name].camera_axes
     if not axes:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveCameraUnsupported"))
+        raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_CAMERA_UNSUPPORTED)
     choices = {axis: tuple(CAMERA_AXES[axis]) for axis in axes}
     # Queuing a camera workflow starts it; the panel does not add another start step.
     lease = ControlLease(options, choices=choices, started=True)

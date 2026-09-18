@@ -2,21 +2,19 @@
 
 import os
 from pathlib import Path
-from .language import translate
 from .state.credentials import Credential
 from .errors import ErrorCode, ConnectorError
 from .storage import atomic_write, read_private
 from .config.security import MAX_CREDENTIAL_CHARACTERS
+from .config.messages.settings import KEY_EMPTY, KEY_REQUIRED, KEY_UNREADABLE, KEY_WHITESPACE
 
 
 def parse_credential(value: str) -> Credential:
     """Reject empty, oversized, or whitespace-containing API keys."""
     if not value or value != value.strip() or len(value) > MAX_CREDENTIAL_CHARACTERS:
-        raise ConnectorError(
-            ErrorCode.CONFIGURATION, translate("main", "errors.keyEmpty", maximum=MAX_CREDENTIAL_CHARACTERS)
-        )
+        raise ConnectorError(ErrorCode.CONFIGURATION, KEY_EMPTY.format(maximum=MAX_CREDENTIAL_CHARACTERS))
     if any(character.isspace() for character in value):
-        raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.keyWhitespace"))
+        raise ConnectorError(ErrorCode.CONFIGURATION, KEY_WHITESPACE)
     return Credential(value)
 
 
@@ -31,11 +29,11 @@ def read_credential(directory: Path) -> Credential:
         except (OSError, UnicodeError):
             raise ConnectorError(
                 ErrorCode.CONFIGURATION,
-                translate("main", "errors.keyUnreadable"),
+                KEY_UNREADABLE,
             ) from None
     raise ConnectorError(
         ErrorCode.AUTHENTICATION,
-        translate("main", "errors.keyRequired"),
+        KEY_REQUIRED,
     )
 
 

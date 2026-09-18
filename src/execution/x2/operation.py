@@ -2,7 +2,6 @@
 
 from typing import ClassVar
 from ...models import MODELS
-from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
 from ...state.settings import Settings
@@ -12,9 +11,12 @@ from ...state.generation.x2 import X2Request
 from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
 from ...media.video.publish import VideoPublication
+from ...config.messages.live import POINTER_COORDINATES
 from ...serialization import mapping_value, validate_json
+from ...config.messages.media import SOURCE_VIDEO_REQUIRED
 from ...config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
 from ...config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION
+from ...config.messages.inputs import XMAX_UNSUPPORTED, XMAX_PROMPT_LENGTH, POINTER_OPTION_TYPE
 
 
 class X2Operation(VideoInputOperation[X2Request]):
@@ -39,16 +41,16 @@ class X2Operation(VideoInputOperation[X2Request]):
         super().validate(settings)
         inputs = self.inputs
         if len(inputs.prompt) > MAX_EDIT_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.x2PromptLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, XMAX_PROMPT_LENGTH)
         if inputs.video is None and self.webcam is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
         if type(inputs.keep_backlog) is not bool or type(inputs.pointer_active) is not bool:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerOptionType"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, POINTER_OPTION_TYPE)
         if any(
             type(value) not in (int, float) or not MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION
             for value in (inputs.pointer_x, inputs.pointer_y)
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.pointerCoordinates"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, POINTER_COORDINATES)
 
     async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
@@ -57,7 +59,7 @@ class X2Operation(VideoInputOperation[X2Request]):
         del max_capture_seconds
         inputs = self.inputs
         if inputs.video is None and self.webcam is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoRequired"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
         schema = await events.call("schema", transport.request_schema())
         _validate_contract(schema, transport)
         if inputs.image is not None:
@@ -110,7 +112,7 @@ def _validate_contract(schema: object, transport: Transport) -> None:
         if track.name == "source" and track.kind == "video" and track.direction == "sendonly"
     ]
     if commands != required or len(sources) != 1:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.x2Unsupported"))
+        raise ConnectorError(ErrorCode.UNAVAILABLE, XMAX_UNSUPPORTED)
 
 
 __all__ = ["X2Operation"]

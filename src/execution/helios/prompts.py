@@ -1,27 +1,27 @@
 """Prepare Helios prompt changes before starting generation."""
 
 import json
-from ...language import translate
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
 from ...state.generation.helios import ScheduledPrompt
 from ...config.generation.session import MAX_PROMPT_CHARACTERS
 from ...config.generation.prompts import MAX_PROMPTS, MAX_PROMPT_CHUNK, MAX_SEQUENCE_BYTES
+from ...config.messages.inputs import PROMPT_CHUNK, LATER_PROMPT_LENGTH, PROMPT_SEQUENCE_SIZE, PROMPT_SEQUENCE_ORDER
 
 
 def validate_prompt(prompt: ScheduledPrompt) -> None:
     """Require a nonempty prompt and a supported later chunk number."""
     if type(prompt.chunk) is not int or not 1 <= prompt.chunk <= MAX_PROMPT_CHUNK:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptChunk"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_CHUNK)
     if type(prompt.prompt) is not str or not prompt.prompt.strip() or len(prompt.prompt) > MAX_PROMPT_CHARACTERS:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.laterPromptLength"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, LATER_PROMPT_LENGTH)
 
 
 def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
     """Reject ambiguous schedules and fields that are not prompt inputs."""
     if type(value) is not str or len(value.encode()) > MAX_SEQUENCE_BYTES:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptSequenceSize"))
-    invalid = ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptSequenceOrder"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_SEQUENCE_SIZE)
+    invalid = ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_SEQUENCE_ORDER)
     payload = parse_json(value, max_bytes=MAX_SEQUENCE_BYTES, max_depth=4)
     if not isinstance(payload, list) or len(payload) > MAX_PROMPTS:
         raise invalid

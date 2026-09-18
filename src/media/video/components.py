@@ -8,7 +8,6 @@ import numpy as np
 from pathlib import Path
 from ..output import owned_io
 from functools import partial
-from ...language import translate
 from ..process import MediaProcess
 from ...paths import EXTENSION_ROOT
 from ...state.settings import Settings
@@ -24,6 +23,13 @@ from ...config.media.video import (
     MAX_FRAME_DIMENSION,
     MIN_FRAME_DIMENSION,
 )
+from ...config.messages.media import (
+    SOURCE_PIXELS,
+    SOURCE_DIMENSIONS,
+    SOURCE_FRAME_COUNT,
+    SOURCE_FRAMES_LOST,
+    SOURCE_VIDEO_FORMAT,
+)
 
 FRAME_HEADER = struct.Struct(FRAME_HEADER_FORMAT)
 
@@ -32,7 +38,7 @@ def _pixels(frame: Input.Image) -> bytes:
     """Convert finite normalized image values to clipped RGB bytes."""
     array = frame.detach().cpu().numpy()
     if not np.isfinite(array).all():
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourcePixels"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_PIXELS)
     return np.rint(np.clip(array, 0, 1) * 255).astype(np.uint8).tobytes(order="C")
 
 
@@ -47,7 +53,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         or video.get_bit_depth() != COMPONENT_BITS
         or video.get_color_space() != "sRGB"
     ):
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceVideoFormat"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_FORMAT)
     total, height, width, _ = images.shape
     if (
         not MIN_FRAME_DIMENSION <= width <= MAX_FRAME_DIMENSION
@@ -56,10 +62,10 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         or height % 2
         or width * height * RGB_CHANNELS > convert_mebibytes_to_bytes(settings.max_queue_megabytes)
     ):
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceDimensions"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_DIMENSIONS)
     count = min(total, math.ceil(settings.max_capture_seconds * rate))
     if count < MIN_SOURCE_FRAMES:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceFrameCount"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_FRAME_COUNT)
 
     async def feed(writer: asyncio.StreamWriter) -> None:
         """Send selected tensor frames with timestamps and signal the end of input."""
@@ -87,4 +93,4 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
     )
     result = await worker.run(feed, asyncio.Event(), asyncio.Event())
     if result.get("frames") != count:
-        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.sourceFramesLost"))
+        raise ConnectorError(ErrorCode.CAPTURE, SOURCE_FRAMES_LOST)

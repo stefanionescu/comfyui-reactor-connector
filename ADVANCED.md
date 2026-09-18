@@ -317,40 +317,12 @@ Deleting a saved key does not revoke it in Reactor.
 
 ## Language
 
-This release includes English text and guides. Installed translations use the
-language selected in ComfyUI. Custom panel labels follow language changes;
-English remains the fallback when a message or guide is missing.
-
-Saved workflow notes and custom titles keep the language used when the workflow
-was built. Example prompts and speech scripts stay in English. Changing ComfyUI's
-language does not rewrite your graph or translate model inputs. Node search
-aliases, categories, placeholders, and errors from queued execution currently
-use English. An error already returned by the server keeps its original text.
-Native dropdowns can show saved values such as `idle`, `soft`, and `cut` even
-when the locale file supplies translated option labels. The node guides explain
-these values.
-Connector HTTP routes select translations from `Accept-Language`; queued node
-execution does not inherit that request language.
-
-To translate workflow notes and titles:
-
-1. Choose a locale tag, such as `fr`. Create `locales/<tag>/workflows.json` using
-   `locales/en/workflows.json` as the reference. Translate the message values;
-   preserve JSON keys and placeholders such as `{title}`, `{first}`, and `{second}`.
-   Partial translations use English for missing messages.
-2. Review the translation before building. Only English resources are supplied
-   with this checkout; the command below requires your added locale file.
-3. Set `workflow_language` to your locale tag, then generate a separate folder:
-
-    ```sh
-    workflow_language=fr
-    mise run comfy:workflows:build -- --language "$workflow_language" --output-directory ".artifacts/workflows/$workflow_language"
-    ```
-
-The build checks the supplied translation against the English message keys and
-placeholders. It translates workflow labels and notes, not prompts or speech
-scripts. The output index links to this checkout's shared guides and sample
-files. Keep it with that checkout; it is not a standalone translated package.
+The connector's text is English. ComfyUI's language setting applies its own
+translations of node labels from `locales/en/nodeDefs.json` and of the menu
+commands from `locales/en/commands.json`; a message or label without a
+translation stays in English. Workflow notes, node titles, prompts, and speech
+scripts are saved in the graph in English, and changing ComfyUI's language
+does not rewrite them.
 
 ## Development commands
 

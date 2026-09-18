@@ -1,6 +1,5 @@
 """Chain a chosen number of Fast H3 clips in one session and save their sound."""
 
-from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
 from ...config.nodes import MAX_SEED
@@ -18,6 +17,17 @@ from ...config.generation.fast import (
     MAX_CLIP_SECONDS,
     MIN_CLIP_SECONDS,
     MAX_PROMPT_CHARACTERS,
+)
+from ...config.messages.inputs import (
+    CLIP_COUNT,
+    ASPECT_RATIO,
+    FAST_AUDIO_MISSING,
+    CONTINUATION_PROMPTS,
+    SEQUENCE_CAPTURE_LIMIT,
+    ACCEPTED_SEQUENCE_LIMIT,
+    CONTINUED_CLIP_DURATION,
+    SEQUENCE_PLAYBACK_ORDER,
+    CLIP_DURATION_UNSUPPORTED,
 )
 
 
@@ -41,21 +51,21 @@ class FastContinueOperation(FastGenerateOperation):
             type(self.sequence.clip_count) is not int
             or not MIN_CLIP_COUNT <= self.sequence.clip_count <= MAX_CLIP_COUNT
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.clipCount"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, CLIP_COUNT)
         if (
             type(self.sequence.clip_seconds) not in (int, float)
             or not MIN_CLIP_SECONDS <= self.sequence.clip_seconds <= MAX_CLIP_SECONDS
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.continuedClipDuration"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, CONTINUED_CLIP_DURATION)
         if self.sequence.aspect not in OPTIONS_ASPECT:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.aspectRatio"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, ASPECT_RATIO)
         prompts = (self.prompt, *self.sequence.later_prompts)
         if len(self.sequence.later_prompts) > self.sequence.clip_count - 1 or any(
             type(prompt) is not str or not prompt.strip() or len(prompt) > MAX_PROMPT_CHARACTERS for prompt in prompts
         ):
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                translate("main", "errors.continuationPrompts"),
+                CONTINUATION_PROMPTS,
             )
 
     async def begin_generation(
@@ -66,7 +76,7 @@ class FastContinueOperation(FastGenerateOperation):
             track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
             for track in transport.tracks
         ):
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, FAST_AUDIO_MISSING)
         clips = FastClipEvents(events, limit=self.sequence.clip_count + 1)
         await events.command_reply("set_autoplay", {"enabled": False})
         await events.command_reply("set_flush_on_clip_end", {"enabled": False})
@@ -79,7 +89,7 @@ class FastContinueOperation(FastGenerateOperation):
         if not minimum <= self.sequence.clip_seconds <= maximum:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                translate("main", "errors.clipDurationUnsupported"),
+                CLIP_DURATION_UNSUPPORTED,
             )
         current = await self._enqueue(events, None, 0)
         self._validate_recording_limit(current, max_capture_seconds)
@@ -97,7 +107,7 @@ class FastContinueOperation(FastGenerateOperation):
         if not 0 < duration <= max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
-                (translate("main", "errors.sequenceCaptureLimit")),
+                (SEQUENCE_CAPTURE_LIMIT),
             )
         events.model_timing.update(saved_start_seconds=start_seconds, saved_duration_seconds=duration)
         # The recorder needs later media to close its final fragment.
@@ -110,7 +120,7 @@ class FastContinueOperation(FastGenerateOperation):
         """Read the recording position only while automatic playback is stopped."""
         state = await self._state(transport, events)
         if state.get("playing") is not False:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.sequencePlaybackOrder"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, SEQUENCE_PLAYBACK_ORDER)
         return seconds(state.get("seconds_sent"))
 
     def _validate_recording_limit(self, clip: FastClip, max_capture_seconds: float) -> None:
@@ -118,7 +128,7 @@ class FastContinueOperation(FastGenerateOperation):
         if clip.seconds * self.sequence.clip_count > max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                translate("main", "errors.acceptedSequenceLimit"),
+                ACCEPTED_SEQUENCE_LIMIT,
             )
 
     async def _enqueue(

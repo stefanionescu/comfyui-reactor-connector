@@ -3,14 +3,16 @@
 import math
 from typing import ClassVar
 from ...models import MODELS
-from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
 from ...state.settings import Settings
 from ..inputs import VideoInputOperation
 from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
+from ...config.messages.live import CAMERA_DIRECTION
+from ...config.messages.media import STARTING_IMAGE_REQUIRED
 from ...state.generation.lingbot import LingBotRequest, LingBotWorldRequest
+from ...config.messages.inputs import ROTATION_SPEED, LATERAL_DIRECTION, WORLD_PROMPT_LENGTH
 from ...config.generation.world import (
     CAMERA_AXES,
     WORLD_FRAME_RATE,
@@ -39,23 +41,23 @@ class LingBotOperation(VideoInputOperation[LingBotRequest]):
         super().validate(settings)
         inputs = self.inputs
         if inputs.image is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.startingImageRequired"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, STARTING_IMAGE_REQUIRED)
         if len(inputs.prompt) > MAX_WORLD_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.worldPromptLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, WORLD_PROMPT_LENGTH)
         allowed = (
             (inputs.movement, self.movement_values),
             (inputs.look_horizontal, CAMERA_AXES["look_horizontal"]),
             (inputs.look_vertical, CAMERA_AXES["look_vertical"]),
         )
         if any(type(value) is not str or value not in choices for value, choices in allowed):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraDirection"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, CAMERA_DIRECTION)
         speed = inputs.rotation_speed_deg
         if (
             type(speed) not in (int, float)
             or not math.isfinite(speed)
             or not MIN_ROTATION_SPEED <= speed <= MAX_ROTATION_SPEED
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.rotationSpeed"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, ROTATION_SPEED)
 
     async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
@@ -64,7 +66,7 @@ class LingBotOperation(VideoInputOperation[LingBotRequest]):
         del max_capture_seconds
         inputs = self.inputs
         if inputs.image is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.startingImageRequired"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, STARTING_IMAGE_REQUIRED)
         await events.command_reply("set_seed", {"seed": inputs.seed})
         reference = await transport.upload_file(inputs.image, name="input.png", mime_type="image/png")
         await events.command_reply("set_image", {"image": reference})
@@ -103,7 +105,7 @@ class LingBotWorldOperation(LingBotOperation):
         """Check the shared camera settings and World 2 lateral direction."""
         super().validate(settings)
         if type(self.lateral) is not str or self.lateral not in CAMERA_AXES["move_lateral"]:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.lateralDirection"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LATERAL_DIRECTION)
 
     def axes(self) -> tuple[tuple[str, str], ...]:
         """Map camera directions to the command names used by LingBot World 2."""

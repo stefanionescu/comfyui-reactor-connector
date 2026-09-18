@@ -4,7 +4,6 @@ import re
 import aiohttp
 import asyncio
 from http import HTTPStatus
-from ..language import translate
 from typing import TYPE_CHECKING
 from datetime import UTC, datetime
 from .navigation import navigation_guides
@@ -12,6 +11,7 @@ from ..errors import ErrorCode, ConnectorError
 from .contracts import rows, invalid, parse_snapshot
 from ..serialization import parse_json, mapping_value
 from ..state.discovery import Snapshot, FORMAT_VERSION
+from ..config.messages.discovery import MODELS_HTTP, MODELS_UNREADABLE
 from ..config.discovery import (
     INDEX_URL,
     PRICING_URL,
@@ -79,7 +79,7 @@ async def _read(session: aiohttp.ClientSession, url: str) -> str:
         if response.status != HTTPStatus.OK:
             raise ConnectorError(
                 ErrorCode.DISCOVERY,
-                translate("main", "errors.modelsHttp", status=response.status),
+                MODELS_HTTP.format(status=response.status),
             )
         content = bytearray()
         async for chunk in response.content.iter_chunked(SOURCE_CHUNK_BYTES):
@@ -115,5 +115,5 @@ async def read_public_models() -> Snapshot:
     except (aiohttp.ClientError, TimeoutError, UnicodeError):
         raise ConnectorError(
             ErrorCode.DISCOVERY,
-            translate("main", "errors.modelsUnreadable"),
+            MODELS_UNREADABLE,
         ) from None

@@ -3,7 +3,6 @@
 import json
 from typing import ClassVar
 from ...models import MODELS
-from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
 from ...state.settings import Settings
@@ -12,6 +11,7 @@ from .storyboard import parse_storyboard
 from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
 from ...state.generation.longlive import LongLiveRequest
+from ...config.messages.inputs import LONGLIVE_IMAGES_UNSUPPORTED
 
 
 class LongLiveOperation(VideoInputOperation[LongLiveRequest]):
@@ -23,7 +23,7 @@ class LongLiveOperation(VideoInputOperation[LongLiveRequest]):
         """Check capture inputs and shot order; reject unsupported image input."""
         super().validate(settings)
         if self.inputs.image is not None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.longliveImagesUnsupported"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LONGLIVE_IMAGES_UNSUPPORTED)
         parse_storyboard(json.dumps([shot.to_dict() for shot in self.inputs.shots]))
 
     async def begin_generation(

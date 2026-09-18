@@ -3,11 +3,11 @@
 import tomllib
 from uuid import uuid4
 from functools import lru_cache
-from ..language import translate
 from ..paths import EXTENSION_ROOT
 from ..state.reports import RunReport
 from importlib.metadata import version
 from ..errors import ErrorCode, ConnectorError
+from ..config.messages.settings import PACKAGE_VERSION_MISSING
 from ..config.package import MAX_PROJECT_FILE_BYTES, MAX_VERSION_CHARACTERS
 
 
@@ -27,7 +27,7 @@ def prepare_report(node_id: str, model_name: str, duration_seconds: float) -> Ru
 def connector_version() -> str:
     """Read the package's single version source before a connection starts."""
     path = EXTENSION_ROOT / "pyproject.toml"
-    invalid = ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.packageVersionMissing"))
+    invalid = ConnectorError(ErrorCode.CONFIGURATION, PACKAGE_VERSION_MISSING)
     try:
         if path.stat().st_size > MAX_PROJECT_FILE_BYTES:
             raise invalid

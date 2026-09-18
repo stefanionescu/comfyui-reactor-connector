@@ -1,10 +1,10 @@
 """Validate the finite fragmented-MP4 playlist used by Reactor recordings."""
 
 import re
-from ...language import translate
 from urllib.parse import urljoin, urlsplit
 from ...errors import ErrorCode, ConnectorError
 from ...state.recording import RecordingManifest
+from ...config.messages.media import RECORDING_UNSUPPORTED
 from ...config.media.recording import (
     COORDINATOR,
     MAX_SEGMENTS,
@@ -23,7 +23,7 @@ def recording_error(reason: str = "Unsupported recording response.") -> Connecto
     """Separate the public recording error from its private diagnostic reason."""
     return ConnectorError(
         ErrorCode.CAPTURE,
-        translate("main", "errors.recordingUnsupported"),
+        RECORDING_UNSUPPORTED,
         diagnostic_detail=reason,
     )
 

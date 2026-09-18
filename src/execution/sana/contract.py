@@ -1,8 +1,8 @@
 """Choose only a SANA input path confirmed by the connected deployment."""
 
-from ...language import translate
 from ..transport import Transport
 from ...errors import ErrorCode, ConnectorError
+from ...config.messages.inputs import SANA_UNSUPPORTED
 from ...serialization import mapping_value, validate_json
 
 
@@ -28,5 +28,5 @@ def source_mode(schema: object, transport: Transport) -> str:
             return "camera"
     raise ConnectorError(
         ErrorCode.UNAVAILABLE,
-        translate("main", "errors.sanaUnsupported"),
+        SANA_UNSUPPORTED,
     )

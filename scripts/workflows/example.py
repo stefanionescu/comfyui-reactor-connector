@@ -1,8 +1,8 @@
 """Describe named node inputs and the connections included in one workflow."""
 
+from .texts import TITLES
 from typing import Literal
 from dataclasses import dataclass
-from ...src.language import translate
 
 
 # Plan steps and extra media inputs occupy mutually exclusive positions.
@@ -38,8 +38,8 @@ class Example:
 
     @property
     def title(self) -> str:
-        """Read the example title from the workflow language file."""
-        return translate("workflows", self.slug + ".title")
+        """Read the example title."""
+        return TITLES[self.slug]
 
     @property
     def clip_count(self) -> int:

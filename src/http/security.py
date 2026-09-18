@@ -3,8 +3,8 @@
 import ipaddress
 from aiohttp import web
 from typing import cast
-from ..language import translate
 from urllib.parse import SplitResult, urlsplit
+from ..config.messages.requests import LOCAL_CONNECTION_REQUIRED
 
 
 def _has_forwarding_headers(request: web.Request) -> bool:
@@ -58,7 +58,7 @@ def _is_same_origin(origin: str, target: SplitResult, port: int) -> bool:
 
 def require_local_request(request: web.Request, *, is_mutation: bool, is_multi_user: bool) -> None:
     """Reject remote peers, rebinding hosts, cross-origin requests, and unsafe writes."""
-    forbidden = web.HTTPForbidden(text=translate("main", "errors.localConnectionRequired"))
+    forbidden = web.HTTPForbidden(text=LOCAL_CONNECTION_REQUIRED)
     try:
         if _has_forwarding_headers(request):
             raise forbidden

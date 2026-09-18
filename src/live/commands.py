@@ -2,10 +2,10 @@
 
 import time
 import asyncio
-from ..language import translate
 from ..execution.events import SessionEvents
 from ..errors import ErrorCode, ConnectorError
 from ..state.live import BrowserInput, CameraChange
+from ..config.messages.live import CAMERA_INPUT_STALE, CAMERA_COMMAND_LIMIT, CAMERA_COMMAND_TIMEOUT
 from ..config.live import MAX_QUEUED_MOVEMENTS, COMMAND_TIMEOUT_SECONDS, MAX_QUEUED_MOVEMENT_SECONDS
 
 
@@ -32,9 +32,7 @@ class CameraCommands:
                 try:
                     queue.put_nowait(CameraChange(value, time.monotonic()))
                 except asyncio.QueueFull:
-                    raise ConnectorError(
-                        ErrorCode.UNAVAILABLE, translate("main", "errors.cameraCommandLimit")
-                    ) from None
+                    raise ConnectorError(ErrorCode.UNAVAILABLE, CAMERA_COMMAND_LIMIT) from None
                 self.desired[axis] = value
 
     async def _axis(self, axis: str) -> None:
@@ -55,7 +53,7 @@ class CameraCommands:
             self.events.on_error(
                 ConnectorError(
                     ErrorCode.TIMEOUT,
-                    translate("main", "errors.cameraCommandTimeout"),
+                    CAMERA_COMMAND_TIMEOUT,
                     diagnostic_detail=f"The {axis} reply exceeded {COMMAND_TIMEOUT_SECONDS} seconds.",
                 )
             )
@@ -63,7 +61,7 @@ class CameraCommands:
     async def _apply(self, axis: str, change: CameraChange) -> None:
         """Send fresh camera input and record only acknowledged direction changes."""
         if change.value != "idle" and time.monotonic() - change.queued_at > MAX_QUEUED_MOVEMENT_SECONDS:
-            raise ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.cameraInputStale"))
+            raise ConnectorError(ErrorCode.TIMEOUT, CAMERA_INPUT_STALE)
         started = time.monotonic()
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
             await self.events.command_reply(f"set_{axis}", {axis: change.value})

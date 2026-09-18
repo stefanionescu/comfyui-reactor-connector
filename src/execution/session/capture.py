@@ -4,7 +4,6 @@ import sys
 import json
 import asyncio
 from pathlib import Path
-from ...language import translate
 from ..failures import safe_error
 from ..events import SessionEvents
 from ..cleanup import finish_session
@@ -19,6 +18,8 @@ from ..interaction import SessionInteraction
 from ...errors import ErrorCode, ConnectorError
 from ...state.settings import ExecutionConfiguration
 from ...media.units import convert_mebibytes_to_bytes
+from ...config.messages.session import SESSION_DEADLINE
+from ...config.messages.media import VIDEO_TRACK_MISSING
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
 from ...state.session import SessionOutcome, RecordingWindow
@@ -33,7 +34,7 @@ def _video_track(transport: Transport) -> Track:
         if track.name == "main_video" and track.kind == "video" and track.direction == "recvonly"
     ]
     if len(tracks) != 1:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.videoTrackMissing"))
+        raise ConnectorError(ErrorCode.UNAVAILABLE, VIDEO_TRACK_MISSING)
     return tracks[0]
 
 
@@ -114,7 +115,7 @@ def session_failure(events: SessionEvents, error: BaseException | None) -> Failu
             "timeout",
             json.dumps(
                 {
-                    "reason": translate("main", "errors.sessionDeadline"),
+                    "reason": SESSION_DEADLINE,
                     "state_received": events.state_ready.is_set(),
                     "message_types": sorted(events.message_types),
                     "capture_frames": events.capture_frames,

@@ -1,5 +1,26 @@
 """Video frame dimensions, queue limits, and encoding parameters."""
 
+from ..messages.media import (
+    NO_FRAMES,
+    TRUNCATED,
+    DIMENSIONS,
+    FILE_LIMIT,
+    FRAME_SIZE,
+    SOURCE_HDR,
+    TIMESTAMPS,
+    SOURCE_RATE,
+    SOURCE_VIDEO,
+    SOURCE_FRAMES,
+    ENCODER_FAILED,
+    SOURCE_STREAMS,
+    RECORDING_AUDIO,
+    RECORDING_VIDEO,
+    RECORDING_MEMORY,
+    SOURCE_FRAME_LIMIT,
+    SOURCE_TIME_MISSING,
+    RECORDING_UNREADABLE,
+)
+
 MIN_FRAME_DIMENSION = 2
 
 MAX_FRAME_DIMENSION = 8192
@@ -7,24 +28,24 @@ MAX_FRAME_DIMENSION = 8192
 FRAME_HEADER_FORMAT = "<IIq"
 
 ENCODER_ERRORS = {
-    "dimensions": "mediaErrors.dimensions",
-    "frame_size": "mediaErrors.frame_size",
-    "timestamps": "mediaErrors.timestamps",
-    "file_limit": "mediaErrors.file_limit",
-    "no_frames": "mediaErrors.no_frames",
-    "truncated": "mediaErrors.truncated",
-    "encoder_failed": "mediaErrors.encoder_failed",
-    "source_frames": "mediaErrors.source_frames",
-    "source_video": "mediaErrors.source_video",
-    "source_streams": "mediaErrors.source_streams",
-    "source_hdr": "mediaErrors.source_hdr",
-    "source_rate": "mediaErrors.source_rate",
-    "source_time_missing": "mediaErrors.source_time_missing",
-    "source_frame_limit": "mediaErrors.source_frame_limit",
-    "recording_video": "mediaErrors.recording_video",
-    "recording_audio": "mediaErrors.recording_audio",
-    "recording_memory": "mediaErrors.recording_memory",
-    "recording_details": "mediaErrors.recording_details",
+    "dimensions": DIMENSIONS,
+    "frame_size": FRAME_SIZE,
+    "timestamps": TIMESTAMPS,
+    "file_limit": FILE_LIMIT,
+    "no_frames": NO_FRAMES,
+    "truncated": TRUNCATED,
+    "encoder_failed": ENCODER_FAILED,
+    "source_frames": SOURCE_FRAMES,
+    "source_video": SOURCE_VIDEO,
+    "source_streams": SOURCE_STREAMS,
+    "source_hdr": SOURCE_HDR,
+    "source_rate": SOURCE_RATE,
+    "source_time_missing": SOURCE_TIME_MISSING,
+    "source_frame_limit": SOURCE_FRAME_LIMIT,
+    "recording_video": RECORDING_VIDEO,
+    "recording_audio": RECORDING_AUDIO,
+    "recording_memory": RECORDING_MEMORY,
+    "recording_details": RECORDING_UNREADABLE,
 }
 
 MAX_DURATION_MICROSECONDS = 3_601_000_000

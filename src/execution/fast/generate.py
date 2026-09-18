@@ -3,7 +3,6 @@
 import json
 from typing import ClassVar
 from ...models import MODELS
-from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
 from ...state.settings import Settings
@@ -13,6 +12,7 @@ from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
 from ...media.units import convert_mebibytes_to_bytes
 from ...state.generation.fast import FastGenerateRequest
+from ...config.messages.media import ENDING_IMAGE_UPLOAD_LIMIT
 from .clip import seconds, read_clip, FastClipEvents, message_payload
 from ...config.generation.fast import (
     FRAME_RATE,
@@ -20,6 +20,17 @@ from ...config.generation.fast import (
     MAX_CLIP_SECONDS,
     MIN_CLIP_SECONDS,
     MAX_PROMPT_CHARACTERS,
+)
+from ...config.messages.inputs import (
+    FAST_DURATION,
+    FAST_ASPECT_RATIO,
+    CLIP_CAPTURE_LIMIT,
+    FAST_AUDIO_MISSING,
+    FAST_PROMPT_LENGTH,
+    CLIP_DURATION_RANGE,
+    CLIP_PLAYBACK_ORDER,
+    CLIP_WINDOW_MISSING,
+    CONTINUATION_LENGTH,
 )
 
 
@@ -37,17 +48,17 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
     def _validate_clips(self, settings: Settings) -> None:
         """Check Fast H3 prompt, duration, aspect ratio, and ending-image limits."""
         if len(self.prompt) > MAX_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastPromptLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, FAST_PROMPT_LENGTH)
         if not MIN_CLIP_SECONDS <= self.duration_seconds <= MAX_CLIP_SECONDS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastDuration"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, FAST_DURATION)
         if self.inputs.aspect not in OPTIONS_ASPECT:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.fastAspectRatio"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, FAST_ASPECT_RATIO)
         if self.inputs.ending_image is not None and (
             type(self.inputs.ending_image) is not bytes
             or not self.inputs.ending_image
             or len(self.inputs.ending_image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.endingImageUploadLimit"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, ENDING_IMAGE_UPLOAD_LIMIT)
 
     async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
@@ -57,7 +68,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
             t for t in transport.tracks if t.name == "main_audio" and t.kind == "audio" and t.direction == "recvonly"
         ]
         if len(audio) != 1:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.fastAudioMissing"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, FAST_AUDIO_MISSING)
         clips = FastClipEvents(events)
         await events.command_reply("set_autoplay", {"enabled": False})
         await events.command_reply("set_flush_on_clip_end", {"enabled": False})
@@ -70,7 +81,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         if not minimum <= self.duration_seconds <= maximum:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                translate("main", "errors.clipDurationRange"),
+                CLIP_DURATION_RANGE,
             )
         clip = await self._queue_clip(transport, events, max_capture_seconds)
         await events.call("clip_build", clips.wait_ready(clip))
@@ -92,7 +103,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         events.check()
         tail = read_clip(message_payload(reply, "clip_queued"))
         if tail.seconds > maximum:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.continuationLength"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, CONTINUATION_LENGTH)
         await events.call("recording_tail_build", clips.wait_ready(tail))
         await events.command_reply("play", {"clip_id": tail.clip_id})
         return RecordingWindow(start_seconds, clip.seconds)
@@ -116,7 +127,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         if clip.seconds > max_capture_seconds:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                translate("main", "errors.clipCaptureLimit"),
+                CLIP_CAPTURE_LIMIT,
             )
         return clip
 
@@ -127,14 +138,14 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         before = await self._state(transport, events)
         start = seconds(before.get("seconds_sent"))
         if before.get("playing") is not False:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.clipPlaybackOrder"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_PLAYBACK_ORDER)
         await events.command_reply("play", {"clip_id": clip.clip_id})
         await events.call("clip_playback", clips.finished.wait())
         end = seconds(clips.end_seconds)
         if abs(end - start - clip.seconds) > 1 / FRAME_RATE:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
-                translate("main", "errors.clipWindowMissing"),
+                CLIP_WINDOW_MISSING,
                 diagnostic_detail=json.dumps(
                     {"start_seconds": start, "end_seconds": end, "clip_seconds": clip.seconds}
                 ),

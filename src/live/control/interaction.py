@@ -2,7 +2,6 @@
 
 import asyncio
 from .lease import ControlLease
-from ...language import translate
 from ...state.documents import Json
 from ..interaction import BrowserInteraction
 from ...config.live import INPUT_POLL_SECONDS
@@ -10,6 +9,7 @@ from ...execution.events import SessionEvents
 from ...errors import ErrorCode, ConnectorError
 from ...execution.transport import Track, Transport
 from ...config.nodes import DEFAULT_POINTER_POSITION
+from ...config.messages.live import LIVE_COMMAND_UNFINISHED
 from ...config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
 
 
@@ -55,7 +55,7 @@ class ControlInteraction(BrowserInteraction):
             events.on_error(
                 error
                 if isinstance(error, ConnectorError)
-                else ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.liveCommandUnfinished"))
+                else ConnectorError(ErrorCode.TIMEOUT, LIVE_COMMAND_UNFINISHED)
             )
 
     async def _send_action(self, events: SessionEvents, name: str, payload: dict[str, Json]) -> None:

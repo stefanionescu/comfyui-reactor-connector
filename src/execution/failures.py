@@ -1,8 +1,17 @@
 """Translate SDK failures without retaining provider text in visible errors."""
 
-from ..language import translate
 from ..errors import ErrorCode, ConnectorError
 from reactor_sdk import AuthError, ReactorError
+from ..config.messages.discovery import MODEL_UNAVAILABLE
+from ..config.messages.session import (
+    PHASE,
+    RUN_FAILED,
+    ACCESS_REFUSED,
+    SESSION_TIMEOUT,
+    PROVIDER_RATE_LIMIT,
+    AUTHENTICATION_FAILED,
+    PROVIDER_REQUEST_TIMEOUT,
+)
 
 
 def diagnostic_code(error: object) -> str:
@@ -44,20 +53,15 @@ def phase_error(error: object, phase: str) -> ConnectorError:
     safe = safe_error(error)
     if isinstance(error, ConnectorError):
         return error
-    return ConnectorError(
-        safe.code, translate("main", "errors.phase", message=str(safe), phase=phase, code=diagnostic_code(error))
-    )
+    return ConnectorError(safe.code, PHASE.format(message=str(safe), phase=phase, code=diagnostic_code(error)))
 
 
 PROVIDER_ERRORS = {
-    "UNAUTHORIZED": (ErrorCode.AUTHENTICATION, "errors.accessRefused"),
-    "RATE_LIMITED": (ErrorCode.UNAVAILABLE, "errors.providerRateLimit"),
-    "REQUEST_TIMEOUT": (ErrorCode.TIMEOUT, "errors.providerRequestTimeout"),
-    "NOT_FOUND": (ErrorCode.UNAVAILABLE, "errors.modelUnavailable"),
-    "VERSION_MISMATCH": (
-        ErrorCode.UNAVAILABLE,
-        "errors.modelUnavailable",
-    ),
+    "UNAUTHORIZED": (ErrorCode.AUTHENTICATION, ACCESS_REFUSED),
+    "RATE_LIMITED": (ErrorCode.UNAVAILABLE, PROVIDER_RATE_LIMIT),
+    "REQUEST_TIMEOUT": (ErrorCode.TIMEOUT, PROVIDER_REQUEST_TIMEOUT),
+    "NOT_FOUND": (ErrorCode.UNAVAILABLE, MODEL_UNAVAILABLE),
+    "VERSION_MISMATCH": (ErrorCode.UNAVAILABLE, MODEL_UNAVAILABLE),
 }
 
 
@@ -68,10 +72,10 @@ def safe_error(error: object) -> ConnectorError:
     if isinstance(error, AuthError):
         return ConnectorError(
             ErrorCode.AUTHENTICATION,
-            translate("main", "errors.authenticationFailed"),
+            AUTHENTICATION_FAILED,
         )
     if isinstance(error, TimeoutError):
-        return ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.sessionTimeout"))
-    default = (ErrorCode.TRANSPORT, "errors.runFailed")
+        return ConnectorError(ErrorCode.TIMEOUT, SESSION_TIMEOUT)
+    default = (ErrorCode.TRANSPORT, RUN_FAILED)
     code, message = PROVIDER_ERRORS.get(error.code, default) if isinstance(error, ReactorError) else default
-    return ConnectorError(code, translate("main", message))
+    return ConnectorError(code, message)

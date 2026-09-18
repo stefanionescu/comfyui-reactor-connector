@@ -4,11 +4,11 @@ import time
 import secrets
 import threading
 from collections import deque
-from ..language import translate
 from ..state.documents import Json
 from collections.abc import Callable
 from ..errors import ErrorCode, ConnectorError
 from ..state.live import BrowserInput, BrowserExchange
+from ..config.messages.live import LIVE_INPUT_ORDER, CAMERA_STATE_REQUIRED, LIVE_SESSION_UNAVAILABLE
 from ..config.live import (
     LEASE_BYTES,
     MAX_SEQUENCE,
@@ -100,7 +100,7 @@ class BrowserLease:
             or any(value not in self.choices[axis] for axis, value in axes.items())
             or (release and any(value != "idle" for value in axes.values()))
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.cameraStateRequired"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, CAMERA_STATE_REQUIRED)
         return BrowserExchange(sequence, axes, end, release, preview_sequence)
 
     def _accept_exchange(self, exchange: BrowserExchange, now: float) -> None:
@@ -109,7 +109,7 @@ class BrowserLease:
             self.end = True
             raise unavailable()
         if exchange.sequence <= self.sequence:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.liveInputOrder"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_INPUT_ORDER)
         self.sequence = exchange.sequence
         self.last_seen = now
         if not self.closed:
@@ -234,4 +234,4 @@ class BrowserLease:
 
 def unavailable() -> ConnectorError:
     """Return a public error without revealing whether a private session exists."""
-    return ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.liveSessionUnavailable"))
+    return ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)

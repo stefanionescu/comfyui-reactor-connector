@@ -3,21 +3,21 @@
 import json
 import math
 from typing import cast
-from .language import translate
 from .state.documents import Json
 from .errors import ErrorCode, ConnectorError
 from .config.serialization import MAX_JSON_BYTES, MAX_JSON_DEPTH
+from .config.messages.requests import JSON_SIZE, JSON_DEPTH, JSON_MAPPING, JSON_SYNTAX, JSON_VALUES, JSON_DUPLICATE_KEY
 
 
 def parse_json(text: str, *, max_bytes: int = MAX_JSON_BYTES, max_depth: int = MAX_JSON_DEPTH) -> Json:
     """Reject oversized, nested, duplicate-key, and non-finite JSON input."""
     if len(text.encode("utf-8")) > max_bytes:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.jsonSize"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_SIZE)
     try:
         value = cast("object", json.loads(text, object_pairs_hook=_unique_fields))
         return validate_json(value, max_depth=max_depth)
     except (ValueError, RecursionError) as error:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.jsonSyntax")) from error
+        raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_SYNTAX) from error
 
 
 def _unique_fields(pairs: list[tuple[str, Json]]) -> dict[str, Json]:
@@ -25,7 +25,7 @@ def _unique_fields(pairs: list[tuple[str, Json]]) -> dict[str, Json]:
     result: dict[str, Json] = {}
     for key, value in pairs:
         if key in result:
-            msg = translate("main", "errors.jsonDuplicateKey")
+            msg = JSON_DUPLICATE_KEY
             raise ValueError(msg)
         result[key] = value
     return result
@@ -34,7 +34,7 @@ def _unique_fields(pairs: list[tuple[str, Json]]) -> dict[str, Json]:
 def validate_json(value: object, *, max_depth: int = MAX_JSON_DEPTH) -> Json:
     """Copy JSON values within the nesting limit; reject other Python objects."""
     if max_depth < 0:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.jsonDepth"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_DEPTH)
     if value is None or isinstance(value, (str, bool, int)):
         return value
     if isinstance(value, float) and math.isfinite(value):
@@ -46,11 +46,11 @@ def validate_json(value: object, *, max_depth: int = MAX_JSON_DEPTH) -> Json:
         entries = cast("dict[object, object]", value)
         if all(isinstance(key, str) for key in entries):
             return {cast("str", key): validate_json(item, max_depth=max_depth - 1) for key, item in entries.items()}
-    raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.jsonValues"))
+    raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_VALUES)
 
 
 def mapping_value(value: Json) -> dict[str, Json]:
     """Require an object at a public JSON boundary."""
     if not isinstance(value, dict):
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.jsonObject"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_MAPPING)
     return value

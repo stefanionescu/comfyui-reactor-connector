@@ -8,10 +8,10 @@ from yarl import URL
 from pathlib import Path
 from http import HTTPStatus
 from ..output import FileOutput
-from ...language import translate
 from ...state.credentials import SessionToken
 from ...errors import ErrorCode, ConnectorError
 from ...state.recording import RecordingManifest
+from ...config.messages.media import RECORDING_NOT_READY
 from .manifest import recording_url, coordinator_url, recording_error, parse_recording_manifest
 from ...config.media.recording import (
     MAX_RETRY_SECONDS,
@@ -121,6 +121,6 @@ async def download_recording(
                             raise recording_error()
             return output.written
     except TimeoutError:
-        raise ConnectorError(ErrorCode.TIMEOUT, translate("main", "errors.recordingNotReady")) from None
+        raise ConnectorError(ErrorCode.TIMEOUT, RECORDING_NOT_READY) from None
     except (aiohttp.ClientError, UnicodeError, OSError):
         raise recording_error() from None

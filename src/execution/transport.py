@@ -3,7 +3,6 @@
 import math
 import time
 from pathlib import Path
-from ..language import translate
 from typing import cast, Protocol
 from reactor_sdk import Clip, Reactor
 from ..errors import ErrorCode, ConnectorError
@@ -11,6 +10,8 @@ from .authentication import mint_session_token
 from collections.abc import Callable, Sequence
 from ..state.credentials import Credential, SessionToken
 from ..media.recording.download import download_recording
+from ..config.messages.session import SESSION_DISCONNECTED, SESSION_ALREADY_CONNECTED
+from ..config.messages.media import RECORDING_TIMING, RECORDING_READINESS, RECORDING_DISCONNECTED
 
 
 class Track(Protocol):
@@ -140,7 +141,7 @@ class SessionTransport:
     def _client(self) -> Transport:
         """Require an open client before forwarding a transport operation."""
         if self.client is None or self.closed:
-            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.sessionDisconnected"))
+            raise ConnectorError(ErrorCode.TRANSPORT, SESSION_DISCONNECTED)
         return self.client
 
     def on(self, event: str, callback: Callable[..., None]) -> None:
@@ -159,7 +160,7 @@ class SessionTransport:
     async def connect(self) -> None:
         """Mint one lifetime-limited token and connect the SDK without retaining the API key."""
         if self.attempted or self.closed or self.credential is None:
-            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.sessionAlreadyConnected"))
+            raise ConnectorError(ErrorCode.TRANSPORT, SESSION_ALREADY_CONNECTED)
         self.attempted = True
         self.token = await mint_session_token(self.model, self.credential, self.session_seconds)
         self.credential = None
@@ -225,15 +226,15 @@ class SessionTransport:
     ) -> None:
         """Use the private session token without handing it to a node or workflow."""
         if self.token is None:
-            raise ConnectorError(ErrorCode.TRANSPORT, translate("main", "errors.recordingDisconnected"))
+            raise ConnectorError(ErrorCode.TRANSPORT, RECORDING_DISCONNECTED)
         clip = await self.request_recording()
         markers = (clip.start_marker, clip.end_marker, clip.now_marker)
         if not all(math.isfinite(value) and value >= 0 for value in markers):
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingTiming"))
+            raise ConnectorError(ErrorCode.CAPTURE, RECORDING_TIMING)
         if on_window:
             predicted_wait = clip.predicted_ready_at_ms / 1000 - time.time()
             if not math.isfinite(predicted_wait):
-                raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingReadiness"))
+                raise ConnectorError(ErrorCode.CAPTURE, RECORDING_READINESS)
             on_window(*markers, predicted_wait)
         await download_recording(
             clip.playlist_url,

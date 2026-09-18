@@ -3,14 +3,15 @@
 import os
 import asyncio
 from contextlib import suppress
-from ..language import translate
 from ..tasks import wait_shielded
 from ..state.documents import Json
 from ..errors import ErrorCode, ConnectorError
 from ..config.media.capture import ENCODER_ERRORS
+from ..config.messages.session import CAPTURE_STOPPED
 from ..serialization import parse_json, mapping_value
 from collections.abc import Callable, Sequence, Coroutine
 from ..config.media.workers import MAX_REPORT_BYTES, SHUTDOWN_TIMEOUT_SECONDS
+from ..config.messages.media import ENCODER_PIPES, ENCODER_RESULT, ENCODER_NOT_READY, ENCODER_STOP_FAILED
 
 
 class MediaProcess:
@@ -41,7 +42,7 @@ class MediaProcess:
             except TimeoutError:
                 raise ConnectorError(
                     ErrorCode.CLEANUP,
-                    translate("main", "errors.encoderStopFailed"),
+                    ENCODER_STOP_FAILED,
                 ) from None
 
     async def _dispose(self, tasks: Sequence[asyncio.Task[object]]) -> None:
@@ -75,7 +76,7 @@ class MediaProcess:
         tasks: list[asyncio.Task[object]] = []
         try:
             if self.process.stdin is None or self.process.stdout is None:
-                raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderPipes"))
+                raise ConnectorError(ErrorCode.CAPTURE, ENCODER_PIPES)
             feeder = asyncio.create_task(feed(self.process.stdin))
             reader = asyncio.create_task(_read_result(self.process.stdout, ready))
             interrupted = asyncio.create_task(stopped.wait())
@@ -85,12 +86,12 @@ class MediaProcess:
                 feeder.result()
                 await asyncio.wait({reader, interrupted}, return_when=asyncio.FIRST_COMPLETED)
             if interrupted.done():
-                raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.captureStopped"))
+                raise ConnectorError(ErrorCode.CAPTURE, CAPTURE_STOPPED)
             result = await reader
             async with asyncio.timeout(self.shutdown_seconds):
                 returncode = await self.process.wait()
             if returncode != 0:
-                raise ConnectorError(ErrorCode.CAPTURE, translate("main", ENCODER_ERRORS["encoder_failed"]))
+                raise ConnectorError(ErrorCode.CAPTURE, ENCODER_ERRORS["encoder_failed"])
             return result
         finally:
             await self._finish(tasks)
@@ -114,11 +115,11 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
     """Validate a size-limited worker report and translate fixed error codes into public errors."""
     line = await reader.readline()
     if not line or len(line) > MAX_REPORT_BYTES:
-        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderResult"))
+        raise ConnectorError(ErrorCode.CAPTURE, ENCODER_RESULT)
     try:
         value = mapping_value(parse_json(line.decode("utf-8"), max_bytes=MAX_REPORT_BYTES))
     except (ValueError, UnicodeError, ConnectorError):
-        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderResult")) from None
+        raise ConnectorError(ErrorCode.CAPTURE, ENCODER_RESULT) from None
     if "error" in value:
         code = value["error"]
         message = (
@@ -126,7 +127,7 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
             if isinstance(code, str)
             else ENCODER_ERRORS["encoder_failed"]
         )
-        raise ConnectorError(ErrorCode.CAPTURE, translate("main", message))
+        raise ConnectorError(ErrorCode.CAPTURE, message)
     return value
 
 
@@ -134,6 +135,6 @@ async def _read_result(reader: asyncio.StreamReader, ready: asyncio.Event) -> di
     """Require the worker readiness message before accepting its final report."""
     initial = await _report(reader)
     if initial.keys() != {"ready"} or initial["ready"] is not True:
-        raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.encoderNotReady"))
+        raise ConnectorError(ErrorCode.CAPTURE, ENCODER_NOT_READY)
     ready.set()
     return await _report(reader)

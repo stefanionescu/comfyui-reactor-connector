@@ -1,7 +1,6 @@
 """Check shared video inputs and recording limits before starting a session."""
 
 from typing import ClassVar
-from ..language import translate
 from .transport import Transport
 from ..config.nodes import MAX_SEED
 from ..state.settings import Settings
@@ -10,6 +9,8 @@ from ..errors import ErrorCode, ConnectorError
 from ..state.generation.inputs import VideoInputs
 from ..config.media.video import DEFAULT_FRAME_RATE
 from ..media.units import convert_mebibytes_to_bytes
+from ..config.messages.media import IMAGE_UPLOAD_LIMIT
+from ..config.messages.inputs import SEED_RANGE, CAPTURE_LIMIT, PROMPT_LENGTH
 from ..config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
 
 
@@ -58,14 +59,14 @@ class VideoInputOperation[Request: VideoInputs]:
         """Check prompt, capture, and image limits before a connection."""
         inputs = self.inputs
         if type(inputs.prompt) is not str or not inputs.prompt.strip() or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.promptLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_LENGTH)
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
         if inputs.image is not None and (
             type(inputs.image) is not bytes
             or not inputs.image
             or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.imageUploadLimit"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, IMAGE_UPLOAD_LIMIT)
 
 
 def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settings) -> None:
@@ -74,9 +75,9 @@ def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settin
         type(duration_seconds) not in (int, float)
         or not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds
     ):
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.captureLimit"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, CAPTURE_LIMIT)
     if type(seed) is not int or not 0 <= seed <= MAX_SEED:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.seedRange"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SEED_RANGE)
 
 
 __all__ = ["VideoInputOperation", "validate_capture_inputs"]

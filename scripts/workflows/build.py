@@ -6,13 +6,13 @@ import argparse
 from pathlib import Path
 from .layout import arrange
 from .notes import sections
+from .texts import NODES, NOTES
 from .definitions import EXAMPLES
 from ...src.state.documents import Json
 from .models.longlive import SHOT_PROMPTS
 from .models.helios import SEQUENCE_PROMPTS
 from ...src.serialization import mapping_value
 from .index import EXAMPLE_DIRECTORY, readme_issues
-from ...src.language import translate, language_scope
 from ..nodes.metadata import read_schemas, validate_metadata
 from .example import (
     Example,
@@ -46,7 +46,7 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
         build_node(number, "MarkdownNote", [text], title=title)
         for number, title, text in zip(
             (SETUP_NOTE_ID, USAGE_NOTE_ID),
-            (translate("workflows", "notes.start"), translate("workflows", "notes.usage")),
+            (NOTES["start"], NOTES["usage"]),
             sections(example, model),
             strict=True,
         )
@@ -60,7 +60,7 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
         SAVE_VIDEO_ID,
         "SaveVideo",
         native_widget_values("SaveVideo", native["SaveVideo"], f"video/reactor/{example.slug}"),
-        title=translate("workflows", "nodes.saveVideo"),
+        title=NODES["saveVideo"],
     )
     save["inputs"] = [build_input("video", "VIDEO", 1)]
     save["outputs"] = [build_output("video", "VIDEO", [])]
@@ -100,10 +100,7 @@ def append_starting_image(
         SOURCE_INPUT_ID,
         "LoadImage",
         native_widget_values("LoadImage", native["LoadImage"]),
-        title=translate(
-            "workflows",
-            "nodes.portraitImage" if generation["type"] == "ReactorIncLtxSpeak" else "nodes.startingImage",
-        ),
+        title=NODES["portraitImage" if generation["type"] == "ReactorIncLtxSpeak" else "startingImage"],
     )
     input_node["outputs"] = [build_output("IMAGE", "IMAGE", [2]), build_output("MASK", "MASK", [])]
     generation["inputs"] = [build_input("image", "IMAGE", 2)]
@@ -120,7 +117,7 @@ def append_ending_image(
         EXTRA_INPUT_ID,
         "LoadImage",
         native_widget_values("LoadImage", native["LoadImage"]),
-        title=translate("workflows", "nodes.endingImage"),
+        title=NODES["endingImage"],
     )
     ending_image["outputs"] = [build_output("IMAGE", "IMAGE", [link_id]), build_output("MASK", "MASK", [])]
     incoming: list[Json] = [build_input("image", "IMAGE", 2)] if ("image" in example.sources) else []
@@ -138,7 +135,7 @@ def append_source_video(
         SOURCE_INPUT_ID,
         "LoadVideo",
         native_widget_values("LoadVideo", native["LoadVideo"]),
-        title=translate("workflows", "nodes.sourceVideo"),
+        title=NODES["sourceVideo"],
     )
     input_node["outputs"] = [build_output("VIDEO", "VIDEO", [2])]
     generation["inputs"] = [build_input("source", "VIDEO", 2)]
@@ -149,7 +146,7 @@ def append_source_video(
             EXTRA_INPUT_ID,
             "LoadImage",
             native_widget_values("LoadImage", native["LoadImage"]),
-            title=translate("workflows", "nodes.referenceImage"),
+            title=NODES["referenceImage"],
         )
         reference["outputs"] = [build_output("IMAGE", "IMAGE", [3]), build_output("MASK", "MASK", [])]
         generation["inputs"] = [build_input("source", "VIDEO", 2), build_input("reference_image", "IMAGE", 3)]
@@ -173,7 +170,7 @@ def append_storyboard(
                 "prompt": SHOT_PROMPTS["soft_transition"],
             },
         ),
-        title=translate("workflows", "nodes.softTransition"),
+        title=NODES["softTransition"],
     )
     first["outputs"] = [build_output("storyboard", "STRING", [2])]
     second = build_node(
@@ -188,7 +185,7 @@ def append_storyboard(
                 "prompt": SHOT_PROMPTS["hard_cut"],
             },
         ),
-        title=translate("workflows", "nodes.hardCut"),
+        title=NODES["hardCut"],
     )
     second["inputs"] = [build_input("previous", "STRING", 2, has_widget=True)]
     second["outputs"] = [build_output("storyboard", "STRING", [3])]
@@ -213,7 +210,7 @@ def append_sound_output(
         SAVE_AUDIO_ID,
         "SaveAudioAdvanced",
         native_widget_values("SaveAudioAdvanced", native["SaveAudioAdvanced"], f"audio/reactor/{example.slug}"),
-        title=translate("workflows", "nodes.saveAudio"),
+        title=NODES["saveAudio"],
     )
     sound["inputs"] = [build_input("audio", "AUDIO", link_id)]
     sound["outputs"] = [build_output("audio", "AUDIO", [])]
@@ -234,7 +231,7 @@ def append_prompt_sequence(
             schemas["ReactorIncHeliosAddPrompt"],
             {"previous": "[]", "chunk": 1, "prompt": SEQUENCE_PROMPTS["sunlight"]},
         ),
-        title=translate("workflows", "nodes.sunlight"),
+        title=NODES["sunlight"],
     )
     first["outputs"] = [build_output("sequence", "STRING", [first_link])]
     second = build_node(
@@ -244,7 +241,7 @@ def append_prompt_sequence(
             schemas["ReactorIncHeliosAddPrompt"],
             {"previous": "[]", "chunk": 3, "prompt": SEQUENCE_PROMPTS["clearing"]},
         ),
-        title=translate("workflows", "nodes.clearing"),
+        title=NODES["clearing"],
     )
     second["inputs"] = [build_input("previous", "STRING", first_link, has_widget=True)]
     second["outputs"] = [build_output("sequence", "STRING", [second_link])]
@@ -264,10 +261,7 @@ def arguments() -> argparse.Namespace:
     """Read build options without changing files or importing the host."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
-    parser.add_argument(
-        "--language", default="en", help="Language for workflow labels and notes; missing messages use English."
-    )
-    parser.add_argument("--output-directory", type=Path, help="Output folder; required for non-English workflows.")
+    parser.add_argument("--output-directory", type=Path, help="Output folder; defaults to the shipped examples.")
     return parser.parse_args()
 
 
@@ -277,9 +271,6 @@ def main() -> int:
     root = Path(__file__).resolve().parents[2]
     canonical = root / EXAMPLE_DIRECTORY
     destination = args.output_directory.resolve() if args.output_directory else canonical
-    if args.language.lower() != "en" and (destination == canonical or destination.is_relative_to(canonical)):
-        sys.stderr.write(f"Choose --output-directory outside {EXAMPLE_DIRECTORY}/ for a non-English build.\n")
-        return 2
     schema_export = read_schemas()
     schemas = mapping_value(schema_export["reactor"])
     native = mapping_value(schema_export["native"])
@@ -292,14 +283,11 @@ def main() -> int:
     issues.extend(f"Add a workflow for {name}." for name in sorted(set(schemas) - covered))
     issues.extend(readme_issues(root))
     expected = {example.path for example in EXAMPLES}
-    with language_scope(args.language):
-        generated = {
-            destination / example.path: json.dumps(
-                build_workflow(example, schemas, native), indent=2, ensure_ascii=False
-            )
-            + "\n"
-            for example in EXAMPLES
-        }
+    generated = {
+        destination / example.path: json.dumps(build_workflow(example, schemas, native), indent=2, ensure_ascii=False)
+        + "\n"
+        for example in EXAMPLES
+    }
     issues.extend(
         f"Review the unindexed workflow {path.name}."
         for path in destination.rglob("*.json")

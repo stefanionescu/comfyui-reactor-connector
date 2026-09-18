@@ -3,7 +3,6 @@
 import json
 from typing import ClassVar
 from ...models import MODELS
-from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
 from ...state.settings import Settings
@@ -12,6 +11,16 @@ from ...errors import ErrorCode, ConnectorError
 from ...state.generation.ltx import LtxSpeakRequest
 from ...media.units import convert_mebibytes_to_bytes
 from ..inputs import VideoInputOperation, validate_capture_inputs
+from ...config.messages.media import PORTRAIT_REQUIRED, PORTRAIT_UPLOAD_LIMIT
+from ...config.messages.inputs import (
+    SPEECH_PACE,
+    LTX_DURATION,
+    SPEECH_LENGTH,
+    LTX_SCENE_LENGTH,
+    LTX_AUDIO_MISSING,
+    SPEECH_PACE_RANGE,
+    SPEECH_PACE_MISSING,
+)
 from ...config.generation.speech import (
     MIN_SPEECH_SECONDS,
     MAX_SCENE_CHARACTERS,
@@ -33,25 +42,25 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
         inputs = self.inputs
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
         if inputs.duration_seconds < MIN_SPEECH_SECONDS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.ltxDuration"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LTX_DURATION)
         if type(inputs.prompt) is not str or len(inputs.prompt) > MAX_SCENE_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.ltxSceneLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LTX_SCENE_LENGTH)
         if type(inputs.script) is not str or not inputs.script.strip() or len(inputs.script) > MAX_SCRIPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.speechLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SPEECH_LENGTH)
         if (
             type(inputs.words_per_minute) is not int
             or not MIN_WORDS_PER_MINUTE <= inputs.words_per_minute <= MAX_WORDS_PER_MINUTE
         ):
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
-                translate("main", "errors.speechPace", minimum=MIN_WORDS_PER_MINUTE, maximum=MAX_WORDS_PER_MINUTE),
+                SPEECH_PACE.format(minimum=MIN_WORDS_PER_MINUTE, maximum=MAX_WORDS_PER_MINUTE),
             )
         if (
             type(inputs.image) is not bytes
             or not inputs.image
             or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.portraitUploadLimit"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, PORTRAIT_UPLOAD_LIMIT)
 
     async def begin_generation(
         self, transport: Transport, events: SessionEvents, max_capture_seconds: float
@@ -65,9 +74,9 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
             if track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
         ]
         if len(audio) != 1:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.ltxAudioMissing"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, LTX_AUDIO_MISSING)
         if inputs.image is None:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.portraitRequired"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, PORTRAIT_REQUIRED)
         reference = await events.call(
             "upload", transport.upload_file(inputs.image, name="input.png", mime_type="image/png")
         )
@@ -86,7 +95,7 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
         ):
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
-                translate("main", "errors.speechPaceMissing"),
+                SPEECH_PACE_MISSING,
                 diagnostic_detail=json.dumps(
                     {
                         "state_keys": sorted(state)[:40],
@@ -98,9 +107,7 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
             )
         minimum, maximum = int(minimum), int(maximum)
         if not minimum <= inputs.words_per_minute <= maximum:
-            raise ConnectorError(
-                ErrorCode.INVALID_INPUT, translate("main", "errors.speechPaceRange", minimum=minimum, maximum=maximum)
-            )
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SPEECH_PACE_RANGE.format(minimum=minimum, maximum=maximum))
         await events.command_reply("set_wpm", {"wpm": inputs.words_per_minute})
         # Recording fragments need later media to close after the requested capture ends.
         await events.command_reply(

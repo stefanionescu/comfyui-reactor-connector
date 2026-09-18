@@ -3,11 +3,16 @@
 import sys
 import asyncio
 import logging
-from ..language import translate
 from ..tasks import wait_shielded
 from contextlib import AsyncExitStack
 from ..errors import ErrorCode, ConnectorError
 from .session.resources import SessionResources
+from ..config.messages.session import (
+    CLEANUP_UNCONFIRMED,
+    LOCAL_CLEANUP_FAILED,
+    TERMINATION_UNCONFIRMED,
+    CLEANUP_RESTART_REQUIRED,
+)
 
 
 async def _release(session: SessionResources, *, failed: bool) -> None:
@@ -54,18 +59,12 @@ async def finish_session(session: SessionResources, primary_error: BaseException
     cancelled = await wait_shielded(cleanup)
     error = cleanup.exception()
     if error is not None:
-        message = (
-            translate("main", "errors.cleanupUnconfirmed")
-            if session.outcome.is_termination_uncertain
-            else translate("main", "errors.localCleanupFailed")
-        )
+        message = CLEANUP_UNCONFIRMED if session.outcome.is_termination_uncertain else LOCAL_CLEANUP_FAILED
         logging.getLogger(__name__).error(message)
     if cancelled:
         raise asyncio.CancelledError
     if error is not None and primary_error is None:
         raise ConnectorError(
             ErrorCode.CLEANUP,
-            translate("main", "errors.terminationUnconfirmed")
-            if session.outcome.is_termination_uncertain
-            else translate("main", "errors.cleanupRestartRequired"),
+            TERMINATION_UNCONFIRMED if session.outcome.is_termination_uncertain else CLEANUP_RESTART_REQUIRED,
         ) from None

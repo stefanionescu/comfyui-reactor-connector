@@ -6,7 +6,7 @@ from .live.registry import BrowserRegistry
 from .errors import ErrorCode, ConnectorError
 from .settings.store import ConfigurationStore
 from .execution.admission import SessionAdmission
-from .language import translate, read_messages, available_languages
+from .config.messages.settings import RUNTIME_NOT_READY
 
 
 class Runtime:
@@ -41,8 +41,6 @@ _runtime: Runtime | None = None
 def initialize_runtime(node_models: dict[str, str]) -> None:
     """Initialize once through the host's extension lifecycle, without network calls."""
     global _runtime  # noqa: PLW0603 -- reason: ComfyUI initializes one shared runtime during loading.
-    for language in available_languages():
-        read_messages("main", language)
     if _runtime is None:
         _runtime = Runtime(node_models)
 
@@ -50,7 +48,7 @@ def initialize_runtime(node_models: dict[str, str]) -> None:
 def get_runtime() -> Runtime:
     """Reject execution before the host has loaded the connector."""
     if _runtime is None:
-        raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.runtimeNotReady"))
+        raise ConnectorError(ErrorCode.CONFIGURATION, RUNTIME_NOT_READY)
     return _runtime
 
 

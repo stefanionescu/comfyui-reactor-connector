@@ -1,4 +1,4 @@
-"""Validate native node labels and partial language resources.
+"""Validate native node labels and message resources.
 
 Category segments use main.nodeCategories; search aliases remain schema-owned.
 Accepted category and alias fields do not imply frontend translation support.
@@ -53,29 +53,6 @@ def validate_messages(value: object, location: str) -> None:
     else:
         for key, item in require_mapping(value, location).items():
             validate_messages(item, f"{location}.{key}")
-
-
-def compare_messages(value: object, english: object, location: str) -> None:
-    """Allow missing translations while rejecting unknown keys, wrong types, and changed placeholders."""
-    if isinstance(english, str):
-        translated = require_string(value, location)
-        if parse_placeholders(translated, location) != parse_placeholders(english, location):
-            msg = f"{location}: Keep the English placeholders and their formatting."
-            raise JsonConfigError(msg)
-    elif isinstance(english, list):
-        reference_items = require_string_list(cast("list[object]", english), location)
-        translated_items = require_string_list(value, location, are_items_nonempty=True)
-        if len(translated_items) != len(reference_items):
-            msg = f"{location}: Keep the same number of messages as the English list."
-            raise JsonConfigError(msg)
-        for index, (translated, reference_item) in enumerate(zip(translated_items, reference_items, strict=True)):
-            compare_messages(translated, reference_item, f"{location}[{index}]")
-    else:
-        reference = require_mapping(english, location)
-        translated_group = require_mapping(value, location)
-        require_keys(translated_group, required=set(), optional=set(reference), context=location)
-        for key, item in translated_group.items():
-            compare_messages(item, reference[key], f"{location}.{key}")
 
 
 def validate_labels(labels: object, socket: dict[str, Json], location: str) -> None:
@@ -174,23 +151,9 @@ def read_english(root: Path, schemas: dict[str, Json]) -> dict[str, dict[str, ob
 
 
 def validate_translations(root: Path, schemas: dict[str, Json]) -> list[str]:
-    """Check English node overrides and each supplied translation without requiring extra languages."""
-    issues: list[str] = []
+    """Check the node labels and message placeholders against the registered node schemas."""
     try:
-        english = read_english(root, schemas)
+        read_english(root, schemas)
     except JsonConfigError as exception:
         return [str(exception)]
-    for path in sorted(root.glob("*/*.json")):
-        if path.parent.name == "en":
-            continue
-        if path.name not in english:
-            issues.append(f"{path}: Use a message file defined in the English locale.")
-            continue
-        try:
-            if path.name == "nodeDefs.json":
-                validate_node_translations(read_json_mapping(path), schemas, str(path))
-            else:
-                compare_messages(read_json_mapping(path), english[path.name], str(path))
-        except JsonConfigError as exception:
-            issues.append(str(exception))
-    return issues
+    return []

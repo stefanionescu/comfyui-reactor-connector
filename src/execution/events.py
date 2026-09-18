@@ -1,7 +1,6 @@
 """Observe session failures alongside commands and media capture."""
 
 import asyncio
-from ..language import translate
 from .transport import Transport
 from .failures import phase_error
 from typing import cast, TYPE_CHECKING
@@ -9,6 +8,7 @@ from .diagnostics import describe_failure
 from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Coroutine
 from ..config.generation.session import MAX_MESSAGE_TYPES
+from ..config.messages.session import COMMAND_REJECTED, CAPTURE_DISCONNECTED
 
 if TYPE_CHECKING:
     from ..state.reports import FailureReport
@@ -75,7 +75,7 @@ class SessionEvents:
         if kind == "generation_complete":
             self.generation_complete.set()
         if kind in ("command_error", "action_error"):
-            self._fail(ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.commandRejected")))
+            self._fail(ConnectorError(ErrorCode.INVALID_INPUT, COMMAND_REJECTED))
 
     def on_status(self, status: object) -> None:
         """Fail if an established connection leaves its ready state."""
@@ -87,7 +87,7 @@ class SessionEvents:
             self._fail(
                 ConnectorError(
                     ErrorCode.TRANSPORT,
-                    translate("main", "errors.captureDisconnected"),
+                    CAPTURE_DISCONNECTED,
                 )
             )
 

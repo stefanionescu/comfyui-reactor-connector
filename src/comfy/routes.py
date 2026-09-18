@@ -4,7 +4,6 @@ import folder_paths
 from pathlib import Path
 from comfy.cli_args import args
 from server import PromptServer
-from ..language import translate
 from ..runtime import get_runtime
 from ..paths import EXTENSION_ROOT
 from ..live.routes import LiveRoutes
@@ -13,6 +12,7 @@ from ..settings.store import read_settings
 from ..discovery.checker import ModelChecker
 from ..errors import ErrorCode, ConnectorError
 from ..settings.routes import ConfigurationRoutes
+from ..config.messages.settings import PRIVATE_STATE_LOCATION
 
 
 def register_configuration() -> None:
@@ -30,7 +30,7 @@ def register_configuration() -> None:
     if any(directory.is_relative_to(Path(root).resolve()) for root in public_roots):
         raise ConnectorError(
             ErrorCode.CONFIGURATION,
-            translate("main", "errors.privateStateLocation"),
+            PRIVATE_STATE_LOCATION,
         )
     ConfigurationRoutes(store, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
     LiveRoutes(get_runtime().browsers, is_multi_user=args.multi_user).register(PromptServer.instance.routes)

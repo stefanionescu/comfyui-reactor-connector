@@ -3,7 +3,6 @@
 import asyncio
 from aiohttp import web
 from .store import ModelStore
-from ..language import translate
 from .checker import ModelChecker
 from ..state.documents import Json
 from ..http.guard import local_route
@@ -12,6 +11,7 @@ from .sources import read_public_models
 from ..http.request import read_document
 from ..config.routes import MODELS_PREFIX
 from collections.abc import Callable, Awaitable
+from ..config.messages.requests import REFRESH_BODY, MODEL_REVISION_REQUIRED
 
 
 class ModelRoutes:
@@ -45,7 +45,7 @@ class ModelRoutes:
     async def refresh(self, request: web.Request) -> dict[str, Json]:
         """Refresh public metadata and return the newly saved model list."""
         if request.can_read_body:
-            raise web.HTTPBadRequest(text=translate("main", "errors.refreshBody"))
+            raise web.HTTPBadRequest(text=REFRESH_BODY)
         result = await self.store.refresh(self.fetcher)
         return self._add_route_fields(result)
 
@@ -53,7 +53,7 @@ class ModelRoutes:
         """Restore the previous snapshot only if the caller still has the current revision."""
         body = await read_document(request)
         if body.keys() != {"revision"} or not isinstance(body["revision"], str):
-            raise web.HTTPBadRequest(text=translate("main", "errors.modelRevisionRequired"))
+            raise web.HTTPBadRequest(text=MODEL_REVISION_REQUIRED)
         return self._add_route_fields(await asyncio.to_thread(self.store.rollback, body["revision"]))
 
     def register(self, routes: web.RouteTableDef) -> None:

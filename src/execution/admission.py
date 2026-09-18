@@ -5,23 +5,20 @@ import time
 import asyncio
 import threading
 from collections import deque
-from ..language import translate
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from ..state.session import AdmissionTicket
 from ..errors import ErrorCode, ConnectorError
-from ..config.generation.session import MAX_SESSION_CAPACITY, DEFAULT_SESSION_CAPACITY
+from ..config.generation.session import DEFAULT_SESSION_CAPACITY
+from ..config.messages.session import QUEUE_TIMEOUT, TERMINATION_WAIT
 
 
 class SessionAdmission:
     """Protect a FIFO queue and signal each waiter through its own event loop."""
 
-    def __init__(self, capacity: int = DEFAULT_SESSION_CAPACITY) -> None:
-        """Create the shared queue with a validated concurrent-session limit."""
-        if type(capacity) is not int or not 1 <= capacity <= MAX_SESSION_CAPACITY:
-            msg = translate("main", "errors.sessionCapacity")
-            raise ValueError(msg)
-        self._capacity = capacity
+    def __init__(self) -> None:
+        """Create the shared queue with the configured concurrent-session limit."""
+        self._capacity = DEFAULT_SESSION_CAPACITY
         self._lock = threading.Lock()
         self._waiting: deque[AdmissionTicket] = deque()
         self._active: set[AdmissionTicket] = set()
@@ -51,7 +48,7 @@ class SessionAdmission:
             if remaining > 0:
                 raise ConnectorError(
                     ErrorCode.CLEANUP,
-                    translate("main", "errors.terminationWait", seconds=math.ceil(remaining)),
+                    TERMINATION_WAIT.format(seconds=math.ceil(remaining)),
                 )
             if self._waiting[0] is ticket and len(self._active) < self._capacity:
                 self._waiting.popleft()
@@ -75,7 +72,7 @@ class SessionAdmission:
             except TimeoutError:
                 raise ConnectorError(
                     ErrorCode.TIMEOUT,
-                    translate("main", "errors.queueTimeout"),
+                    QUEUE_TIMEOUT,
                 ) from None
             yield
         finally:

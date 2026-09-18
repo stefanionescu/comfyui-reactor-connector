@@ -5,10 +5,10 @@ import math
 import time
 import aiohttp
 from http import HTTPStatus
-from ..language import translate
 from ..errors import ErrorCode, ConnectorError
 from ..serialization import parse_json, mapping_value
 from ..state.credentials import Credential, SessionToken
+from ..config.messages.discovery import MODEL_AUTHORIZATION
 from ..config.security import (
     JWT_PATTERN_TEXT,
     SESSION_ENDPOINT,
@@ -31,7 +31,7 @@ def authentication_error() -> ConnectorError:
     """Create the public authorization error without including provider credentials."""
     return ConnectorError(
         ErrorCode.AUTHENTICATION,
-        translate("main", "errors.modelAuthorization"),
+        MODEL_AUTHORIZATION,
     )
 
 

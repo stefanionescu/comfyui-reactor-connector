@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import av
-from ...language import translate
 from typing import cast, TYPE_CHECKING
 from ...errors import ErrorCode, ConnectorError
 from ...config.media.video import DEFAULT_FRAME_RATE, MAX_FRAME_RATE
+from ...config.messages.media import (
+    SOURCE_FRAME_RATE,
+    SOURCE_READER_CLOSED,
+    SOURCE_FRAMES_MISSING,
+    SOURCE_TIMESTAMP_MISSING,
+)
 
 if TYPE_CHECKING:
     import numpy as np
@@ -31,23 +36,23 @@ class PreparedFrames:
         self.container = av.open(str(self.path), mode="r")
         rate = self.container.streams.video[0].average_rate
         if rate is None or not 1 <= rate <= MAX_FRAME_RATE:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.sourceFrameRate"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_FRAME_RATE)
         self.step_seconds = float(1 / rate)
         self.frames = iter(self.container.decode(video=0))
         first = self.next()
         if first is None:
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.sourceFramesMissing"))
+            raise ConnectorError(ErrorCode.CAPTURE, SOURCE_FRAMES_MISSING)
         return first
 
     def next(self) -> tuple[NDArray[np.uint8], float] | None:
         """Decode the next RGB frame and require its presentation timestamp."""
         if self.frames is None:
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.sourceReaderClosed"))
+            raise ConnectorError(ErrorCode.CAPTURE, SOURCE_READER_CLOSED)
         frame = next(self.frames, None)
         if frame is None:
             return None
         if frame.pts is None or frame.time_base is None:
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.sourceTimestampMissing"))
+            raise ConnectorError(ErrorCode.CAPTURE, SOURCE_TIMESTAMP_MISSING)
         return cast("NDArray[np.uint8]", frame.to_ndarray(format="rgb24")), float(frame.pts * frame.time_base)
 
     def close(self) -> None:

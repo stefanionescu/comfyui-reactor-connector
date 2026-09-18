@@ -3,7 +3,6 @@
 import time
 import asyncio
 from .lease import BrowserLease
-from ..language import translate
 from ..state.documents import Json
 from .preview import PreviewFrames
 from ..media.output import owned_io
@@ -12,6 +11,7 @@ from ..config.live import INPUT_POLL_SECONDS
 from ..execution.events import SessionEvents
 from ..errors import ErrorCode, ConnectorError
 from ..execution.transport import Track, Transport
+from ..config.messages.live import LIVE_PANEL_ENDED, LIVE_PREVIEW_ENCODING, LIVE_CAPTURE_CANCELLED
 
 
 class BrowserInteraction:
@@ -57,7 +57,7 @@ class BrowserInteraction:
             events.on_error(
                 ConnectorError(
                     ErrorCode.CAPTURE,
-                    translate("main", "errors.livePreviewEncoding"),
+                    LIVE_PREVIEW_ENCODING,
                 )
             )
 
@@ -67,10 +67,10 @@ class BrowserInteraction:
             state = self.lease.read()
             if state.end:
                 if self.lease.was_ended_by_user():
-                    raise ConnectorError(ErrorCode.INTERRUPTED, translate("main", "errors.liveCaptureCancelled"))
+                    raise ConnectorError(ErrorCode.INTERRUPTED, LIVE_CAPTURE_CANCELLED)
                 raise ConnectorError(
                     ErrorCode.TRANSPORT,
-                    translate("main", "errors.livePanelEnded"),
+                    LIVE_PANEL_ENDED,
                 )
             if self.active and self.commands is not None:
                 self.commands.submit(state)

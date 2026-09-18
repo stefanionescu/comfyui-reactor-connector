@@ -3,7 +3,6 @@
 import sys
 import asyncio
 from pathlib import Path
-from ...language import translate
 from ...paths import EXTENSION_ROOT
 from ..output import discard_outputs
 from ...state.settings import Settings
@@ -12,6 +11,7 @@ from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
 from ...config.media.video import MAX_FRAME_RATE
+from ...config.messages.media import RECORDING_METADATA
 from ...config.media.workers import RECORDING_TIMEOUT_SECONDS
 from ...config.media.audio import SAMPLE_RATE, MAX_CHANNELS, MIN_CHANNELS
 
@@ -57,7 +57,7 @@ async def prepare_recording(
             or type(channels) is not int
             or not MIN_CHANNELS <= channels <= MAX_CHANNELS
         ):
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.recordingMetadata"))
+            raise ConnectorError(ErrorCode.CAPTURE, RECORDING_METADATA)
         success = True
         return CaptureResult(destination, frames, str(mode), audio_path=audio)
     finally:

@@ -6,10 +6,10 @@ import re
 import math
 from uuid import UUID
 from datetime import datetime
-from ..language import translate
 from typing import TYPE_CHECKING
 from ..serialization import mapping_value
 from ..errors import ErrorCode, ConnectorError
+from ..config.messages.discovery import MODEL_LIST_FORMAT
 from ..state.discovery import Price, Guide, Snapshot, FORMAT_VERSION
 from ..config.discovery import (
     MAX_MODELS,
@@ -97,7 +97,7 @@ def parse_snapshot(value: dict[str, Json]) -> Snapshot:
 
 def invalid() -> ConnectorError:
     """Create the safe error used for invalid public model metadata."""
-    return ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListFormat"))
+    return ConnectorError(ErrorCode.DISCOVERY, MODEL_LIST_FORMAT)
 
 
 def slug(value: Json) -> str:

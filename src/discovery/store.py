@@ -6,7 +6,6 @@ import threading
 from pathlib import Path
 from .views import model_views
 from dataclasses import replace
-from ..language import translate
 from ..tasks import wait_shielded
 from ..state.documents import Json
 from .sources import read_public_models
@@ -17,6 +16,15 @@ from ..storage import atomic_write, read_private
 from ..serialization import parse_json, mapping_value
 from ..state.discovery import Snapshot, CatalogState, STORAGE_VERSION
 from ..config.discovery import MAX_ADDED_MODELS, SOURCE_RETENTION_DIVISOR, MAX_STORED_METADATA_BYTES
+from ..config.messages.discovery import (
+    MODEL_LIST_GROWTH,
+    MODEL_LIST_CHANGED,
+    MODEL_REFRESH_WAIT,
+    GUIDE_LIST_INCOMPLETE,
+    MODEL_REFRESH_RUNNING,
+    PRICE_LIST_INCOMPLETE,
+    MODEL_LIST_HISTORY_EMPTY,
+)
 
 
 class ModelStore:
@@ -66,7 +74,7 @@ class ModelStore:
         """Admit one metadata refresh and reject overlapping refresh requests."""
         with self._admission_lock:
             if self._refreshing:
-                raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelRefreshRunning"))
+                raise ConnectorError(ErrorCode.DISCOVERY, MODEL_REFRESH_RUNNING)
             self._refreshing = True
 
     def _revision(self) -> str:
@@ -123,17 +131,17 @@ class ModelStore:
     def _require_revision(state: CatalogState, revision: str) -> None:
         """Reject a write based on an outdated model-list revision."""
         if state.revision != revision:
-            raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListChanged"))
+            raise ConnectorError(ErrorCode.DISCOVERY, MODEL_LIST_CHANGED)
 
     def rollback(self, revision: str) -> dict[str, Json]:
         """Swap current and prior snapshots atomically when no refresh is running."""
         with self._lock:
             if self._is_refreshing():
-                raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelRefreshWait"))
+                raise ConnectorError(ErrorCode.DISCOVERY, MODEL_REFRESH_WAIT)
             state = self._read()
             self._require_revision(state, revision)
             if state.previous is None:
-                raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListHistoryEmpty"))
+                raise ConnectorError(ErrorCode.DISCOVERY, MODEL_LIST_HISTORY_EMPTY)
             restored = CatalogState(state.previous, state.current)
             atomic_write(self._storage_path, (json.dumps(restored.to_json(), indent=2) + "\n").encode())
             return self._build_status(restored)
@@ -146,12 +154,12 @@ def _merge_observations(previous: Snapshot | None, candidate: Snapshot) -> Snaps
     previous_ids = {price.id for price in previous.prices}
     new_ids = {price.id for price in candidate.prices}
     if len(new_ids - previous_ids) > max(MAX_ADDED_MODELS, len(previous_ids)):
-        raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.modelListGrowth"))
+        raise ConnectorError(ErrorCode.DISCOVERY, MODEL_LIST_GROWTH)
     if len(new_ids) < max(1, len([p for p in previous.prices if p.observed]) // SOURCE_RETENTION_DIVISOR):
-        raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.priceListIncomplete"))
+        raise ConnectorError(ErrorCode.DISCOVERY, PRICE_LIST_INCOMPLETE)
     guide_slugs = {guide.slug for guide in candidate.guides}
     if len(guide_slugs) < max(1, len([g for g in previous.guides if g.observed]) // SOURCE_RETENTION_DIVISOR):
-        raise ConnectorError(ErrorCode.DISCOVERY, translate("main", "errors.guideListIncomplete"))
+        raise ConnectorError(ErrorCode.DISCOVERY, GUIDE_LIST_INCOMPLETE)
     merged = replace(
         candidate,
         prices=candidate.prices

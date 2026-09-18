@@ -5,7 +5,6 @@ import hashlib
 import threading
 from pathlib import Path
 from dataclasses import fields
-from ..language import translate
 from ..state.documents import Json
 from .conflict import SettingsConflictError
 from ..errors import ErrorCode, ConnectorError
@@ -16,6 +15,7 @@ from ..config.security import MAX_CREDENTIAL_CHARACTERS
 from ..state.settings import Settings, ExecutionConfiguration
 from ..storage import atomic_write, read_private, private_directory
 from ..config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
+from ..config.messages.settings import SAVED_KEY_LINK, SETTING_READ_ONLY, SETTINGS_UNREADABLE
 from ..credentials import parse_credential, read_credential, save_credential, credential_source
 
 EDITABLE_SETTINGS = frozenset(item.name for item in fields(Settings))
@@ -43,7 +43,7 @@ class ConfigurationStore:
                 self._generation.invalidate()
                 raise ConnectorError(
                     ErrorCode.CONFIGURATION,
-                    translate("main", "errors.settingsUnreadable"),
+                    SETTINGS_UNREADABLE,
                 ) from None
             return self._generation.snapshot(settings, credential)
 
@@ -59,11 +59,7 @@ class ConfigurationStore:
         return {
             "settings": settings.to_json(),
             "integer_settings": {
-                name: {
-                    "label": translate("main", "settings.limit." + name),
-                    "minimum": definition["minimum"],
-                    "maximum": definition["maximum"],
-                }
+                name: {"minimum": definition["minimum"], "maximum": definition["maximum"]}
                 for name, definition in INTEGER_SETTINGS.items()
             },
             "credential_limit": MAX_CREDENTIAL_CHARACTERS,
@@ -74,7 +70,7 @@ class ConfigurationStore:
     def update_settings(self, changes: dict[str, Json], revision: str) -> dict[str, Json]:
         """Apply a validated patch only to the version the editor actually read."""
         if changes.keys() - EDITABLE_SETTINGS:
-            raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.settingReadOnly"))
+            raise ConnectorError(ErrorCode.CONFIGURATION, SETTING_READ_ONLY)
         with self.lock:
             current = read_settings(self.directory)
             if revision != settings_revision(current):
@@ -100,7 +96,7 @@ class ConfigurationStore:
         with self.lock:
             path = self.directory / "credential"
             if path.is_symlink():
-                raise ConnectorError(ErrorCode.CONFIGURATION, translate("main", "errors.savedKeyLink"))
+                raise ConnectorError(ErrorCode.CONFIGURATION, SAVED_KEY_LINK)
             if path.exists():
                 private_directory(self.directory)
                 path.unlink()

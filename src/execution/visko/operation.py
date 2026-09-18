@@ -4,13 +4,22 @@ from __future__ import annotations
 
 import asyncio
 from ...models import MODELS
-from ...language import translate
 from ..inputs import VideoInputOperation
 from ...errors import ErrorCode, ConnectorError
 from typing import cast, ClassVar, TYPE_CHECKING
 from ...state.generation.visko import ViskoRequest
 from ...state.session import ControlValues, RecordingWindow
 from ...config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
+from ...config.messages.inputs import (
+    FORMAT_NAME,
+    SOUND_OPTION_TYPE,
+    FORMAT_UNAVAILABLE,
+    SOUND_PROMPT_LENGTH,
+    VISKO_AUDIO_MISSING,
+    VISKO_IMAGE_CHANGED,
+    VISKO_SOUND_CHANGED,
+    VISKO_FORMAT_CHANGED,
+)
 
 if TYPE_CHECKING:
     from ..transport import Transport
@@ -46,17 +55,17 @@ class ViskoStart:
         if self.settings.get("image_conditioned") is not has_image:
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
-                translate("main", "errors.viskoImageChanged"),
+                VISKO_IMAGE_CHANGED,
             )
         if self.settings.get("audio_enabled") is not is_sound_enabled:
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
-                translate("main", "errors.viskoSoundChanged"),
+                VISKO_SOUND_CHANGED,
             )
         if resolution and self.settings.get("resolution") != resolution:
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
-                translate("main", "errors.viskoResolutionChanged"),
+                VISKO_FORMAT_CHANGED,
             )
 
 
@@ -71,13 +80,11 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
         super().validate(settings)
         inputs = self.inputs
         if type(inputs.audio_prompt) is not str or len(inputs.audio_prompt) > MAX_AUDIO_PROMPT_CHARACTERS:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.soundPromptLength"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SOUND_PROMPT_LENGTH)
         if type(inputs.resolution) is not str or len(inputs.resolution) > MAX_FORMAT_NAME_CHARACTERS:
-            raise ConnectorError(
-                ErrorCode.INVALID_INPUT, translate("main", "errors.resolutionName", maximum=MAX_FORMAT_NAME_CHARACTERS)
-            )
+            raise ConnectorError(ErrorCode.INVALID_INPUT, FORMAT_NAME.format(maximum=MAX_FORMAT_NAME_CHARACTERS))
         if type(inputs.audio_enabled) is not bool or type(inputs.prompt_passthrough) is not bool:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.soundOptionType"))
+            raise ConnectorError(ErrorCode.INVALID_INPUT, SOUND_OPTION_TYPE)
 
     def build_control_values(self) -> ControlValues:
         """Return sound and passthrough values selected for live controls."""
@@ -100,7 +107,7 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
             if track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
         ]
         if len(tracks) != 1:
-            raise ConnectorError(ErrorCode.UNAVAILABLE, translate("main", "errors.viskoAudioMissing"))
+            raise ConnectorError(ErrorCode.UNAVAILABLE, VISKO_AUDIO_MISSING)
         started = ViskoStart(events)
         await events.command_reply("set_seed", {"seed": inputs.seed})
         if inputs.image is not None:
@@ -118,7 +125,7 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
             if not isinstance(offered, list) or inputs.resolution not in offered:
                 raise ConnectorError(
                     ErrorCode.INVALID_INPUT,
-                    translate("main", "errors.resolutionUnavailable"),
+                    FORMAT_UNAVAILABLE,
                 )
             await events.command_reply("set_resolution", {"resolution": inputs.resolution})
         await events.command_reply("start", {})

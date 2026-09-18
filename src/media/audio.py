@@ -5,9 +5,9 @@ from __future__ import annotations
 import wave
 import torch
 import numpy as np
-from ..language import translate
 from ..errors import ErrorCode, ConnectorError
 from typing import cast, TypedDict, TYPE_CHECKING
+from ..config.messages.media import AUDIO_LIMIT, AUDIO_INCOMPLETE
 from ..config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE, PCM_SAMPLE_BYTES
 
 if TYPE_CHECKING:
@@ -38,10 +38,10 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
             or count < 1
             or count * channels * 4 > maximum_bytes // 2
         ):
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioLimit"))
+            raise ConnectorError(ErrorCode.CAPTURE, AUDIO_LIMIT)
         content = reader.readframes(count)
         if len(content) != count * channels * PCM_SAMPLE_BYTES:
-            raise ConnectorError(ErrorCode.CAPTURE, translate("main", "errors.audioIncomplete"))
+            raise ConnectorError(ErrorCode.CAPTURE, AUDIO_INCOMPLETE)
     values = np.frombuffer(content, dtype="<i2").reshape(count, channels).T.astype(np.float32)
     values /= 32768
     from_numpy = cast("AudioConversion", torch.from_numpy)

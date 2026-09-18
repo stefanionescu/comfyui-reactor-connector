@@ -1,29 +1,29 @@
 """Validate LongLive storyboards before allocating a remote session."""
 
 import json
-from ...language import translate
 from ...state.generation.longlive import Shot
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
 from ...config.generation.session import MAX_PROMPT_CHARACTERS
 from ...config.generation.prompts import OPTIONS_TRANSITION, MAX_SHOTS, MAX_SHOT_CHUNK, MAX_STORYBOARD_BYTES
+from ...config.messages.inputs import SHOT_CHUNK, SHOT_PROMPT, SHOT_TRANSITION, STORYBOARD_SIZE, STORYBOARD_ORDER
 
 
 def validate_shot(shot: Shot) -> None:
     """Check the later chunk, transition choice, and shot prompt."""
     if type(shot.at_session_chunk) is not int or not 1 <= shot.at_session_chunk <= MAX_SHOT_CHUNK:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotChunk", maximum=MAX_SHOT_CHUNK))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SHOT_CHUNK.format(maximum=MAX_SHOT_CHUNK))
     if shot.transition not in OPTIONS_TRANSITION:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotTransition"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SHOT_TRANSITION)
     if type(shot.prompt) is not str or not shot.prompt.strip() or len(shot.prompt) > MAX_PROMPT_CHARACTERS:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.shotPrompt"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, SHOT_PROMPT)
 
 
 def parse_storyboard(value: str) -> tuple[Shot, ...]:
     """Reject ambiguous ordering and unknown fields rather than execute raw commands."""
     if type(value) is not str or len(value.encode()) > MAX_STORYBOARD_BYTES:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.storyboardSize"))
-    invalid = ConnectorError(ErrorCode.INVALID_INPUT, translate("main", "errors.storyboardOrder"))
+        raise ConnectorError(ErrorCode.INVALID_INPUT, STORYBOARD_SIZE)
+    invalid = ConnectorError(ErrorCode.INVALID_INPUT, STORYBOARD_ORDER)
     payload = parse_json(value, max_bytes=MAX_STORYBOARD_BYTES, max_depth=4)
     if not isinstance(payload, list) or len(payload) > MAX_SHOTS:
         raise invalid

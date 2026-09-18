@@ -2,7 +2,6 @@
 
 import asyncio
 from aiohttp import web
-from ..language import translate
 from ..state.documents import Json
 from ..http.guard import local_route
 from .store import ConfigurationStore
@@ -10,6 +9,7 @@ from ..http.request import read_document
 from ..serialization import mapping_value
 from ..config.routes import SETTINGS_PREFIX
 from collections.abc import Callable, Awaitable
+from ..config.messages.requests import CLEAR_KEY_BODY, SINGLE_KEY_REQUIRED, SETTINGS_REVISION_REQUIRED
 
 
 class ConfigurationRoutes:
@@ -29,7 +29,7 @@ class ConfigurationRoutes:
         """Validate a settings patch and save it against the caller's current revision."""
         document = await read_document(request)
         if document.keys() != {"revision", "settings"} or not isinstance(document["revision"], str):
-            raise web.HTTPBadRequest(text=translate("main", "errors.settingsRevisionRequired"))
+            raise web.HTTPBadRequest(text=SETTINGS_REVISION_REQUIRED)
         return self._add_mutation_permission(
             await asyncio.to_thread(
                 self.store.update_settings, mapping_value(document["settings"]), document["revision"]
@@ -40,13 +40,13 @@ class ConfigurationRoutes:
         """Accept one API key and save it only through the private configuration store."""
         document = await read_document(request)
         if document.keys() != {"api_key"} or not isinstance(document["api_key"], str):
-            raise web.HTTPBadRequest(text=translate("main", "errors.singleKeyRequired"))
+            raise web.HTTPBadRequest(text=SINGLE_KEY_REQUIRED)
         return self._add_mutation_permission(await asyncio.to_thread(self.store.save_credential, document["api_key"]))
 
     async def clear_credential(self, request: web.Request) -> dict[str, Json]:
         """Remove the saved key after rejecting unexpected request content."""
         if request.can_read_body:
-            raise web.HTTPBadRequest(text=translate("main", "errors.clearKeyBody"))
+            raise web.HTTPBadRequest(text=CLEAR_KEY_BODY)
         return self._add_mutation_permission(await asyncio.to_thread(self.store.clear_credential))
 
     def _add_mutation_permission(self, result: dict[str, Json]) -> dict[str, Json]:
