@@ -7,13 +7,13 @@ from comfy.cli_args import args
 from server import PromptServer
 from ..runtime import get_runtime
 from ..live.options import LiveOptions
+from ..live.controls import ControlLease
 from ..models import MODELS_BY_CONNECTION
-from ..live.control.lease import ControlLease
 from ..errors import ErrorCode, ConnectorError
+from ..live.interaction import LiveInteraction
 from typing import cast, Protocol, TYPE_CHECKING
 from ..config.generation.world import CAMERA_AXES
 from comfy_execution.utils import get_executing_context
-from ..live.control.interaction import ControlInteraction
 from ..config.live import (
     INPUT_POLL_SECONDS,
     MIN_QUEUE_ITEM_FIELDS,
@@ -26,7 +26,6 @@ from ..config.messages.live import (
     LIVE_PANEL_CLOSED,
     BROWSER_OWNER_MISSING,
     LIVE_HOST_REQUIREMENTS,
-    LIVE_CAMERA_UNSUPPORTED,
 )
 
 
@@ -34,7 +33,6 @@ if TYPE_CHECKING:
     from ..state.documents import Json
     from ..media.webcam import WebcamFrames
     from ..execution.operation import VideoOperation
-    from ..live.interaction import BrowserInteraction
 
 
 class _BrowserSender(Protocol):
@@ -73,57 +71,56 @@ async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> Non
             await asyncio.sleep(INPUT_POLL_SECONDS)
 
 
-async def _prepare_camera(options: LiveOptions, duration_seconds: float) -> BrowserInteraction:
-    """Invite the prompt owner to camera controls and await its connection."""
+async def _invite(
+    options: LiveOptions,
+    duration_seconds: float,
+    *,
+    event: str,
+    timeout_seconds: float,
+    choices: dict[str, tuple[str, ...]] | None = None,
+) -> LiveInteraction:
+    """Invite the prompt owner to the live panel and await its connection."""
     client, node = _owner()
-    axes = MODELS_BY_CONNECTION[options.connection_name].camera_axes
-    if not axes:
-        raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_CAMERA_UNSUPPORTED)
-    choices = {axis: tuple(CAMERA_AXES[axis]) for axis in axes}
     # Queuing a camera workflow starts it; the panel does not add another start step.
-    lease = ControlLease(options, choices=choices, started=True)
+    lease = ControlLease(options, choices=choices, started=choices is not None)
     get_runtime().browsers.add(lease)
     try:
         invitation = lease.invitation()
         invitation.update(node_id=node, duration_seconds=duration_seconds)
-        cast("_BrowserSender", PromptServer.instance).send_sync("reactor-inc.live", invitation, client)
-        await _wait_for_controls(lease, CAMERA_INVITATION_TIMEOUT_SECONDS)
+        cast("_BrowserSender", PromptServer.instance).send_sync(event, invitation, client)
+        await _wait_for_controls(lease, timeout_seconds)
     except BaseException:
         lease.close(is_termination_confirmed=True, failed=True)
         raise
-    return ControlInteraction(lease)
-
-
-async def _prepare_controls(options: LiveOptions, duration_seconds: float) -> ControlInteraction:
-    """Invite the prompt owner to editing controls and await its connection."""
-    client, node = _owner()
-    lease = ControlLease(options)
-    get_runtime().browsers.add(lease)
-    try:
-        invitation = lease.invitation()
-        invitation.update(node_id=node, duration_seconds=duration_seconds)
-        cast("_BrowserSender", PromptServer.instance).send_sync("reactor-inc.controls", invitation, client)
-        await _wait_for_controls(lease, CONTROL_INVITATION_TIMEOUT_SECONDS)
-    except BaseException:
-        lease.close(is_termination_confirmed=True, failed=True)
-        raise
-    return ControlInteraction(lease)
+    return LiveInteraction(lease)
 
 
 async def prepare_interaction(
     operation: VideoOperation, *, interactive: bool, controls: LiveOptions | None
-) -> BrowserInteraction | ControlInteraction | None:
+) -> LiveInteraction | None:
     """Open the camera or editing controls supported by this model operation."""
-    interaction = None
     if controls is not None:
-        interaction = await _prepare_controls(controls, operation.duration_seconds)
+        options = controls
     elif interactive:
         options = build_live_options(operation)
-        if MODELS_BY_CONNECTION[operation.connection_name].camera_axes:
-            interaction = await _prepare_camera(options, operation.duration_seconds)
-        else:
-            interaction = await _prepare_controls(options, operation.duration_seconds)
-    return interaction
+    else:
+        return None
+    axes = MODELS_BY_CONNECTION[options.connection_name].camera_axes
+    if controls is None and axes:
+        choices = {axis: tuple(CAMERA_AXES[axis]) for axis in axes}
+        return await _invite(
+            options,
+            operation.duration_seconds,
+            event="reactor-inc.live",
+            timeout_seconds=CAMERA_INVITATION_TIMEOUT_SECONDS,
+            choices=choices,
+        )
+    return await _invite(
+        options,
+        operation.duration_seconds,
+        event="reactor-inc.controls",
+        timeout_seconds=CONTROL_INVITATION_TIMEOUT_SECONDS,
+    )
 
 
 def build_live_options(operation: VideoOperation, *, webcam: WebcamFrames | None = None) -> LiveOptions:

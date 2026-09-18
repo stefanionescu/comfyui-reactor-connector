@@ -18,10 +18,10 @@ from ..state.session import SessionOutcome
 from .interaction import prepare_interaction
 from ..execution.report import prepare_report
 from ..errors import ErrorCode, ConnectorError
+from ..live.interaction import LiveInteraction
 from ..execution.diagnostics import save_failure
 from ..execution.operation import VideoOperation
 from ..config.messages.session import RUN_TIMEOUT
-from ..live.interaction import BrowserInteraction
 from ..state.settings import ExecutionConfiguration
 from ..media.output import owned_io, discard_outputs
 from ..media.units import convert_mebibytes_to_bytes
@@ -53,7 +53,7 @@ async def _generate_admitted_video(
     configuration: ExecutionConfiguration,
     destination: Path,
     report: RunReport,
-    open_interaction: Callable[[], Awaitable[BrowserInteraction | None]],
+    open_interaction: Callable[[], Awaitable[LiveInteraction | None]],
 ) -> tuple[CaptureResult, dict[str, Json] | None]:
     """Own admission, live controls, remote cleanup, and private failure diagnostics."""
     settings = configuration.settings

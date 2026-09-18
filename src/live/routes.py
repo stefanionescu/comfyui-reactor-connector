@@ -5,10 +5,10 @@ from aiohttp import web
 from functools import partial
 from .lease import unavailable
 from ..state.documents import Json
+from .controls import ControlLease
 from ..media.output import owned_io
 from ..http.guard import local_route
 from .registry import BrowserRegistry
-from .control.lease import ControlLease
 from ..http.request import read_document
 from ..config.routes import SETTINGS_PREFIX
 from ..config.media.webcam import MAX_CAMERA_JPEG_BYTES

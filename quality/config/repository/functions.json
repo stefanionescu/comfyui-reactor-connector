@@ -41,14 +41,9 @@
                 "reason": "ComfyUI invokes this lifecycle callback to initialize runtime state and register local routes."
             },
             {
-                "path": "src/live/control/interaction.py",
-                "names": ["ControlInteraction.summary"],
-                "reason": "Extends the camera summary with acknowledged editing actions for the public recording report."
-            },
-            {
                 "path": "src/live/interaction.py",
-                "names": ["BrowserInteraction.closed"],
-                "reason": "Implements the session interaction callback that records confirmed or uncertain remote termination."
+                "names": ["LiveInteraction.closed", "LiveInteraction.summary"],
+                "reason": "Implements the session interaction callbacks that record termination and report acknowledged controls."
             },
             {
                 "path": "src/live/routes.py",
