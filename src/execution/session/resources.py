@@ -43,6 +43,3 @@ class SessionResources:
     outcome: SessionOutcome
     interaction: SessionInteraction | None
     track: Track | None = None
-
-
-__all__ = ["SessionResources"]

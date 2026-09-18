@@ -22,6 +22,3 @@ class SanaRequest(VideoInputs):
 
     anchor_interval: int
     video: Path | None = None
-
-
-__all__ = ["SanaRequest"]

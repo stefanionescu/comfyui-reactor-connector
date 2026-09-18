@@ -28,6 +28,3 @@ class X2Request(VideoInputs):
     video: Path | None = None
     keep_backlog: bool = False
     pointer_active: bool = False
-
-
-__all__ = ["X2Request"]

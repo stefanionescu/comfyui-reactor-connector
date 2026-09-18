@@ -47,6 +47,3 @@ def credential_source(directory: Path) -> str:
 def save_credential(directory: Path, credential: Credential) -> None:
     """Write a credential only to the caller's verified private state directory."""
     atomic_write(directory / "credential", credential.reveal().encode("utf-8"))
-
-
-__all__ = ["credential_source", "parse_credential", "read_credential", "save_credential"]

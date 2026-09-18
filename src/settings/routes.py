@@ -7,7 +7,7 @@ from ..http.guard import local_route
 from .store import ConfigurationStore
 from ..http.request import read_document
 from ..serialization import mapping_value
-from ..config.routes import SETTINGS_PREFIX
+from ..config.security import SETTINGS_PREFIX
 from collections.abc import Callable, Awaitable
 from ..config.messages.requests import CLEAR_KEY_BODY, SINGLE_KEY_REQUIRED, SETTINGS_REVISION_REQUIRED
 

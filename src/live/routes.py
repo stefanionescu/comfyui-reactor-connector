@@ -10,7 +10,7 @@ from ..media.output import owned_io
 from ..http.guard import local_route
 from .registry import BrowserRegistry
 from ..http.request import read_document
-from ..config.routes import SETTINGS_PREFIX
+from ..config.security import SETTINGS_PREFIX
 from ..config.media.webcam import MAX_CAMERA_JPEG_BYTES
 from ..config.messages.live import CAMERA_FRAME_WAIT, CAMERA_JPEG_REQUIRED
 from ..config.live import (
@@ -35,8 +35,7 @@ class LiveRoutes:
 
     def controls(self, identifier: str, capability: str) -> ControlLease:
         """Find a live editing session and verify its private capability."""
-        with self.registry.lock:
-            lease = self.registry.leases.get(identifier)
+        lease = self.registry.find(identifier)
         if not isinstance(lease, ControlLease):
             raise unavailable()
         lease.authorize(capability)

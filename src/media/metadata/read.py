@@ -2,11 +2,11 @@
 
 import sys
 import asyncio
+from ..process import MediaProcess
 from ...paths import EXTENSION_ROOT
 from ...state.documents import Json
 from ...state.media import CaptureResult
 from ...errors import ErrorCode, ConnectorError
-from ..process import close_input, MediaProcess
 from ...config.media.workers import METADATA_TIMEOUT_SECONDS
 from ...config.messages.media import SAVED_VIDEO_INVALID, SAVED_VIDEO_TIMEOUT
 from ...config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
@@ -26,7 +26,7 @@ async def read_recording_metadata(result: CaptureResult, maximum_bytes: int) -> 
     )
     try:
         async with asyncio.timeout(METADATA_TIMEOUT_SECONDS):
-            payload = await worker.run(close_input, asyncio.Event(), asyncio.Event())
+            payload = await worker.run(asyncio.Event(), asyncio.Event())
     except TimeoutError:
         raise ConnectorError(ErrorCode.CAPTURE, SAVED_VIDEO_TIMEOUT) from None
     width, height, duration, size, audio = (

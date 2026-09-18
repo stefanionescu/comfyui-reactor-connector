@@ -34,6 +34,3 @@ def connector_version() -> str:
     if not isinstance(value, str) or not value:
         raise invalid
     return value
-
-
-__all__ = ["connector_version", "prepare_report"]

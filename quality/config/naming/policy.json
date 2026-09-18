@@ -2,7 +2,7 @@
     "version": 1,
     "global_policy": {
         "are_digits_banned": true,
-        "banned_term_exemptions": ["__all__", "__init__", "__main__"]
+        "banned_term_exemptions": ["__init__", "__main__"]
     },
     "languages": {
         "python": {

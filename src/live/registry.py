@@ -29,11 +29,14 @@ class BrowserRegistry:
                 raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_PANEL_LIMIT)
             self.leases[lease.identifier] = lease
 
+    def find(self, identifier: object) -> BrowserLease | None:
+        """Return the stored session with this identifier, if any."""
+        with self.lock:
+            return self.leases.get(identifier) if isinstance(identifier, str) else None
+
     def exchange(self, document: dict[str, Json]) -> dict[str, Json]:
         """Find the requested session and delegate its capability and input checks."""
-        identifier = document.get("lease")
-        with self.lock:
-            lease = self.leases.get(identifier) if isinstance(identifier, str) else None
+        lease = self.find(document.get("lease"))
         if lease is None:
             raise unavailable()
         return lease.exchange(document)

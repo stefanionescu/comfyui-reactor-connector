@@ -40,6 +40,3 @@ def save_failure(directory: Path, failure: FailureReport, credential: Credential
     if run_id is not None:
         document["run_id"] = run_id
     atomic_write(directory / "last-failure.json", json.dumps(document, indent=2).encode())
-
-
-__all__ = ["describe_failure", "redact", "save_failure"]

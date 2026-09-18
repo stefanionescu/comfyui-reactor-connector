@@ -19,6 +19,3 @@ class VideoInputs:
     duration_seconds: float
     seed: int
     image: bytes | None = None
-
-
-__all__ = ["VideoInputs"]

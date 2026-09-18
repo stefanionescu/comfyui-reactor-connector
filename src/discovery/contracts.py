@@ -16,6 +16,7 @@ from ..config.discovery import (
     MAX_PRICE_AMOUNT,
     UUID_TEXT_LENGTH,
     SLUG_PATTERN_TEXT,
+    EXCLUDED_MODEL_PREFIX,
     FIRST_PRINTABLE_CHARACTER,
     MAX_GUIDE_TITLE_CHARACTERS,
     MAX_RETRIEVAL_TIME_CHARACTERS,
@@ -89,9 +90,8 @@ def parse_snapshot(value: dict[str, Json]) -> Snapshot:
         or len({guide.slug for guide in guides}) != len(guides)
     ):
         raise invalid()
-    # Exclude unsupported HappyOyster entries from refreshed and restored metadata.
-    prices = tuple(price for price in prices if not price.name.startswith("happy-oyster"))
-    guides = tuple(guide for guide in guides if not guide.slug.startswith("happy-oyster"))
+    prices = tuple(price for price in prices if not price.name.startswith(EXCLUDED_MODEL_PREFIX))
+    guides = tuple(guide for guide in guides if not guide.slug.startswith(EXCLUDED_MODEL_PREFIX))
     return Snapshot(retrieved_at, conversion, prices, guides)
 
 
@@ -112,6 +112,3 @@ def rows(value: Json) -> list[dict[str, Json]]:
     if not isinstance(value, list) or not 1 <= len(value) <= MAX_MODELS:
         raise invalid()
     return [mapping_value(row) for row in value]
-
-
-__all__ = ["invalid", "parse_guide", "parse_price", "parse_snapshot", "rows", "slug"]

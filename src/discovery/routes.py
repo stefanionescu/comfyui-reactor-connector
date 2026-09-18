@@ -7,7 +7,7 @@ from .checker import ModelChecker
 from ..state.documents import Json
 from ..http.guard import local_route
 from ..http.request import read_document
-from ..config.routes import MODELS_PREFIX
+from ..config.security import MODELS_PREFIX
 from ..config.messages.requests import REFRESH_BODY, MODEL_REVISION_REQUIRED
 
 

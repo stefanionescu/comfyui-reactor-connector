@@ -3,13 +3,13 @@
 import sys
 import asyncio
 from pathlib import Path
+from ..process import MediaProcess
 from ...paths import EXTENSION_ROOT
 from ..output import discard_outputs
 from ...state.settings import Settings
 from ...state.media import CaptureResult
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
-from ..process import close_input, MediaProcess
 from ...config.media.video import MAX_FRAME_RATE
 from ...config.messages.media import RECORDING_METADATA
 from ...config.media.workers import RECORDING_TIMEOUT_SECONDS
@@ -44,7 +44,7 @@ async def prepare_recording(
     success = False
     try:
         async with asyncio.timeout(RECORDING_TIMEOUT_SECONDS):
-            result = await worker.run(close_input, asyncio.Event(), asyncio.Event())
+            result = await worker.run(asyncio.Event(), asyncio.Event())
         frames, mode = result.get("frames"), result.get("timestamp_mode")
         samples, channels = result.get("audio_samples"), result.get("channels")
         if (

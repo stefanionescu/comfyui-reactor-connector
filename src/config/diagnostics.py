@@ -9,5 +9,3 @@ REDACTIONS = (
     ("\\b[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\b", "[token removed]"),
     ("https?://[^\\s\\\"'<>]+", "[URL removed]"),
 )
-
-__all__ = ["MAX_CODE_CHARACTERS", "MAX_ERROR_NAME_CHARACTERS", "MAX_MESSAGE_CHARACTERS", "REDACTIONS"]

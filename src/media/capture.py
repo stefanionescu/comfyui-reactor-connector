@@ -140,7 +140,7 @@ class VideoCapture:
         """Return only after the encoder has finalized its file and exited."""
         success = False
         try:
-            result = await self.encoder.run(self._feed, self.ready, self.stop_requested)
+            result = await self.encoder.run(self.ready, self.stop_requested, self._feed)
             captured = self._result(result)
         except ConnectorError:
             failure = self.failure

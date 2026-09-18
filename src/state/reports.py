@@ -61,6 +61,3 @@ class FailureReport:
     def __repr__(self) -> str:
         """Hide private failure details from object representations."""
         return "FailureReport(<private>)"
-
-
-__all__ = ["FailureReport", "RunReport"]

@@ -16,6 +16,3 @@ class LtxSpeakRequest(VideoInputs):
 
     words_per_minute: int
     script: str = ""
-
-
-__all__ = ["LtxSpeakRequest"]

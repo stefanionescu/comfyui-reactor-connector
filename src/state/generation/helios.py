@@ -32,6 +32,3 @@ class HeliosRequest(VideoInputs):
     """
 
     prompts: tuple[ScheduledPrompt, ...] = ()
-
-
-__all__ = ["HeliosRequest", "ScheduledPrompt"]

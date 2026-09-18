@@ -14,6 +14,3 @@ async def wait_shielded[T](task: asyncio.Task[T]) -> bool:
         except Exception:  # noqa: BLE001 -- reason: The caller reads the settled task's failure after resolving cancellation.
             break
     return cancelled
-
-
-__all__ = ["wait_shielded"]

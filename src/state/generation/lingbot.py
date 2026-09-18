@@ -32,6 +32,3 @@ class LingBotWorldRequest(LingBotRequest):
     """
 
     lateral: str
-
-
-__all__ = ["LingBotRequest", "LingBotWorldRequest"]

@@ -38,6 +38,3 @@ class HeliosOperation(VideoInputOperation[HeliosRequest]):
             await events.command_reply("schedule_prompt", prompt.to_dict())
         await events.command_reply("start", {})
         return RecordingWindow(0, inputs.duration_seconds)
-
-
-__all__ = ["HeliosOperation"]

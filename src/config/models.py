@@ -137,5 +137,3 @@ MODEL_IDENTITIES = {
         "has_prompt_passthrough": False,
     },
 }
-
-__all__ = ["MODEL_IDENTITIES"]

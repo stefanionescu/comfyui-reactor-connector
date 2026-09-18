@@ -28,6 +28,3 @@ class VideoNode(io.ComfyNode):
         """Drop the run number, which ComfyUI uses to invalidate its cache, and generate."""
         inputs.pop("variation", None)
         return await cls.generate(**inputs)
-
-
-__all__ = ["VideoNode"]

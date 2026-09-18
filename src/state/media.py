@@ -38,6 +38,3 @@ class CaptureResult:
     frames: int
     timestamp_mode: str
     audio_path: Path | None = None
-
-
-__all__ = ["CaptureResult", "VideoFrame"]

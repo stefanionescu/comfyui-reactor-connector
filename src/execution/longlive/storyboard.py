@@ -53,6 +53,3 @@ def append_shot(previous: str, shot: Shot) -> str:
     encoded = json.dumps([item.to_dict() for item in (*parse_storyboard(previous), shot)])
     parse_storyboard(encoded)
     return encoded
-
-
-__all__ = ["append_shot", "parse_storyboard", "validate_shot"]

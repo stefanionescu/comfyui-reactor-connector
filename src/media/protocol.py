@@ -24,6 +24,3 @@ def report_outcome(
     sys.stdout.write(json.dumps(result) + "\n")
     sys.stdout.flush()
     return int("error" in result)
-
-
-__all__ = ["report_outcome"]

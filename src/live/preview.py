@@ -8,7 +8,8 @@ import threading
 import numpy as np
 from PIL import Image
 from typing import cast, TYPE_CHECKING
-from ..config.media.images import RGB_CHANNELS, MAX_FRAME_DIMENSION, RGB_ARRAY_DIMENSIONS
+from ..config.media.capture import MAX_FRAME_DIMENSION
+from ..config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
 from ..config.live import (
     MAX_PREVIEW_WIDTH,
     MAX_PREVIEW_HEIGHT,

@@ -91,6 +91,6 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
             str(round(rate)),
         ]
     )
-    result = await worker.run(feed, asyncio.Event(), asyncio.Event())
+    result = await worker.run(asyncio.Event(), asyncio.Event(), feed)
     if result.get("frames") != count:
         raise ConnectorError(ErrorCode.CAPTURE, SOURCE_FRAMES_LOST)

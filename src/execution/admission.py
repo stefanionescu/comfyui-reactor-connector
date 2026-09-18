@@ -81,6 +81,3 @@ class SessionAdmission:
                     self._waiting.remove(ticket)
                 self._active.discard(ticket)
                 self._notify()
-
-
-__all__ = ["SessionAdmission"]

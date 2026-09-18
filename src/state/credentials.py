@@ -45,6 +45,3 @@ class SessionToken:
     def __str__(self) -> str:
         """Hide the token from formatted text."""
         return "<redacted>"
-
-
-__all__ = ["Credential", "SessionToken"]

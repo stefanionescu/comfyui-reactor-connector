@@ -134,6 +134,3 @@ def build_live_options(operation: VideoOperation, *, webcam: WebcamFrames | None
         audio_prompt=values.audio_prompt,
         is_audio_enabled=values.is_audio_enabled,
     )
-
-
-__all__ = ["build_live_options", "prepare_interaction"]

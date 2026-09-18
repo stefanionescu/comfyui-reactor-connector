@@ -112,6 +112,3 @@ class SanaOperation(VideoInputOperation[SanaRequest]):
             await accepted.wait()
         finally:
             transport.off("message", observe)
-
-
-__all__ = ["SanaOperation"]

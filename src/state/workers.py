@@ -44,6 +44,3 @@ class SourceSettings:
     duration_seconds: float
     maximum_bytes: int
     frame_bytes: int
-
-
-__all__ = ["EncoderSettings", "SourceSettings"]

@@ -53,6 +53,3 @@ class VideoOperation(Protocol):
     async def release(self, transport: Transport) -> None:
         """Release request-owned uploads or input tracks before the session closes."""
         raise NotImplementedError
-
-
-__all__ = ["VideoOperation"]

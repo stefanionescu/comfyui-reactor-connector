@@ -29,6 +29,3 @@ class LiveOptions:
     is_passthrough_enabled: bool = False
     audio_prompt: str = ""
     is_audio_enabled: bool = False
-
-
-__all__ = ["LiveOptions"]

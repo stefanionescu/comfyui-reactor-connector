@@ -7,7 +7,7 @@ from ..config.discovery import GUIDE_URL_FORMAT
 
 
 def model_views(snapshot: Snapshot | None, node_models: dict[str, str]) -> list[dict[str, Json]]:
-    """List public models except the excluded HappyOyster family."""
+    """List the public models beside the nodes that support them."""
     guides = {guide.slug: guide for guide in snapshot.guides} if snapshot else {}
     prices = {price.name: price for price in snapshot.prices} if snapshot else {}
     associated: set[str] = set()
@@ -46,7 +46,7 @@ def model_views(snapshot: Snapshot | None, node_models: dict[str, str]) -> list[
             "node_ids": [],
         }
         for guide in sorted(guides.values(), key=lambda item: item.slug)
-        if guide.slug not in associated and not guide.slug.startswith("happy-oyster")
+        if guide.slug not in associated
     )
     return models
 

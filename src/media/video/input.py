@@ -6,6 +6,7 @@ import math
 import asyncio
 from pathlib import Path
 from typing import BinaryIO
+from ..process import MediaProcess
 from ...paths import EXTENSION_ROOT
 from ...state.settings import Settings
 from tempfile import TemporaryDirectory
@@ -16,7 +17,6 @@ from contextlib import asynccontextmanager
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
-from ..process import close_input, MediaProcess
 from ...config.media.workers import INPUT_TIMEOUT_SECONDS
 from ...config.messages.media import LOCAL_SOURCE_REQUIRED
 from ...config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
@@ -118,7 +118,7 @@ async def _prepare_file(
             str(convert_mebibytes_to_bytes(settings.max_queue_megabytes)),
         ]
     )
-    result = await worker.run(close_input, asyncio.Event(), asyncio.Event())
+    result = await worker.run(asyncio.Event(), asyncio.Event())
     frames = result.get("frames")
     if type(frames) is not int or frames < MIN_SOURCE_FRAMES:
         raise input_error()

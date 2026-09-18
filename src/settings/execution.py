@@ -41,6 +41,3 @@ def _execution_settings(settings: Settings) -> dict[str, object]:
         for key, value in settings.to_json().items()
         if key not in {"catalog_auto_check", "catalog_interval_hours"}
     }
-
-
-__all__ = ["ConfigurationGeneration"]

@@ -73,6 +73,3 @@ def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settin
         raise ConnectorError(ErrorCode.INVALID_INPUT, CAPTURE_LIMIT)
     if not 0 <= seed <= MAX_SEED:
         raise ConnectorError(ErrorCode.INVALID_INPUT, SEED_RANGE)
-
-
-__all__ = ["VideoInputOperation", "validate_capture_inputs"]

@@ -1,4 +1,12 @@
-"""Credential limits and Reactor authentication endpoints."""
+"""Limits and prefixes of the local API and the Reactor authentication endpoint."""
+
+SETTINGS_PREFIX = "/reactor-inc/v1"
+
+MODELS_PREFIX = "/reactor-inc/v1/catalog"
+
+MAX_JSON_BYTES = 1_048_576
+
+MAX_JSON_DEPTH = 16
 
 MAX_CREDENTIAL_CHARACTERS = 1024
 
@@ -23,18 +31,3 @@ SESSION_EXPIRY_BUFFER_SECONDS = 120
 MIN_EXPIRY_MARGIN_SECONDS = 30
 
 PRIVATE_HEADERS = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"}
-
-__all__ = [
-    "AUTHENTICATION_CHUNK_BYTES",
-    "AUTHENTICATION_TIMEOUT_SECONDS",
-    "JWT_PATTERN_TEXT",
-    "MAX_CREDENTIAL_CHARACTERS",
-    "MAX_RESPONSE_BYTES",
-    "MAX_SESSION_SECONDS",
-    "MAX_SESSION_TOKEN_CHARACTERS",
-    "MIN_EXPIRY_MARGIN_SECONDS",
-    "MODEL_NAME_PATTERN_TEXT",
-    "PRIVATE_HEADERS",
-    "SESSION_ENDPOINT",
-    "SESSION_EXPIRY_BUFFER_SECONDS",
-]

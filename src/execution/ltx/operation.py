@@ -112,6 +112,3 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
             await events.command_reply("set_prompt", {"prompt": inputs.prompt})
         await events.command_reply("start", {})
         return RecordingWindow(0, inputs.duration_seconds)
-
-
-__all__ = ["LtxSpeakOperation"]

@@ -45,6 +45,3 @@ def parse_settings(document: dict[str, Json]) -> Settings:
     settings = Settings(**integers, catalog_auto_check=automatic)
     validate_settings(settings)
     return settings
-
-
-__all__ = ["default_settings", "parse_settings", "validate_settings"]

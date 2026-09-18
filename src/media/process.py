@@ -59,11 +59,14 @@ class MediaProcess:
 
     async def run(
         self,
-        feed: Callable[[asyncio.StreamWriter], Coroutine[object, object, None]],
         ready: asyncio.Event,
         stopped: asyncio.Event,
+        feed: Callable[[asyncio.StreamWriter], Coroutine[object, object, None]] | None = None,
     ) -> dict[str, Json]:
-        """Observe input, result, and stop signals without blocking the host loop."""
+        """Observe input, result, and stop signals without blocking the host loop.
+
+        Without a feed, the worker reads its input from files and stdin closes at once.
+        """
         environment = {key: value for key, value in os.environ.items() if not key.startswith("REACTOR_")}
         self.process = await asyncio.create_subprocess_exec(
             *self.command,
@@ -77,14 +80,18 @@ class MediaProcess:
         try:
             if self.process.stdin is None or self.process.stdout is None:
                 raise ConnectorError(ErrorCode.CAPTURE, ENCODER_PIPES)
-            feeder = asyncio.create_task(feed(self.process.stdin))
             reader = asyncio.create_task(_read_result(self.process.stdout, ready))
             interrupted = asyncio.create_task(stopped.wait())
-            tasks.extend((feeder, reader, interrupted))
-            completed, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-            if feeder in completed:
-                feeder.result()
-                await asyncio.wait({reader, interrupted}, return_when=asyncio.FIRST_COMPLETED)
+            tasks.extend((reader, interrupted))
+            if feed is None:
+                self.process.stdin.write_eof()
+            else:
+                feeder = asyncio.create_task(feed(self.process.stdin))
+                tasks.append(feeder)
+                completed, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                if feeder in completed:
+                    feeder.result()
+            await asyncio.wait({reader, interrupted}, return_when=asyncio.FIRST_COMPLETED)
             if interrupted.done():
                 raise ConnectorError(ErrorCode.CAPTURE, CAPTURE_STOPPED)
             result = await reader
@@ -104,11 +111,6 @@ class MediaProcess:
                 cleanup.exception()
             raise asyncio.CancelledError
         cleanup.result()
-
-
-async def close_input(writer: asyncio.StreamWriter) -> None:
-    """Signal EOF when a worker reads its input from files instead of stdin."""
-    writer.write_eof()
 
 
 async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:

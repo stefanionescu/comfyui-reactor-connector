@@ -5,7 +5,7 @@ import math
 from typing import cast
 from .state.documents import Json
 from .errors import ErrorCode, ConnectorError
-from .config.serialization import MAX_JSON_BYTES, MAX_JSON_DEPTH
+from .config.security import MAX_JSON_BYTES, MAX_JSON_DEPTH
 from .config.messages.requests import JSON_SIZE, JSON_DEPTH, JSON_MAPPING, JSON_SYNTAX, JSON_VALUES, JSON_DUPLICATE_KEY
 
 

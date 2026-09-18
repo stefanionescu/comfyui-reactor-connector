@@ -110,6 +110,3 @@ def _validate_contract(schema: object, transport: Transport) -> None:
     ]
     if commands != required or len(sources) != 1:
         raise ConnectorError(ErrorCode.UNAVAILABLE, XMAX_UNSUPPORTED)
-
-
-__all__ = ["X2Operation"]

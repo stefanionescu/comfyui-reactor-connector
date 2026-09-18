@@ -38,6 +38,3 @@ class LongLiveRequest(VideoInputs):
     """
 
     shots: tuple[Shot, ...] = ()
-
-
-__all__ = ["LongLiveRequest", "Shot"]

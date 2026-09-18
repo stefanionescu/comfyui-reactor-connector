@@ -34,6 +34,3 @@ class ModelDefinition:
     has_audio_prompt: bool = False
     has_pointer: bool = False
     has_prompt_passthrough: bool = False
-
-
-__all__ = ["ModelDefinition"]

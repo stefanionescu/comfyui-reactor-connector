@@ -31,6 +31,3 @@ MODELS: dict[str, ModelDefinition] = {
 MODELS_BY_CONNECTION: dict[str, ModelDefinition] = {
     definition.connection_name: definition for definition in MODELS.values()
 }
-
-
-__all__ = ["MODELS", "MODELS_BY_CONNECTION"]

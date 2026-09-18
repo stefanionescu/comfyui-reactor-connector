@@ -39,6 +39,3 @@ class LongLiveOperation(VideoInputOperation[LongLiveRequest]):
             await events.command_reply(command, {"prompt": shot.prompt, "at_session_chunk": shot.at_session_chunk})
         await events.command_reply("start", {})
         return RecordingWindow(0, inputs.duration_seconds)
-
-
-__all__ = ["LongLiveOperation"]

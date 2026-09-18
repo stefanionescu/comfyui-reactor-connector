@@ -20,6 +20,3 @@ class ViskoRequest(VideoInputs):
     resolution: str = ""
     audio_enabled: bool = True
     prompt_passthrough: bool = False
-
-
-__all__ = ["ViskoRequest"]
