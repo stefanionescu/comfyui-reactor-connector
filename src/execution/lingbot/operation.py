@@ -11,7 +11,7 @@ from ..inputs import VideoInputOperation
 from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
 from ...state.generation.lingbot import LingBotRequest, LingBotWorldRequest
-from ....config.generation.world import (
+from ...config.generation.world import (
     CAMERA_AXES,
     WORLD_FRAME_RATE,
     MAX_ROTATION_SPEED,

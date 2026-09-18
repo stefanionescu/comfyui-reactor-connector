@@ -3,7 +3,7 @@
 from comfy_api.latest import io
 from ...state.generation.longlive import Shot
 from ...execution.longlive.storyboard import append_shot
-from ....config.generation.prompts import MAX_SHOT_CHUNK, DEFAULT_TRANSITION, OPTIONS_TRANSITION, DEFAULT_PROMPTS
+from ...config.generation.prompts import MAX_SHOT_CHUNK, DEFAULT_TRANSITION, OPTIONS_TRANSITION, DEFAULT_PROMPTS
 
 
 class LongLiveAddShot(io.ComfyNode):

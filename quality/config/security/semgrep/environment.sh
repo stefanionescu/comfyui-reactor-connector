@@ -27,7 +27,7 @@ SEMGREP_LOCAL_CONFIGS=(
   quality/config/security/semgrep/frontend.yml
   quality/config/security/semgrep/hooks.yml
 )
-SEMGREP_SCAN_PATHS=(__init__.py __main__.py src config scripts quality web locales .githooks .mise)
+SEMGREP_SCAN_PATHS=(__init__.py __main__.py src scripts quality web locales .githooks .mise)
 readonly -a SEMGREP_FLAGS
 readonly -a SEMGREP_LOCAL_CONFIGS
 readonly -a SEMGREP_SCAN_PATHS

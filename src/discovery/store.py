@@ -15,7 +15,7 @@ from collections.abc import Callable, Awaitable
 from ..storage import atomic_write, read_private
 from ..serialization import parse_json, mapping_value
 from ..state.discovery import Snapshot, CatalogState, STORAGE_VERSION
-from ...config.discovery import MAX_ADDED_MODELS, SOURCE_RETENTION_DIVISOR, MAX_STORED_METADATA_BYTES
+from ..config.discovery import MAX_ADDED_MODELS, SOURCE_RETENTION_DIVISOR, MAX_STORED_METADATA_BYTES
 
 
 class ModelStore:

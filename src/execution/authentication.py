@@ -9,7 +9,7 @@ from ..language import translate
 from ..errors import ErrorCode, ConnectorError
 from ..serialization import parse_json, mapping_value
 from ..state.credentials import Credential, SessionToken
-from ...config.security import (
+from ..config.security import (
     JWT_PATTERN_TEXT,
     SESSION_ENDPOINT,
     MAX_RESPONSE_BYTES,

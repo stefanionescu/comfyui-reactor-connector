@@ -15,10 +15,10 @@ main() {
   mise run repo:type:python
   uv run --no-sync python -m quality.python.runner
   uv run --no-sync lint-imports --cache-dir .artifacts/import-linter
-  uv run --no-sync pydoclint --allow-init-docstring true __init__.py __main__.py src config scripts quality
-  uv run --no-sync interrogate --fail-under 100 __init__.py __main__.py src config scripts quality
+  uv run --no-sync pydoclint --allow-init-docstring true __init__.py __main__.py src scripts quality
+  uv run --no-sync interrogate --fail-under 100 __init__.py __main__.py src scripts quality
   uv run --no-sync deptry .
-  uv run --no-sync vulture __init__.py __main__.py src config scripts quality
+  uv run --no-sync vulture __init__.py __main__.py src scripts quality
 }
 
 main "$@"

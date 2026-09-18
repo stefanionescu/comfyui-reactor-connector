@@ -6,7 +6,7 @@ import av
 from ...language import translate
 from typing import cast, TYPE_CHECKING
 from ...errors import ErrorCode, ConnectorError
-from ....config.media.video import DEFAULT_FRAME_RATE, MAX_FRAME_RATE
+from ...config.media.video import DEFAULT_FRAME_RATE, MAX_FRAME_RATE
 
 if TYPE_CHECKING:
     import numpy as np

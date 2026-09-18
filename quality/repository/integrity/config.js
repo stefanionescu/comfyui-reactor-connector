@@ -17,7 +17,7 @@ import {
 
 const repoRoot = process.cwd();
 const qualityRoot = path.join(repoRoot, 'quality');
-const configRoots = [path.join(repoRoot, 'config'), path.join(qualityRoot, 'config')];
+const configRoots = [path.join(repoRoot, 'src', 'config'), path.join(qualityRoot, 'config')];
 const javascriptExtensionSet = new Set(JAVASCRIPT_EXTENSIONS);
 const shellConfigExtensions = new Set(['.sh']);
 const disallowedRuntimeFolderNames = new Set(DISALLOWED_RUNTIME_FOLDERS);

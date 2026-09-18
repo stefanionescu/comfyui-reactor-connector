@@ -2,7 +2,7 @@
 
 from comfy_api.latest import io
 from ..controls import video_outputs, generation_controls
-from ....config.generation.world import (
+from ...config.generation.world import (
     CAMERA_AXES,
     DEFAULT_LATERAL,
     OPTIONS_LATERAL,

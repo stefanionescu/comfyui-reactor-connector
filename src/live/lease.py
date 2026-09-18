@@ -9,7 +9,7 @@ from ..state.documents import Json
 from collections.abc import Callable
 from ..errors import ErrorCode, ConnectorError
 from ..state.live import BrowserInput, BrowserExchange
-from ...config.live import (
+from ..config.live import (
     LEASE_BYTES,
     MAX_SEQUENCE,
     CAPABILITY_BYTES,

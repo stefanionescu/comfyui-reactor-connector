@@ -6,7 +6,7 @@ from PIL import Image
 from ..language import translate
 from comfy_api.latest import Input
 from ..errors import ErrorCode, ConnectorError
-from ...config.media.images import RGB_CHANNELS, MAX_IMAGE_DIMENSION, BATCH_IMAGE_DIMENSIONS
+from ..config.media.images import RGB_CHANNELS, MAX_IMAGE_DIMENSION, BATCH_IMAGE_DIMENSIONS
 
 
 def encode_png(image: Input.Image) -> bytes:

@@ -13,9 +13,9 @@ from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
 from ...state.generation.sana import SanaRequest
 from ...media.video.publish import VideoPublication
-from ....config.generation.session import MAX_PROMPT_CHARACTERS
+from ...config.generation.session import MAX_PROMPT_CHARACTERS
 from ..inputs import VideoInputOperation, validate_capture_inputs
-from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
+from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
 
 
 class SanaOperation(VideoInputOperation[SanaRequest]):

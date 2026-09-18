@@ -3,7 +3,7 @@
 from comfy_api.latest import io
 from ...execution.helios.prompts import append_prompt
 from ...state.generation.helios import ScheduledPrompt
-from ....config.generation.prompts import MAX_PROMPT_CHUNK, DEFAULT_PROMPTS
+from ...config.generation.prompts import MAX_PROMPT_CHUNK, DEFAULT_PROMPTS
 
 
 class HeliosAddPrompt(io.ComfyNode):

@@ -9,7 +9,7 @@ from ..errors import ConnectorError
 from reactor_sdk import ReactorError
 from ..state.reports import FailureReport
 from ..state.credentials import Credential
-from ...config.diagnostics import MAX_CODE_CHARACTERS, MAX_MESSAGE_CHARACTERS, MAX_ERROR_NAME_CHARACTERS, REDACTIONS
+from ..config.diagnostics import MAX_CODE_CHARACTERS, MAX_MESSAGE_CHARACTERS, MAX_ERROR_NAME_CHARACTERS, REDACTIONS
 
 
 def describe_failure(phase: str, error: object) -> FailureReport:

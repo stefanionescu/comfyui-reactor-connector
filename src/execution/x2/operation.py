@@ -13,8 +13,8 @@ from ...state.session import RecordingWindow
 from ...errors import ErrorCode, ConnectorError
 from ...media.video.publish import VideoPublication
 from ...serialization import mapping_value, validate_json
-from ....config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
-from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION
+from ...config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
+from ...config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION
 
 
 class X2Operation(VideoInputOperation[X2Request]):

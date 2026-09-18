@@ -8,11 +8,11 @@ import numpy as np
 from pathlib import Path
 from fractions import Fraction
 from typing import cast, BinaryIO, Protocol
-from config.media.images import RGB_CHANNELS
 from contextlib import AbstractContextManager
 from src.state.workers import EncoderSettings
-from config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
-from config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCODER_PIXEL_FORMAT
+from ..config.media.images import RGB_CHANNELS
+from ..config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
+from ..config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCODER_PIXEL_FORMAT
 
 
 WORKER_ARGUMENT_COUNT = 6

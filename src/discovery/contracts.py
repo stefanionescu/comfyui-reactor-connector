@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ..serialization import mapping_value
 from ..errors import ErrorCode, ConnectorError
 from ..state.discovery import Price, Guide, Snapshot, FORMAT_VERSION
-from ...config.discovery import (
+from ..config.discovery import (
     MAX_MODELS,
     MAX_PRICE_AMOUNT,
     UUID_TEXT_LENGTH,

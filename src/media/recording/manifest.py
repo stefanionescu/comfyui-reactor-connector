@@ -5,7 +5,7 @@ from ...language import translate
 from urllib.parse import urljoin, urlsplit
 from ...errors import ErrorCode, ConnectorError
 from ...state.recording import RecordingManifest
-from ....config.media.recording import (
+from ...config.media.recording import (
     COORDINATOR,
     MAX_SEGMENTS,
     RECORDING_STORAGE,

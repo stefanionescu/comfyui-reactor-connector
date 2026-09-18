@@ -5,8 +5,8 @@ from ...language import translate
 from ...state.generation.longlive import Shot
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
-from ....config.generation.session import MAX_PROMPT_CHARACTERS
-from ....config.generation.prompts import OPTIONS_TRANSITION, MAX_SHOTS, MAX_SHOT_CHUNK, MAX_STORYBOARD_BYTES
+from ...config.generation.session import MAX_PROMPT_CHARACTERS
+from ...config.generation.prompts import OPTIONS_TRANSITION, MAX_SHOTS, MAX_SHOT_CHUNK, MAX_STORYBOARD_BYTES
 
 
 def validate_shot(shot: Shot) -> None:

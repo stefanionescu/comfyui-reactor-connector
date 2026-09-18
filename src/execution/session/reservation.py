@@ -18,7 +18,7 @@ from contextlib import asynccontextmanager
 from ...state.session import SessionOutcome
 from ...errors import ErrorCode, ConnectorError
 from ...storage import atomic_write, read_private, private_directory
-from ....config.generation.session import MAX_SESSION_RECORD_BYTES, MAX_SESSION_RECORD_DEPTH
+from ...config.generation.session import MAX_SESSION_RECORD_BYTES, MAX_SESSION_RECORD_DEPTH
 
 
 class SessionReservation:

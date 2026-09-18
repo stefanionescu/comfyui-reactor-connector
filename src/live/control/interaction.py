@@ -5,12 +5,12 @@ from .lease import ControlLease
 from ...language import translate
 from ...state.documents import Json
 from ..interaction import BrowserInteraction
+from ...config.live import INPUT_POLL_SECONDS
 from ...execution.events import SessionEvents
-from ....config.live import INPUT_POLL_SECONDS
 from ...errors import ErrorCode, ConnectorError
 from ...execution.transport import Track, Transport
-from ....config.nodes import DEFAULT_POINTER_POSITION
-from ....config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
+from ...config.nodes import DEFAULT_POINTER_POSITION
+from ...config.live import STALE_INPUT_SECONDS, UPLOAD_TIMEOUT_SECONDS, COMMAND_TIMEOUT_SECONDS
 
 
 class ControlInteraction(BrowserInteraction):

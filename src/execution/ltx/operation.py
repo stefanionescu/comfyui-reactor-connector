@@ -12,7 +12,7 @@ from ...errors import ErrorCode, ConnectorError
 from ...state.generation.ltx import LtxSpeakRequest
 from ...media.units import convert_mebibytes_to_bytes
 from ..inputs import VideoInputOperation, validate_capture_inputs
-from ....config.generation.speech import (
+from ...config.generation.speech import (
     MIN_SPEECH_SECONDS,
     MAX_SCENE_CHARACTERS,
     MAX_WORDS_PER_MINUTE,

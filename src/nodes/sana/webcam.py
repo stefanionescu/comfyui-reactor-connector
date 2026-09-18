@@ -7,7 +7,7 @@ from ...comfy.interaction import build_live_options
 from ...execution.sana.operation import SanaOperation
 from ..controls import video_outputs, generation_controls
 from ...comfy.execution import generate_video, operation_fingerprint
-from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
+from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
 class SanaWebcam(io.ComfyNode):

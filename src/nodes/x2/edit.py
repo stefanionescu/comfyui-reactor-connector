@@ -13,9 +13,9 @@ from ...state.generation.x2 import X2Request
 from ...media.video.input import prepared_video
 from ...execution.x2.operation import X2Operation
 from ..controls import live_control, video_outputs
-from ....config.generation.prompts import DEFAULT_PROMPTS
+from ...config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
-from ....config.nodes import (
+from ...config.nodes import (
     MAX_VARIATION,
     MIN_VARIATION,
     DEFAULT_VARIATION,

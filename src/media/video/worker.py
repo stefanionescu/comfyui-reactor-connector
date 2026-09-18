@@ -8,10 +8,10 @@ from fractions import Fraction
 from types import TracebackType
 from collections.abc import Iterator
 from typing import Self, cast, Protocol
-from config.media.images import RGB_CHANNELS
 from src.state.workers import SourceSettings
 from av.container.input import InputContainer
-from config.media.video import (
+from ...config.media.images import RGB_CHANNELS
+from ...config.media.video import (
     ENCODER_CRF,
     ENCODER_NAME,
     ENCODER_PRESET,

@@ -3,7 +3,6 @@ paths:
     - .
 paths-ignore:
     - .git
-    - .reactor-private
     - dist
     - .artifacts
     - .cache

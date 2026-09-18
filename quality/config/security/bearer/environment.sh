@@ -8,7 +8,7 @@
 [[ -n ${_CFG_BEARER_READY:-} ]] && return 0
 readonly _CFG_BEARER_READY=1
 
-BEARER_SCAN_PATHS=(__init__.py __main__.py config src scripts quality web)
+BEARER_SCAN_PATHS=(__init__.py __main__.py src scripts quality web)
 BEARER_FLAGS=(
   --ignore-file "quality/config/security/bearer/false-positives.json"
   --severity "critical,high,medium"

@@ -12,7 +12,7 @@ from ...state.generation.sana import SanaRequest
 from ...execution.sana.operation import SanaOperation
 from ..controls import live_control, video_outputs, generation_controls
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
-from ....config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
+from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 
 
 class SanaEditVideo(io.ComfyNode):

@@ -18,8 +18,8 @@ from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
-from ....config.media.workers import INPUT_TIMEOUT_SECONDS
-from ....config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
+from ...config.media.workers import INPUT_TIMEOUT_SECONDS
+from ...config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
 
 
 def input_error() -> ConnectorError:

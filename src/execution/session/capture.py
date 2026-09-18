@@ -22,7 +22,7 @@ from ...media.units import convert_mebibytes_to_bytes
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
 from ...state.session import SessionOutcome, RecordingWindow
-from ....config.generation.session import CAPTURE_DRAIN_SECONDS
+from ...config.generation.session import CAPTURE_DRAIN_SECONDS
 
 
 def _video_track(transport: Transport) -> Track:

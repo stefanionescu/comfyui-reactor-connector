@@ -10,9 +10,9 @@ from ...media.webcam import WebcamFrames
 from ...state.generation.x2 import X2Request
 from ...execution.x2.operation import X2Operation
 from ...comfy.interaction import build_live_options
-from ....config.generation.prompts import DEFAULT_PROMPTS
+from ...config.generation.prompts import DEFAULT_PROMPTS
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
-from ....config.nodes import (
+from ...config.nodes import (
     MAX_VARIATION,
     MIN_VARIATION,
     DEFAULT_VARIATION,

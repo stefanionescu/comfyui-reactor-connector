@@ -3,7 +3,7 @@
 CONFIG_IMPORT_ROOTS = {
     "__future__",
     "collections.abc",
-    "config",
+    "src.config",
     "quality.config",
     "typing",
 }

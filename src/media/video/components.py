@@ -15,9 +15,9 @@ from ...state.settings import Settings
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
-from ....config.media.capture import FRAME_HEADER_FORMAT
-from ....config.media.images import RGB_CHANNELS, BATCH_IMAGE_DIMENSIONS
-from ....config.media.video import (
+from ...config.media.capture import FRAME_HEADER_FORMAT
+from ...config.media.images import RGB_CHANNELS, BATCH_IMAGE_DIMENSIONS
+from ...config.media.video import (
     COMPONENT_BITS,
     MAX_FRAME_RATE,
     MIN_SOURCE_FRAMES,

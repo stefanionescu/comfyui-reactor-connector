@@ -5,7 +5,7 @@ from aiohttp import web
 from ..language import translate
 from ..state.documents import Json
 from ..serialization import parse_json, mapping_value
-from ...config.settings import MAX_SETTINGS_BYTES, REQUEST_CHUNK_BYTES, SETTINGS_TIMEOUT_SECONDS
+from ..config.settings import MAX_SETTINGS_BYTES, REQUEST_CHUNK_BYTES, SETTINGS_TIMEOUT_SECONDS
 
 
 async def read_document(request: web.Request, *, max_bytes: int = MAX_SETTINGS_BYTES) -> dict[str, Json]:

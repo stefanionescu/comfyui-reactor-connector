@@ -9,7 +9,7 @@ from ..controls import generation_controls
 from ...state.generation.fast import FastGenerateRequest
 from ...execution.fast.generate import FastGenerateOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
-from ....config.generation.fast import (
+from ...config.generation.fast import (
     DEFAULT_ASPECT,
     OPTIONS_ASPECT,
     MAX_CLIP_SECONDS,

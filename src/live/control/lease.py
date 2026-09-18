@@ -8,9 +8,9 @@ from ...state.documents import Json
 from ...models import MODELS_BY_CONNECTION
 from ..lease import unavailable, BrowserLease
 from ...errors import ErrorCode, ConnectorError
-from ....config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
-from ....config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
-from ....config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
+from ...config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
+from ...config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
+from ...config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
 
 
 class ControlLease(BrowserLease):

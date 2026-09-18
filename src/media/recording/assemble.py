@@ -11,9 +11,9 @@ from ...state.media import CaptureResult
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
-from ....config.media.video import MAX_FRAME_RATE
-from ....config.media.workers import RECORDING_TIMEOUT_SECONDS
-from ....config.media.audio import SAMPLE_RATE, MAX_CHANNELS, MIN_CHANNELS
+from ...config.media.video import MAX_FRAME_RATE
+from ...config.media.workers import RECORDING_TIMEOUT_SECONDS
+from ...config.media.audio import SAMPLE_RATE, MAX_CHANNELS, MIN_CHANNELS
 
 
 async def prepare_recording(

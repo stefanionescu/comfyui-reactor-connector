@@ -4,7 +4,7 @@ from aiohttp import web
 from ..state.documents import Json
 from ..errors import ConnectorError
 from .security import require_local_request
-from ...config.security import PRIVATE_HEADERS
+from ..config.security import PRIVATE_HEADERS
 from collections.abc import Callable, Awaitable
 from ..language import translate, language_scope
 from ..settings.conflict import SettingsConflictError

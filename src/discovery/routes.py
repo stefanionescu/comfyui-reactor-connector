@@ -10,7 +10,7 @@ from ..http.guard import local_route
 from ..state.discovery import Snapshot
 from .sources import read_public_models
 from ..http.request import read_document
-from ...config.routes import MODELS_PREFIX
+from ..config.routes import MODELS_PREFIX
 from collections.abc import Callable, Awaitable
 
 

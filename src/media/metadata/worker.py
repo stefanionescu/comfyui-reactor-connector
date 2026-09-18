@@ -4,7 +4,7 @@ import av
 import sys
 import json
 from pathlib import Path
-from config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
+from ...config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
 
 
 WORKER_ARGUMENT_COUNT = 3

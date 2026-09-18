@@ -8,7 +8,7 @@ from typing import cast, TYPE_CHECKING
 from .diagnostics import describe_failure
 from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Coroutine
-from ...config.generation.session import MAX_MESSAGE_TYPES
+from ..config.generation.session import MAX_MESSAGE_TYPES
 
 if TYPE_CHECKING:
     from ..state.reports import FailureReport

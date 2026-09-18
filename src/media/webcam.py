@@ -11,7 +11,7 @@ from ..language import translate
 from typing import TYPE_CHECKING
 from PIL import Image, UnidentifiedImageError
 from ..errors import ErrorCode, ConnectorError
-from ...config.media.webcam import (
+from ..config.media.webcam import (
     MAX_CAMERA_WIDTH,
     CAMERA_FRAME_RATE,
     MAX_CAMERA_HEIGHT,

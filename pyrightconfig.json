@@ -1,7 +1,7 @@
 {
     "pythonVersion": "3.12",
     "typeCheckingMode": "strict",
-    "include": ["__init__.py", "__main__.py", "src", "config", "quality", "scripts"],
+    "include": ["__init__.py", "__main__.py", "src", "quality", "scripts"],
     "venvPath": ".",
     "venv": ".venv",
     "extraPaths": ["."],

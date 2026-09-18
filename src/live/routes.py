@@ -11,9 +11,9 @@ from ..http.guard import local_route
 from .registry import BrowserRegistry
 from .control.lease import ControlLease
 from ..http.request import read_document
-from ...config.routes import SETTINGS_PREFIX
-from ...config.media.webcam import MAX_CAMERA_JPEG_BYTES
-from ...config.live import (
+from ..config.routes import SETTINGS_PREFIX
+from ..config.media.webcam import MAX_CAMERA_JPEG_BYTES
+from ..config.live import (
     MAX_ACTION_BYTES,
     MAX_SEQUENCE_DIGITS,
     UPLOAD_TIMEOUT_SECONDS,

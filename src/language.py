@@ -8,7 +8,7 @@ from functools import cache
 from .paths import EXTENSION_ROOT
 from contextvars import ContextVar
 from contextlib import contextmanager
-from ..config.security import LANGUAGE_PATTERN
+from .config.security import LANGUAGE_PATTERN
 from typing import cast, Literal, TYPE_CHECKING
 
 if TYPE_CHECKING:

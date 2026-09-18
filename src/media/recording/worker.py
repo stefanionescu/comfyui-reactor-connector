@@ -13,9 +13,9 @@ from itertools import chain
 from fractions import Fraction
 from dataclasses import dataclass
 from typing import cast, TYPE_CHECKING
-from config.media.images import RGB_CHANNELS
+from ...config.media.images import RGB_CHANNELS
 from src.state.recording import RecordingVideo, RecordingSettings
-from config.media.audio import (
+from ...config.media.audio import (
     SAMPLE_RATE,
     MAX_CHANNELS,
     MIN_CHANNELS,
@@ -23,7 +23,7 @@ from config.media.audio import (
     AUDIO_WRITE_BLOCK_SAMPLES,
     AUDIO_ENCODE_BLOCK_SAMPLES,
 )
-from config.media.video import (
+from ...config.media.video import (
     ENCODER_CRF,
     ENCODER_NAME,
     ENCODER_PRESET,

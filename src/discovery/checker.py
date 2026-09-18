@@ -10,9 +10,9 @@ from datetime import UTC, datetime
 from ..state.settings import Settings
 from ..state.discovery import Snapshot
 from .sources import read_public_models
-from ...config.settings import INTEGER_SETTINGS
+from ..config.settings import INTEGER_SETTINGS
 from collections.abc import Callable, Awaitable, AsyncIterator
-from ...config.discovery import CHECK_POLL_SECONDS, CHECK_TIMEOUT_SECONDS
+from ..config.discovery import CHECK_POLL_SECONDS, CHECK_TIMEOUT_SECONDS
 
 
 class ModelChecker:

@@ -13,7 +13,7 @@ from ...state.credentials import SessionToken
 from ...errors import ErrorCode, ConnectorError
 from ...state.recording import RecordingManifest
 from .manifest import recording_url, coordinator_url, recording_error, parse_recording_manifest
-from ....config.media.recording import (
+from ...config.media.recording import (
     MAX_RETRY_SECONDS,
     MEDIA_CHUNK_BYTES,
     MIN_RETRY_SECONDS,

@@ -13,10 +13,10 @@ from .process import MediaProcess
 from ..paths import EXTENSION_ROOT
 from typing import cast, TYPE_CHECKING
 from ..errors import ErrorCode, ConnectorError
+from ..config.media.video import DEFAULT_FRAME_RATE
 from ..state.media import VideoFrame, CaptureResult
-from ...config.media.video import DEFAULT_FRAME_RATE
-from ...config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
-from ...config.media.capture import MAX_QUEUED_FRAMES, FRAME_HEADER_FORMAT
+from ..config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
+from ..config.media.capture import MAX_QUEUED_FRAMES, FRAME_HEADER_FORMAT
 
 FRAME_HEADER = struct.Struct(FRAME_HEADER_FORMAT)
 

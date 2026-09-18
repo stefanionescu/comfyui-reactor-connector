@@ -2,10 +2,10 @@
 
 LICENSE_POLICY_FILE = "quality/config/repository/licenses/policy.json"
 
-PYTHON_SOURCE_DIRS = ("__init__.py", "__main__.py", "src", "config", "scripts", "quality")
-PYTHON_RUNTIME_DIRS = ("__init__.py", "__main__.py", "src", "config")
+PYTHON_SOURCE_DIRS = ("__init__.py", "__main__.py", "src", "scripts", "quality")
+PYTHON_RUNTIME_DIRS = ("__init__.py", "__main__.py", "src")
 SHELL_SOURCE_DIRS = (".githooks", ".mise/tasks", "quality")
-CONFIG_SOURCE_DIRS = ("config", "quality/config")
+CONFIG_SOURCE_DIRS = ("src/config", "quality/config")
 
 SHELL_TASK_PREFIXES = (
     ".mise/tasks/",

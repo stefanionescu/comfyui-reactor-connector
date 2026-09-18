@@ -6,7 +6,7 @@ from .language import translate
 from .state.credentials import Credential
 from .errors import ErrorCode, ConnectorError
 from .storage import atomic_write, read_private
-from ..config.security import MAX_CREDENTIAL_CHARACTERS
+from .config.security import MAX_CREDENTIAL_CHARACTERS
 
 
 def parse_credential(value: str) -> Credential:

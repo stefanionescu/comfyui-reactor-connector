@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .state.models import ModelDefinition
-from ..config.models import MODEL_IDENTITIES
+from .config.models import MODEL_IDENTITIES
 from typing import cast, Literal, TYPE_CHECKING
 
 if TYPE_CHECKING:

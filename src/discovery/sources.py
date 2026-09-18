@@ -12,7 +12,7 @@ from ..errors import ErrorCode, ConnectorError
 from .contracts import rows, invalid, parse_snapshot
 from ..serialization import parse_json, mapping_value
 from ..state.discovery import Snapshot, FORMAT_VERSION
-from ...config.discovery import (
+from ..config.discovery import (
     INDEX_URL,
     PRICING_URL,
     NAVIGATION_URL,

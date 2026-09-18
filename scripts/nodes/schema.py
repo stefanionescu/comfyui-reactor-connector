@@ -3,7 +3,7 @@
 import sys
 import json
 import inspect
-from ...config.models import MODEL_IDENTITIES
+from ...src.models import MODELS
 from ...src.extension import NODE_REGISTRATIONS
 from .native import describe_schema, native_schemas
 
@@ -15,7 +15,7 @@ def main() -> None:
     schemas = {}
     for node, model in NODE_REGISTRATIONS.items():
         schema = node.define_schema()
-        if schema.node_id in schemas or model not in MODEL_IDENTITIES:
+        if schema.node_id in schemas or model not in MODELS:
             msg = "Each node must have a unique ID and a known model."
             raise ValueError(msg)
         parameters = set(inspect.signature(node.execute).parameters)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] -- reason: The host base class leaves execute untyped; only its signature is inspected.

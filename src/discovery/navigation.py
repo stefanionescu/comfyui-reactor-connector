@@ -4,7 +4,7 @@ import re
 from .contracts import invalid
 from html.parser import HTMLParser
 from ..state.discovery import Guide
-from ...config.discovery import MAX_MODEL_GUIDES, GUIDE_PATH_PATTERN_TEXT
+from ..config.discovery import MAX_MODEL_GUIDES, GUIDE_PATH_PATTERN_TEXT
 
 
 GUIDE_PATH = re.compile(GUIDE_PATH_PATTERN_TEXT)

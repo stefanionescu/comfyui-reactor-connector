@@ -3,7 +3,7 @@
 from ..models import MODELS
 from ..state.documents import Json
 from ..state.discovery import Snapshot
-from ...config.discovery import GUIDE_URL_FORMAT
+from ..config.discovery import GUIDE_URL_FORMAT
 
 
 def model_views(snapshot: Snapshot | None, node_models: dict[str, str]) -> list[dict[str, Json]]:

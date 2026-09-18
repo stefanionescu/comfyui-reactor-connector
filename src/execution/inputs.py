@@ -3,14 +3,14 @@
 from typing import ClassVar
 from ..language import translate
 from .transport import Transport
-from ...config.nodes import MAX_SEED
+from ..config.nodes import MAX_SEED
 from ..state.settings import Settings
 from ..state.session import ControlValues
 from ..errors import ErrorCode, ConnectorError
 from ..state.generation.inputs import VideoInputs
-from ...config.media.video import DEFAULT_FRAME_RATE
+from ..config.media.video import DEFAULT_FRAME_RATE
 from ..media.units import convert_mebibytes_to_bytes
-from ...config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
+from ..config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
 
 
 class VideoInputOperation[Request: VideoInputs]:

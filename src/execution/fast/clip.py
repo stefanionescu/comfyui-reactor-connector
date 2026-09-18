@@ -10,7 +10,7 @@ from ...language import translate
 from typing import cast, TYPE_CHECKING
 from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
-from ....config.generation.fast import FRAME_RATE, MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
+from ...config.generation.fast import FRAME_RATE, MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
 
 if TYPE_CHECKING:
     from ..events import SessionEvents

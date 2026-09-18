@@ -10,7 +10,7 @@ from ...errors import ErrorCode, ConnectorError
 from typing import cast, ClassVar, TYPE_CHECKING
 from ...state.generation.visko import ViskoRequest
 from ...state.session import ControlValues, RecordingWindow
-from ....config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
+from ...config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
 
 if TYPE_CHECKING:
     from ..transport import Transport

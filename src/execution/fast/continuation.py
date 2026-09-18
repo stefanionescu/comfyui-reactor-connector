@@ -3,7 +3,7 @@
 from ...language import translate
 from ..transport import Transport
 from ..events import SessionEvents
-from ....config.nodes import MAX_SEED
+from ...config.nodes import MAX_SEED
 from ...state.settings import Settings
 from .generate import FastGenerateOperation
 from ...state.session import RecordingWindow
@@ -11,7 +11,7 @@ from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
 from ...state.generation.fast import FastContinueRequest
 from .clip import seconds, read_clip, FastClipEvents, message_payload
-from ....config.generation.fast import (
+from ...config.generation.fast import (
     MAX_CLIP_COUNT,
     MIN_CLIP_COUNT,
     OPTIONS_ASPECT,

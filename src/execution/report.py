@@ -8,7 +8,7 @@ from ..paths import EXTENSION_ROOT
 from ..state.reports import RunReport
 from importlib.metadata import version
 from ..errors import ErrorCode, ConnectorError
-from ...config.package import MAX_PROJECT_FILE_BYTES, MAX_VERSION_CHARACTERS
+from ..config.package import MAX_PROJECT_FILE_BYTES, MAX_VERSION_CHARACTERS
 
 
 def prepare_report(node_id: str, model_name: str, duration_seconds: float) -> RunReport:

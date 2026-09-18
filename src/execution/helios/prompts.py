@@ -5,8 +5,8 @@ from ...language import translate
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
 from ...state.generation.helios import ScheduledPrompt
-from ....config.generation.session import MAX_PROMPT_CHARACTERS
-from ....config.generation.prompts import MAX_PROMPTS, MAX_PROMPT_CHUNK, MAX_SEQUENCE_BYTES
+from ...config.generation.session import MAX_PROMPT_CHARACTERS
+from ...config.generation.prompts import MAX_PROMPTS, MAX_PROMPT_CHUNK, MAX_SEQUENCE_BYTES
 
 
 def validate_prompt(prompt: ScheduledPrompt) -> None:

@@ -1,8 +1,8 @@
 """Shared controls for video generation."""
 
 from comfy_api.latest import io
-from ...config.generation.prompts import DEFAULT_PROMPTS
-from ...config.nodes import (
+from ..config.generation.prompts import DEFAULT_PROMPTS
+from ..config.nodes import (
     MAX_SEED,
     DEFAULT_SEED,
     MAX_VARIATION,

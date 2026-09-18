@@ -8,8 +8,8 @@ from ...state.documents import Json
 from ...state.media import CaptureResult
 from ...errors import ErrorCode, ConnectorError
 from ..process import close_input, MediaProcess
-from ....config.media.workers import METADATA_TIMEOUT_SECONDS
-from ....config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
+from ...config.media.workers import METADATA_TIMEOUT_SECONDS
+from ...config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
 
 
 async def read_recording_metadata(result: CaptureResult, maximum_bytes: int) -> dict[str, Json]:

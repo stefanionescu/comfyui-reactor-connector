@@ -5,7 +5,7 @@ from ..language import translate
 from ..state.documents import Json
 from ..state.settings import Settings
 from ..errors import ErrorCode, ConnectorError
-from ...config.settings import INTEGER_SETTINGS, DEFAULT_DISCOVERY_AUTO_CHECK
+from ..config.settings import INTEGER_SETTINGS, DEFAULT_DISCOVERY_AUTO_CHECK
 
 
 def default_settings() -> Settings:

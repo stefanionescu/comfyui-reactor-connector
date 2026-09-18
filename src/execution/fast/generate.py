@@ -14,7 +14,7 @@ from ...errors import ErrorCode, ConnectorError
 from ...media.units import convert_mebibytes_to_bytes
 from ...state.generation.fast import FastGenerateRequest
 from .clip import seconds, read_clip, FastClipEvents, message_payload
-from ....config.generation.fast import (
+from ...config.generation.fast import (
     FRAME_RATE,
     OPTIONS_ASPECT,
     MAX_CLIP_SECONDS,

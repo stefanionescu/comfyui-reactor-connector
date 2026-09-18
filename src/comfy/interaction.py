@@ -12,10 +12,10 @@ from ..models import MODELS_BY_CONNECTION
 from ..live.control.lease import ControlLease
 from ..errors import ErrorCode, ConnectorError
 from typing import cast, Protocol, TYPE_CHECKING
-from ...config.generation.world import CAMERA_AXES
+from ..config.generation.world import CAMERA_AXES
 from comfy_execution.utils import get_executing_context
 from ..live.control.interaction import ControlInteraction
-from ...config.live import (
+from ..config.live import (
     INPUT_POLL_SECONDS,
     MIN_QUEUE_ITEM_FIELDS,
     MAX_CLIENT_ID_CHARACTERS,

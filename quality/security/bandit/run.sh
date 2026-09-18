@@ -9,7 +9,7 @@ main() {
   REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
   cd "${REPO_ROOT}" || exit 1
 
-  uv run --no-sync bandit -c pyproject.toml -r __init__.py __main__.py src config scripts quality
+  uv run --no-sync bandit -c pyproject.toml -r __init__.py __main__.py src scripts quality
 }
 
 main "$@"

@@ -172,11 +172,11 @@ per_rule_ignores.DEP001 = [
 per_rule_ignores.DEP002 = [ "comfyui-frontend-package" ]
 # Build and quality modules use these development dependencies outside the runtime package.
 per_rule_ignores.DEP004 = [ "aiohttp", "av", "numpy", "PIL", "tomli", "packaging", "markdown_it", "yaml" ]
-known_first_party = [ "config", "quality", "scripts", "src" ]
+known_first_party = [ "quality", "scripts", "src" ]
 package_module_name_map.reactor-sdk = [ "reactor" ]
 
 [tool.vulture]
-paths = [ "__init__.py", "__main__.py", "config", "quality", "scripts", "src" ]
+paths = [ "__init__.py", "__main__.py", "quality", "scripts", "src" ]
 exclude = [ ".artifacts", ".git", ".venv", "node_modules" ]
 ignore_names = []
 ignore_decorators = []
@@ -200,13 +200,13 @@ DisplayName = "Reactor"
 requires-comfyui = ">=0.34.6"
 
 [tool.importlinter]
-root_packages = [ "src", "config", "scripts", "quality" ]
+root_packages = [ "src", "scripts", "quality" ]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "Runtime must not import development tools"
 type = "forbidden"
-source_modules = [ "src", "config" ]
+source_modules = [ "src" ]
 forbidden_modules = [ "scripts", "quality" ]
 
 [[tool.importlinter.contracts]]
@@ -228,10 +228,22 @@ source_modules = [ "src.execution" ]
 forbidden_modules = [ "src.nodes", "src.comfy" ]
 
 [[tool.importlinter.contracts]]
-name = "Static configuration must not import runtime or development code"
+name = "Static configuration imports only its own package"
 type = "forbidden"
-source_modules = [ "config" ]
-forbidden_modules = [ "src", "scripts", "quality" ]
+source_modules = [ "src.config" ]
+forbidden_modules = [
+  "src.comfy",
+  "src.discovery",
+  "src.execution",
+  "src.http",
+  "src.live",
+  "src.media",
+  "src.nodes",
+  "src.settings",
+  "src.state",
+  "scripts",
+  "quality",
+]
 
 [[tool.importlinter.contracts]]
 name = "Runtime records import only the standard library and each other"
@@ -239,7 +251,6 @@ type = "forbidden"
 source_modules = [ "src.state" ]
 forbidden_modules = [
   "src.*",
-  "config",
   "scripts",
   "quality",
   "PIL",

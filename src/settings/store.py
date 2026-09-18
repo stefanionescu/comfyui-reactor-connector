@@ -12,10 +12,10 @@ from ..errors import ErrorCode, ConnectorError
 from .execution import ConfigurationGeneration
 from .schema import parse_settings, default_settings
 from ..serialization import parse_json, mapping_value
-from ...config.security import MAX_CREDENTIAL_CHARACTERS
+from ..config.security import MAX_CREDENTIAL_CHARACTERS
 from ..state.settings import Settings, ExecutionConfiguration
 from ..storage import atomic_write, read_private, private_directory
-from ...config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
+from ..config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
 from ..credentials import parse_credential, read_credential, save_credential, credential_source
 
 EDITABLE_SETTINGS = frozenset(item.name for item in fields(Settings))

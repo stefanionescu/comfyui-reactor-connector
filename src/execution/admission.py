@@ -10,7 +10,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from ..state.session import AdmissionTicket
 from ..errors import ErrorCode, ConnectorError
-from ...config.generation.session import MAX_SESSION_CAPACITY, DEFAULT_SESSION_CAPACITY
+from ..config.generation.session import MAX_SESSION_CAPACITY, DEFAULT_SESSION_CAPACITY
 
 
 class SessionAdmission:

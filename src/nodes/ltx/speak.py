@@ -8,7 +8,7 @@ from ..controls import generation_controls
 from ...state.generation.ltx import LtxSpeakRequest
 from ...execution.ltx.operation import LtxSpeakOperation
 from ...comfy.execution import generate_video, wait_for_execution, operation_fingerprint
-from ....config.generation.speech import (
+from ...config.generation.speech import (
     DEFAULT_SCRIPT,
     MAX_WORDS_PER_MINUTE,
     MIN_WORDS_PER_MINUTE,

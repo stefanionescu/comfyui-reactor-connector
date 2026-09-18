@@ -31,7 +31,7 @@ from ..execution.session.capture import capture_video
 from ..media.metadata.read import read_recording_metadata
 from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
-from ...config.generation.session import CANCELLATION_POLL_SECONDS
+from ..config.generation.session import CANCELLATION_POLL_SECONDS
 from comfy.model_management import InterruptProcessingException, throw_exception_if_processing_interrupted
 
 

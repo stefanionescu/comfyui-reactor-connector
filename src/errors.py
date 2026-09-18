@@ -1,7 +1,7 @@
 """Errors that can be shown without exposing provider data."""
 
 from enum import StrEnum
-from ..config.diagnostics import MAX_MESSAGE_CHARACTERS
+from .config.diagnostics import MAX_MESSAGE_CHARACTERS
 
 
 class ErrorCode(StrEnum):

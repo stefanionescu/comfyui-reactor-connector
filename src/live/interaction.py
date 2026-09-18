@@ -8,8 +8,8 @@ from ..state.documents import Json
 from .preview import PreviewFrames
 from ..media.output import owned_io
 from .commands import CameraCommands
+from ..config.live import INPUT_POLL_SECONDS
 from ..execution.events import SessionEvents
-from ...config.live import INPUT_POLL_SECONDS
 from ..errors import ErrorCode, ConnectorError
 from ..execution.transport import Track, Transport
 

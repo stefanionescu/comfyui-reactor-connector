@@ -8,7 +8,7 @@ import numpy as np
 from ..language import translate
 from ..errors import ErrorCode, ConnectorError
 from typing import cast, TypedDict, TYPE_CHECKING
-from ...config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE, PCM_SAMPLE_BYTES
+from ..config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE, PCM_SAMPLE_BYTES
 
 if TYPE_CHECKING:
     from pathlib import Path
