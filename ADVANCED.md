@@ -122,7 +122,7 @@ list and retry at the configured interval. Closing ComfyUI stops checking.
 
 Choose a recording duration before running. The live panel belongs to the
 ComfyUI window that started the workflow. Leaving it open does not extend the
-session. Find the examples in the [workflow index](workflows/README.md).
+session. Find the examples in [Choose a workflow](README.md#choose-a-workflow).
 
 Noninteractive generation can run through the ComfyUI API without a browser.
 Interactive and webcam modes require the browser that submitted the workflow; a
@@ -420,7 +420,7 @@ directory. Hooks do not stash or rewrite your work.
 Builds write generated assets; checks and hooks do not install dependencies or
 start generation. Dependency audits need network access and do not apply fixes.
 
-The workflow builder writes flat JSON files under `workflows/`, the
+The workflow builder writes flat JSON files under `example_workflows/`, the
 directory ComfyUI's native Templates browser reads. The same files appear in
 native **Browse Templates → reactor-inc** from a checkout and from an installed
 package. Rebuild examples before packaging.

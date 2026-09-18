@@ -1,6 +1,5 @@
 """Build portable ComfyUI templates without opening a host or provider session."""
 
-import os
 import sys
 import json
 import argparse
@@ -8,11 +7,11 @@ from pathlib import Path
 from .layout import arrange
 from .notes import sections
 from .definitions import EXAMPLES
-from .index import workflow_index
 from ...src.state.documents import Json
 from .models.longlive import SHOT_PROMPTS
 from .models.helios import SEQUENCE_PROMPTS
 from ...src.serialization import mapping_value
+from .index import EXAMPLE_DIRECTORY, readme_issues
 from ...src.language import translate, language_scope
 from ..nodes.metadata import read_schemas, validate_metadata
 from .example import (
@@ -276,10 +275,10 @@ def main() -> int:
     """Build or check every registered example and its index; report uncovered nodes and extra files."""
     args = arguments()
     root = Path(__file__).resolve().parents[2]
-    canonical = root / "workflows"
+    canonical = root / EXAMPLE_DIRECTORY
     destination = args.output_directory.resolve() if args.output_directory else canonical
     if args.language.lower() != "en" and (destination == canonical or destination.is_relative_to(canonical)):
-        sys.stderr.write("Choose --output-directory outside workflows/ for a non-English build.\n")
+        sys.stderr.write(f"Choose --output-directory outside {EXAMPLE_DIRECTORY}/ for a non-English build.\n")
         return 2
     schema_export = read_schemas()
     schemas = mapping_value(schema_export["reactor"])
@@ -291,6 +290,7 @@ def main() -> int:
     if any((example.plan == "prompts") for example in EXAMPLES):
         covered.add("ReactorIncHeliosAddPrompt")
     issues.extend(f"Add a workflow for {name}." for name in sorted(set(schemas) - covered))
+    issues.extend(readme_issues(root))
     expected = {example.path for example in EXAMPLES}
     with language_scope(args.language):
         generated = {
@@ -300,12 +300,6 @@ def main() -> int:
             + "\n"
             for example in EXAMPLES
         }
-        generated[destination / "README.md"] = workflow_index(
-            schemas,
-            guide_prefix=Path(os.path.relpath(root / "web/docs", destination)).as_posix(),
-            sample_prefix=Path(os.path.relpath(canonical, destination)).as_posix(),
-            license_path=Path(os.path.relpath(root / "LICENSE.md", destination)).as_posix(),
-        )
     issues.extend(
         f"Review the unindexed workflow {path.name}."
         for path in destination.rglob("*.json")

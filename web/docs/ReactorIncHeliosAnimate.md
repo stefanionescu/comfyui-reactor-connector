@@ -26,7 +26,7 @@ An unrelated scene prompt can give the model conflicting instructions.
 1. Open **helios-02-image-to-video** in native **Browse Templates → reactor-inc**.
 2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 3. Upload your picture in **Load Starting Image**. You can use the
-   forest illustration (`workflows/assets/forest-illustration.png` in the checkout).
+   forest illustration (`example_workflows/assets/forest-illustration.png` in the checkout).
 4. Describe the motion in **scene prompt**. For example: “The camera moves slowly
    along the forest path.” Choose **video duration (seconds)**, then select **Run**.
 5. Play the result in **Save Video**. This node also saves the file.
