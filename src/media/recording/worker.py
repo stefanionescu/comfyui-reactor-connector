@@ -12,6 +12,7 @@ from pathlib import Path
 from itertools import chain
 from fractions import Fraction
 from dataclasses import dataclass
+from ..protocol import report_outcome
 from typing import cast, TYPE_CHECKING
 from ...config.media.images import RGB_CHANNELS
 from src.state.recording import RecordingVideo, RecordingSettings
@@ -323,25 +324,9 @@ def main(arguments: list[str]) -> int:
     """Report readiness and return recording facts or fixed error codes without native error text."""
     sys.stdout.write(json.dumps({"ready": True}) + "\n")
     sys.stdout.flush()
-    try:
-        result = prepare(read_settings(arguments))
-    except ValueError as error:
-        code = str(error)
-        if code not in {
-            "recording_audio",
-            "recording_memory",
-            "recording_video",
-            "dimensions",
-            "file_limit",
-        }:
-            code = "recording_video"
-        sys.stdout.write(json.dumps({"error": code}) + "\n")
-        sys.stdout.flush()
-        return 1
-    except Exception:  # noqa: BLE001 -- reason: The worker protocol permits only fixed error codes, never native exception text.
-        sys.stdout.write(json.dumps({"error": "recording_video"}) + "\n")
-        sys.stdout.flush()
-        return 1
-    sys.stdout.write(json.dumps(result) + "\n")
-    sys.stdout.flush()
-    return 0
+    return report_outcome(
+        lambda: prepare(read_settings(arguments)),
+        fallback_code="recording_video",
+        known=ValueError,
+        allowed_codes=frozenset({"recording_audio", "recording_memory", "recording_video", "dimensions", "file_limit"}),
+    )

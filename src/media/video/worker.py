@@ -7,6 +7,7 @@ from pathlib import Path
 from fractions import Fraction
 from types import TracebackType
 from collections.abc import Iterator
+from ..protocol import report_outcome
 from typing import Self, cast, Protocol
 from src.state.workers import SourceSettings
 from av.container.input import InputContainer
@@ -202,16 +203,4 @@ def main(arguments: list[str]) -> int:
     """Accept only local paths and non-secret preparation limits."""
     sys.stdout.write(json.dumps({"ready": True}) + "\n")
     sys.stdout.flush()
-    try:
-        result = prepare(read_settings(arguments))
-    except SourceError as error:
-        sys.stdout.write(json.dumps({"error": str(error)}) + "\n")
-        sys.stdout.flush()
-        return 1
-    except Exception:  # noqa: BLE001 -- reason: The worker protocol permits only fixed error codes, never native exception text.
-        sys.stdout.write(json.dumps({"error": "source_video"}) + "\n")
-        sys.stdout.flush()
-        return 1
-    sys.stdout.write(json.dumps(result) + "\n")
-    sys.stdout.flush()
-    return 0
+    return report_outcome(lambda: prepare(read_settings(arguments)), fallback_code="source_video", known=SourceError)

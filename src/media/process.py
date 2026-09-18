@@ -4,6 +4,7 @@ import os
 import asyncio
 from contextlib import suppress
 from ..language import translate
+from ..tasks import wait_shielded
 from ..state.documents import Json
 from ..errors import ErrorCode, ConnectorError
 from ..config.media.capture import ENCODER_ERRORS
@@ -97,15 +98,7 @@ class MediaProcess:
     async def _finish(self, tasks: Sequence[asyncio.Task[object]]) -> None:
         """Await process disposal despite cancellation, then propagate cancellation or cleanup failure."""
         cleanup = asyncio.create_task(self._dispose(tasks))
-        cancelled = False
-        while not cleanup.done():
-            try:
-                await asyncio.shield(cleanup)
-            except asyncio.CancelledError:
-                cancelled = True
-            except Exception:  # noqa: BLE001 -- reason: Inspect cleanup below after resolving any pending cancellation.
-                break
-        if cancelled:
+        if await wait_shielded(cleanup):
             if not cleanup.cancelled():
                 cleanup.exception()
             raise asyncio.CancelledError

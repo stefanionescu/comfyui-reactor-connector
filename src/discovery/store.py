@@ -7,6 +7,7 @@ from pathlib import Path
 from .views import model_views
 from dataclasses import replace
 from ..language import translate
+from ..tasks import wait_shielded
 from ..state.documents import Json
 from .sources import read_public_models
 from ..errors import ErrorCode, ConnectorError
@@ -113,15 +114,7 @@ class ModelStore:
     async def _promote_owned(self, candidate: Snapshot, revision: str) -> dict[str, Json]:
         """Keep refresh admission until an atomic write has finished, even after cancellation."""
         task = asyncio.create_task(asyncio.to_thread(self._promote, candidate, revision))
-        cancelled = False
-        while not task.done():
-            try:
-                await asyncio.shield(task)
-            except asyncio.CancelledError:
-                cancelled = True
-            except Exception:  # noqa: BLE001 -- reason: Wait for the write before propagating cancellation or its saved failure.
-                break
-        if cancelled:
+        if await wait_shielded(task):
             task.exception()
             raise asyncio.CancelledError
         return task.result()

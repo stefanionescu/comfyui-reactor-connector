@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from ..language import translate
+from ..tasks import wait_shielded
 from typing import BinaryIO, TYPE_CHECKING
 from ..errors import ErrorCode, ConnectorError
 
@@ -82,15 +83,7 @@ class FileOutput:
 async def owned_io[T](operation: Callable[[], T]) -> T:
     """Do not close or remove a file while an already submitted write still owns it."""
     task = asyncio.create_task(asyncio.to_thread(operation))
-    cancelled = False
-    while not task.done():
-        try:
-            await asyncio.shield(task)
-        except asyncio.CancelledError:
-            cancelled = True
-        except Exception:  # noqa: BLE001 -- reason: Read the task result below after resolving ownership and pending cancellation.
-            break
-    if cancelled:
+    if await wait_shielded(task):
         task.exception()
         raise asyncio.CancelledError
     return task.result()

@@ -145,15 +145,8 @@ class SessionEvents:
     def close(self) -> None:
         """Disable callbacks before disconnect emits its normal final status."""
         self.active = False
-        first_error: Exception | None = None
         for event, callback in self.handlers:
-            try:
-                self.transport.off(event, callback)
-            except Exception as error:  # noqa: BLE001 -- reason: Detach every SDK callback before reporting the first removal failure.
-                if first_error is None:
-                    first_error = error
+            self.transport.off(event, callback)
         self.handlers.clear()
         if not self.failure.done():
             self.failure.cancel()
-        if first_error is not None:
-            raise first_error

@@ -4,6 +4,7 @@ import av
 import sys
 import json
 from pathlib import Path
+from ..protocol import report_outcome
 from ...config.media.capture import MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION, MAX_DURATION_MICROSECONDS
 
 
@@ -46,12 +47,11 @@ def main(arguments: list[str]) -> int:
     """Read worker arguments and report only fixed error codes or validated video facts."""
     sys.stdout.write(json.dumps({"ready": True}) + "\n")
     sys.stdout.flush()
-    result: dict[str, str | int | bool | None] = {"error": "recording_details"}
-    if len(arguments) == WORKER_ARGUMENT_COUNT:
-        try:
-            result = {**describe(Path(arguments[1]), int(arguments[2]))}
-        except Exception:  # noqa: BLE001 -- reason: The worker reports only fixed codes, never native exception text.
-            result = {"error": "recording_details"}
-    sys.stdout.write(json.dumps(result) + "\n")
-    sys.stdout.flush()
-    return int("error" in result)
+    return report_outcome(lambda: _describe_arguments(arguments), fallback_code="recording_details")
+
+
+def _describe_arguments(arguments: list[str]) -> dict[str, int | bool | None]:
+    """Describe the recording named by a complete worker command."""
+    if len(arguments) != WORKER_ARGUMENT_COUNT:
+        raise ValueError(arguments)
+    return describe(Path(arguments[1]), int(arguments[2]))

@@ -7,6 +7,7 @@ import struct
 import numpy as np
 from pathlib import Path
 from fractions import Fraction
+from .protocol import report_outcome
 from typing import cast, BinaryIO, Protocol
 from contextlib import AbstractContextManager
 from src.state.workers import EncoderSettings
@@ -167,16 +168,6 @@ def read_settings(arguments: list[str]) -> EncoderSettings:
 
 def main(arguments: list[str]) -> int:
     """Run only as an explicitly launched worker; do not import the ComfyUI host."""
-    try:
-        result = encode(sys.stdin.buffer, read_settings(arguments))
-    except EncodingError as error:
-        sys.stdout.write(json.dumps({"error": str(error)}) + "\n")
-        sys.stdout.flush()
-        return 1
-    except Exception:  # noqa: BLE001 -- reason: The worker protocol permits only fixed error codes, never native exception text.
-        sys.stdout.write(json.dumps({"error": "encoder_failed"}) + "\n")
-        sys.stdout.flush()
-        return 1
-    sys.stdout.write(json.dumps(result) + "\n")
-    sys.stdout.flush()
-    return 0
+    return report_outcome(
+        lambda: encode(sys.stdin.buffer, read_settings(arguments)), fallback_code="encoder_failed", known=EncodingError
+    )

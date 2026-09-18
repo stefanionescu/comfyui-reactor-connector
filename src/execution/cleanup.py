@@ -4,6 +4,7 @@ import sys
 import asyncio
 import logging
 from ..language import translate
+from ..tasks import wait_shielded
 from contextlib import AsyncExitStack
 from ..errors import ErrorCode, ConnectorError
 from .session.resources import SessionResources
@@ -50,14 +51,7 @@ async def finish_session(session: SessionResources, primary_error: BaseException
     """Preserve the original failure and await one cleanup task exactly once."""
     session.capture.stop()
     cleanup = asyncio.create_task(_release(session, failed=primary_error is not None))
-    cancelled = False
-    while not cleanup.done():
-        try:
-            await asyncio.shield(cleanup)
-        except asyncio.CancelledError:
-            cancelled = True
-        except Exception:  # noqa: BLE001 -- reason: Inspect the completed cleanup task below without losing a pending cancellation.
-            break
+    cancelled = await wait_shielded(cleanup)
     error = cleanup.exception()
     if error is not None:
         message = (
