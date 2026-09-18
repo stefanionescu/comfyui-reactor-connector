@@ -1,11 +1,9 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import { browserRoutes } from '#web/routes.ts';
-import { type MessageKey } from '#web/language.ts';
-import type { Message } from '#web/localization.ts';
 import { requestConfiguration } from '#web/settings/api.ts';
 import type { Configuration } from '#web/settings/schema.ts';
-import { releaseText, message, setTextAttribute, setText } from '#web/localization.ts';
+import { LIMIT_LABELS, message, setText } from '#web/text.ts';
 
 let current: SettingsDialog | undefined;
 
@@ -17,7 +15,7 @@ class SettingsDialog {
 
   private readonly controller = new AbortController();
 
-  private readonly status = element('p', message('settings.loading'));
+  private readonly status = element('p', message('settings.reading'));
 
   private readonly source = element('p');
 
@@ -49,13 +47,13 @@ class SettingsDialog {
     const heading = element('h2', message('settings.title'));
     heading.id = 'reactor-settings-title';
     const close = button(message('close'));
-    setTextAttribute(close, 'aria-label', message('settings.close'));
+    close.setAttribute('aria-label', message('settings.close'));
     close.addEventListener('click', this.dialog.close.bind(this.dialog, undefined));
     const header = element('header');
     header.append(heading, close);
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
-    this.reload.addEventListener('click', () => this.updateSettings(message('settings.loaded')));
+    this.reload.addEventListener('click', () => this.updateSettings(message('settings.reread')));
     const footer = element('footer');
     footer.append(this.status, this.reload);
     this.dialog.append(
@@ -135,13 +133,12 @@ class SettingsDialog {
    * @param configuration - The validated limits.
    */
   private populateLimits(configuration: Configuration): void {
-    releaseText(this.limitFields);
     this.limitFields.replaceChildren(element('legend', message('settings.limits')));
     const additionalLimits = element('details');
-    additionalLimits.append(element('summary', message('settings.advancedLimits')));
+    additionalLimits.append(element('summary', message('settings.moreLimits')));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       if (name === 'catalog_interval_hours') continue;
-      const label = element('label', message(`settings.limit.${name}` as MessageKey));
+      const label = element('label', LIMIT_LABELS.get(name) ?? name);
       const input = element('input');
       input.type = 'number';
       input.min = String(definition.minimum);
@@ -267,7 +264,7 @@ class SettingsDialog {
    * @param method - The HTTP method.
    * @param body - The settings change, if any.
    */
-  private updateSettings(success: Message, route?: string, method?: string, body?: unknown): void {
+  private updateSettings(success: string, route?: string, method?: string, body?: unknown): void {
     if (route === browserRoutes.settings.credential) this.key.value = '';
     this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
     this.reload.disabled = true;
@@ -284,7 +281,7 @@ class SettingsDialog {
    * @returns When the response or error is displayed.
    */
   private async requestSettings(
-    success: Message,
+    success: string,
     route?: string,
     method?: string,
     body?: unknown,
@@ -321,14 +318,13 @@ class SettingsDialog {
   show(): void {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    this.updateSettings(message('settings.loaded'));
+    this.updateSettings(message('settings.reread'));
   }
 
   /** Clear the key input, stop requests, and return focus to the caller. */
   private dispose(): void {
     this.key.value = '';
     this.controller.abort();
-    releaseText(this.dialog);
     this.dialog.remove();
     if (current === this) current = undefined;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)

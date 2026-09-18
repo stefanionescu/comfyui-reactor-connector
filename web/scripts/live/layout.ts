@@ -1,5 +1,4 @@
 import { element } from '#web/dom.ts';
-import type { Message } from '#web/localization.ts';
 
 /**
  * Group a prompt field with its reply and apply action.
@@ -10,7 +9,7 @@ import type { Message } from '#web/localization.ts';
  * @returns The prompt section.
  */
 export function promptSection(
-  title: Message,
+  title: string,
   input: HTMLTextAreaElement,
   apply: HTMLButtonElement,
   status: HTMLElement,
@@ -35,8 +34,8 @@ export function promptSection(
  * @returns The session header.
  */
 export function sessionHeader(
-  title: Message,
-  duration: Message,
+  title: string,
+  duration: string,
   status: HTMLElement,
   elapsed?: HTMLElement,
 ): HTMLElement {

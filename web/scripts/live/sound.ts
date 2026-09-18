@@ -1,5 +1,5 @@
+import { message } from '#web/text.ts';
 import { button, element } from '#web/dom.ts';
-import { message } from '#web/localization.ts';
 
 export class SoundControls {
   readonly view = element('section');

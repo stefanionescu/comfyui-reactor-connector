@@ -1,12 +1,10 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
-import { formatDate } from '#web/language.ts';
 import { browserLimits } from '#web/browser.ts';
-import type { Message } from '#web/localization.ts';
 import { buildModelRow } from '#web/discovery/row.ts';
 import type { ModelList } from '#web/discovery/schema.ts';
+import { formatDate, message, setText } from '#web/text.ts';
 import { requestModels, metadataStatus } from '#web/discovery/api.ts';
-import { releaseText, message, setTextAttribute, setText } from '#web/localization.ts';
 
 let current: ModelDialog | undefined;
 
@@ -15,7 +13,7 @@ let current: ModelDialog | undefined;
  * @param check - The scheduler's report, if available.
  * @returns A status message for the model sources section.
  */
-function automaticStatus(check: ModelList['automaticCheck']): string | Message {
+function automaticStatus(check: ModelList['automaticCheck']): string {
   if (!check) return '';
   if (!check.enabled) return message('models.checksOff');
   if (check.running) return message('models.checkRunning');
@@ -23,7 +21,7 @@ function automaticStatus(check: ModelList['automaticCheck']): string | Message {
   if (check.updateAvailable === true) return message('models.listChanged');
   if (check.checkedAt)
     return message('models.checkSchedule', {
-      date: formatDate.bind(null, check.checkedAt),
+      date: formatDate(check.checkedAt),
       hours: check.intervalHours,
     });
   return message('models.checkDue');
@@ -45,7 +43,7 @@ class ModelDialog {
 
   private readonly rollback = button(message('models.restore'));
 
-  private readonly status = element('p', message('models.loadingLocal'));
+  private readonly status = element('p', message('models.readingLocal'));
 
   private readonly checked = element('p');
 
@@ -67,17 +65,17 @@ class ModelDialog {
     const heading = element('h2', message('models.title'));
     heading.id = 'reactor-models-title';
     const close = button(message('close'));
-    setTextAttribute(close, 'aria-label', message('models.close'));
+    close.setAttribute('aria-label', message('models.close'));
     close.addEventListener('click', this.dialog.close.bind(this.dialog, undefined));
     const header = element('header');
     header.append(heading, close);
     const searchLabel = element('label', message('models.search'));
     this.search.type = 'search';
-    setTextAttribute(this.search, 'placeholder', message('models.searchPlaceholder'));
+    this.search.setAttribute('placeholder', message('models.searchPlaceholder'));
     searchLabel.append(this.search);
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
-    setTextAttribute(this.list, 'aria-label', message('models.title'));
+    this.list.setAttribute('aria-label', message('models.title'));
     const sources = element('details');
     sources.append(
       element('summary', message('models.sources')),
@@ -124,7 +122,7 @@ class ModelDialog {
     this.duration.min = String(browserLimits.minCalculatorSeconds);
     this.duration.max = String(browserLimits.maxCalculatorSeconds);
     this.duration.step = 'any';
-    setTextAttribute(this.duration, 'placeholder', message('pricing.enterTime'));
+    this.duration.setAttribute('placeholder', message('pricing.enterTime'));
     label.append(this.duration);
     const calculation = element('details');
     calculation.append(
@@ -148,7 +146,6 @@ class ModelDialog {
       if (label.toLowerCase().includes(query)) rows.appendChild(buildModelRow(model, seconds));
     }
     const visible = rows.childElementCount;
-    releaseText(this.list);
     this.list.replaceChildren();
     this.list.appendChild(rows);
     setText(
@@ -168,7 +165,7 @@ class ModelDialog {
     this.refresh.disabled = this.rollback.disabled = true;
     setText(
       this.status,
-      action === 'refresh' ? message('models.checking') : message('models.loading'),
+      action === 'refresh' ? message('models.checking') : message('models.reading'),
     );
     void this.requestModels(action);
   }
@@ -190,7 +187,7 @@ class ModelDialog {
       this.displayModels(next, action);
     } catch (error) {
       if (!this.controller.signal.aborted)
-        setText(this.status, error instanceof Error ? error.message : message('models.loadFailed'));
+        setText(this.status, error instanceof Error ? error.message : message('models.readFailed'));
     } finally {
       this.restoreActions();
     }
@@ -205,7 +202,7 @@ class ModelDialog {
     this.modelList = next;
     setText(this.checked, metadataStatus(next.retrievedAt));
     setText(this.automatic, automaticStatus(next.automaticCheck));
-    let status = message('models.loaded');
+    let status = message('models.reread');
     if (action === 'refresh') status = message('models.refreshed');
     if (action === 'rollback') status = message('models.restored');
     setText(this.status, status);
@@ -229,7 +226,6 @@ class ModelDialog {
   /** Stop pending requests and return focus to the caller. */
   private dispose(): void {
     this.controller.abort();
-    releaseText(this.dialog);
     this.dialog.remove();
     if (current === this) current = undefined;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)

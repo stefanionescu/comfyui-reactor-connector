@@ -14,8 +14,7 @@
         "types": [],
         "skipLibCheck": true,
         "paths": {
-            "#web/*": ["./web/scripts/*"],
-            "#locales/*": ["./locales/*"]
+            "#web/*": ["./web/scripts/*"]
         },
         "resolveJsonModule": true
     },

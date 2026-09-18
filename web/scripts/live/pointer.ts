@@ -1,7 +1,6 @@
 import { element } from '#web/dom.ts';
-import { translate } from '#web/language.ts';
+import { message, setText } from '#web/text.ts';
 import type { Pointer } from '#web/live/drag.ts';
-import { setText, message } from '#web/localization.ts';
 
 export class PointerPreview {
   readonly view = element('div');
@@ -63,7 +62,7 @@ export class PointerPreview {
    */
   confirm(pointer: Pointer): void {
     const key = pointer.active ? 'pointer.held' : 'pointer.released';
-    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
+    if (this.#state.textContent !== message(key)) setText(this.#state, message(key));
   }
 
   /**

@@ -3,8 +3,7 @@ import { button, element } from '#web/dom.ts';
 import { browserRoutes } from '#web/routes.ts';
 import type { ControlsInvitation } from '#web/live/schema.ts';
 import { browserInput, browserLimits } from '#web/browser.ts';
-import { translate, type MessageKey } from '#web/language.ts';
-import { releaseText, message, setTextAttribute, setText } from '#web/localization.ts';
+import { message, setText, type MessageKey } from '#web/text.ts';
 
 export class Webcam {
   readonly view = element('section');
@@ -46,7 +45,7 @@ export class Webcam {
     const heading = element('header');
     heading.append(element('h3', message('camera.label')));
     this.status.setAttribute('role', 'status');
-    setTextAttribute(this.select, 'aria-label', message('camera.label'));
+    this.select.setAttribute('aria-label', message('camera.label'));
     const defaultCamera = element('option', message('camera.default'));
     defaultCamera.value = '';
     this.select.append(defaultCamera);
@@ -54,7 +53,7 @@ export class Webcam {
     this.video.autoplay = true;
     this.video.playsInline = true;
     this.video.hidden = true;
-    setTextAttribute(this.video, 'aria-label', message('camera.preview'));
+    this.video.setAttribute('aria-label', message('camera.preview'));
     const controls = element('div');
     controls.className = 'reactor-camera-controls';
     const selection = element('div');
@@ -172,7 +171,6 @@ export class Webcam {
       option.selected = device.deviceId === selected;
       options.appendChild(option);
     }
-    releaseText(this.select);
     this.select.replaceChildren();
     this.select.appendChild(options);
   }
@@ -185,7 +183,7 @@ export class Webcam {
     if (this.closed || !this.stream || this.video.readyState < 2) return false;
     for (const track of this.stream.getVideoTracks()) {
       if (track.readyState === 'live') continue;
-      this.fail(translate('camera.disconnected'));
+      this.fail(message('camera.disconnected'));
       return false;
     }
     if (this.upload) {
@@ -209,12 +207,12 @@ export class Webcam {
   private async send(): Promise<boolean> {
     const blob = await new Promise<Blob | null>((fulfill) => {
       const context = this.canvas.getContext('2d');
-      if (!context) throw new Error(translate('camera.readFailed'));
+      if (!context) throw new Error(message('camera.readFailed'));
       context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       this.canvas.toBlob(fulfill, 'image/jpeg', browserInput.cameraJpegQuality);
     });
     if (this.closed) return false;
-    if (!blob) throw new Error(translate('camera.readFailed'));
+    if (!blob) throw new Error(message('camera.readFailed'));
     const response = await this.fetcher(browserRoutes.live.camera, {
       method: 'POST',
       cache: 'no-store',
@@ -231,7 +229,7 @@ export class Webcam {
         'X-Reactor-Sequence': String(this.sequence++),
       },
     });
-    if (!response.ok) throw new Error(translate('camera.uploadFailed'));
+    if (!response.ok) throw new Error(message('camera.uploadFailed'));
     return true;
   }
 

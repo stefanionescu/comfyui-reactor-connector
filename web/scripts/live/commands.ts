@@ -1,5 +1,5 @@
+import { message } from '#web/text.ts';
 import type { Fetcher } from '#web/http.ts';
-import { translate } from '#web/language.ts';
 import { browserRoutes } from '#web/routes.ts';
 import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
@@ -42,8 +42,8 @@ export async function sendAction(
     try {
       document = await response.json();
     } catch {
-      throw new Error(translate('live.actionRejected'));
+      throw new Error(message('live.actionRejected'));
     }
-    throw new Error(parsePublicError(document) ?? translate('live.actionRejected'));
+    throw new Error(parsePublicError(document) ?? message('live.actionRejected'));
   }
 }

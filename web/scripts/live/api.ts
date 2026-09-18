@@ -1,5 +1,5 @@
+import { message } from '#web/text.ts';
 import type { Fetcher } from '#web/http.ts';
-import { translate } from '#web/language.ts';
 import { browserRoutes } from '#web/routes.ts';
 import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
@@ -47,13 +47,13 @@ export async function exchange(
     try {
       document = await response.json();
     } catch {
-      throw new Error(translate('live.unreachable'));
+      throw new Error(message('live.unreachable'));
     }
-    throw new Error(parsePublicError(document) ?? translate('live.unreachable'));
+    throw new Error(parsePublicError(document) ?? message('live.unreachable'));
   }
   const status = parseLiveStatus(await response.json());
   signal.throwIfAborted();
-  if (!status) throw new Error(translate('live.invalidStatus'));
+  if (!status) throw new Error(message('live.invalidStatus'));
   return status;
 }
 

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { translate } from '#web/language.ts';
+import { message } from '#web/text.ts';
 import { browserPatterns } from '#web/browser.ts';
 
 type SettingDefinition = { minimum: number; maximum: number };
@@ -46,9 +46,9 @@ const credentialLimitSchema = v.pipe(v.number(), v.safeInteger(), v.minValue(1))
  */
 function parseDefinitions(value: unknown): Configuration['definitions'] {
   const document = v.safeParse(unknownRecordSchema, value);
-  if (!document.success) throw new Error(translate('settings.invalidResponse'));
+  if (!document.success) throw new Error(message('settings.invalidResponse'));
   if (!Object.hasOwn(document.output, 'catalog_interval_hours')) {
-    throw new Error(translate('settings.incompleteResponse'));
+    throw new Error(message('settings.incompleteResponse'));
   }
   const definitions = new Map<string, SettingDefinition>();
   for (const [name, raw] of Object.entries(document.output)) {
@@ -59,7 +59,7 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
       !definition.success ||
       definition.output.minimum > definition.output.maximum
     ) {
-      throw new Error(translate('settings.invalidDefinition'));
+      throw new Error(message('settings.invalidDefinition'));
     }
     definitions.set(name, definition.output);
   }
@@ -73,13 +73,13 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
  */
 export function parseConfiguration(value: unknown): Configuration {
   const result = v.safeParse(configurationDocumentSchema, value);
-  if (!result.success) throw new Error(translate('settings.invalidResponse'));
+  if (!result.success) throw new Error(message('settings.invalidResponse'));
   const document = result.output;
   const definitions = parseDefinitions(document.integer_settings);
   const checkSettings = v.safeParse(checkSettingsSchema, document.settings);
   const credentialLimit = v.safeParse(credentialLimitSchema, document.credential_limit);
   if (!checkSettings.success || !credentialLimit.success) {
-    throw new Error(translate('settings.invalidChecks'));
+    throw new Error(message('settings.invalidChecks'));
   }
   const settings = new Map(Object.entries(document.settings));
   for (const [name, definition] of Object.entries(definitions)) {
@@ -92,7 +92,7 @@ export function parseConfiguration(value: unknown): Configuration {
       ),
       settings.get(name),
     );
-    if (!setting.success) throw new Error(translate('settings.invalidLimit'));
+    if (!setting.success) throw new Error(message('settings.invalidLimit'));
   }
   return {
     revision: document.revision,

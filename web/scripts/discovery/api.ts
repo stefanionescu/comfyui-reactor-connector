@@ -2,8 +2,7 @@ import type { Fetcher } from '#web/http.ts';
 import { browserRoutes } from '#web/routes.ts';
 import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
-import { translate, formatDate } from '#web/language.ts';
-import { message, type Message } from '#web/localization.ts';
+import { message, formatDate } from '#web/text.ts';
 import { parseModelList, type ModelList } from '#web/discovery/schema.ts';
 
 type ModelAction = 'read' | 'refresh' | 'rollback';
@@ -19,9 +18,9 @@ function modelRoute(action: ModelAction): string {
  * @param retrievedAt - The saved retrieval time, or null before the first refresh.
  * @returns A readable date or the action needed to load metadata.
  */
-export function metadataStatus(retrievedAt: string | null): Message {
+export function metadataStatus(retrievedAt: string | null): string {
   if (retrievedAt === null) return message('models.installedList');
-  return message('models.lastRefresh', { date: formatDate.bind(null, retrievedAt) });
+  return message('models.lastRefresh', { date: formatDate(retrievedAt) });
 }
 
 /**
@@ -53,16 +52,16 @@ export async function requestModels(
   try {
     response = await fetcher(modelRoute(action), options);
   } catch {
-    throw new Error(translate('models.unreachable'));
+    throw new Error(message('models.unreachable'));
   }
   let body: unknown;
   try {
     body = await response.json();
   } catch {
-    throw new Error(translate('models.invalidResponse'));
+    throw new Error(message('models.invalidResponse'));
   }
   if (!response.ok) {
-    throw new Error(parsePublicError(body) ?? translate('models.requestFailed'));
+    throw new Error(parsePublicError(body) ?? message('models.requestFailed'));
   }
   return parseModelList(body);
 }

@@ -38,8 +38,7 @@
         "zod": "3.25.76"
     },
     "imports": {
-        "#web/*": "./web/scripts/*",
-        "#locales/*": "./locales/*"
+        "#web/*": "./web/scripts/*"
     },
     "overrides": {
         "smol-toml": "1.8.0"

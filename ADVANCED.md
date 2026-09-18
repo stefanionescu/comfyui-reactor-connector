@@ -317,12 +317,10 @@ Deleting a saved key does not revoke it in Reactor.
 
 ## Language
 
-The connector's text is English. ComfyUI's language setting applies its own
-translations of node labels from `locales/en/nodeDefs.json` and of the menu
-commands from `locales/en/commands.json`; a message or label without a
-translation stays in English. Workflow notes, node titles, prompts, and speech
-scripts are saved in the graph in English, and changing ComfyUI's language
-does not rewrite them.
+The connector's text is English, and ComfyUI's language setting does not change
+it. Dropdowns show the values the model receives, such as `idle` and `cut`; the
+node guides explain them. Workflow notes, node titles, prompts, and speech
+scripts are saved in the graph in English.
 
 ## Development commands
 
@@ -383,7 +381,7 @@ list every task.
 | `mise run comfy:frontend:build`  | Build the shipped JavaScript and CSS.                                                             |
 | `mise run comfy:workflows:build` | Build the example graphs and workflow index.                                                      |
 | `mise run comfy:models:check`    | Read public prices and guides without saving them.                                                |
-| `mise run comfy:models:validate` | Check node registrations and translations.                                                        |
+| `mise run comfy:models:validate` | Check node registrations and guides.                                                              |
 | `mise run comfy:release:package` | Run checks, then build the official node.zip with comfy-cli and inspect it locally.               |
 | `mise run comfy:release:publish` | Check and package the connector, then publish a Registry version with comfy-cli.                  |
 

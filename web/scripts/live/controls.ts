@@ -3,6 +3,7 @@ import { Webcam } from '#web/live/webcam.ts';
 import { pause } from '#web/live/polling.ts';
 import { button, element } from '#web/dom.ts';
 import { browserLimits } from '#web/browser.ts';
+import { message, setText } from '#web/text.ts';
 import { SoundControls } from '#web/live/sound.ts';
 import { sendAction } from '#web/live/commands.ts';
 import { PointerPreview } from '#web/live/pointer.ts';
@@ -15,13 +16,6 @@ import {
   type LiveStatus,
   parseControlsInvitation,
 } from '#web/live/schema.ts';
-import {
-  type Message,
-  releaseText,
-  message,
-  setTextAttribute,
-  setText,
-} from '#web/localization.ts';
 
 const panels = new Set<string>();
 
@@ -86,12 +80,11 @@ class ControlPanel {
   ) {
     try {
       this.dialog.className = 'reactor-dialog reactor-controls';
-      setTextAttribute(
-        this.dialog,
+      this.dialog.setAttribute(
         'aria-label',
         message('controls.title', { model: this.owner.modelTitle }),
       );
-      setTextAttribute(this.image, 'alt', message('live.output'));
+      this.image.setAttribute('alt', message('live.output'));
       this.image.hidden = true;
       this.pointerPreview = owner.pointer
         ? new PointerPreview(this.image, this.abort.signal)
@@ -200,7 +193,7 @@ class ControlPanel {
    * Stop sending input while waiting for the server to end the session.
    * @param reason - The reason shown in the panel.
    */
-  private stop(reason: string | Message = message('live.ending')): void {
+  private stop(reason: string = message('live.ending')): void {
     this.ending = true;
     this.ready = false;
     this.start.disabled = this.update.disabled = true;
@@ -404,21 +397,6 @@ class ControlPanel {
     if (!this.finished)
       void endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
     this.image.removeAttribute('src');
-    for (const root of [
-      this.dialog,
-      this.image,
-      this.status,
-      this.prompt,
-      this.end,
-      this.start,
-      this.update,
-      this.pointerPreview?.view,
-      this.pointerPreview?.status,
-      this.camera?.view,
-      this.sound?.view,
-    ]) {
-      if (root) releaseText(root);
-    }
     this.dialog.remove();
     panels.delete(this.owner.lease);
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)

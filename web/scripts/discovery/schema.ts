@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { translate } from '#web/language.ts';
+import { message } from '#web/text.ts';
 import { browserLimits, browserPatterns } from '#web/browser.ts';
 
 const shortTextSchema = v.pipe(
@@ -111,6 +111,6 @@ export type ModelList = v.InferOutput<typeof modelListSchema>;
  */
 export function parseModelList(value: unknown): ModelList {
   const result = v.safeParse(modelListSchema, value);
-  if (!result.success) throw new Error(translate('models.invalidResponse'));
+  if (!result.success) throw new Error(message('models.invalidResponse'));
   return result.output;
 }

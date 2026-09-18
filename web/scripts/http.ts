@@ -1,5 +1,5 @@
 import { api } from '../../scripts/api.js';
-import { selectedLocale } from '#web/language.ts';
+import { selectedLocale } from '#web/text.ts';
 
 export type Fetcher = (route: string, options: RequestInit) => Promise<Response>;
 

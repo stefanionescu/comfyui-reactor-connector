@@ -2,12 +2,12 @@ import type { Fetcher } from '#web/http.ts';
 import { pause } from '#web/live/polling.ts';
 import { button, element } from '#web/dom.ts';
 import { browserLimits } from '#web/browser.ts';
+import { message, setText } from '#web/text.ts';
 import { CameraInput } from '#web/live/input.ts';
 import { CameraStates } from '#web/live/state.ts';
 import { sendAction } from '#web/live/commands.ts';
 import { exchange, endSession } from '#web/live/api.ts';
 import { promptSection, sessionHeader } from '#web/live/layout.ts';
-import { releaseText, message, setTextAttribute, setText } from '#web/localization.ts';
 import { type SceneInvitation, parseSceneInvitation, type LiveStatus } from '#web/live/schema.ts';
 
 const panels = new Set<string>();
@@ -67,8 +67,7 @@ class ScenePanel {
   ) {
     try {
       this.dialog.className = 'reactor-dialog reactor-live';
-      setTextAttribute(
-        this.dialog,
+      this.dialog.setAttribute(
         'aria-label',
         message('live.sceneTitle', { model: this.owner.modelTitle }),
       );
@@ -80,8 +79,8 @@ class ScenePanel {
       this.prompt.disabled = this.apply.disabled = true;
       this.surface.className = 'reactor-preview';
       this.surface.tabIndex = 0;
-      setTextAttribute(this.surface, 'aria-label', message('live.movementLabel'));
-      setTextAttribute(this.image, 'alt', message('live.output'));
+      this.surface.setAttribute('aria-label', message('live.movementLabel'));
+      this.image.setAttribute('alt', message('live.output'));
       this.image.hidden = true;
       this.surface.append(this.image, element('p', message('live.waitingVideo')));
       this.controls.className = 'reactor-actions';
@@ -303,20 +302,6 @@ class ScenePanel {
     if (!this.finished)
       void endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
     this.image.removeAttribute('src');
-    for (const root of [
-      this.dialog,
-      this.image,
-      this.status,
-      this.prompt,
-      this.end,
-      this.elapsed,
-      this.apply,
-      this.promptStatus,
-      this.surface,
-      this.controls,
-    ]) {
-      releaseText(root);
-    }
     this.dialog.remove();
     panels.delete(this.owner.lease);
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)

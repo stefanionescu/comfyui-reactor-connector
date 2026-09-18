@@ -2,7 +2,7 @@ import type { Fetcher } from '#web/http.ts';
 import { browserRoutes } from '#web/routes.ts';
 import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
-import { translate, type MessageKey } from '#web/language.ts';
+import { message, type MessageKey } from '#web/text.ts';
 import { parseConfiguration, type Configuration } from '#web/settings/schema.ts';
 
 /**
@@ -36,13 +36,13 @@ export async function requestConfiguration(
   try {
     response = await fetcher(route, options);
   } catch {
-    throw new Error(translate('settings.unreachable'));
+    throw new Error(message('settings.unreachable'));
   }
   let document: unknown;
   try {
     document = await response.json();
   } catch {
-    throw new Error(translate('settings.unreadableResponse'));
+    throw new Error(message('settings.unreadableResponse'));
   }
   if (!response.ok) {
     const failures = new Map<string, MessageKey>([
@@ -50,7 +50,7 @@ export async function requestConfiguration(
       ['DELETE', 'settings.removeFailed'],
     ]);
     throw new Error(
-      parsePublicError(document) ?? translate(failures.get(method) ?? 'settings.saveFailed'),
+      parsePublicError(document) ?? message(failures.get(method) ?? 'settings.saveFailed'),
     );
   }
   return parseConfiguration(document);

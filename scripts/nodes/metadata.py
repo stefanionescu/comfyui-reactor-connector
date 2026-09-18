@@ -1,11 +1,10 @@
-"""Read host node schemas and validate registrations and translations."""
+"""Read host node schemas and check the node guides against them."""
 
 import os
 import sys
 import argparse
 from pathlib import Path
 from ...src.state.documents import Json
-from .translations import validate_translations
 from ...quality.lib.comfy import host_installation
 from ...src.serialization import parse_json, mapping_value
 from ...quality.lib.process import ProcessContext, run_command
@@ -28,9 +27,9 @@ def read_schemas() -> dict[str, Json]:
 
 
 def validate_metadata(schemas: dict[str, Json]) -> list[str]:
-    """Check the language resources and guides against the registered node schemas."""
+    """Check the node guides against the registered node schemas."""
     root = Path(__file__).resolve().parents[2]
-    issues = validate_translations(root / "locales", schemas)
+    issues: list[str] = []
     issues.extend(
         f"Use a registered node ID for the guide {path.name}."
         for path in sorted((root / "web/docs").glob("*.md"))
@@ -40,7 +39,7 @@ def validate_metadata(schemas: dict[str, Json]) -> list[str]:
 
 
 def main() -> int:
-    """Check node registrations and translations against the node schemas."""
+    """Check node registrations and guides against the node schemas."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
     issues = validate_metadata(mapping_value(read_schemas()["reactor"]))

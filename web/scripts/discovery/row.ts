@@ -1,5 +1,5 @@
 import { element } from '#web/dom.ts';
-import { message } from '#web/localization.ts';
+import { message } from '#web/text.ts';
 import type { Model } from '#web/discovery/schema.ts';
 import { formatCreditSummary } from '#web/discovery/pricing.ts';
 

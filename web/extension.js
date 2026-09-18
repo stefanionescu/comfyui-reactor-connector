@@ -1,245 +1,205 @@
-// web/scripts/extension.ts
-import { api as api3 } from "../../scripts/api.js";
-import { app as app2 } from "../../scripts/app.js";
-
-// web/scripts/http.ts
-import { api as api2 } from "../../scripts/api.js";
-
-// web/scripts/language.ts
-import { api } from "../../scripts/api.js";
+// web/scripts/text.ts
 import { app } from "../../scripts/app.js";
-
-// locales/en/main.json
-var main_default = {
-  reactorInc: {
-    camera: {
-      accessFailed: "Camera access failed. Choose a camera and try again.",
-      browserRequirements: "Camera access needs localhost or HTTPS and a supported browser.",
-      busy: "Close other apps using the camera, then try again.",
-      default: "Default camera",
-      disconnected: "The camera disconnected. The session is ending.",
-      enable: "Enable Camera",
-      enabled: "Camera On",
-      label: "Camera",
-      notFound: "Connect a camera, then try again.",
-      number: "Camera {number}",
-      permissionDenied: "Allow camera access in the app or browser settings, then try again.",
-      preview: "Webcam preview",
-      readFailed: "Camera frames could not be read.",
-      select: "Switch Camera",
-      unavailableSelection: "The selected camera is unavailable. Choose another camera.",
-      uploadFailed: "Camera frames could not reach the session.",
-      microphone: "Microphone Off"
-    },
-    cancel: "Cancel",
-    close: "Close",
-    controls: {
-      cameraRequired: "Enable a camera before starting.",
-      chooseInput: "Choose your input, then start within 60 seconds.",
-      connecting: "Connecting to Reactor…",
-      connectionClosed: "Connection closed. Check Reactor session status before starting again.",
-      connectionEnded: "The live connection ended.",
-      dragInstructions: "Drag on the output to steer the subject. Release to stop. Focus the picture and use arrow keys to position the pointer. Hold Space to hold it; release Space or press Escape to release it.",
-      emptyPrompt: "Enter a prompt before applying it.",
-      pointerRateExceeded: "Pointer input arrived too quickly. The session is ending.",
-      promptSent: "Prompt sent.",
-      recording: "Recording. Live controls are ready.",
-      recordingNotStarted: "Recording did not start. Close this panel and run the workflow again.",
-      soundSent: "Audio prompt sent.",
-      start: "Start Session",
-      title: "{model}: Live Controls (Reactor)"
-    },
-    live: {
-      actionRejected: "The live action was not accepted. The session is ending.",
-      applyPrompt: "Apply Prompt",
-      back: "Move Backward",
-      connectingPanel: "Connecting the live panel…",
-      connectionLost: "The live connection was lost. The connector will ask Reactor to stop after five seconds without a browser connection. Check Reactor Usage to confirm the session has ended before another run.",
-      discarded: "Session ended without saving a video.",
-      duration: "{seconds} seconds of video",
-      elapsed: "Elapsed: {seconds} s",
-      emptyScenePrompt: "Enter a scene prompt before applying it.",
-      endSession: "End Session",
-      ended: "Session ended.",
-      ending: "Ending the session…",
-      forward: "Move Forward",
-      help: "Help",
-      invalidStatus: "The live panel received an invalid status.",
-      lookDown: "Look Down",
-      lookLeft: "Look Left",
-      lookRight: "Look Right",
-      lookUp: "Look Up",
-      moveLeft: "Move Left",
-      moveRight: "Move Right",
-      movementInstructions: "Click the picture, then use W A S D to move and arrow keys to turn. Click a button for a brief movement, or hold it to keep moving. Escape stops camera movement.",
-      movementLabel: "Live view. W A S D moves. Arrow keys turn. Escape stops camera movement.",
-      output: "Generated video preview",
-      previewNotice: "The preview has no sound. The saved video can have a higher frame rate.",
-      previewReady: "Live preview. Controls are active.",
-      promptNotice: "Prompt changes affect later frames. The starting image stays fixed.",
-      promptSent: "Prompt sent.",
-      recordingNotice: "End Session stops early and discards the unfinished video.",
-      scenePrompt: "Scene Prompt",
-      unconfirmedEnd: "Reactor has not confirmed that the session ended. Wait for its time limit before another run.",
-      unreachable: "Live controls could not reach their session.",
-      waitingVideo: "Waiting for model video…",
-      sceneTitle: "{model}: Scene Controls (Reactor)",
-      editPrompt: "Edit Prompt"
-    },
-    models: {
-      checkDue: "An automatic model check is due. Checks do not change this list.",
-      checkRunning: "An automatic model check is running. Reopen this list to see its result.",
-      checkSchedule: "Automatic check: {date}. Checks run every {hours} hours.",
-      checking: "Checking public model sources…",
-      checksOff: "Automatic model checks are off. Change this in Reactor settings.",
-      close: "Close Reactor models",
-      connectName: "Model ID: {name}",
-      count: "{visible} of {total} models",
-      guideUnavailable: "No matching public guide was found.",
-      installedList: "Showing installed nodes. Refresh Models to load public prices and guides.",
-      invalidResponse: "ComfyUI returned an invalid Reactor model list.",
-      lastRefresh: "Public prices and guides checked {date}.",
-      listChanged: "The model list has changed. Select Refresh Models to update your list.",
-      loadFailed: "Cannot load models.",
-      loaded: "Local model list loaded.",
-      loading: "Loading model list…",
-      loadingLocal: "Loading the local model list…",
-      nodeUnavailable: "No connector node available.",
-      nodesAvailable: "Nodes available.",
-      openGuide: "Reactor model guide (opens in a new tab)",
-      refresh: "Refresh Models",
-      refreshNotice: "Refresh updates public prices and model information. New models need support in the connector.",
-      refreshed: "Model list refreshed.",
-      requestFailed: "The model list request failed.",
-      restore: "Restore Previous List",
-      restored: "Previous model list restored. This does not change which models Reactor offers.",
-      search: "Search models",
-      searchPlaceholder: "Model name or ID",
-      sources: "Model sources and automatic checks",
-      title: "Reactor Models",
-      unreachable: "Cannot reach the Reactor model list. Check ComfyUI and try again.",
-      menu: "Reactor models"
-    },
-    pointer: {
-      held: "Pointer held.",
-      position: " {x}% across, {y}% down.",
-      released: "Pointer released.",
-      stopped: "Pointer controls stopped."
-    },
-    pricing: {
-      calculate: "Calculate credits for session time",
-      calculation: "{seconds} session seconds × {rate} credits per second = {credits} credits.",
-      enterTime: "Enter session time",
-      rate: "{rate} credits per session second.",
-      rateOutdated: "This rate was not found in the latest source check. Refresh Reactor models before relying on a calculation.",
-      rateUnavailable: "A current rate is not available. Refresh Reactor models to check for a rate.",
-      sessionTime: "session time to calculate (seconds)",
-      totalTimeNotice: "Use total session time, including setup and recording."
-    },
-    settings: {
-      advancedLimits: "Advanced limits",
-      automaticChecks: "Check for model updates automatically",
-      checkInterval: "check interval (hours)",
-      checkNotice: "Checks read public prices and model guides. Open Reactor models to see changes and refresh your list.",
-      checksSaved: "Model check settings saved. Changes take effect within one minute.",
-      clearKey: "Clear Saved Key",
-      close: "Close Reactor settings",
-      credentialLabel: "Reactor API key",
-      credentials: "Credentials",
-      environmentKey: "The server's REACTOR_API_KEY environment variable is active.",
-      incompleteResponse: "ComfyUI returned incomplete Reactor settings.",
-      invalidChecks: "ComfyUI returned invalid model check settings.",
-      invalidDefinition: "ComfyUI returned an invalid Reactor setting definition.",
-      invalidLimit: "ComfyUI returned an invalid Reactor limit.",
-      invalidResponse: "ComfyUI returned an invalid Reactor settings response.",
-      keyCleared: "Saved key cleared. Any environment key remains active.",
-      keyNotice: "The saved key stays on the ComfyUI server. An environment key takes precedence. Keys are not checked with Reactor here.",
-      keySaved: "Key saved on this server. Reactor checks it when you start a session.",
-      limit: {
-        catalog_interval_hours: "check interval (hours)",
-        cleanup_timeout_seconds: "disconnect timeout (seconds)",
-        connect_timeout_seconds: "connection timeout (seconds)",
-        first_frame_timeout_seconds: "first-frame timeout (seconds)",
-        max_capture_megabytes: "maximum video file size (MiB)",
-        max_capture_seconds: "maximum video duration (seconds)",
-        max_queue_megabytes: "maximum queued frame data (MiB)",
-        max_session_seconds: "maximum session duration (seconds)",
-        max_upload_megabytes: "maximum upload size (MiB)",
-        queue_timeout_seconds: "queue wait timeout (seconds)"
-      },
-      limits: "Session limits",
-      limitsSaved: "Limits saved. They apply to new sessions.",
-      loaded: "Local settings loaded.",
-      loading: "Loading local settings…",
-      missingKey: "No Reactor key is configured.",
-      modelUpdates: "Model updates",
-      noCheckChanges: "No model check changes to save.",
-      noLimitChanges: "No limit changes to save.",
-      readOnly: "Changes are disabled in this host's multi-user mode.",
-      reload: "Reload Settings",
-      saveChecks: "Save Model Check Settings",
-      saveFailed: "ComfyUI could not save Reactor settings.",
-      saveKey: "Save Key",
-      saveLimits: "Save Limits",
-      savedKey: "A saved key is configured on this server.",
-      timeNotice: "Session time includes setup and generation.",
-      title: "Reactor Settings",
-      unreachable: "Cannot reach Reactor settings. Check ComfyUI and try again.",
-      unreadableResponse: "ComfyUI returned an unreadable Reactor settings response.",
-      updateFailed: "Reactor settings could not be saved.",
-      readFailed: "ComfyUI could not read Reactor settings.",
-      removeFailed: "ComfyUI could not clear the saved Reactor key.",
-      menu: "Reactor settings"
-    },
-    sound: {
-      applyPrompt: "Apply Audio Prompt",
-      prompt: "Audio Prompt",
-      promptNotice: "Describe the sound briefly. Leave blank to use the picture alone."
-    },
-    working: "Working…"
+var TEXT = {
+  camera: {
+    accessFailed: "Camera access failed. Choose a camera and try again.",
+    browserRequirements: "Camera access needs localhost or HTTPS and a supported browser.",
+    busy: "Close other apps using the camera, then try again.",
+    default: "Default camera",
+    disconnected: "The camera disconnected. The session is ending.",
+    enable: "Enable Camera",
+    enabled: "Camera On",
+    label: "Camera",
+    notFound: "Connect a camera, then try again.",
+    number: "Camera {number}",
+    permissionDenied: "Allow camera access in the app or browser settings, then try again.",
+    preview: "Webcam preview",
+    readFailed: "Camera frames could not be read.",
+    select: "Switch Camera",
+    unavailableSelection: "The selected camera is unavailable. Choose another camera.",
+    uploadFailed: "Camera frames could not reach the session.",
+    microphone: "Microphone Off"
   },
-  nodeCategories: {
-    Reactor: "Reactor",
-    Generate: "Generate",
-    Edit: "Edit",
-    Live: "Live",
-    Worlds: "Worlds",
-    Plans: "Plans"
-  }
+  cancel: "Cancel",
+  close: "Close",
+  controls: {
+    cameraRequired: "Enable a camera before starting.",
+    chooseInput: "Choose your input, then start within 60 seconds.",
+    connecting: "Connecting to Reactor...",
+    connectionClosed: "Connection closed. Check Reactor session status before starting again.",
+    connectionEnded: "The live connection ended.",
+    dragInstructions: "Drag on the output to steer the subject. Release to stop. Focus the picture and use arrow keys to position the pointer. Hold Space to hold it; release Space or press Escape to release it.",
+    emptyPrompt: "Enter a prompt before applying it.",
+    pointerRateExceeded: "Pointer input arrived too quickly. The session is ending.",
+    promptSent: "Prompt sent.",
+    recording: "Recording. Live controls are ready.",
+    recordingNotStarted: "Recording did not start. Close this panel and run the workflow again.",
+    soundSent: "Audio prompt sent.",
+    start: "Start Session",
+    title: "{model}: Live Controls (Reactor)"
+  },
+  live: {
+    actionRejected: "The live action was not accepted. The session is ending.",
+    applyPrompt: "Apply Prompt",
+    back: "Move Backward",
+    connectingPanel: "Connecting the live panel...",
+    connectionLost: "The live connection was lost. The connector will ask Reactor to stop after five seconds without a browser connection. Check Reactor Usage to confirm the session has ended before another run.",
+    discarded: "Session ended without saving a video.",
+    duration: "{seconds} seconds of video",
+    elapsed: "Elapsed: {seconds} s",
+    emptyScenePrompt: "Enter a scene prompt before applying it.",
+    endSession: "End Session",
+    ended: "Session ended.",
+    ending: "Ending the session...",
+    forward: "Move Forward",
+    help: "Help",
+    invalidStatus: "The live panel received an invalid status.",
+    lookDown: "Look Down",
+    lookLeft: "Look Left",
+    lookRight: "Look Right",
+    lookUp: "Look Up",
+    moveLeft: "Move Left",
+    moveRight: "Move Right",
+    movementInstructions: "Click the picture, then use W A S D to move and arrow keys to turn. Click a button for a brief movement, or hold it to keep moving. Escape stops camera movement.",
+    movementLabel: "Live view. W A S D moves. Arrow keys turn. Escape stops camera movement.",
+    output: "Generated video preview",
+    previewNotice: "The preview has no sound. The saved video can have a higher frame rate.",
+    previewReady: "Live preview. Controls are active.",
+    promptNotice: "Prompt changes affect later frames. The starting image stays fixed.",
+    promptSent: "Prompt sent.",
+    recordingNotice: "End Session stops early and discards the unfinished video.",
+    scenePrompt: "Scene Prompt",
+    unconfirmedEnd: "Reactor has not confirmed that the session ended. Wait for its time limit before another run.",
+    unreachable: "Live controls could not reach their session.",
+    waitingVideo: "Waiting for model video...",
+    sceneTitle: "{model}: Scene Controls (Reactor)",
+    editPrompt: "Edit Prompt"
+  },
+  models: {
+    checkDue: "An automatic model check is due. Checks do not change this list.",
+    checkRunning: "An automatic model check is running. Reopen this list to see its result.",
+    checkSchedule: "Automatic check: {date}. Checks run every {hours} hours.",
+    checking: "Checking public model sources...",
+    checksOff: "Automatic model checks are off. Change this in Reactor settings.",
+    close: "Close Reactor models",
+    connectName: "Model ID: {name}",
+    count: "{visible} of {total} models",
+    guideUnavailable: "No matching public guide was found.",
+    installedList: "Showing installed nodes. Refresh Models to load public prices and guides.",
+    invalidResponse: "ComfyUI returned an invalid Reactor model list.",
+    lastRefresh: "Public prices and guides checked {date}.",
+    listChanged: "The model list has changed. Select Refresh Models to update your list.",
+    readFailed: "Cannot load models.",
+    reread: "Local model list loaded.",
+    reading: "Loading model list...",
+    readingLocal: "Loading the local model list...",
+    nodeUnavailable: "No connector node available.",
+    nodesAvailable: "Nodes available.",
+    openGuide: "Reactor model guide (opens in a new tab)",
+    refresh: "Refresh Models",
+    refreshNotice: "Refresh updates public prices and model information. New models need support in the connector.",
+    refreshed: "Model list refreshed.",
+    requestFailed: "The model list request failed.",
+    restore: "Restore Previous List",
+    restored: "Previous model list restored. This does not change which models Reactor offers.",
+    search: "Search models",
+    searchPlaceholder: "Model name or ID",
+    sources: "Model sources and automatic checks",
+    title: "Reactor Models",
+    unreachable: "Cannot reach the Reactor model list. Check ComfyUI and try again.",
+    menu: "Reactor models"
+  },
+  pointer: {
+    held: "Pointer held.",
+    position: " {x}% across, {y}% down.",
+    released: "Pointer released.",
+    stopped: "Pointer controls stopped."
+  },
+  pricing: {
+    calculate: "Calculate credits for session time",
+    calculation: "{seconds} session seconds × {rate} credits per second = {credits} credits.",
+    enterTime: "Enter session time",
+    rate: "{rate} credits per session second.",
+    rateOutdated: "This rate was not found in the latest source check. Refresh Reactor models before relying on a calculation.",
+    rateUnavailable: "A current rate is not available. Refresh Reactor models to check for a rate.",
+    sessionTime: "session time to calculate (seconds)",
+    totalTimeNotice: "Use total session time, including setup and recording."
+  },
+  settings: {
+    moreLimits: "Advanced limits",
+    automaticChecks: "Check for model updates automatically",
+    checkInterval: "check interval (hours)",
+    checkNotice: "Checks read public prices and model guides. Open Reactor models to see changes and refresh your list.",
+    checksSaved: "Model check settings saved. Changes take effect within one minute.",
+    clearKey: "Clear Saved Key",
+    close: "Close Reactor settings",
+    credentialLabel: "Reactor API key",
+    credentials: "Credentials",
+    environmentKey: "The server's REACTOR_API_KEY environment variable is active.",
+    incompleteResponse: "ComfyUI returned incomplete Reactor settings.",
+    invalidChecks: "ComfyUI returned invalid model check settings.",
+    invalidDefinition: "ComfyUI returned an invalid Reactor setting definition.",
+    invalidLimit: "ComfyUI returned an invalid Reactor limit.",
+    invalidResponse: "ComfyUI returned an invalid Reactor settings response.",
+    keyCleared: "Saved key cleared. Any environment key remains active.",
+    keyNotice: "The saved key stays on the ComfyUI server. An environment key takes precedence. Keys are not checked with Reactor here.",
+    keySaved: "Key saved on this server. Reactor checks it when you start a session.",
+    limits: "Session limits",
+    limitsSaved: "Limits saved. They apply to new sessions.",
+    reread: "Local settings loaded.",
+    reading: "Loading local settings...",
+    missingKey: "No Reactor key is configured.",
+    modelUpdates: "Model updates",
+    noCheckChanges: "No model check changes to save.",
+    noLimitChanges: "No limit changes to save.",
+    readOnly: "Changes are disabled in this host's multi-user mode.",
+    reload: "Reload Settings",
+    saveChecks: "Save Model Check Settings",
+    saveFailed: "ComfyUI could not save Reactor settings.",
+    saveKey: "Save Key",
+    saveLimits: "Save Limits",
+    savedKey: "A saved key is configured on this server.",
+    timeNotice: "Session time includes setup and generation.",
+    title: "Reactor Settings",
+    unreachable: "Cannot reach Reactor settings. Check ComfyUI and try again.",
+    unreadableResponse: "ComfyUI returned an unreadable Reactor settings response.",
+    updateFailed: "Reactor settings could not be saved.",
+    readFailed: "ComfyUI could not read Reactor settings.",
+    removeFailed: "ComfyUI could not clear the saved Reactor key.",
+    menu: "Reactor settings"
+  },
+  sound: {
+    applyPrompt: "Apply Audio Prompt",
+    prompt: "Audio Prompt",
+    promptNotice: "Describe the sound briefly. Leave blank to use the picture alone."
+  },
+  working: "Working..."
 };
-
-// web/scripts/language.ts
-var messages = /* @__PURE__ */ new Map();
-function readMessage(source, key) {
-  let value = source;
+var LIMIT_LABELS = /* @__PURE__ */ new Map([
+  ["catalog_interval_hours", "check interval (hours)"],
+  ["cleanup_timeout_seconds", "disconnect timeout (seconds)"],
+  ["connect_timeout_seconds", "connection timeout (seconds)"],
+  ["first_frame_timeout_seconds", "first-frame timeout (seconds)"],
+  ["max_capture_megabytes", "maximum video file size (MiB)"],
+  ["max_capture_seconds", "maximum video duration (seconds)"],
+  ["max_queue_megabytes", "maximum queued frame data (MiB)"],
+  ["max_session_seconds", "maximum session duration (seconds)"],
+  ["max_upload_megabytes", "maximum upload size (MiB)"],
+  ["queue_timeout_seconds", "queue wait timeout (seconds)"]
+]);
+function message(key, values = {}) {
+  let value = TEXT;
   for (const part of key.split(".")) {
-    if (typeof value !== "object" || value === null || !Object.hasOwn(value, part))
-      return void 0;
     value = value[part];
   }
-  return typeof value === "string" ? value : void 0;
+  return String(value).replaceAll(/\{(\w+)\}/g, (placeholder, name) => {
+    if (!Object.hasOwn(values, name)) return placeholder;
+    const inserted = values[name];
+    return typeof inserted === "number" ? formatNumber(inserted) : String(inserted);
+  });
 }
-async function initializeLanguage() {
-  try {
-    const languages = await api.getCustomNodesI18n();
-    const available = /* @__PURE__ */ new Map();
-    for (const [language, document2] of Object.entries(languages)) {
-      available.set(language.toLowerCase(), document2);
-    }
-    messages = available;
-  } catch {
-    messages = /* @__PURE__ */ new Map();
-  }
-}
-function translate(key, values = {}, fallback) {
-  let message2;
-  for (const language of localeCandidates(selectedLocale())) {
-    if (language === "en" || language.startsWith("en-")) break;
-    message2 = readMessage(messages.get(language), `reactorInc.${key}`);
-    if (message2 !== void 0) break;
-  }
-  const text = message2 ?? readMessage(main_default.reactorInc, key) ?? fallback ?? key;
-  return text.replaceAll(/\{(\w+)\}/g, substituteValue.bind(null, values));
+function setText(target, content) {
+  target.replaceChildren(document.createTextNode(content));
 }
 function selectedLocale() {
   const value = app.extensionManager.setting.get("Comfy.Locale");
@@ -249,119 +209,29 @@ function selectedLocale() {
     return "en";
   }
 }
-function localeCandidates(locale) {
-  const exact = locale.replaceAll("_", "-").toLowerCase();
-  const base = exact.split("-")[0] ?? "en";
-  let chinese = false;
-  for (const tag of ["zh-tw", "zh-hk", "zh-mo", "zh-hant"]) {
-    if (exact === tag || exact.startsWith(tag + "-")) {
-      chinese = true;
-      break;
-    }
-  }
-  return [.../* @__PURE__ */ new Set([exact, chinese ? "zh-tw" : base, "en"])];
-}
 function formatNumber(value, options) {
-  const locale = selectedLocale();
-  const formatter = new Intl.NumberFormat(locale, options);
-  return formatter.format(value);
+  return new Intl.NumberFormat(selectedLocale(), options).format(value);
 }
 function formatDate(value) {
-  const date = new Date(value);
-  const locale = selectedLocale();
-  return date.toLocaleString(locale);
-}
-function substituteValue(values, placeholder, name) {
-  if (!Object.hasOwn(values, name)) return placeholder;
-  return displayValue(values[name]);
-}
-function displayValue(value) {
-  if (typeof value === "function") return value();
-  return typeof value === "number" ? formatNumber(value) : String(value);
+  return new Date(value).toLocaleString(selectedLocale());
 }
 
+// web/scripts/extension.ts
+import { api as api2 } from "../../scripts/api.js";
+import { app as app2 } from "../../scripts/app.js";
+
 // web/scripts/http.ts
+import { api } from "../../scripts/api.js";
 function requestLocal(route, options) {
   const headers = new Headers(options.headers);
   headers.set("Accept-Language", selectedLocale());
-  return api2.fetchApi(route, { ...options, headers });
-}
-
-// web/scripts/localization.ts
-var bindings = /* @__PURE__ */ new Set();
-function message(key, values = {}, fallback) {
-  const content = { key, values };
-  if (fallback !== void 0) content.fallback = fallback;
-  return content;
-}
-function textNode(content) {
-  const node = document.createTextNode(
-    typeof content === "string" ? content : translate(content.key, content.values, content.fallback)
-  );
-  if (typeof content !== "string") {
-    const binding = { target: new WeakRef(node), message: content, rendered: node.data };
-    bindings.add(binding);
-  }
-  return node;
-}
-function setText(target, content) {
-  for (const child of target.childNodes) {
-    releaseText(child);
-  }
-  target.replaceChildren();
-  target.appendChild(textNode(content));
-}
-function releaseText(root) {
-  for (const binding of bindings) {
-    const target = binding.target.deref();
-    if (!target || root.contains(target)) {
-      bindings.delete(binding);
-    }
-  }
-}
-function setTextAttribute(target, attribute, content) {
-  const rendered = translate(content.key, content.values, content.fallback);
-  target.setAttribute(attribute, rendered);
-  for (const binding of bindings) {
-    if (binding.target.deref() === target && binding.attribute === attribute)
-      bindings.delete(binding);
-  }
-  bindings.add({ target: new WeakRef(target), attribute, message: content, rendered });
-}
-function refreshText() {
-  for (const binding of bindings) {
-    const target = binding.target.deref();
-    if (!target?.isConnected) {
-      bindings.delete(binding);
-      continue;
-    }
-    const current3 = bindingText(target, binding.attribute);
-    if (current3 !== binding.rendered) {
-      bindings.delete(binding);
-      continue;
-    }
-    updateBinding(target, binding);
-  }
-}
-function bindingText(target, attribute) {
-  if (target instanceof Text) return target.data;
-  return target instanceof Element && attribute ? target.getAttribute(attribute) : null;
-}
-function updateBinding(target, binding) {
-  binding.rendered = translate(
-    binding.message.key,
-    binding.message.values,
-    binding.message.fallback
-  );
-  if (target instanceof Text) target.data = binding.rendered;
-  else if (target instanceof Element && binding.attribute)
-    target.setAttribute(binding.attribute, binding.rendered);
+  return api.fetchApi(route, { ...options, headers });
 }
 
 // web/scripts/dom.ts
 function element(tag, text) {
   const node = document.createElement(tag);
-  if (text !== void 0) node.appendChild(textNode(text));
+  if (text !== void 0) node.appendChild(document.createTextNode(text));
   return node;
 }
 function button(text, type = "button") {
@@ -443,7 +313,7 @@ var Webcam = class {
     const heading = element("header");
     heading.append(element("h3", message("camera.label")));
     this.status.setAttribute("role", "status");
-    setTextAttribute(this.select, "aria-label", message("camera.label"));
+    this.select.setAttribute("aria-label", message("camera.label"));
     const defaultCamera = element("option", message("camera.default"));
     defaultCamera.value = "";
     this.select.append(defaultCamera);
@@ -451,7 +321,7 @@ var Webcam = class {
     this.video.autoplay = true;
     this.video.playsInline = true;
     this.video.hidden = true;
-    setTextAttribute(this.video, "aria-label", message("camera.preview"));
+    this.video.setAttribute("aria-label", message("camera.preview"));
     const controls = element("div");
     controls.className = "reactor-camera-controls";
     const selection = element("div");
@@ -575,7 +445,6 @@ var Webcam = class {
       option.selected = device.deviceId === selected;
       options.appendChild(option);
     }
-    releaseText(this.select);
     this.select.replaceChildren();
     this.select.appendChild(options);
   }
@@ -587,7 +456,7 @@ var Webcam = class {
     if (this.closed || !this.stream || this.video.readyState < 2) return false;
     for (const track of this.stream.getVideoTracks()) {
       if (track.readyState === "live") continue;
-      this.fail(translate("camera.disconnected"));
+      this.fail(message("camera.disconnected"));
       return false;
     }
     if (this.upload) {
@@ -610,12 +479,12 @@ var Webcam = class {
   async send() {
     const blob = await new Promise((fulfill) => {
       const context = this.canvas.getContext("2d");
-      if (!context) throw new Error(translate("camera.readFailed"));
+      if (!context) throw new Error(message("camera.readFailed"));
       context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       this.canvas.toBlob(fulfill, "image/jpeg", browserInput.cameraJpegQuality);
     });
     if (this.closed) return false;
-    if (!blob) throw new Error(translate("camera.readFailed"));
+    if (!blob) throw new Error(message("camera.readFailed"));
     const response = await this.fetcher(browserRoutes.live.camera, {
       method: "POST",
       cache: "no-store",
@@ -632,7 +501,7 @@ var Webcam = class {
         "X-Reactor-Sequence": String(this.sequence++)
       }
     });
-    if (!response.ok) throw new Error(translate("camera.uploadFailed"));
+    if (!response.ok) throw new Error(message("camera.uploadFailed"));
     return true;
   }
   /**
@@ -1350,9 +1219,9 @@ async function sendAction(fetcher, owner, sequence, name, fields, signal) {
     try {
       document2 = await response.json();
     } catch {
-      throw new Error(translate("live.actionRejected"));
+      throw new Error(message("live.actionRejected"));
     }
-    throw new Error(parsePublicError(document2) ?? translate("live.actionRejected"));
+    throw new Error(parsePublicError(document2) ?? message("live.actionRejected"));
   }
 }
 
@@ -1408,7 +1277,7 @@ var PointerPreview = class {
    */
   confirm(pointer) {
     const key = pointer.active ? "pointer.held" : "pointer.released";
-    if (this.#state.textContent !== translate(key)) setText(this.#state, message(key));
+    if (this.#state.textContent !== message(key)) setText(this.#state, message(key));
   }
   /**
    * Hide the marker and announce that pointer input has stopped.
@@ -1755,13 +1624,13 @@ async function exchange(fetcher, owner, sequence, axes, end, previewSequence, si
     try {
       document2 = await response.json();
     } catch {
-      throw new Error(translate("live.unreachable"));
+      throw new Error(message("live.unreachable"));
     }
-    throw new Error(parsePublicError(document2) ?? translate("live.unreachable"));
+    throw new Error(parsePublicError(document2) ?? message("live.unreachable"));
   }
   const status = parseLiveStatus(await response.json());
   signal.throwIfAborted();
-  if (!status) throw new Error(translate("live.invalidStatus"));
+  if (!status) throw new Error(message("live.invalidStatus"));
   return status;
 }
 async function endSession(fetcher, owner, sequence, previewSequence) {
@@ -1946,12 +1815,11 @@ var ControlPanel = class {
     this.fetcher = fetcher;
     try {
       this.dialog.className = "reactor-dialog reactor-controls";
-      setTextAttribute(
-        this.dialog,
+      this.dialog.setAttribute(
         "aria-label",
         message("controls.title", { model: this.owner.modelTitle })
       );
-      setTextAttribute(this.image, "alt", message("live.output"));
+      this.image.setAttribute("alt", message("live.output"));
       this.image.hidden = true;
       this.pointerPreview = owner.pointer ? new PointerPreview(this.image, this.abort.signal) : void 0;
       this.status.setAttribute("role", "status");
@@ -2272,21 +2140,6 @@ var ControlPanel = class {
     if (!this.finished)
       void endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
     this.image.removeAttribute("src");
-    for (const root of [
-      this.dialog,
-      this.image,
-      this.status,
-      this.prompt,
-      this.end,
-      this.start,
-      this.update,
-      this.pointerPreview?.view,
-      this.pointerPreview?.status,
-      this.camera?.view,
-      this.sound?.view
-    ]) {
-      if (root) releaseText(root);
-    }
     this.dialog.remove();
     panels.delete(this.owner.lease);
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
@@ -2323,14 +2176,11 @@ function formatCreditSummary(model, seconds) {
   if (!model.observed) {
     summary.push(message("pricing.rateOutdated"));
   } else if (seconds !== void 0) {
-    const credits = () => formatNumber(rate * seconds, {
-      maximumFractionDigits: 2
-    });
     summary.push(
       message("pricing.calculation", {
         seconds,
         rate,
-        credits
+        credits: formatNumber(rate * seconds, { maximumFractionDigits: 2 })
       })
     );
   }
@@ -2451,7 +2301,7 @@ var modelListSchema = pipe(
 );
 function parseModelList(value) {
   const result = safeParse(modelListSchema, value);
-  if (!result.success) throw new Error(translate("models.invalidResponse"));
+  if (!result.success) throw new Error(message("models.invalidResponse"));
   return result.output;
 }
 
@@ -2463,7 +2313,7 @@ function modelRoute(action) {
 }
 function metadataStatus(retrievedAt) {
   if (retrievedAt === null) return message("models.installedList");
-  return message("models.lastRefresh", { date: formatDate.bind(null, retrievedAt) });
+  return message("models.lastRefresh", { date: formatDate(retrievedAt) });
 }
 async function requestModels(fetcher, signal, action, revision) {
   const options = {
@@ -2481,16 +2331,16 @@ async function requestModels(fetcher, signal, action, revision) {
   try {
     response = await fetcher(modelRoute(action), options);
   } catch {
-    throw new Error(translate("models.unreachable"));
+    throw new Error(message("models.unreachable"));
   }
   let body;
   try {
     body = await response.json();
   } catch {
-    throw new Error(translate("models.invalidResponse"));
+    throw new Error(message("models.invalidResponse"));
   }
   if (!response.ok) {
-    throw new Error(parsePublicError(body) ?? translate("models.requestFailed"));
+    throw new Error(parsePublicError(body) ?? message("models.requestFailed"));
   }
   return parseModelList(body);
 }
@@ -2505,7 +2355,7 @@ function automaticStatus(check2) {
   if (check2.updateAvailable === true) return message("models.listChanged");
   if (check2.checkedAt)
     return message("models.checkSchedule", {
-      date: formatDate.bind(null, check2.checkedAt),
+      date: formatDate(check2.checkedAt),
       hours: check2.intervalHours
     });
   return message("models.checkDue");
@@ -2522,17 +2372,17 @@ var ModelDialog = class {
     const heading = element("h2", message("models.title"));
     heading.id = "reactor-models-title";
     const close = button(message("close"));
-    setTextAttribute(close, "aria-label", message("models.close"));
+    close.setAttribute("aria-label", message("models.close"));
     close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
     const header = element("header");
     header.append(heading, close);
     const searchLabel = element("label", message("models.search"));
     this.search.type = "search";
-    setTextAttribute(this.search, "placeholder", message("models.searchPlaceholder"));
+    this.search.setAttribute("placeholder", message("models.searchPlaceholder"));
     searchLabel.append(this.search);
     this.status.setAttribute("role", "status");
     this.status.setAttribute("aria-live", "polite");
-    setTextAttribute(this.list, "aria-label", message("models.title"));
+    this.list.setAttribute("aria-label", message("models.title"));
     const sources = element("details");
     sources.append(
       element("summary", message("models.sources")),
@@ -2562,7 +2412,7 @@ var ModelDialog = class {
   duration = element("input");
   refresh = button(message("models.refresh"));
   rollback = button(message("models.restore"));
-  status = element("p", message("models.loadingLocal"));
+  status = element("p", message("models.readingLocal"));
   checked = element("p");
   automatic = element("p");
   count = element("p");
@@ -2591,7 +2441,7 @@ var ModelDialog = class {
     this.duration.min = String(browserLimits.minCalculatorSeconds);
     this.duration.max = String(browserLimits.maxCalculatorSeconds);
     this.duration.step = "any";
-    setTextAttribute(this.duration, "placeholder", message("pricing.enterTime"));
+    this.duration.setAttribute("placeholder", message("pricing.enterTime"));
     label.append(this.duration);
     const calculation = element("details");
     calculation.append(
@@ -2611,7 +2461,6 @@ var ModelDialog = class {
       if (label.toLowerCase().includes(query)) rows.appendChild(buildModelRow(model, seconds));
     }
     const visible = rows.childElementCount;
-    releaseText(this.list);
     this.list.replaceChildren();
     this.list.appendChild(rows);
     setText(
@@ -2630,7 +2479,7 @@ var ModelDialog = class {
     this.refresh.disabled = this.rollback.disabled = true;
     setText(
       this.status,
-      action === "refresh" ? message("models.checking") : message("models.loading")
+      action === "refresh" ? message("models.checking") : message("models.reading")
     );
     void this.requestModels(action);
   }
@@ -2651,7 +2500,7 @@ var ModelDialog = class {
       this.displayModels(next, action);
     } catch (error) {
       if (!this.controller.signal.aborted)
-        setText(this.status, error instanceof Error ? error.message : message("models.loadFailed"));
+        setText(this.status, error instanceof Error ? error.message : message("models.readFailed"));
     } finally {
       this.restoreActions();
     }
@@ -2665,7 +2514,7 @@ var ModelDialog = class {
     this.modelList = next;
     setText(this.checked, metadataStatus(next.retrievedAt));
     setText(this.automatic, automaticStatus(next.automaticCheck));
-    let status = message("models.loaded");
+    let status = message("models.reread");
     if (action === "refresh") status = message("models.refreshed");
     if (action === "rollback") status = message("models.restored");
     setText(this.status, status);
@@ -2686,7 +2535,6 @@ var ModelDialog = class {
   /** Stop pending requests and return focus to the caller. */
   dispose() {
     this.controller.abort();
-    releaseText(this.dialog);
     this.dialog.remove();
     if (current === this) current = void 0;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
@@ -2758,8 +2606,7 @@ var ScenePanel = class {
     this.fetcher = fetcher;
     try {
       this.dialog.className = "reactor-dialog reactor-live";
-      setTextAttribute(
-        this.dialog,
+      this.dialog.setAttribute(
         "aria-label",
         message("live.sceneTitle", { model: this.owner.modelTitle })
       );
@@ -2771,8 +2618,8 @@ var ScenePanel = class {
       this.prompt.disabled = this.apply.disabled = true;
       this.surface.className = "reactor-preview";
       this.surface.tabIndex = 0;
-      setTextAttribute(this.surface, "aria-label", message("live.movementLabel"));
-      setTextAttribute(this.image, "alt", message("live.output"));
+      this.surface.setAttribute("aria-label", message("live.movementLabel"));
+      this.image.setAttribute("alt", message("live.output"));
       this.image.hidden = true;
       this.surface.append(this.image, element("p", message("live.waitingVideo")));
       this.controls.className = "reactor-actions";
@@ -3001,20 +2848,6 @@ var ScenePanel = class {
     if (!this.finished)
       void endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
     this.image.removeAttribute("src");
-    for (const root of [
-      this.dialog,
-      this.image,
-      this.status,
-      this.prompt,
-      this.end,
-      this.elapsed,
-      this.apply,
-      this.promptStatus,
-      this.surface,
-      this.controls
-    ]) {
-      releaseText(root);
-    }
     this.dialog.remove();
     panels2.delete(this.owner.lease);
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
@@ -3064,16 +2897,16 @@ var checkSettingsSchema = object({ catalog_auto_check: boolean() });
 var credentialLimitSchema = pipe(number(), safeInteger(), minValue(1));
 function parseDefinitions(value) {
   const document2 = safeParse(unknownRecordSchema, value);
-  if (!document2.success) throw new Error(translate("settings.invalidResponse"));
+  if (!document2.success) throw new Error(message("settings.invalidResponse"));
   if (!Object.hasOwn(document2.output, "catalog_interval_hours")) {
-    throw new Error(translate("settings.incompleteResponse"));
+    throw new Error(message("settings.incompleteResponse"));
   }
   const definitions = /* @__PURE__ */ new Map();
   for (const [name, raw] of Object.entries(document2.output)) {
     const validName = safeParse(settingNameSchema, name);
     const definition = safeParse(settingDefinitionSchema, raw);
     if (!validName.success || !definition.success || definition.output.minimum > definition.output.maximum) {
-      throw new Error(translate("settings.invalidDefinition"));
+      throw new Error(message("settings.invalidDefinition"));
     }
     definitions.set(name, definition.output);
   }
@@ -3081,13 +2914,13 @@ function parseDefinitions(value) {
 }
 function parseConfiguration(value) {
   const result = safeParse(configurationDocumentSchema, value);
-  if (!result.success) throw new Error(translate("settings.invalidResponse"));
+  if (!result.success) throw new Error(message("settings.invalidResponse"));
   const document2 = result.output;
   const definitions = parseDefinitions(document2.integer_settings);
   const checkSettings = safeParse(checkSettingsSchema, document2.settings);
   const credentialLimit = safeParse(credentialLimitSchema, document2.credential_limit);
   if (!checkSettings.success || !credentialLimit.success) {
-    throw new Error(translate("settings.invalidChecks"));
+    throw new Error(message("settings.invalidChecks"));
   }
   const settings = new Map(Object.entries(document2.settings));
   for (const [name, definition] of Object.entries(definitions)) {
@@ -3100,7 +2933,7 @@ function parseConfiguration(value) {
       ),
       settings.get(name)
     );
-    if (!setting.success) throw new Error(translate("settings.invalidLimit"));
+    if (!setting.success) throw new Error(message("settings.invalidLimit"));
   }
   return {
     revision: document2.revision,
@@ -3129,13 +2962,13 @@ async function requestConfiguration(fetcher, signal, route = browserRoutes.setti
   try {
     response = await fetcher(route, options);
   } catch {
-    throw new Error(translate("settings.unreachable"));
+    throw new Error(message("settings.unreachable"));
   }
   let document2;
   try {
     document2 = await response.json();
   } catch {
-    throw new Error(translate("settings.unreadableResponse"));
+    throw new Error(message("settings.unreadableResponse"));
   }
   if (!response.ok) {
     const failures = /* @__PURE__ */ new Map([
@@ -3143,7 +2976,7 @@ async function requestConfiguration(fetcher, signal, route = browserRoutes.setti
       ["DELETE", "settings.removeFailed"]
     ]);
     throw new Error(
-      parsePublicError(document2) ?? translate(failures.get(method) ?? "settings.saveFailed")
+      parsePublicError(document2) ?? message(failures.get(method) ?? "settings.saveFailed")
     );
   }
   return parseConfiguration(document2);
@@ -3163,13 +2996,13 @@ var SettingsDialog = class {
     const heading = element("h2", message("settings.title"));
     heading.id = "reactor-settings-title";
     const close = button(message("close"));
-    setTextAttribute(close, "aria-label", message("settings.close"));
+    close.setAttribute("aria-label", message("settings.close"));
     close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
     const header = element("header");
     header.append(heading, close);
     this.status.setAttribute("role", "status");
     this.status.setAttribute("aria-live", "polite");
-    this.reload.addEventListener("click", () => this.updateSettings(message("settings.loaded")));
+    this.reload.addEventListener("click", () => this.updateSettings(message("settings.reread")));
     const footer = element("footer");
     footer.append(this.status, this.reload);
     this.dialog.append(
@@ -3187,7 +3020,7 @@ var SettingsDialog = class {
   dialog = element("dialog");
   previousFocus = document.activeElement;
   controller = new AbortController();
-  status = element("p", message("settings.loading"));
+  status = element("p", message("settings.reading"));
   source = element("p");
   reload = button(message("settings.reload"));
   key = element("input");
@@ -3261,13 +3094,12 @@ var SettingsDialog = class {
    * @param configuration - The validated limits.
    */
   populateLimits(configuration) {
-    releaseText(this.limitFields);
     this.limitFields.replaceChildren(element("legend", message("settings.limits")));
     const additionalLimits = element("details");
-    additionalLimits.append(element("summary", message("settings.advancedLimits")));
+    additionalLimits.append(element("summary", message("settings.moreLimits")));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       if (name === "catalog_interval_hours") continue;
-      const label = element("label", message(`settings.limit.${name}`));
+      const label = element("label", LIMIT_LABELS.get(name) ?? name);
       const input = element("input");
       input.type = "number";
       input.min = String(definition.minimum);
@@ -3429,13 +3261,12 @@ var SettingsDialog = class {
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
-    this.updateSettings(message("settings.loaded"));
+    this.updateSettings(message("settings.reread"));
   }
   /** Clear the key input, stop requests, and return focus to the caller. */
   dispose() {
     this.key.value = "";
     this.controller.abort();
-    releaseText(this.dialog);
     this.dialog.remove();
     if (current2 === this) current2 = void 0;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
@@ -3454,9 +3285,7 @@ function openSettings(fetcher) {
 // web/scripts/extension.ts
 app2.registerExtension({
   name: "reactor.inc.configuration",
-  init: initializeLanguage,
   setup: () => {
-    app2.ui.settings.addEventListener("Comfy.Locale.change", refreshText);
     const stylesheet = document.createElement("link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = new URL("./extension.css", import.meta.url).href;
@@ -3465,24 +3294,24 @@ app2.registerExtension({
       stylesheets.add(link.getAttribute("href"));
     }
     if (!stylesheets.has(stylesheet.href)) document.head.append(stylesheet);
-    api3.addCustomEventListener("reactor-inc.live", (event) => {
+    api2.addCustomEventListener("reactor-inc.live", (event) => {
       if (event instanceof CustomEvent) {
         openSceneControls(event.detail, requestLocal);
       }
     });
-    api3.addCustomEventListener("reactor-inc.controls", (event) => {
+    api2.addCustomEventListener("reactor-inc.controls", (event) => {
       if (event instanceof CustomEvent) openControls(event.detail, requestLocal);
     });
   },
   commands: [
     {
       id: "ReactorInc.OpenSettings",
-      label: translate("settings.menu"),
+      label: message("settings.menu"),
       function: openSettings.bind(null, requestLocal)
     },
     {
       id: "ReactorInc.OpenCatalog",
-      label: translate("models.menu"),
+      label: message("models.menu"),
       function: openModels.bind(null, requestLocal)
     }
   ],
