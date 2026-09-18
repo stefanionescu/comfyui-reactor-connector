@@ -11,7 +11,6 @@ from ..state.documents import Json
 from .sources import read_public_models
 from ..errors import ErrorCode, ConnectorError
 from .contracts import invalid, parse_snapshot
-from collections.abc import Callable, Awaitable
 from ..storage import atomic_write, read_private
 from ..serialization import parse_json, mapping_value
 from ..state.discovery import Snapshot, CatalogState, STORAGE_VERSION
@@ -109,12 +108,12 @@ class ModelStore:
             atomic_write(self._storage_path, (json.dumps(updated.to_json(), indent=2) + "\n").encode())
             return self._build_status(updated)
 
-    async def refresh(self, fetcher: Callable[[], Awaitable[Snapshot]] = read_public_models) -> dict[str, Json]:
+    async def refresh(self) -> dict[str, Json]:
         """Fetch without holding the state lock and reject overlapping refreshes."""
         self._begin()
         try:
             revision = await asyncio.to_thread(self._revision)
-            candidate = await fetcher()
+            candidate = await read_public_models()
             return await self._promote_owned(candidate, revision)
         finally:
             self._finish()

@@ -15,7 +15,7 @@ from ..config.security import MAX_CREDENTIAL_CHARACTERS
 from ..state.settings import Settings, ExecutionConfiguration
 from ..storage import atomic_write, read_private, private_directory
 from ..config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
-from ..config.messages.settings import SAVED_KEY_LINK, SETTING_READ_ONLY, SETTINGS_UNREADABLE
+from ..config.messages.settings import SETTING_READ_ONLY, SETTINGS_UNREADABLE
 from ..credentials import parse_credential, read_credential, save_credential, credential_source
 
 EDITABLE_SETTINGS = frozenset(item.name for item in fields(Settings))
@@ -95,8 +95,6 @@ class ConfigurationStore:
         """Remove only the saved key; the server environment takes precedence."""
         with self.lock:
             path = self.directory / "credential"
-            if path.is_symlink():
-                raise ConnectorError(ErrorCode.CONFIGURATION, SAVED_KEY_LINK)
             if path.exists():
                 private_directory(self.directory)
                 path.unlink()

@@ -4,7 +4,6 @@ import os
 import sys
 import json
 import math
-import stat
 import time
 import errno
 import logging
@@ -20,10 +19,8 @@ from ...storage import atomic_write, read_private, private_directory
 from ...config.generation.session import MAX_SESSION_RECORD_BYTES, MAX_SESSION_RECORD_DEPTH
 from ...config.messages.session import (
     SESSION_WAIT,
-    SESSION_LOCK_LINK,
     SESSION_RECORD_DAMAGED,
     SESSION_IN_OTHER_PROCESS,
-    SESSION_LOCK_PERMISSIONS,
     SESSION_RECORD_UNREADABLE,
     SESSION_RECORD_PERMISSIONS,
     SESSION_RECORD_UPDATE_FAILED,
@@ -43,15 +40,8 @@ class SessionReservation:
     def _acquire(self) -> None:
         """Lock private session storage and record a deadline before connecting."""
         private_directory(self.directory)
-        path = self.directory / "session.lock"
-        if path.is_symlink():
-            raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LOCK_LINK)
-        flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
-        descriptor = os.open(path, flags, 0o600)
+        descriptor = os.open(self.directory / "session.lock", os.O_RDWR | os.O_CREAT, 0o600)
         self._descriptor = descriptor
-        reservation = os.fstat(descriptor)
-        if not stat.S_ISREG(reservation.st_mode) or (os.name != "nt" and reservation.st_mode & 0o077):
-            raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LOCK_PERMISSIONS)
         _lock(descriptor)
         remaining = _remaining(self.directory / "session.json")
         if remaining > 0:
@@ -142,10 +132,10 @@ def _remaining(path: Path) -> float:
         raise invalid from None
     if not isinstance(value, dict) or set(value) != {"version", "expires_at"}:
         raise invalid
-    if value["version"] != 1 or type(value["version"]) is not int:
+    if value["version"] != 1:
         raise invalid
-    expires: object = value["expires_at"]
-    if type(expires) not in {int, float} or not isinstance(expires, int | float):
+    expires = value["expires_at"]
+    if not isinstance(expires, int | float) or isinstance(expires, bool):
         raise invalid
     if not math.isfinite(expires) or expires < 0:
         raise invalid

@@ -18,21 +18,13 @@ def default_settings() -> Settings:
 
 
 def validate_settings(settings: Settings) -> None:
-    """Validate setting types and leave session time for setup and cleanup."""
-    for item in fields(settings):
-        value: object = getattr(settings, item.name)
-        if item.name == "catalog_auto_check":
-            valid = isinstance(value, bool)
-        else:
-            definition = INTEGER_SETTINGS[item.name]
-            valid = type(value) is int and definition["minimum"] <= value <= definition["maximum"]
-        if not valid:
+    """Keep every limit in its range and leave session time for setup and cleanup."""
+    for name, definition in INTEGER_SETTINGS.items():
+        value: int = getattr(settings, name)
+        if not definition["minimum"] <= value <= definition["maximum"]:
             raise ConnectorError(ErrorCode.CONFIGURATION, SETTINGS_RANGE)
     if settings.max_capture_seconds >= settings.max_session_seconds:
-        raise ConnectorError(
-            ErrorCode.CONFIGURATION,
-            SESSION_LIMIT_TOO_SHORT,
-        )
+        raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LIMIT_TOO_SHORT)
 
 
 def parse_settings(document: dict[str, Json]) -> Settings:

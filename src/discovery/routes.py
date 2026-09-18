@@ -6,29 +6,18 @@ from .store import ModelStore
 from .checker import ModelChecker
 from ..state.documents import Json
 from ..http.guard import local_route
-from ..state.discovery import Snapshot
-from .sources import read_public_models
 from ..http.request import read_document
 from ..config.routes import MODELS_PREFIX
-from collections.abc import Callable, Awaitable
 from ..config.messages.requests import REFRESH_BODY, MODEL_REVISION_REQUIRED
 
 
 class ModelRoutes:
     """Local-owner endpoints for model metadata status, refresh, and rollback."""
 
-    def __init__(
-        self,
-        store: ModelStore,
-        *,
-        is_multi_user: bool = False,
-        fetcher: Callable[[], Awaitable[Snapshot]] = read_public_models,
-        checker: ModelChecker | None = None,
-    ) -> None:
-        """Bind the model store, public fetcher, and optional scheduled checker."""
+    def __init__(self, store: ModelStore, *, is_multi_user: bool = False, checker: ModelChecker | None = None) -> None:
+        """Bind the model store and the optional scheduled checker."""
         self.store = store
         self.is_multi_user = is_multi_user
-        self.fetcher = fetcher
         self.checker = checker
 
     def _add_route_fields(self, result: dict[str, Json]) -> dict[str, Json]:
@@ -46,7 +35,7 @@ class ModelRoutes:
         """Refresh public metadata and return the newly saved model list."""
         if request.can_read_body:
             raise web.HTTPBadRequest(text=REFRESH_BODY)
-        result = await self.store.refresh(self.fetcher)
+        result = await self.store.refresh()
         return self._add_route_fields(result)
 
     async def rollback(self, request: web.Request) -> dict[str, Json]:

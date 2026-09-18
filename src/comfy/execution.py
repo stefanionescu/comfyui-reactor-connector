@@ -23,7 +23,6 @@ from ..execution.operation import VideoOperation
 from ..config.messages.session import RUN_TIMEOUT
 from ..live.interaction import BrowserInteraction
 from ..state.settings import ExecutionConfiguration
-from ..config.messages.live import LIVE_CONTROL_TYPE
 from ..media.output import owned_io, discard_outputs
 from ..media.units import convert_mebibytes_to_bytes
 from comfy_api.latest import io, ComfyAPI, InputImpl
@@ -173,8 +172,6 @@ async def generate_video(
     controls: LiveOptions | None = None,
 ) -> io.NodeOutput:
     """Return a native video only after encoding and remote cleanup succeed."""
-    if type(interactive) is not bool:
-        raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_CONTROL_TYPE)
     progress = ComfyAPI().execution
     await progress.set_progress(0, 3)
     configuration = get_runtime().configuration

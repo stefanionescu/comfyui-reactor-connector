@@ -54,8 +54,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         if self.inputs.aspect not in OPTIONS_ASPECT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, FAST_ASPECT_RATIO)
         if self.inputs.ending_image is not None and (
-            type(self.inputs.ending_image) is not bytes
-            or not self.inputs.ending_image
+            not self.inputs.ending_image
             or len(self.inputs.ending_image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, ENDING_IMAGE_UPLOAD_LIMIT)

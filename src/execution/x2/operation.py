@@ -16,7 +16,7 @@ from ...serialization import mapping_value, validate_json
 from ...config.messages.media import SOURCE_VIDEO_REQUIRED
 from ...config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
 from ...config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION
-from ...config.messages.inputs import XMAX_UNSUPPORTED, XMAX_PROMPT_LENGTH, POINTER_OPTION_TYPE
+from ...config.messages.inputs import XMAX_UNSUPPORTED, XMAX_PROMPT_LENGTH
 
 
 class X2Operation(VideoInputOperation[X2Request]):
@@ -44,11 +44,8 @@ class X2Operation(VideoInputOperation[X2Request]):
             raise ConnectorError(ErrorCode.INVALID_INPUT, XMAX_PROMPT_LENGTH)
         if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
-        if type(inputs.keep_backlog) is not bool or type(inputs.pointer_active) is not bool:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, POINTER_OPTION_TYPE)
         if any(
-            type(value) not in (int, float) or not MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION
-            for value in (inputs.pointer_x, inputs.pointer_y)
+            not MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION for value in (inputs.pointer_x, inputs.pointer_y)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, POINTER_COORDINATES)
 

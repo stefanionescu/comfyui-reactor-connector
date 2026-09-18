@@ -40,14 +40,11 @@ class SanaOperation(VideoInputOperation[SanaRequest]):
         """Check capture limits, source availability, prompt size, and anchor interval."""
         inputs = self.inputs
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
-        if type(inputs.prompt) is not str or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
+        if len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SANA_PROMPT_LENGTH)
         if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
-        if (
-            type(inputs.anchor_interval) is not int
-            or not MIN_ANCHOR_INTERVAL <= inputs.anchor_interval <= MAX_ANCHOR_INTERVAL
-        ):
+        if not MIN_ANCHOR_INTERVAL <= inputs.anchor_interval <= MAX_ANCHOR_INTERVAL:
             raise ConnectorError(ErrorCode.INVALID_INPUT, ANCHOR_INTERVAL)
 
     async def begin_generation(

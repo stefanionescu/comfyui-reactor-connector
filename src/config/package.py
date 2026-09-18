@@ -1,6 +1,0 @@
-"""Package version reading limits."""
-
-MAX_PROJECT_FILE_BYTES = 65_536
-MAX_VERSION_CHARACTERS = 80
-
-__all__ = ["MAX_PROJECT_FILE_BYTES", "MAX_VERSION_CHARACTERS"]

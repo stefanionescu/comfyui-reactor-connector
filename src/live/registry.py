@@ -1,5 +1,6 @@
 """Store browser leases and expire closed entries."""
 
+import time
 import threading
 from ..state.documents import Json
 from .lease import unavailable, BrowserLease
@@ -22,7 +23,7 @@ class BrowserRegistry:
             self.leases = {
                 key: value
                 for key, value in self.leases.items()
-                if not value.closed or value.clock() - value.last_seen < CLOSED_SESSION_RETENTION_SECONDS
+                if not value.closed or time.monotonic() - value.last_seen < CLOSED_SESSION_RETENTION_SECONDS
             }
             if len(self.leases) >= MAX_STORED_SESSIONS:
                 raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_PANEL_LIMIT)

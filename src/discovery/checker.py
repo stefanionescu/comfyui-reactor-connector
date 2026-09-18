@@ -7,30 +7,20 @@ from .store import ModelStore
 from ..state.documents import Json
 from datetime import UTC, datetime
 from ..state.settings import Settings
-from ..state.discovery import Snapshot
 from .sources import read_public_models
 from ..config.settings import INTEGER_SETTINGS
+from collections.abc import Callable, AsyncIterator
 from ..config.messages.discovery import AUTOMATIC_CHECK_FAILED
-from collections.abc import Callable, Awaitable, AsyncIterator
 from ..config.discovery import CHECK_POLL_SECONDS, CHECK_TIMEOUT_SECONDS
 
 
 class ModelChecker:
     """Check for model updates with a request timeout and keep the last valid result."""
 
-    def __init__(
-        self,
-        store: ModelStore,
-        settings: Callable[[], Settings],
-        *,
-        fetcher: Callable[[], Awaitable[Snapshot]] = read_public_models,
-        clock: Callable[[], float] = time.monotonic,
-    ) -> None:
+    def __init__(self, store: ModelStore, settings: Callable[[], Settings]) -> None:
         """Store metadata sources and initialize the update schedule without fetching."""
         self.store = store
         self.settings = settings
-        self.fetcher = fetcher
-        self.clock = clock
         self.last_attempt: float | None = None
         self.checked_at: str | None = None
         self.base_revision: str | None = None
@@ -63,13 +53,13 @@ class ModelChecker:
             self.interval_hours = settings.catalog_interval_hours
             if not self.enabled:
                 return
-            now = self.clock()
+            now = time.monotonic()
             if self.last_attempt is not None and now - self.last_attempt < self.interval_hours * 3600:
                 return
             self.last_attempt = now
             self.running = True
             async with asyncio.timeout(CHECK_TIMEOUT_SECONDS):
-                candidate = await self.fetcher()
+                candidate = await read_public_models()
                 base, merged = await asyncio.to_thread(self.store.preview, candidate)
             self.base_revision, self.candidate_revision = base, merged
             self.checked_at = datetime.now(UTC).isoformat()

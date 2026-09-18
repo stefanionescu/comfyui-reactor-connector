@@ -1,5 +1,6 @@
 """Apply scene, sound, and pointer changes while a video session is running."""
 
+import time
 import asyncio
 from .lease import ControlLease
 from ...state.documents import Json
@@ -38,7 +39,7 @@ class ControlInteraction(BrowserInteraction):
         try:
             while True:
                 with self.control_lease.lock:
-                    stale = self.control_lease.clock() - self.control_lease.last_seen > STALE_INPUT_SECONDS
+                    stale = time.monotonic() - self.control_lease.last_seen > STALE_INPUT_SECONDS
                 if name == "pointer" and self.pointer_active and stale:
                     await self._pointer(
                         events,

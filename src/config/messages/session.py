@@ -25,8 +25,6 @@ SESSION_IN_OTHER_PROCESS = "Another ComfyUI process is using Reactor. Let its ru
 SESSION_LIMIT_TOO_SHORT = (
     "Set maximum session duration (seconds) higher than maximum video duration (seconds) to allow setup and cleanup."
 )
-SESSION_LOCK_LINK = "The session lock cannot be a link."
-SESSION_LOCK_PERMISSIONS = "Restrict the session lock file to its owner."
 SESSION_RECORD_DAMAGED = (
     "The saved Reactor session record is damaged. Check Reactor Usage before repairing the session record in the "
     "connector's private settings folder."

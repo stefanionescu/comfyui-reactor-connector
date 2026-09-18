@@ -43,23 +43,16 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
         if inputs.duration_seconds < MIN_SPEECH_SECONDS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LTX_DURATION)
-        if type(inputs.prompt) is not str or len(inputs.prompt) > MAX_SCENE_CHARACTERS:
+        if len(inputs.prompt) > MAX_SCENE_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LTX_SCENE_LENGTH)
-        if type(inputs.script) is not str or not inputs.script.strip() or len(inputs.script) > MAX_SCRIPT_CHARACTERS:
+        if not inputs.script.strip() or len(inputs.script) > MAX_SCRIPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SPEECH_LENGTH)
-        if (
-            type(inputs.words_per_minute) is not int
-            or not MIN_WORDS_PER_MINUTE <= inputs.words_per_minute <= MAX_WORDS_PER_MINUTE
-        ):
+        if not MIN_WORDS_PER_MINUTE <= inputs.words_per_minute <= MAX_WORDS_PER_MINUTE:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
                 SPEECH_PACE.format(minimum=MIN_WORDS_PER_MINUTE, maximum=MAX_WORDS_PER_MINUTE),
             )
-        if (
-            type(inputs.image) is not bytes
-            or not inputs.image
-            or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
-        ):
+        if not inputs.image or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes):
             raise ConnectorError(ErrorCode.INVALID_INPUT, PORTRAIT_UPLOAD_LIMIT)
 
     async def begin_generation(

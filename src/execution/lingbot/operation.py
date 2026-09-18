@@ -49,14 +49,10 @@ class LingBotOperation(VideoInputOperation[LingBotRequest]):
             (inputs.look_horizontal, CAMERA_AXES["look_horizontal"]),
             (inputs.look_vertical, CAMERA_AXES["look_vertical"]),
         )
-        if any(type(value) is not str or value not in choices for value, choices in allowed):
+        if any(value not in choices for value, choices in allowed):
             raise ConnectorError(ErrorCode.INVALID_INPUT, CAMERA_DIRECTION)
         speed = inputs.rotation_speed_deg
-        if (
-            type(speed) not in (int, float)
-            or not math.isfinite(speed)
-            or not MIN_ROTATION_SPEED <= speed <= MAX_ROTATION_SPEED
-        ):
+        if not math.isfinite(speed) or not MIN_ROTATION_SPEED <= speed <= MAX_ROTATION_SPEED:
             raise ConnectorError(ErrorCode.INVALID_INPUT, ROTATION_SPEED)
 
     async def begin_generation(
@@ -104,7 +100,7 @@ class LingBotWorldOperation(LingBotOperation):
     def validate(self, settings: Settings) -> None:
         """Check the shared camera settings and World 2 lateral direction."""
         super().validate(settings)
-        if type(self.lateral) is not str or self.lateral not in CAMERA_AXES["move_lateral"]:
+        if self.lateral not in CAMERA_AXES["move_lateral"]:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LATERAL_DIRECTION)
 
     def axes(self) -> tuple[tuple[str, str], ...]:

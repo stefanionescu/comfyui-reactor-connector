@@ -12,7 +12,6 @@ from ...state.session import ControlValues, RecordingWindow
 from ...config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
 from ...config.messages.inputs import (
     FORMAT_NAME,
-    SOUND_OPTION_TYPE,
     FORMAT_UNAVAILABLE,
     SOUND_PROMPT_LENGTH,
     VISKO_AUDIO_MISSING,
@@ -76,15 +75,13 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
     requires_audio: ClassVar[bool] = True
 
     def validate(self, settings: Settings) -> None:
-        """Check image, sound prompt, resolution, and boolean options."""
+        """Check the image, sound prompt, and resolution name."""
         super().validate(settings)
         inputs = self.inputs
-        if type(inputs.audio_prompt) is not str or len(inputs.audio_prompt) > MAX_AUDIO_PROMPT_CHARACTERS:
+        if len(inputs.audio_prompt) > MAX_AUDIO_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOUND_PROMPT_LENGTH)
-        if type(inputs.resolution) is not str or len(inputs.resolution) > MAX_FORMAT_NAME_CHARACTERS:
+        if len(inputs.resolution) > MAX_FORMAT_NAME_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, FORMAT_NAME.format(maximum=MAX_FORMAT_NAME_CHARACTERS))
-        if type(inputs.audio_enabled) is not bool or type(inputs.prompt_passthrough) is not bool:
-            raise ConnectorError(ErrorCode.INVALID_INPUT, SOUND_OPTION_TYPE)
 
     def build_control_values(self) -> ControlValues:
         """Return sound and passthrough values selected for live controls."""

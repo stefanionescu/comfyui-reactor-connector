@@ -5,7 +5,6 @@ import secrets
 import threading
 from collections import deque
 from ..state.documents import Json
-from collections.abc import Callable
 from ..errors import ErrorCode, ConnectorError
 from ..state.live import BrowserInput, BrowserExchange
 from ..config.messages.live import LIVE_INPUT_ORDER, CAMERA_STATE_REQUIRED, LIVE_SESSION_UNAVAILABLE
@@ -24,14 +23,13 @@ from ..config.live import (
 class BrowserLease:
     """Keep one controlling browser alive without sharing asyncio objects across loops."""
 
-    def __init__(self, choices: dict[str, tuple[str, ...]], *, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(self, choices: dict[str, tuple[str, ...]]) -> None:
         """Create a private client capability and thread-safe input and preview state."""
         self.identifier = secrets.token_hex(LEASE_BYTES)
         self._capability = secrets.token_urlsafe(CAPABILITY_BYTES)
         self.choices = choices.copy()
-        self.clock = clock
         self.lock = threading.Lock()
-        self.created_at = clock()
+        self.created_at = time.monotonic()
         self.last_seen = self.created_at
         self.sequence = -1
         self.axes = tuple((axis, "idle") for axis in choices)
@@ -66,7 +64,7 @@ class BrowserLease:
         """Require the exact private capability and a live, recently connected client."""
         self._validate_capability(capability)
         with self.lock:
-            if self.closed or self.end or self.clock() - self.last_seen > CLIENT_TIMEOUT_SECONDS:
+            if self.closed or self.end or time.monotonic() - self.last_seen > CLIENT_TIMEOUT_SECONDS:
                 raise unavailable()
 
     def _validate_capability(self, capability: Json) -> None:
@@ -136,15 +134,15 @@ class BrowserLease:
         """Validate client state, accept ordered input, and return the latest session status."""
         exchange = self._parse_exchange(document)
         with self.lock:
-            now = self.clock()
+            now = time.monotonic()
             self._accept_exchange(exchange, now)
             return self._status(now, exchange.preview_sequence)
 
     def read(self) -> BrowserInput:
         """Read queued movement or release controls when input becomes stale."""
         with self.lock:
-            age = self.clock() - self.last_seen
-            stale_queue = self.pending and self.clock() - self.pending[0].received_at > STALE_INPUT_SECONDS
+            age = time.monotonic() - self.last_seen
+            stale_queue = self.pending and time.monotonic() - self.pending[0].received_at > STALE_INPUT_SECONDS
             if age > STALE_INPUT_SECONDS or self.end or stale_queue:
                 self.dropped_states += len(self.pending)
                 self.pending.clear()

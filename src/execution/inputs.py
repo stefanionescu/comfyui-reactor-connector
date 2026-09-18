@@ -58,25 +58,20 @@ class VideoInputOperation[Request: VideoInputs]:
     def validate(self, settings: Settings) -> None:
         """Check prompt, capture, and image limits before a connection."""
         inputs = self.inputs
-        if type(inputs.prompt) is not str or not inputs.prompt.strip() or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
+        if not inputs.prompt.strip() or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_LENGTH)
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
         if inputs.image is not None and (
-            type(inputs.image) is not bytes
-            or not inputs.image
-            or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
+            not inputs.image or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes)
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, IMAGE_UPLOAD_LIMIT)
 
 
 def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settings) -> None:
     """Validate capture length and seed without imposing a model's prompt policy."""
-    if (
-        type(duration_seconds) not in (int, float)
-        or not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds
-    ):
+    if not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds:
         raise ConnectorError(ErrorCode.INVALID_INPUT, CAPTURE_LIMIT)
-    if type(seed) is not int or not 0 <= seed <= MAX_SEED:
+    if not 0 <= seed <= MAX_SEED:
         raise ConnectorError(ErrorCode.INVALID_INPUT, SEED_RANGE)
 
 

@@ -47,21 +47,15 @@ class FastContinueOperation(FastGenerateOperation):
     def _validate_clips(self, settings: Settings) -> None:
         """Check clip count, clip length, aspect ratio, and prompts for the whole chain."""
         del settings
-        if (
-            type(self.sequence.clip_count) is not int
-            or not MIN_CLIP_COUNT <= self.sequence.clip_count <= MAX_CLIP_COUNT
-        ):
+        if not MIN_CLIP_COUNT <= self.sequence.clip_count <= MAX_CLIP_COUNT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, CLIP_COUNT)
-        if (
-            type(self.sequence.clip_seconds) not in (int, float)
-            or not MIN_CLIP_SECONDS <= self.sequence.clip_seconds <= MAX_CLIP_SECONDS
-        ):
+        if not MIN_CLIP_SECONDS <= self.sequence.clip_seconds <= MAX_CLIP_SECONDS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, CONTINUED_CLIP_DURATION)
         if self.sequence.aspect not in OPTIONS_ASPECT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, ASPECT_RATIO)
         prompts = (self.prompt, *self.sequence.later_prompts)
         if len(self.sequence.later_prompts) > self.sequence.clip_count - 1 or any(
-            type(prompt) is not str or not prompt.strip() or len(prompt) > MAX_PROMPT_CHARACTERS for prompt in prompts
+            not prompt.strip() or len(prompt) > MAX_PROMPT_CHARACTERS for prompt in prompts
         ):
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,

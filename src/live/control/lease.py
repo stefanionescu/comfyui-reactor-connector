@@ -1,5 +1,6 @@
 """Accept a small set of live actions from the browser that owns a session."""
 
+import time
 from typing import cast
 from collections import deque
 from ..options import LiveOptions
@@ -77,7 +78,7 @@ class ControlLease(BrowserLease):
                     self.actions.pop()
                 if len(self.actions) >= MAX_PENDING_INPUTS:
                     raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_ACTION_WAIT)
-                self.actions.append((name, payload, self.clock()))
+                self.actions.append((name, payload, time.monotonic()))
             self.action_sequence = sequence
         return {"accepted": True}
 
@@ -130,7 +131,7 @@ class ControlLease(BrowserLease):
                 kind, payload, received_at = action
                 if kind == name:
                     self.actions.remove(action)
-                    if kind == "pointer" and self.clock() - received_at > STALE_INPUT_SECONDS:
+                    if kind == "pointer" and time.monotonic() - received_at > STALE_INPUT_SECONDS:
                         return {
                             "x": DEFAULT_POINTER_POSITION,
                             "y": DEFAULT_POINTER_POSITION,
