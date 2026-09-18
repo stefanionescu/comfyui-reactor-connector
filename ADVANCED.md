@@ -367,23 +367,26 @@ Browser TypeScript in `web/scripts/` and CSS in `web/styles/` build to
 `web/extension.js` and `web/extension.css`. ComfyUI serves node guides from
 `web/docs/`. Frontend checks use the official ComfyUI frontend types.
 
-Python checks read types from your actual ComfyUI installation. Set its source
-directory in your terminal before running development commands:
+Python checks and workflow builds read types and node schemas from your actual
+ComfyUI installation. `COMFYUI_PATH` names its source directory, which must
+contain `main.py` and `comfy_api`. The default is
+`~/ComfyUI-Installs/ComfyUI/ComfyUI`. For another location, export the variable
+in your terminal or set it in an ignored `.mise.local.toml`:
 
-```sh
-export COMFYUI_PATH="/path/to/ComfyUI"
+```toml
+[env]
+COMFYUI_PATH = "/path/to/ComfyUI"
 ```
 
-That directory must contain `main.py` and `comfy_api`. Checks use its `.venv`
-Python by default. If ComfyUI uses another environment or Windows portable,
-also set `COMFYUI_PYTHON` to that installation's Python executable:
+Checks use that installation's `.venv` Python by default. If ComfyUI uses
+another environment or Windows portable, also set `COMFYUI_PYTHON` to that
+installation's Python executable:
 
 ```sh
 export COMFYUI_PYTHON="/path/to/ComfyUI/python"
 ```
 
-Replace these example paths with your installation's paths. The variables apply
-to commands run from that terminal; they are not stored in the repository.
+Replace these example paths with your installation's paths.
 
 Setup downloads the pinned Semgrep rules into ignored local storage and verifies
 their content hashes. To restore those files, run `mise run repo:security:rules`.
