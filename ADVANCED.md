@@ -407,18 +407,22 @@ changed host calls manually in the installed ComfyUI as well.
 The README's and this guide's images are in `docs/images/`:
 
 - `banner.svg`, `node-map.svg`, and the four `badge-*.svg` files are SVG files;
-  edit them as text. They use ComfyUI's ink `#211927`, panels `#312C34`, edges
-  `#413B45`, text `#C2BFB9`, and yellow `#F0FF41`, and Reactor's gold
-  `#ECE5BD` to `#C7C099`.
-- `logo.png` is the connector's mark, made with OpenRouter's
+  edit them as text. They use Reactor's colors: black `#070809`, surfaces
+  `#111214`, hairlines `#272727`, cream `#F2EEDC`, muted `#8F8A7C`, and the gold
+  gradient `#ECE5BD` to `#C7C099`. Headings use Helvetica Neue with tight
+  spacing; labels use a monospace font in wide-spaced capitals. Keep shapes
+  square-cornered or rounded rectangles, like the film frame in the logo.
+- `logo.png` is the connector's mark: a capital R whose bowl is a film frame and
+  whose leg is a plug. It was made with OpenRouter's
   `openai/gpt-image-2.5-sunburst` on a transparent background and cut to 400 ×
-  400 pixels. The banner embeds it, and `pyproject.toml` names it as the
-  Registry icon.
-- In the node map, a node that opens a Reactor session has a gold bar and a
-  local one a grey bar. An arrow is a solid yellow line from an output to the
-  input it feeds.
+  400 pixels. The banner embeds it on a film strip, and `pyproject.toml` names
+  it as the Registry icon.
+- The node map has one card per model. A gold square marks a node that opens a
+  Reactor session and a hollow square one that runs locally. A gold arrow runs
+  from an output to the input it feeds.
 - The badges under the banner name the ComfyUI, frontend, and Python versions
-  and the license, on ink and grey; update them when those change.
+  and the license, as black pills with a gold value; update them when those
+  change.
 - `workflow-prompt-sequence.png` is helios-03-prompt-sequence at 100% zoom, with
   link midpoint markers off.
 - `fast-h3-node.png` is a new **Fast H3: Generate Video** node, 420 pixels wide,

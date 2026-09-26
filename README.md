@@ -234,7 +234,7 @@ Project rights in the samples and previews are licensed under [MIT](LICENSE.md).
 
 ## Nodes
 
-![Node map. Helios: Add a Prompt feeds Helios: Generate Video from a Prompt Sequence, and LongLive: Add a Shot feeds LongLive: Generate Video from a Storyboard; both builders also chain into themselves. Every other node stands alone and sends its video to Save Video. Nodes that open a Reactor session have a gold bar.](docs/images/node-map.svg)
+![Node map. Helios: Add a Prompt feeds Helios: Generate Video from a Prompt Sequence, and LongLive: Add a Shot feeds LongLive: Generate Video from a Storyboard; both builders also chain into themselves. Every other node stands alone and sends its video to Save Video. A gold square marks a node that opens a Reactor session; a hollow square marks one that runs locally.](docs/images/node-map.svg)
 
 | Node                                                                                             | Input                                                     | Output                            |
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | --------------------------------- |
