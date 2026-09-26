@@ -17,6 +17,7 @@ in ComfyUI. Models run on Reactor; no model weights are downloaded.
 - [Nodes](#nodes)
 - [Find and refresh models](#find-and-refresh-models)
 - [Fix a setup problem](#fix-a-setup-problem)
+- [License](#license)
 
 ## Requirements
 
@@ -230,8 +231,6 @@ These images show frames from Reactor output. Your results can differ.
 | [Stream over rocks](example_workflows/fast-h3-01-text-to-video.jpg) | [Fast H3: Generate a Clip with Audio](example_workflows/fast-h3-01-text-to-video.json) |
 | [Animated forest](example_workflows/helios-02-image-to-video.jpg)   | [Helios: Animate an Image](example_workflows/helios-02-image-to-video.json)            |
 
-Project rights in the samples and previews are licensed under [MIT](LICENSE.md).
-
 ## Nodes
 
 ![Node map. Helios: Add a Prompt feeds Helios: Generate Video from a Prompt Sequence, and LongLive: Add a Shot feeds LongLive: Generate Video from a Storyboard; both builders also chain into themselves. Every other node stands alone and sends its video to Save Video. A gold square marks a node that opens a Reactor session; a hollow square marks one that runs locally.](docs/images/node-map.svg)
@@ -301,5 +300,6 @@ For rejected inputs, timeouts, or session errors, read [recovery](ADVANCED.md#re
 and the node's native **Info** before another run. [Advanced settings](ADVANCED.md)
 explains keys, limits, credit calculations, and live controls.
 
-Project-authored code, guides, workflows, and sample assets use the
-[MIT license](LICENSE.md). Third-party components keep their own license terms.
+## License
+
+[MIT](LICENSE.md).
