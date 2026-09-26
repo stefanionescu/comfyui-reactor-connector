@@ -1,5 +1,9 @@
 {
-    "b50df814875fbc402405698c2e1242e8_0": {
+    "ae92ebe8bb8f4d37700957b4c3bcb0aa_0": {
+        "comment": "web/extension.js: setText replaces an element's children with one Text node, never parsed HTML. Generated from web/scripts/text.ts.",
+        "false_positive": true
+    },
+    "ae92ebe8bb8f4d37700957b4c3bcb0aa_1": {
         "comment": "web/extension.js: element creates literal UI tags supplied by internal callers; provider content uses textContent. Generated from web/scripts/dom.ts.",
         "false_positive": true
     },
