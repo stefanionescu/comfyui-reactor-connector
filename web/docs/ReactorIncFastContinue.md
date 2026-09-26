@@ -13,7 +13,7 @@ so the session has a clear stopping point.
 | seed                    | Starting number from 0 to 4,294,967,295. Each later clip adds one, wrapping to zero at the upper limit. Default: 42.                  |
 | run number              | Change this value for another run. Default: 0.                                                                                        |
 | aspect ratio            | Frame shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.                                                                                  |
-| number of clips         | Total clips, from 2 to 8. Default: 3. Their combined length must fit your video duration limit.                                       |
+| number of clips         | Total clips, from 2 to 8. Default: 3. Their combined length must be 60 seconds or less.                                               |
 | later clip prompts      | Optional prompts, one per line, starting with clip 2. Each line allows 1 to 800 characters. Leave empty to repeat the opening prompt. |
 | starting image          | Optional RGB first frame for clip 1. Connect Load Image.                                                                              |
 
@@ -27,13 +27,13 @@ recording is ready.
 2. Set the opening prompt. For the image example, upload a starting image.
 3. Choose a clip length and count. The examples request three clips of about six seconds.
 4. Enter later prompts if you want the scene to change between clips.
-5. Check the video duration and session limits in Reactor settings, then select **Run**.
+5. Check maximum session duration in Reactor settings, then select **Run**.
 6. **Save Video** saves the sequence with sound. **Save Audio** saves a separate audio file.
 
 The node returns `VIDEO`, `AUDIO`, and recording details as `STRING`. It queues
 one continuation ahead while earlier clips play. If the next clip is still
 building, the output holds the previous frame. That wait can lengthen the saved
-video. Allow room in your video duration limit for these waits.
+video, which must stay within 60 seconds.
 
 Setup, clip building, playback, and recording cleanup all count toward the session
 limit. A timeout discards the unfinished video; the connector does not start a

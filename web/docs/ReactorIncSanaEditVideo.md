@@ -14,7 +14,7 @@ to compare SANA’s reconstruction with the original before asking for an edit.
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | source video                     | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
 | edit prompt                      | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
-| video duration (seconds)         | Maximum output length, within the configured video duration limit in Reactor settings. Default: 5 seconds.                                       |
+| video duration (seconds)         | Maximum output length, up to 60 seconds. Default: 5 seconds.                                                                                     |
 | seed                             | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
 | run number                       | Change this value for another run. Default: 0.                                                                                                   |
 | source refresh interval (chunks) | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
@@ -26,7 +26,7 @@ and fewer than 33 usable frames are rejected before connecting. File size and
 frame memory must fit the host upload and queue limits.
 
 The connector prepares a temporary video-only MP4 before connecting. It respects
-native file trim windows and limits source length to the video duration limit in Reactor settings.
+native file trim windows and limits source length to 60 seconds.
 The source keeps its frame timing. Audio and file metadata are not sent to Reactor.
 Preparation stops if it takes more than 60 seconds. You can cancel it in ComfyUI.
 

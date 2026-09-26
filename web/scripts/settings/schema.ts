@@ -9,11 +9,8 @@ export type Configuration = {
   credentialSource: 'missing' | 'saved' | 'environment';
   credentialLimit: number;
   mutationAllowed: boolean;
-  definitions: Record<string, SettingDefinition> & { catalog_interval_hours: SettingDefinition };
-  settings: Record<string, number | boolean> & {
-    catalog_auto_check: boolean;
-    catalog_interval_hours: number;
-  };
+  definitions: Record<string, SettingDefinition>;
+  settings: Record<string, number | boolean> & { catalog_auto_check: boolean };
 };
 
 const unknownRecordSchema = v.record(v.string(), v.unknown());
@@ -47,9 +44,6 @@ const credentialLimitSchema = v.pipe(v.number(), v.safeInteger(), v.minValue(1))
 function parseDefinitions(value: unknown): Configuration['definitions'] {
   const document = v.safeParse(unknownRecordSchema, value);
   if (!document.success) throw new Error(message('settings.invalidResponse'));
-  if (!Object.hasOwn(document.output, 'catalog_interval_hours')) {
-    throw new Error(message('settings.incompleteResponse'));
-  }
   const definitions = new Map<string, SettingDefinition>();
   for (const [name, raw] of Object.entries(document.output)) {
     const validName = v.safeParse(settingNameSchema, name);
@@ -63,7 +57,7 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
     }
     definitions.set(name, definition.output);
   }
-  return Object.fromEntries(definitions) as Configuration['definitions'];
+  return Object.fromEntries(definitions);
 }
 
 /**

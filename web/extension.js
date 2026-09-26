@@ -76,9 +76,9 @@ var TEXT = {
     editPrompt: "Edit Prompt"
   },
   models: {
-    checkDue: "An automatic model check is due. Checks do not change this list.",
+    checkDue: "An automatic model check is due.",
     checkRunning: "An automatic model check is running. Reopen this list to see its result.",
-    checkSchedule: "Automatic check: {date}. Checks run every {hours} hours.",
+    checkSchedule: "Last automatic check: {date}.",
     checking: "Checking public model sources...",
     checksOff: "Automatic model checks are off. Change this in Reactor settings.",
     close: "Close Reactor models",
@@ -97,11 +97,10 @@ var TEXT = {
     nodesAvailable: "Nodes available.",
     openGuide: "Reactor model guide (opens in a new tab)",
     refresh: "Refresh Models",
-    refreshNotice: "Refresh updates public prices and model information. New models need support in the connector.",
     refreshed: "Model list refreshed.",
     requestFailed: "The model list request failed.",
     restore: "Restore Previous List",
-    restored: "Previous model list restored. This does not change which models Reactor offers.",
+    restored: "Previous model list restored.",
     search: "Search models",
     searchPlaceholder: "Model name or ID",
     sources: "Model sources and automatic checks",
@@ -126,29 +125,24 @@ var TEXT = {
     totalTimeNotice: "Use total session time, including setup and recording."
   },
   settings: {
-    moreLimits: "Advanced limits",
     automaticChecks: "Check for model updates automatically",
-    checkInterval: "check interval (hours)",
-    checkNotice: "Checks read public prices and model guides. Open Reactor models to see changes and refresh your list.",
-    checksSaved: "Model check settings saved. Changes take effect within one minute.",
+    checksSaved: "Model check settings saved.",
     clearKey: "Clear Saved Key",
     close: "Close Reactor settings",
     credentialLabel: "Reactor API key",
     credentials: "Credentials",
-    environmentKey: "The server's REACTOR_API_KEY environment variable is active.",
-    incompleteResponse: "ComfyUI returned incomplete Reactor settings.",
+    environmentKey: "Set by REACTOR_API_KEY",
     invalidChecks: "ComfyUI returned invalid model check settings.",
     invalidDefinition: "ComfyUI returned an invalid Reactor setting definition.",
     invalidLimit: "ComfyUI returned an invalid Reactor limit.",
     invalidResponse: "ComfyUI returned an invalid Reactor settings response.",
-    keyCleared: "Saved key cleared. Any environment key remains active.",
-    keyNotice: "The saved key stays on the ComfyUI server. An environment key takes precedence. Keys are not checked with Reactor here.",
-    keySaved: "Key saved on this server. Reactor checks it when you start a session.",
+    keyCleared: "Saved key cleared.",
+    keyNotice: "Add a Reactor key to use the extension. Your key stays on your ComfyUI server and is sent only to Reactor.",
+    keySaved: "Key saved.",
     limits: "Session limits",
-    limitsSaved: "Limits saved. They apply to new sessions.",
-    reread: "Local settings loaded.",
-    reading: "Loading local settings...",
-    missingKey: "No Reactor key is configured.",
+    limitsSaved: "Limits saved.",
+    reread: "Settings loaded.",
+    reading: "Loading settings...",
     modelUpdates: "Model updates",
     noCheckChanges: "No model check changes to save.",
     noLimitChanges: "No limit changes to save.",
@@ -158,8 +152,7 @@ var TEXT = {
     saveFailed: "ComfyUI could not save Reactor settings.",
     saveKey: "Save Key",
     saveLimits: "Save Limits",
-    savedKey: "A saved key is configured on this server.",
-    timeNotice: "Session time includes setup and generation.",
+    savedKey: "Saved key",
     title: "Reactor Settings",
     unreachable: "Cannot reach Reactor settings. Check ComfyUI and try again.",
     unreadableResponse: "ComfyUI returned an unreadable Reactor settings response.",
@@ -176,16 +169,8 @@ var TEXT = {
   working: "Working..."
 };
 var LIMIT_LABELS = /* @__PURE__ */ new Map([
-  ["catalog_interval_hours", "check interval (hours)"],
-  ["cleanup_timeout_seconds", "disconnect timeout (seconds)"],
-  ["connect_timeout_seconds", "connection timeout (seconds)"],
-  ["first_frame_timeout_seconds", "first-frame timeout (seconds)"],
-  ["max_capture_megabytes", "maximum video file size (MiB)"],
-  ["max_capture_seconds", "maximum video duration (seconds)"],
-  ["max_queue_megabytes", "maximum queued frame data (MiB)"],
   ["max_session_seconds", "maximum session duration (seconds)"],
-  ["max_upload_megabytes", "maximum upload size (MiB)"],
-  ["queue_timeout_seconds", "queue wait timeout (seconds)"]
+  ["max_upload_megabytes", "maximum upload size (MiB)"]
 ]);
 function message(key, values = {}) {
   let value = TEXT;
@@ -2253,7 +2238,6 @@ var automaticCheckSchema = pipe(
   object({
     enabled: boolean(),
     running: boolean(),
-    interval_hours: pipe(number(), safeInteger(), minValue(1)),
     checked_at: retrievalTimeSchema,
     update_available: nullable(boolean()),
     error: nullable(
@@ -2262,7 +2246,6 @@ var automaticCheckSchema = pipe(
   }),
   transform((check2) => {
     return {
-      intervalHours: check2.interval_hours,
       checkedAt: check2.checked_at,
       updateAvailable: check2.update_available,
       error: check2.error,
@@ -2354,10 +2337,7 @@ function automaticStatus(check2) {
   if (check2.error) return check2.error;
   if (check2.updateAvailable === true) return message("models.listChanged");
   if (check2.checkedAt)
-    return message("models.checkSchedule", {
-      date: formatDate(check2.checkedAt),
-      hours: check2.intervalHours
-    });
+    return message("models.checkSchedule", { date: formatDate(check2.checkedAt) });
   return message("models.checkDue");
 }
 var ModelDialog = class {
@@ -2384,12 +2364,7 @@ var ModelDialog = class {
     this.status.setAttribute("aria-live", "polite");
     this.list.setAttribute("aria-label", message("models.title"));
     const sources = element("details");
-    sources.append(
-      element("summary", message("models.sources")),
-      this.checked,
-      this.automatic,
-      element("p", message("models.refreshNotice"))
-    );
+    sources.append(element("summary", message("models.sources")), this.checked, this.automatic);
     this.dialog.append(
       header,
       this.actions(),
@@ -2898,9 +2873,6 @@ var credentialLimitSchema = pipe(number(), safeInteger(), minValue(1));
 function parseDefinitions(value) {
   const document2 = safeParse(unknownRecordSchema, value);
   if (!document2.success) throw new Error(message("settings.invalidResponse"));
-  if (!Object.hasOwn(document2.output, "catalog_interval_hours")) {
-    throw new Error(message("settings.incompleteResponse"));
-  }
   const definitions = /* @__PURE__ */ new Map();
   for (const [name, raw] of Object.entries(document2.output)) {
     const validName = safeParse(settingNameSchema, name);
@@ -3010,7 +2982,6 @@ var SettingsDialog = class {
       this.credentials(),
       element("p", message("settings.keyNotice")),
       this.limits(),
-      element("p", message("settings.timeNotice")),
       this.modelUpdates(),
       footer
     );
@@ -3021,14 +2992,12 @@ var SettingsDialog = class {
   previousFocus = document.activeElement;
   controller = new AbortController();
   status = element("p", message("settings.reading"));
-  source = element("p");
   reload = button(message("settings.reload"));
   key = element("input");
   keyFields = element("fieldset");
   limitFields = element("fieldset");
   modelCheckFields = element("fieldset");
   automatic = element("input");
-  interval = element("input");
   inputs = /* @__PURE__ */ new Map();
   configuration;
   /**
@@ -3056,12 +3025,7 @@ var SettingsDialog = class {
     const actions = element("div");
     actions.className = "reactor-actions";
     actions.append(button(message("settings.saveKey"), "submit"), clear);
-    this.keyFields.append(
-      element("legend", message("settings.credentials")),
-      this.source,
-      label,
-      actions
-    );
+    this.keyFields.append(element("legend", message("settings.credentials")), label, actions);
     form.append(this.keyFields);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -3095,10 +3059,7 @@ var SettingsDialog = class {
    */
   populateLimits(configuration) {
     this.limitFields.replaceChildren(element("legend", message("settings.limits")));
-    const additionalLimits = element("details");
-    additionalLimits.append(element("summary", message("settings.moreLimits")));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
-      if (name === "catalog_interval_hours") continue;
       const label = element("label", LIMIT_LABELS.get(name) ?? name);
       const input = element("input");
       input.type = "number";
@@ -3108,10 +3069,9 @@ var SettingsDialog = class {
       input.required = true;
       this.inputs.set(name, input);
       label.append(input);
-      const primary = name === "max_capture_seconds" || name === "max_session_seconds";
-      (primary ? this.limitFields : additionalLimits).append(label);
+      this.limitFields.append(label);
     }
-    this.limitFields.append(additionalLimits, button(message("settings.saveLimits"), "submit"));
+    this.limitFields.append(button(message("settings.saveLimits"), "submit"));
   }
   /**
    * Save only limits changed since the last successful read.
@@ -3142,16 +3102,9 @@ var SettingsDialog = class {
     const automaticLabel = element("label", message("settings.automaticChecks"));
     this.automatic.type = "checkbox";
     automaticLabel.prepend(this.automatic);
-    const intervalLabel = element("label", message("settings.checkInterval"));
-    this.interval.type = "number";
-    this.interval.step = "1";
-    this.interval.required = true;
-    intervalLabel.append(this.interval);
     this.modelCheckFields.append(
       element("legend", message("settings.modelUpdates")),
       automaticLabel,
-      intervalLabel,
-      element("p", message("settings.checkNotice")),
       button(message("settings.saveChecks"), "submit")
     );
     form.append(this.modelCheckFields);
@@ -3166,11 +3119,8 @@ var SettingsDialog = class {
    * @param configuration - The settings and revision currently shown.
    */
   saveModelUpdates(configuration) {
-    const settings = {
-      catalog_auto_check: this.automatic.checked,
-      catalog_interval_hours: this.interval.valueAsNumber
-    };
-    if (settings.catalog_auto_check === configuration.settings.catalog_auto_check && settings.catalog_interval_hours === configuration.settings.catalog_interval_hours) {
+    const settings = { catalog_auto_check: this.automatic.checked };
+    if (settings.catalog_auto_check === configuration.settings.catalog_auto_check) {
       setText(this.status, message("settings.noCheckChanges"));
       return;
     }
@@ -3187,19 +3137,12 @@ var SettingsDialog = class {
     this.configuration = configuration;
     if (this.inputs.size === 0) this.populateLimits(configuration);
     this.key.maxLength = configuration.credentialLimit;
-    const interval = configuration.definitions.catalog_interval_hours;
-    this.interval.min = String(interval.minimum);
-    this.interval.max = String(interval.maximum);
-    setText(
-      this.source,
-      {
-        missing: message("settings.missingKey"),
-        saved: message("settings.savedKey"),
-        environment: message("settings.environmentKey")
-      }[configuration.credentialSource]
-    );
+    this.key.placeholder = {
+      missing: "",
+      saved: message("settings.savedKey"),
+      environment: message("settings.environmentKey")
+    }[configuration.credentialSource];
     this.automatic.checked = configuration.settings.catalog_auto_check;
-    this.interval.value = String(configuration.settings.catalog_interval_hours);
     const settings = new Map(Object.entries(configuration.settings));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       const input = this.inputs.get(name);

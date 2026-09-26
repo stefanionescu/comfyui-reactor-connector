@@ -10,6 +10,7 @@ from ..inputs import VideoInputOperation
 from ...state.session import RecordingWindow
 from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
+from ...config.nodes import MAX_DURATION_SECONDS
 from ...media.units import convert_mebibytes_to_bytes
 from ...state.generation.fast import FastGenerateRequest
 from ...config.messages.media import ENDING_IMAGE_UPLOAD_LIMIT
@@ -59,9 +60,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, ENDING_IMAGE_UPLOAD_LIMIT)
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Generate and play one clip, then close its recording with trailing media."""
         audio = [
             t for t in transport.tracks if t.name == "main_audio" and t.kind == "audio" and t.direction == "recvonly"
@@ -82,7 +81,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
                 ErrorCode.INVALID_INPUT,
                 CLIP_DURATION_RANGE,
             )
-        clip = await self._queue_clip(transport, events, max_capture_seconds)
+        clip = await self._queue_clip(transport, events)
         await events.call("clip_build", clips.wait_ready(clip))
         start_seconds = await self._play_clip(transport, events, clips, clip)
         # Later media closes the recording fragment that contains the first clip's end.
@@ -107,8 +106,8 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         await events.command_reply("play", {"clip_id": tail.clip_id})
         return RecordingWindow(start_seconds, clip.seconds)
 
-    async def _queue_clip(self, transport: Transport, events: SessionEvents, max_capture_seconds: float) -> FastClip:
-        """Upload selected endpoint images and queue a clip within the capture limit."""
+    async def _queue_clip(self, transport: Transport, events: SessionEvents) -> FastClip:
+        """Upload selected endpoint images and queue a clip within the video duration limit."""
         payload: dict[str, object] = {
             "prompt": self.prompt,
             "seconds": self.duration_seconds,
@@ -123,7 +122,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         events.on_message(reply)
         events.check()
         clip = read_clip(message_payload(reply, "clip_queued"))
-        if clip.seconds > max_capture_seconds:
+        if clip.seconds > MAX_DURATION_SECONDS:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
                 CLIP_CAPTURE_LIMIT,

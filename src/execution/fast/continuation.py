@@ -2,13 +2,13 @@
 
 from ..transport import Transport
 from ..events import SessionEvents
-from ...config.nodes import MAX_SEED
 from ...state.settings import Settings
 from .generate import FastGenerateOperation
 from ...state.session import RecordingWindow
 from ...state.generation.fast import FastClip
 from ...errors import ErrorCode, ConnectorError
 from ...state.generation.fast import FastContinueRequest
+from ...config.nodes import MAX_SEED, MAX_DURATION_SECONDS
 from .clip import seconds, read_clip, FastClipEvents, message_payload
 from ...config.generation.fast import (
     MAX_CLIP_COUNT,
@@ -62,9 +62,7 @@ class FastContinueOperation(FastGenerateOperation):
                 CONTINUATION_PROMPTS,
             )
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Play linked clips and enough trailing media to finish the saved recording."""
         if not any(
             track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
@@ -86,19 +84,19 @@ class FastContinueOperation(FastGenerateOperation):
                 CLIP_DURATION_UNSUPPORTED,
             )
         current = await self._enqueue(events, None, 0)
-        self._validate_recording_limit(current, max_capture_seconds)
+        self._validate_recording_limit(current)
         await events.call("clip_build", clips.wait_ready(current))
         start_seconds = await self._read_playback_start(transport, events)
         await events.command_reply("set_autoplay", {"enabled": True})
         # Queue one continuation ahead. Each clip opens from the previous clip's last frame.
         for index in range(1, self.sequence.clip_count):
             following = await self._enqueue(events, current, index)
-            self._validate_recording_limit(following, max_capture_seconds)
+            self._validate_recording_limit(following)
             await events.call("clip_playback", clips.wait_finished(current))
             current = following
         duration = await events.call("clip_playback", clips.wait_finished(current)) - start_seconds
         await events.command_reply("set_autoplay", {"enabled": False})
-        if not 0 < duration <= max_capture_seconds:
+        if not 0 < duration <= MAX_DURATION_SECONDS:
             raise ConnectorError(
                 ErrorCode.CAPTURE,
                 (SEQUENCE_CAPTURE_LIMIT),
@@ -117,9 +115,9 @@ class FastContinueOperation(FastGenerateOperation):
             raise ConnectorError(ErrorCode.UNAVAILABLE, SEQUENCE_PLAYBACK_ORDER)
         return seconds(state.get("seconds_sent"))
 
-    def _validate_recording_limit(self, clip: FastClip, max_capture_seconds: float) -> None:
-        """Reject an accepted clip length that would exceed the configured capture limit."""
-        if clip.seconds * self.sequence.clip_count > max_capture_seconds:
+    def _validate_recording_limit(self, clip: FastClip) -> None:
+        """Reject an accepted clip length that would exceed the video duration limit."""
+        if clip.seconds * self.sequence.clip_count > MAX_DURATION_SECONDS:
             raise ConnectorError(
                 ErrorCode.INVALID_INPUT,
                 ACCEPTED_SEQUENCE_LIMIT,

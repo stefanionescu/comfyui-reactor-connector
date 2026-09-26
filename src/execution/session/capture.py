@@ -17,13 +17,17 @@ from ...media.output import discard_outputs
 from ..interaction import SessionInteraction
 from ...errors import ErrorCode, ConnectorError
 from ...state.settings import ExecutionConfiguration
-from ...media.units import convert_mebibytes_to_bytes
 from ...config.messages.session import SESSION_DEADLINE
 from ...config.messages.media import VIDEO_TRACK_MISSING
 from ...media.recording.assemble import prepare_recording
 from ..transport import Track, Transport, SessionTransport
 from ...state.session import SessionOutcome, RecordingWindow
-from ...config.generation.session import CAPTURE_DRAIN_SECONDS
+from ...config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
+from ...config.generation.session import (
+    CAPTURE_DRAIN_SECONDS,
+    CONNECT_TIMEOUT_SECONDS,
+    FIRST_FRAME_TIMEOUT_SECONDS,
+)
 
 
 def _video_track(transport: Transport) -> Track:
@@ -44,7 +48,7 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
     await session.capture.ready.wait()
     if session.worker.done():
         return await session.worker, recording_window
-    async with asyncio.timeout(session.settings.connect_timeout_seconds):
+    async with asyncio.timeout(CONNECT_TIMEOUT_SECONDS):
         session.outcome.is_connection_attempted = True
         await session.events.call("connect", session.transport.connect())
     session.events.check()
@@ -53,15 +57,11 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
     track.on_frame(session.capture.receive)
     if session.interaction is not None:
         await session.interaction.connected(session.transport, track, session.events)
-    recording_window = await session.operation.begin_generation(
-        session.transport,
-        session.events,
-        session.settings.max_capture_seconds,
-    )
+    recording_window = await session.operation.begin_generation(session.transport, session.events)
     if session.interaction is not None:
         session.interaction.configured(video_started=session.capture.first_frame.is_set())
     session.events.phase = "capture"
-    async with asyncio.timeout(session.settings.first_frame_timeout_seconds):
+    async with asyncio.timeout(FIRST_FRAME_TIMEOUT_SECONDS):
         await session.capture.first_frame.wait()
     if session.operation.requires_audio:
         # Generation can finish before WebRTC delivers the requested recorded interval.
@@ -75,7 +75,7 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
             "recording",
             session.transport.save_recording(
                 session.capture.path.with_suffix(".recording.mp4"),
-                maximum_bytes=convert_mebibytes_to_bytes(session.settings.max_capture_megabytes),
+                maximum_bytes=MAX_CAPTURE_BYTES,
                 timeout_seconds=session.settings.max_session_seconds,
                 on_window=session.events.on_recording_window,
             ),
@@ -151,8 +151,8 @@ async def capture_video(
     capture = VideoCapture(
         destination,
         operation.duration_seconds,
-        convert_mebibytes_to_bytes(settings.max_queue_megabytes),
-        convert_mebibytes_to_bytes(settings.max_capture_megabytes),
+        MAX_QUEUE_BYTES,
+        MAX_CAPTURE_BYTES,
         fallback_fps=operation.fallback_fps,
     )
     try:
@@ -174,7 +174,6 @@ async def capture_video(
                 destination.with_suffix(".recording.mp4"),
                 destination,
                 recording_window.duration_seconds,
-                settings,
                 start_seconds=recording_window.start_seconds,
             )
     except asyncio.CancelledError:

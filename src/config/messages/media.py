@@ -1,9 +1,7 @@
 """Messages for video, audio, image, and encoder problems."""
 
 AUDIO_INCOMPLETE = "The recording audio is incomplete."
-AUDIO_LIMIT = (
-    "Cannot load the recording audio. Its format is unsupported or it exceeds the memory limit in Reactor settings."
-)
+AUDIO_LIMIT = "Cannot load the recording audio. Its format is unsupported or it exceeds the media memory limit."
 DIMENSIONS = "Video dimensions changed during capture."
 ENCODER_FAILED = "Video encoding failed. Check free disk space and the host's media support."
 ENCODER_METADATA = "The video encoder returned invalid metadata."
@@ -28,7 +26,7 @@ PORTRAIT_REQUIRED = "Provide one portrait."
 PORTRAIT_UPLOAD_LIMIT = "Provide one portrait within the upload limit."
 RECORDING_AUDIO = "The recording needs one mono or stereo audio track with valid timestamps."
 RECORDING_DISCONNECTED = "The recording session is not connected."
-RECORDING_MEMORY = "The recording exceeds the configured media memory limit."
+RECORDING_MEMORY = "The recording exceeds the media memory limit."
 RECORDING_METADATA = "The recording returned invalid media metadata."
 RECORDING_NOT_READY = "The recording was not ready within the capture time limit."
 RECORDING_READINESS = "The recording returned invalid readiness timing."

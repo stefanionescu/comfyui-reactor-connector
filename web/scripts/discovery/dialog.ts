@@ -20,10 +20,7 @@ function automaticStatus(check: ModelList['automaticCheck']): string {
   if (check.error) return check.error;
   if (check.updateAvailable === true) return message('models.listChanged');
   if (check.checkedAt)
-    return message('models.checkSchedule', {
-      date: formatDate(check.checkedAt),
-      hours: check.intervalHours,
-    });
+    return message('models.checkSchedule', { date: formatDate(check.checkedAt) });
   return message('models.checkDue');
 }
 
@@ -77,12 +74,7 @@ class ModelDialog {
     this.status.setAttribute('aria-live', 'polite');
     this.list.setAttribute('aria-label', message('models.title'));
     const sources = element('details');
-    sources.append(
-      element('summary', message('models.sources')),
-      this.checked,
-      this.automatic,
-      element('p', message('models.refreshNotice')),
-    );
+    sources.append(element('summary', message('models.sources')), this.checked, this.automatic);
     this.dialog.append(
       header,
       this.actions(),

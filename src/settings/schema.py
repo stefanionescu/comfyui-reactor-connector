@@ -4,7 +4,6 @@ from dataclasses import fields
 from ..state.documents import Json
 from ..state.settings import Settings
 from ..errors import ErrorCode, ConnectorError
-from ..config.messages.session import SESSION_LIMIT_TOO_SHORT
 from ..config.settings import INTEGER_SETTINGS, DEFAULT_DISCOVERY_AUTO_CHECK
 from ..config.messages.settings import SETTINGS_RANGE, SETTING_UNKNOWN, AUTOMATIC_CHECKS_TYPE, SETTINGS_WHOLE_NUMBERS
 
@@ -18,13 +17,11 @@ def default_settings() -> Settings:
 
 
 def validate_settings(settings: Settings) -> None:
-    """Keep every limit in its range and leave session time for setup and cleanup."""
+    """Keep every limit in its range."""
     for name, definition in INTEGER_SETTINGS.items():
         value: int = getattr(settings, name)
         if not definition["minimum"] <= value <= definition["maximum"]:
             raise ConnectorError(ErrorCode.CONFIGURATION, SETTINGS_RANGE)
-    if settings.max_capture_seconds >= settings.max_session_seconds:
-        raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LIMIT_TOO_SHORT)
 
 
 def parse_settings(document: dict[str, Json]) -> Settings:

@@ -32,10 +32,7 @@ class FastGenerate(VideoNode):
         duration = io.Float.Input(
             "duration_seconds",
             display_name="video duration (seconds)",
-            tooltip=(
-                "Fast H3 chooses a supported clip length near this value. "
-                "The clip must fit the video duration limit in Reactor settings."
-            ),
+            tooltip=("Fast H3 chooses a supported clip length near this value."),
             default=DEFAULT_CLIP_SECONDS,
             min=MIN_CLIP_SECONDS,
             max=MAX_CLIP_SECONDS,

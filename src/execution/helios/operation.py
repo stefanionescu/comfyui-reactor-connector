@@ -22,11 +22,8 @@ class HeliosOperation(VideoInputOperation[HeliosRequest]):
         super().validate(settings)
         parse_sequence(json.dumps([prompt.to_dict() for prompt in self.inputs.prompts]))
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Set the initial image or prompt, schedule later prompts, and start generation."""
-        del max_capture_seconds
         inputs = self.inputs
         await events.command_reply("set_seed", {"seed": inputs.seed})
         if inputs.image is None:

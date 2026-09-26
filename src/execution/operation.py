@@ -44,9 +44,7 @@ class VideoOperation(Protocol):
         """Reject inputs that violate the model contract or configured execution limits."""
         raise NotImplementedError
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Start generation and return the provider recording interval to save."""
         raise NotImplementedError
 

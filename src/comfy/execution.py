@@ -11,7 +11,6 @@ from ..runtime import get_runtime
 from ..state.documents import Json
 from ..media.audio import read_audio
 from ..state.reports import RunReport
-from ..state.settings import Settings
 from ..live.options import LiveOptions
 from ..state.media import CaptureResult
 from ..state.session import SessionOutcome
@@ -24,15 +23,19 @@ from ..execution.operation import VideoOperation
 from ..config.messages.session import RUN_TIMEOUT
 from ..state.settings import ExecutionConfiguration
 from ..media.output import owned_io, discard_outputs
-from ..media.units import convert_mebibytes_to_bytes
 from comfy_api.latest import io, ComfyAPI, InputImpl
 from contextlib import suppress, asynccontextmanager
 from ..execution.session.capture import capture_video
 from ..media.metadata.read import read_recording_metadata
 from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
-from ..config.generation.session import CANCELLATION_POLL_SECONDS
+from ..config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
 from comfy.model_management import InterruptProcessingException, throw_exception_if_processing_interrupted
+from ..config.generation.session import (
+    QUEUE_TIMEOUT_SECONDS,
+    CLEANUP_TIMEOUT_SECONDS,
+    CANCELLATION_POLL_SECONDS,
+)
 
 
 async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
@@ -58,7 +61,7 @@ async def _generate_admitted_video(
     """Own admission, live controls, remote cleanup, and private failure diagnostics."""
     settings = configuration.settings
     admission = get_runtime().sessions
-    async with admission.slot(settings.queue_timeout_seconds):
+    async with admission.slot(QUEUE_TIMEOUT_SECONDS):
         outcome = SessionOutcome()
         interaction = None
         try:
@@ -67,7 +70,7 @@ async def _generate_admitted_video(
             # for that window plus the full remote session limit and cleanup.
             reservation = SessionReservation(
                 get_runtime().configuration.directory,
-                2 * settings.max_session_seconds + settings.cleanup_timeout_seconds,
+                2 * settings.max_session_seconds + CLEANUP_TIMEOUT_SECONDS,
             )
             async with reservation.protect(outcome):
                 result = await capture_video(
@@ -104,14 +107,11 @@ async def _generate_admitted_video(
 async def recording_report(
     report: RunReport,
     result: CaptureResult,
-    settings: Settings,
     interaction_summary: dict[str, Json] | None,
 ) -> str:
     """Combine saved media facts with the execution and live-control report."""
     facts = report.to_json()
-    recording = await wait_for_execution(
-        asyncio.create_task(read_recording_metadata(result, convert_mebibytes_to_bytes(settings.max_capture_megabytes)))
-    )
+    recording = await wait_for_execution(asyncio.create_task(read_recording_metadata(result, MAX_CAPTURE_BYTES)))
     facts.update(recording)
     if interaction_summary is not None:
         facts["live"] = interaction_summary
@@ -121,16 +121,13 @@ async def recording_report(
 async def node_output(
     result: CaptureResult,
     metadata: str,
-    settings: Settings,
     interaction_summary: dict[str, Json] | None,
 ) -> io.NodeOutput:
     """Create native ComfyUI outputs and release temporary audio after loading its samples."""
     if result.audio_path is not None:
         audio_path = result.audio_path
         try:
-            audio = await owned_io(
-                lambda: read_audio(audio_path, convert_mebibytes_to_bytes(settings.max_queue_megabytes))
-            )
+            audio = await owned_io(lambda: read_audio(audio_path, MAX_QUEUE_BYTES))
         finally:
             await discard_outputs(audio_path, error=sys.exception())
         return io.NodeOutput(InputImpl.VideoFromFile(str(result.path)), audio, metadata)
@@ -192,8 +189,8 @@ async def generate_video(
             )
             result, interaction_summary = await wait_for_execution(task)
             await progress.set_progress(2, 3)
-            metadata = await recording_report(report, result, snapshot.settings, interaction_summary)
-            output = await node_output(result, metadata, snapshot.settings, interaction_summary)
+            metadata = await recording_report(report, result, interaction_summary)
+            output = await node_output(result, metadata, interaction_summary)
             await progress.set_progress(3, 3)
             return output
     except ConnectorError as error:

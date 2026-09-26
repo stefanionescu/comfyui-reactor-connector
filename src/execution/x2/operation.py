@@ -49,11 +49,8 @@ class X2Operation(VideoInputOperation[X2Request]):
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, POINTER_COORDINATES)
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Verify X2 commands, set the reference and pointer, and publish the source video."""
-        del max_capture_seconds
         inputs = self.inputs
         if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)

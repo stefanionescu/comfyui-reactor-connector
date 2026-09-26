@@ -35,9 +35,5 @@ class ConfigurationGeneration:
 
 
 def _execution_settings(settings: Settings) -> dict[str, object]:
-    """Exclude catalog check preferences that cannot change generated media."""
-    return {
-        key: value
-        for key, value in settings.to_json().items()
-        if key not in {"catalog_auto_check", "catalog_interval_hours"}
-    }
+    """Exclude the model check preference, which cannot change generated media."""
+    return {key: value for key, value in settings.to_json().items() if key != "catalog_auto_check"}

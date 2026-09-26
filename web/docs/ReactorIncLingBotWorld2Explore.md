@@ -24,7 +24,7 @@ set **sideways movement** to `idle`, and record two seconds.
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | starting image           | Starting picture. Connect one image from Load Image; batches are not supported.                                                         |
 | scene prompt             | Describe the scene and motion in 1 to 1,000 characters.                                                                                 |
-| video duration (seconds) | Video length in seconds. Default: 5. The limit in Reactor settings applies.                                                             |
+| video duration (seconds) | Video length, up to 60 seconds. Default: 5.                                                                                             |
 | seed                     | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                                 |
 | run number               | Change this number to request another run with the same other settings. Default: 0.                                                     |
 | movement                 | `forward`, `back`, or `idle` (stop).                                                                                                    |

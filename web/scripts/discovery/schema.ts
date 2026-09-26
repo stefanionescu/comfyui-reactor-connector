@@ -51,7 +51,6 @@ const automaticCheckSchema = v.pipe(
   v.object({
     enabled: v.boolean(),
     running: v.boolean(),
-    interval_hours: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
     checked_at: retrievalTimeSchema,
     update_available: v.nullable(v.boolean()),
     error: v.nullable(
@@ -60,7 +59,6 @@ const automaticCheckSchema = v.pipe(
   }),
   v.transform((check) => {
     return {
-      intervalHours: check.interval_hours,
       checkedAt: check.checked_at,
       updateAvailable: check.update_available,
       error: check.error,

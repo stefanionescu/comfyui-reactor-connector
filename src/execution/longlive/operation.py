@@ -26,11 +26,9 @@ class LongLiveOperation(VideoInputOperation[LongLiveRequest]):
             raise ConnectorError(ErrorCode.INVALID_INPUT, LONGLIVE_IMAGES_UNSUPPORTED)
         parse_storyboard(json.dumps([shot.to_dict() for shot in self.inputs.shots]))
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Schedule the opening shot and later transitions, then start generation."""
-        del transport, max_capture_seconds
+        del transport
         inputs = self.inputs
         await events.command_reply("set_seed", {"seed": inputs.seed})
         await events.command_reply("set_shot", {"prompt": inputs.prompt})

@@ -7,6 +7,7 @@ from ..tasks import wait_shielded
 from contextlib import AsyncExitStack
 from ..errors import ErrorCode, ConnectorError
 from .session.resources import SessionResources
+from ..config.generation.session import CLEANUP_TIMEOUT_SECONDS
 from ..config.messages.session import (
     CLEANUP_UNCONFIRMED,
     LOCAL_CLEANUP_FAILED,
@@ -41,13 +42,13 @@ async def _release(session: SessionResources, *, failed: bool) -> None:
 
 async def _release_operation(session: SessionResources) -> None:
     """Bound the time spent releasing model uploads and tracks."""
-    async with asyncio.timeout(session.settings.cleanup_timeout_seconds):
+    async with asyncio.timeout(CLEANUP_TIMEOUT_SECONDS):
         await session.operation.release(session.transport)
 
 
 async def _disconnect(session: SessionResources) -> None:
     """Confirm remote termination only after disconnect finishes within its deadline."""
-    async with asyncio.timeout(session.settings.cleanup_timeout_seconds):
+    async with asyncio.timeout(CLEANUP_TIMEOUT_SECONDS):
         await session.transport.disconnect()
         session.outcome.is_termination_confirmed = True
 

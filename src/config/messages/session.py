@@ -23,7 +23,7 @@ SESSION_DEADLINE = "The session deadline expired during this operation."
 SESSION_DISCONNECTED = "The Reactor session is not connected."
 SESSION_IN_OTHER_PROCESS = "Another ComfyUI process is using Reactor. Let its run finish before trying again."
 SESSION_LIMIT_TOO_SHORT = (
-    "Set maximum session duration (seconds) higher than maximum video duration (seconds) to allow setup and cleanup."
+    "Set maximum session duration (seconds) in Reactor settings longer than the video, to leave time for setup."
 )
 SESSION_RECORD_DAMAGED = (
     "The saved Reactor session record is damaged. Check Reactor Usage before repairing the session record in the "

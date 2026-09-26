@@ -17,6 +17,8 @@ from contextlib import asynccontextmanager
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
+from ...config.nodes import MAX_DURATION_SECONDS
+from ...config.media.capture import MAX_QUEUE_BYTES
 from ...config.media.workers import INPUT_TIMEOUT_SECONDS
 from ...config.messages.media import LOCAL_SOURCE_REQUIRED
 from ...config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
@@ -85,7 +87,7 @@ async def prepared_video(video: Input.Video, settings: Settings, temporary_root:
                 if isinstance(video, InputImpl.VideoFromComponents):
                     await prepare_components(video, destination, settings)
                 else:
-                    await _prepare_file(video, source, destination, settings, maximum)
+                    await _prepare_file(video, source, destination, maximum)
         except (OSError, ValueError):
             raise input_error() from None
         yield destination
@@ -95,7 +97,6 @@ async def _prepare_file(
     video: InputImpl.VideoFromFile,
     source: Path,
     destination: Path,
-    settings: Settings,
     maximum: int,
 ) -> None:
     """Copy and trim a local source in an isolated worker before checking the required frame count."""
@@ -103,7 +104,7 @@ async def _prepare_file(
     start, duration = await owned_io(video.get_active_trim_window)
     if not all(math.isfinite(value) and value >= 0 for value in (start, duration)):
         raise input_error()
-    duration = min(duration or settings.max_capture_seconds, settings.max_capture_seconds)
+    duration = min(duration or MAX_DURATION_SECONDS, MAX_DURATION_SECONDS)
     worker = MediaProcess(
         [
             sys.executable,
@@ -115,7 +116,7 @@ async def _prepare_file(
             str(start),
             str(duration),
             str(maximum),
-            str(convert_mebibytes_to_bytes(settings.max_queue_megabytes)),
+            str(MAX_QUEUE_BYTES),
         ]
     )
     result = await worker.run(asyncio.Event(), asyncio.Event())

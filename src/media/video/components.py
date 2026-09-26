@@ -14,8 +14,9 @@ from ...state.settings import Settings
 from comfy_api.latest import Input, InputImpl
 from ..units import convert_mebibytes_to_bytes
 from ...errors import ErrorCode, ConnectorError
-from ...config.media.capture import FRAME_HEADER_FORMAT
+from ...config.nodes import MAX_DURATION_SECONDS
 from ...config.media.images import RGB_CHANNELS, BATCH_IMAGE_DIMENSIONS
+from ...config.media.capture import MAX_QUEUE_BYTES, FRAME_HEADER_FORMAT
 from ...config.media.video import (
     COMPONENT_BITS,
     MAX_FRAME_RATE,
@@ -60,10 +61,10 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         or not MIN_FRAME_DIMENSION <= height <= MAX_FRAME_DIMENSION
         or width % 2
         or height % 2
-        or width * height * RGB_CHANNELS > convert_mebibytes_to_bytes(settings.max_queue_megabytes)
+        or width * height * RGB_CHANNELS > MAX_QUEUE_BYTES
     ):
         raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_DIMENSIONS)
-    count = min(total, math.ceil(settings.max_capture_seconds * rate))
+    count = min(total, math.ceil(MAX_DURATION_SECONDS * rate))
     if count < MIN_SOURCE_FRAMES:
         raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_FRAME_COUNT)
 
@@ -85,8 +86,8 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
             str(EXTENSION_ROOT),
             "capture",
             str(destination),
-            str(settings.max_capture_seconds * 1_000_000),
-            str(convert_mebibytes_to_bytes(settings.max_queue_megabytes)),
+            str(round(MAX_DURATION_SECONDS * 1_000_000)),
+            str(MAX_QUEUE_BYTES),
             str(convert_mebibytes_to_bytes(settings.max_upload_megabytes)),
             str(round(rate)),
         ]

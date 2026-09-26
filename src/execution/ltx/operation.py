@@ -55,11 +55,8 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
         if not inputs.image or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes):
             raise ConnectorError(ErrorCode.INVALID_INPUT, PORTRAIT_UPLOAD_LIMIT)
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Upload the portrait and script, validate the offered speech pace, and start speech."""
-        del max_capture_seconds
         inputs = self.inputs
         audio = [
             track

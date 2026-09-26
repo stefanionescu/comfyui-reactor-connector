@@ -55,11 +55,8 @@ class LingBotOperation(VideoInputOperation[LingBotRequest]):
         if not math.isfinite(speed) or not MIN_ROTATION_SPEED <= speed <= MAX_ROTATION_SPEED:
             raise ConnectorError(ErrorCode.INVALID_INPUT, ROTATION_SPEED)
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Upload the starting image, set camera controls, and start the scene."""
-        del max_capture_seconds
         inputs = self.inputs
         if inputs.image is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, STARTING_IMAGE_REQUIRED)

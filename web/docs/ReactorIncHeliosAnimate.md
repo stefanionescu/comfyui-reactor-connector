@@ -5,14 +5,14 @@ Image** to **starting image** and connect **video** to **Save Video**.
 
 ## Inputs
 
-| Input                    | What to provide                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------- |
-| starting image           | One native RGB image. Image batches and non-finite pixels are rejected.                           |
-| scene prompt             | Describe the intended scene and motion. Required; cannot be empty.                                |
-| video duration (seconds) | Requested video duration within the video duration limit in Reactor settings. Default: 5 seconds. |
-| seed                     | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                                      |
-| run number               | Change this number to request another run with identical prompt and seed.                         |
-| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false.                  |
+| Input                    | What to provide                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| starting image           | One native RGB image. Image batches and non-finite pixels are rejected.          |
+| scene prompt             | Describe the intended scene and motion. Required; cannot be empty.               |
+| video duration (seconds) | Requested video duration, from 0.1 to 60 seconds. Default: 5 seconds.            |
+| seed                     | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                     |
+| run number               | Change this number to request another run with identical prompt and seed.        |
+| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
 
 The image is uploaded as PNG, then applied together with the prompt before
 generation starts. Reactor may crop or resize it for the model. Images over
@@ -47,8 +47,8 @@ running again. If video stops arriving, check your connection and Reactor
 account. If the session's end is unconfirmed, wait for the stated session limit
 before trying again. Do not restart ComfyUI to bypass this wait.
 
-The connector runs one session at a time. Other runs wait and can be cancelled
-before they connect. The default queue wait limit is 120 seconds. A rejected
+The connector runs one session at a time. Other runs wait up to 120 seconds and
+can be cancelled before they connect. A rejected
 command or lost connection ends the run; the connector does not retry it.
 
 Unchanged inputs may reuse ComfyUI's cached result. Change **run number** for

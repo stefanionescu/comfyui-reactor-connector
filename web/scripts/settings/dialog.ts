@@ -17,8 +17,6 @@ class SettingsDialog {
 
   private readonly status = element('p', message('settings.reading'));
 
-  private readonly source = element('p');
-
   private readonly reload = button(message('settings.reload'));
 
   private readonly key = element('input');
@@ -30,8 +28,6 @@ class SettingsDialog {
   private readonly modelCheckFields = element('fieldset');
 
   private readonly automatic = element('input');
-
-  private readonly interval = element('input');
 
   private readonly inputs = new Map<string, HTMLInputElement>();
 
@@ -61,7 +57,6 @@ class SettingsDialog {
       this.credentials(),
       element('p', message('settings.keyNotice')),
       this.limits(),
-      element('p', message('settings.timeNotice')),
       this.modelUpdates(),
       footer,
     );
@@ -93,12 +88,7 @@ class SettingsDialog {
     const actions = element('div');
     actions.className = 'reactor-actions';
     actions.append(button(message('settings.saveKey'), 'submit'), clear);
-    this.keyFields.append(
-      element('legend', message('settings.credentials')),
-      this.source,
-      label,
-      actions,
-    );
+    this.keyFields.append(element('legend', message('settings.credentials')), label, actions);
     form.append(this.keyFields);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -134,10 +124,7 @@ class SettingsDialog {
    */
   private populateLimits(configuration: Configuration): void {
     this.limitFields.replaceChildren(element('legend', message('settings.limits')));
-    const additionalLimits = element('details');
-    additionalLimits.append(element('summary', message('settings.moreLimits')));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
-      if (name === 'catalog_interval_hours') continue;
       const label = element('label', LIMIT_LABELS.get(name) ?? name);
       const input = element('input');
       input.type = 'number';
@@ -147,10 +134,9 @@ class SettingsDialog {
       input.required = true;
       this.inputs.set(name, input);
       label.append(input);
-      const primary = name === 'max_capture_seconds' || name === 'max_session_seconds';
-      (primary ? this.limitFields : additionalLimits).append(label);
+      this.limitFields.append(label);
     }
-    this.limitFields.append(additionalLimits, button(message('settings.saveLimits'), 'submit'));
+    this.limitFields.append(button(message('settings.saveLimits'), 'submit'));
   }
 
   /**
@@ -183,16 +169,9 @@ class SettingsDialog {
     const automaticLabel = element('label', message('settings.automaticChecks'));
     this.automatic.type = 'checkbox';
     automaticLabel.prepend(this.automatic);
-    const intervalLabel = element('label', message('settings.checkInterval'));
-    this.interval.type = 'number';
-    this.interval.step = '1';
-    this.interval.required = true;
-    intervalLabel.append(this.interval);
     this.modelCheckFields.append(
       element('legend', message('settings.modelUpdates')),
       automaticLabel,
-      intervalLabel,
-      element('p', message('settings.checkNotice')),
       button(message('settings.saveChecks'), 'submit'),
     );
     form.append(this.modelCheckFields);
@@ -208,14 +187,8 @@ class SettingsDialog {
    * @param configuration - The settings and revision currently shown.
    */
   private saveModelUpdates(configuration: Configuration): void {
-    const settings = {
-      catalog_auto_check: this.automatic.checked,
-      catalog_interval_hours: this.interval.valueAsNumber,
-    };
-    if (
-      settings.catalog_auto_check === configuration.settings.catalog_auto_check &&
-      settings.catalog_interval_hours === configuration.settings.catalog_interval_hours
-    ) {
+    const settings = { catalog_auto_check: this.automatic.checked };
+    if (settings.catalog_auto_check === configuration.settings.catalog_auto_check) {
       setText(this.status, message('settings.noCheckChanges'));
       return;
     }
@@ -233,19 +206,12 @@ class SettingsDialog {
     this.configuration = configuration;
     if (this.inputs.size === 0) this.populateLimits(configuration);
     this.key.maxLength = configuration.credentialLimit;
-    const interval = configuration.definitions.catalog_interval_hours;
-    this.interval.min = String(interval.minimum);
-    this.interval.max = String(interval.maximum);
-    setText(
-      this.source,
-      {
-        missing: message('settings.missingKey'),
-        saved: message('settings.savedKey'),
-        environment: message('settings.environmentKey'),
-      }[configuration.credentialSource],
-    );
+    this.key.placeholder = {
+      missing: '',
+      saved: message('settings.savedKey'),
+      environment: message('settings.environmentKey'),
+    }[configuration.credentialSource];
     this.automatic.checked = configuration.settings.catalog_auto_check;
-    this.interval.value = String(configuration.settings.catalog_interval_hours);
     const settings = new Map(Object.entries(configuration.settings));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       const input = this.inputs.get(name);

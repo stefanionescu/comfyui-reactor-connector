@@ -47,11 +47,8 @@ class SanaOperation(VideoInputOperation[SanaRequest]):
         if not MIN_ANCHOR_INTERVAL <= inputs.anchor_interval <= MAX_ANCHOR_INTERVAL:
             raise ConnectorError(ErrorCode.INVALID_INPUT, ANCHOR_INTERVAL)
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Prepare the source using the declared model contract and start video editing."""
-        del max_capture_seconds
         inputs = self.inputs
         if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)

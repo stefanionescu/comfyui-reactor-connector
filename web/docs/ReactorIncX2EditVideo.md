@@ -16,7 +16,7 @@ of the requested change.
 | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | source video             | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
 | edit prompt              | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
-| video duration (seconds) | Requested output length within the video duration limit in Reactor settings. Default: 5 seconds.            |
+| video duration (seconds) | Requested output length, from 0.1 to 60 seconds. Default: 5 seconds.                                        |
 | run number               | Change this integer to request another run. Default: 0.                                                     |
 | keep queued frames       | Keep source frames in order when true. False favors recent frames and limits delay.                         |
 | hold pointer             | Hold the pointer at the chosen position while true. Default: false.                                         |
@@ -34,7 +34,7 @@ HDR, multiple video streams, and fewer than 33 usable frames before connecting.
 Files and frames must fit the configured upload and memory limits.
 
 Preparation creates a temporary video-only MP4, respects native file trim
-windows, and limits source length to the video duration limit in Reactor settings. Source audio and
+windows, and limits source length to 60 seconds. Source audio and
 metadata are omitted. Preparation has a 60-second deadline and supports cancel.
 
 ## Run and save

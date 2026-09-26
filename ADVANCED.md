@@ -21,14 +21,12 @@ native **Info** explains its inputs and model-specific limits.
 
 ## Keys and access
 
-Open **ComfyUI menu → Extensions → Reactor → Reactor settings**. Saving a key
-clears the entry field and stores the value in the private server state directory.
-The saved value is never returned to the window or written into a workflow.
-Saving a key does not validate it with Reactor.
+Add your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**. It
+stays on your ComfyUI server and is sent only to Reactor; it is never returned to
+the window or written into a workflow.
 
 `REACTOR_API_KEY` in the ComfyUI server environment takes precedence over a saved
-key. **Clear Saved Key** removes only the saved value. Change an environment key
-where ComfyUI is launched, then restart ComfyUI.
+key. Change it where ComfyUI is launched, then restart ComfyUI.
 
 Private settings and live controls require a local, single-user connection.
 Open the ComfyUI window on the computer running its server and connect directly
@@ -50,12 +48,12 @@ not encrypted; other code running as the same operating-system user can read the
 
 ## Session limits
 
-**maximum video duration** limits the requested output length. **maximum session duration** limits the whole Reactor session and must allow additional time for
-setup. **Advanced limits** controls connection, first-frame, disconnect, and queue
-timeouts, plus media size limits. One MiB is 1,048,576 bytes.
+**maximum session duration (seconds)** limits the whole Reactor session, setup
+included, so it must be longer than the video. **maximum upload size (MiB)**
+limits each image or video sent. One MiB is 1,048,576 bytes.
 
-The connector runs one session at a time. Other runs wait; the default queue
-wait limit is 120 seconds. You can cancel while waiting, before connection.
+The connector runs one session at a time. Other runs wait up to 120 seconds.
+You can cancel while waiting, before connection.
 A rejected command or uncertain connection is not retried automatically.
 
 New runs use saved settings. A running session keeps its original key and limits.
@@ -107,16 +105,16 @@ Only the local ComfyUI user can change the list.
 
 ### Automatic checks
 
-Under **Reactor settings → Model updates**, enable checks and choose an interval
-in hours. New installations check at startup and every 24 hours while ComfyUI
-runs. Existing saved preferences are preserved. Changes take effect within one
-minute; an active check can take up to 25 seconds to finish.
+Under **Reactor settings → Model updates**, turn automatic checks on or off.
+When on, the connector checks at startup and every 24 hours while ComfyUI runs.
+Changes take effect within one minute; an active check can take up to 25 seconds
+to finish.
 
 Checks use the same public sources as refresh. They report changes without
 replacing the saved list. Expand **Model sources and automatic checks** in the
 model dialog, then select **Refresh Models** to save the checked list. Reopen the
 dialog to see a check that finished after you opened it. Failed checks keep the
-list and retry at the configured interval. Closing ComfyUI stops checking.
+list and retry 24 hours later. Closing ComfyUI stops checking.
 
 ## Live controls
 
@@ -208,7 +206,7 @@ another run. The connector does not reconnect automatically.
 [Fast H3 continued scenes](web/docs/ReactorIncFastContinue.md) use the previous
 clip's final frame to build the next clip. Choose a clip count and later prompts.
 The result is one video with sound. Recording ends after the chosen number of
-clips. Set the video duration limit high enough for their combined length.
+clips; their combined length must be 60 seconds or less.
 
 ## Recording details
 

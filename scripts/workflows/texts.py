@@ -59,8 +59,8 @@ LIMITS = {
     ),
     "sourceVideo": "Use standard dynamic range (SDR) video. The edited output has no sound.",
     "totalDuration": (
-        "This example requests {seconds:g} seconds in total. In Reactor settings, **Maximum video duration "
-        "(seconds)** must allow the combined length. The model may round each clip up."
+        "This example requests {seconds:g} seconds in total. The model may round each clip up; the combined "
+        "length must be 60 seconds or less."
     ),
 }
 

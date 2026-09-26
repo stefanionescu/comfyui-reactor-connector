@@ -6,15 +6,15 @@ sound; the separate audio output lets you save or process the speech alone.
 
 ## Inputs
 
-| Input                    | What to provide                                                                                                       |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| portrait image           | One clear RGB portrait, with the whole head visible in a wide frame. Required.                                        |
-| scene prompt             | Optional scene description, up to 800 characters.                                                                     |
-| spoken words             | Spoken words, from 1 to 10,000 characters. Required.                                                                  |
-| video duration (seconds) | Requested saved video length, at least 4 seconds and within the video duration limit in Reactor settings. Default: 5. |
-| words per minute         | Speech pace. Default: 140. Reactor checks the supported range before generation.                                      |
-| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                                                         |
-| run number               | Change this integer to request another run. Default: 0.                                                               |
+| Input                    | What to provide                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| portrait image           | One clear RGB portrait, with the whole head visible in a wide frame. Required.   |
+| scene prompt             | Optional scene description, up to 800 characters.                                |
+| spoken words             | Spoken words, from 1 to 10,000 characters. Required.                             |
+| video duration (seconds) | Requested saved video length, from 4 to 60 seconds. Default: 5.                  |
+| words per minute         | Speech pace. Default: 140. Reactor checks the supported range before generation. |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                    |
+| run number               | Change this integer to request another run. Default: 0.                          |
 
 Use a front-facing portrait of one person. LTX fits the picture to a wide canvas;
 a tall portrait can lose the top of the head. Frame the image before uploading.

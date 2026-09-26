@@ -92,11 +92,8 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
             is_audio_enabled=self.inputs.audio_enabled,
         )
 
-    async def begin_generation(
-        self, transport: Transport, events: SessionEvents, max_capture_seconds: float
-    ) -> RecordingWindow:
+    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
         """Set image and sound options, start generation, and confirm the accepted settings."""
-        del max_capture_seconds
         inputs = self.inputs
         tracks = [
             track

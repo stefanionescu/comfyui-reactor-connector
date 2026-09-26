@@ -2,7 +2,6 @@
 
 from typing import ClassVar
 from .transport import Transport
-from ..config.nodes import MAX_SEED
 from ..state.settings import Settings
 from ..state.session import ControlValues
 from ..errors import ErrorCode, ConnectorError
@@ -10,6 +9,8 @@ from ..state.generation.inputs import VideoInputs
 from ..config.media.video import DEFAULT_FRAME_RATE
 from ..media.units import convert_mebibytes_to_bytes
 from ..config.messages.media import IMAGE_UPLOAD_LIMIT
+from ..config.nodes import MAX_SEED, MAX_DURATION_SECONDS
+from ..config.messages.session import SESSION_LIMIT_TOO_SHORT
 from ..config.messages.inputs import SEED_RANGE, CAPTURE_LIMIT, PROMPT_LENGTH
 from ..config.generation.session import MIN_CAPTURE_SECONDS, MAX_PROMPT_CHARACTERS
 
@@ -69,7 +70,9 @@ class VideoInputOperation[Request: VideoInputs]:
 
 def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settings) -> None:
     """Validate capture length and seed without imposing a model's prompt policy."""
-    if not MIN_CAPTURE_SECONDS <= duration_seconds <= settings.max_capture_seconds:
+    if not MIN_CAPTURE_SECONDS <= duration_seconds <= MAX_DURATION_SECONDS:
         raise ConnectorError(ErrorCode.INVALID_INPUT, CAPTURE_LIMIT)
+    if duration_seconds >= settings.max_session_seconds:
+        raise ConnectorError(ErrorCode.CONFIGURATION, SESSION_LIMIT_TOO_SHORT)
     if not 0 <= seed <= MAX_SEED:
         raise ConnectorError(ErrorCode.INVALID_INPUT, SEED_RANGE)

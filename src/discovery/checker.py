@@ -8,10 +8,9 @@ from ..state.documents import Json
 from datetime import UTC, datetime
 from ..state.settings import Settings
 from .sources import read_public_models
-from ..config.settings import INTEGER_SETTINGS
 from collections.abc import Callable, AsyncIterator
 from ..config.messages.discovery import AUTOMATIC_CHECK_FAILED
-from ..config.discovery import CHECK_POLL_SECONDS, CHECK_TIMEOUT_SECONDS
+from ..config.discovery import CHECK_POLL_SECONDS, CHECK_INTERVAL_HOURS, CHECK_TIMEOUT_SECONDS
 
 
 class ModelChecker:
@@ -28,13 +27,11 @@ class ModelChecker:
         self.error: str | None = None
         self.running = False
         self.enabled = False
-        self.interval_hours = INTEGER_SETTINGS["catalog_interval_hours"]["default"]
 
     def status(self, revision: str) -> dict[str, Json]:
         """Describe the last check relative to the model revision shown by the caller."""
         return {
             "enabled": self.enabled,
-            "interval_hours": self.interval_hours,
             "running": self.running,
             "checked_at": self.checked_at,
             "update_available": self.candidate_revision != revision
@@ -44,17 +41,16 @@ class ModelChecker:
         }
 
     async def tick(self) -> None:
-        """Honor current settings and retry failures only after the configured interval."""
+        """Honor the current setting and retry failures only after the check interval."""
         if self.running:
             return
         try:
             settings = await asyncio.to_thread(self.settings)
             self.enabled = settings.catalog_auto_check
-            self.interval_hours = settings.catalog_interval_hours
             if not self.enabled:
                 return
             now = time.monotonic()
-            if self.last_attempt is not None and now - self.last_attempt < self.interval_hours * 3600:
+            if self.last_attempt is not None and now - self.last_attempt < CHECK_INTERVAL_HOURS * 3600:
                 return
             self.last_attempt = now
             self.running = True

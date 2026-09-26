@@ -53,7 +53,7 @@ class FastContinue(VideoNode):
                 io.Int.Input(
                     "clip_count",
                     display_name="number of clips",
-                    tooltip="Number of clips in one session. Their combined length must fit the video duration limit.",
+                    tooltip="Number of clips in one session. Their combined length must be 60 seconds or less.",
                     default=DEFAULT_CLIP_COUNT,
                     min=MIN_CLIP_COUNT,
                     max=MAX_CLIP_COUNT,
