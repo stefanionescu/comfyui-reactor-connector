@@ -25,6 +25,8 @@ Add your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**
 stays on your ComfyUI server and is sent only to Reactor; it is never returned to
 the window or written into a workflow.
 
+![The Reactor Settings dialog: the API key field with Save Key and Clear Saved Key, the maximum session duration and maximum upload size, and the automatic model check switch.](docs/images/settings-dialog.png)
+
 `REACTOR_API_KEY` in the ComfyUI server environment takes precedence over a saved
 key. Change it where ComfyUI is launched, then restart ComfyUI.
 
@@ -399,6 +401,32 @@ package. Rebuild examples before packaging.
 Python checks use actual ComfyUI and dependency types. Where an upstream API lacks
 complete annotations, the code defines only the interface it consumes. Check
 changed host calls manually in the installed ComfyUI as well.
+
+### Images
+
+The README's and this guide's images are in `docs/images/`:
+
+- `banner.svg`, `node-map.svg`, and the four `badge-*.svg` files are SVG files;
+  edit them as text. They use ComfyUI's ink `#211927`, panels `#312C34`, edges
+  `#413B45`, text `#C2BFB9`, and yellow `#F0FF41`, and Reactor's gold
+  `#ECE5BD` to `#C7C099`.
+- `logo.png` is the connector's mark, made with OpenRouter's
+  `openai/gpt-image-2.5-sunburst` on a transparent background and cut to 400 ×
+  400 pixels. The banner embeds it, and `pyproject.toml` names it as the
+  Registry icon.
+- In the node map, a node that opens a Reactor session has a gold bar and a
+  local one a grey bar. An arrow is a solid yellow line from an output to the
+  input it feeds.
+- The badges under the banner name the ComfyUI, frontend, and Python versions
+  and the license, on ink and grey; update them when those change.
+- `workflow-prompt-sequence.png` is helios-03-prompt-sequence at 100% zoom, with
+  link midpoint markers off.
+- `fast-h3-node.png` is a new **Fast H3: Generate Video** node, 420 pixels wide,
+  at 100% zoom.
+- `settings-dialog.png` is the **Reactor settings** dialog with default settings
+  and a saved key.
+
+Keep each image under 100 KB, and give it alt text.
 
 ## Official packaging and publishing
 

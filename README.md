@@ -1,18 +1,28 @@
-# ComfyUI Reactor Connector
+# ![comfyui-reactor-connector: a ComfyUI extension that runs Reactor's real-time video models](docs/images/banner.svg)
+
+[![ComfyUI 0.34.6 or later](docs/images/badge-comfyui.svg)](#requirements)
+[![Frontend 1.49.6 or later](docs/images/badge-frontend.svg)](#requirements)
+[![Python 3.12 or later](docs/images/badge-python.svg)](#requirements)
+[![MIT license](docs/images/badge-license.svg)](LICENSE.md)
 
 Generate videos, edit local clips, and move through scenes with Reactor models
-in ComfyUI. Models run on Reactor; no model weights are downloaded. You need
-Python 3.12 or later, ComfyUI 0.34.6 or later, frontend 1.49.6 or later within the 1.x series,
-and a Reactor account with credits.
+in ComfyUI. Models run on Reactor; no model weights are downloaded.
 
 ## Contents
 
+- [Requirements](#requirements)
 - [Install](#install)
 - [Make your first video](#make-your-first-video)
 - [Choose a workflow](#choose-a-workflow)
 - [Nodes](#nodes)
 - [Find and refresh models](#find-and-refresh-models)
 - [Fix a setup problem](#fix-a-setup-problem)
+
+## Requirements
+
+- Python 3.12 or later.
+- ComfyUI 0.34.6 or later, with frontend 1.49.6 or later in the 1.x series.
+- A Reactor account with credits.
 
 ## Install
 
@@ -105,6 +115,8 @@ Use live workflows for scene prompts, Visko sound prompts, X2 dragging, or SANA
 and X2 webcams. LingBot workflows with scene controls let you move with keys or buttons;
 saved video cannot reopen a world. Fast H3 can continue a chosen number of clips
 in one run. See [live controls](ADVANCED.md#live-controls).
+
+![Screenshot of helios-03-prompt-sequence: two Helios: Add a Prompt nodes chain into Helios: Follow a Prompt Sequence, which sends its video to Save Video, under the Start Here and Using This Workflow notes.](docs/images/workflow-prompt-sequence.png)
 
 After updating, open an example in a new tab. Existing graphs keep their saved
 notes, prompts, and layout. Notes and node titles are saved in the graph in
@@ -222,6 +234,8 @@ Project rights in the samples and previews are licensed under [MIT](LICENSE.md).
 
 ## Nodes
 
+![Node map. Helios: Add a Prompt feeds Helios: Generate Video from a Prompt Sequence, and LongLive: Add a Shot feeds LongLive: Generate Video from a Storyboard; both builders also chain into themselves. Every other node stands alone and sends its video to Save Video. Nodes that open a Reactor session have a gold bar.](docs/images/node-map.svg)
+
 | Node                                                                                             | Input                                                     | Output                            |
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | --------------------------------- |
 | [Fast H3: Generate Video (Reactor)](web/docs/ReactorIncFastGenerate.md)                          | Scene and sound prompt, optional first and last images    | Video with sound, separate audio  |
@@ -241,10 +255,12 @@ Project rights in the samples and previews are licensed under [MIT](LICENSE.md).
 | [Visko Stable: Generate Video (Reactor)](web/docs/ReactorIncViskoStableGenerate.md)              | Scene prompt, sound controls, and optional image          | Video with sound, separate audio  |
 | [Visko Dynamic: Generate Video (Reactor)](web/docs/ReactorIncViskoDynamicGenerate.md)            | Scene prompt, sound controls, and optional image          | Video with sound, separate audio  |
 | [X2: Edit Video (Reactor)](web/docs/ReactorIncX2EditVideo.md)                                    | Local video, edit prompt, and optional reference image    | Video without sound               |
-| [X2: Edit a Webcam (Reactor)](web/docs/ReactorIncX2Webcam.md)                                    | Camera, optional subject image, live prompt, and dragging | Video without sound               |
+| [X2: Edit Webcam Video (Reactor)](web/docs/ReactorIncX2Webcam.md)                                | Camera, optional subject image, live prompt, and dragging | Video without sound               |
 
 Select a Reactor node and open its native **Info** for inputs, limits, and
 examples. Nodes with detailed behavior show their bundled guide there.
+
+![Fast H3: Generate Video on the canvas: sockets for a starting image and a final image; outputs for video, audio, and recording details; then the scene and sound prompt, video duration, seed, run number, and aspect ratio.](docs/images/fast-h3-node.png)
 
 In your own graph, connect **video** to **Save Video**. Models with sound also
 return a separate **audio** output. Generation nodes also return [Recording details](ADVANCED.md#recording-details),

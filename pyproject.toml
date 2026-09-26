@@ -193,6 +193,7 @@ host-dependencies.torch = ">=2.6,<3"
 
 [tool.comfy]
 DisplayName = "Reactor"
+Icon = "https://raw.githubusercontent.com/stefanionescu/comfyui-reactor-connector/main/docs/images/logo.png"
 requires-comfyui = ">=0.34.6"
 
 [tool.importlinter]
