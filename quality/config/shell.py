@@ -105,6 +105,8 @@ ALLOWED_SCRIPT_ROOT_FOLDERS = {
 ALLOWED_SINGLE_SCRIPT_FOLDERS = {
     # Repository setup and complete checks share the repository task group.
     ".mise/tasks/repo",
+    # The node guides are written by hand, so their check has no build task beside it.
+    ".mise/tasks/comfy/nodes",
     # These shell entrypoints share their owner with JavaScript policy or filtering code.
     "quality/config/repository/licenses",
     "quality/repository/licenses",

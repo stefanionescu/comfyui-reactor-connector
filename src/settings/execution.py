@@ -25,15 +25,8 @@ class ConfigurationGeneration:
         """Return settings and credentials with a cache token renewed when execution inputs change."""
         previous = self._previous
         generation = previous.generation if previous is not None else secrets.token_hex(16)
-        if previous is not None and (
-            previous.credential != credential or _execution_settings(previous.settings) != _execution_settings(settings)
-        ):
+        if previous is not None and (previous.credential != credential or previous.settings != settings):
             generation = secrets.token_hex(16)
         current = ExecutionConfiguration(settings, credential, generation)
         self._previous = current
         return current
-
-
-def _execution_settings(settings: Settings) -> dict[str, object]:
-    """Exclude the model check preference, which cannot change generated media."""
-    return {key: value for key, value in settings.to_json().items() if key != "catalog_auto_check"}

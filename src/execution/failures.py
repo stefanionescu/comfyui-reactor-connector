@@ -2,12 +2,12 @@
 
 from ..errors import ErrorCode, ConnectorError
 from reactor_sdk import AuthError, ReactorError
-from ..config.messages.discovery import MODEL_UNAVAILABLE
 from ..config.messages.session import (
     PHASE,
     RUN_FAILED,
     ACCESS_REFUSED,
     SESSION_TIMEOUT,
+    MODEL_UNAVAILABLE,
     PROVIDER_RATE_LIMIT,
     AUTHENTICATION_FAILED,
     PROVIDER_REQUEST_TIMEOUT,

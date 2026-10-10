@@ -1,6 +1,5 @@
 """Messages for private settings, keys, and state storage."""
 
-AUTOMATIC_CHECKS_TYPE = "Use true or false for automatic model checks."
 KEY_EMPTY = (
     "Copy the complete API key from your Reactor account without surrounding spaces. Keys must contain 1 to {maximum} "
     "characters; do not shorten a key to fit."

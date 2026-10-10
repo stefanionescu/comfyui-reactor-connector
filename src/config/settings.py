@@ -12,8 +12,6 @@ INTEGER_SETTINGS: dict[str, dict[str, int]] = {
     "max_upload_megabytes": {"default": 100, "minimum": 1, "maximum": 4096},
 }
 
-DEFAULT_DISCOVERY_AUTO_CHECK = True
-
 MAX_SETTINGS_BYTES = 4096
 
 MAX_SETTINGS_FILE_BYTES = 65_536

@@ -74,25 +74,6 @@
             "reason": "These fields are serialized by the local ComfyUI API and must keep their wire names."
         },
         {
-            "pathRegexes": ["^web/scripts/discovery/schema\\.ts$"],
-            "categories": ["properties"],
-            "names": [
-                "automatic_check",
-                "can_rollback",
-                "checked_at",
-                "connect_name",
-                "credits_per_second",
-                "documentation_url",
-                "interval_hours",
-                "mutation_allowed",
-                "node_ids",
-                "retrieved_at",
-                "update_available"
-            ],
-            "caseNames": ["snake"],
-            "reason": "These fields are deserialized from the local ComfyUI API and must keep their wire names."
-        },
-        {
             "pathRegexes": ["^web/scripts/live/schema\\.ts$"],
             "categories": ["properties"],
             "names": [
@@ -114,13 +95,7 @@
         {
             "pathRegexes": ["^web/scripts/settings/schema\\.ts$"],
             "categories": ["properties"],
-            "names": [
-                "catalog_auto_check",
-                "catalog_interval_hours",
-                "credential_limit",
-                "integer_settings",
-                "mutation_allowed"
-            ],
+            "names": ["credential_limit", "integer_settings", "mutation_allowed"],
             "caseNames": ["snake"],
             "reason": "These fields are deserialized from the local settings API and must keep their wire names."
         },
@@ -460,27 +435,6 @@
             "reason": "ESLint rule identifiers use these kebab-case names."
         },
         {
-            "pathRegexes": ["^web/scripts/discovery/api\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["Content-Type"],
-            "allowedViolations": ["case"],
-            "reason": "HTTP headers retain their protocol names."
-        },
-        {
-            "pathRegexes": ["^web/scripts/discovery/api\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["X-Reactor-Comfy"],
-            "allowedViolations": ["case"],
-            "reason": "Local connector requests use this header name."
-        },
-        {
-            "pathRegexes": ["^web/scripts/discovery/dialog\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["once"],
-            "allowedViolations": ["banned-term"],
-            "reason": "DOM event listeners use the once option."
-        },
-        {
             "pathRegexes": ["^web/scripts/live/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
@@ -565,13 +519,6 @@
             "reason": "Local connector requests use this header name."
         },
         {
-            "pathRegexes": ["^web/scripts/settings/schema\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["catalog_auto_check", "catalog_interval_hours"],
-            "allowedViolations": ["banned-term"],
-            "reason": "The local settings API uses these persisted field names."
-        },
-        {
             "pathRegexes": ["^web/scripts/settings/api\\.ts$"],
             "categories": ["properties", "functions"],
             "names": ["Content-Type"],
@@ -591,13 +538,6 @@
             "names": ["once"],
             "allowedViolations": ["banned-term"],
             "reason": "DOM event listeners use the once option."
-        },
-        {
-            "pathRegexes": ["^web/scripts/settings/dialog\\.ts$"],
-            "categories": ["properties", "functions"],
-            "names": ["catalog_auto_check", "catalog_interval_hours"],
-            "allowedViolations": ["banned-term", "case"],
-            "reason": "The local settings API uses these persisted field names."
         },
         {
             "pathRegexes": ["^web/scripts/settings/dialog\\.ts$"],

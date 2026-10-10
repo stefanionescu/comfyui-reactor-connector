@@ -64,7 +64,7 @@ does not accept a starting image.
 
 [LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

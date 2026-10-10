@@ -51,8 +51,7 @@ class ReactorExtension(ComfyExtension):
 
     async def on_load(self) -> None:
         """Initialize shared state and register local routes when ComfyUI loads the extension."""
-        node_models = {node.define_schema().node_id: model for node, model in NODE_REGISTRATIONS.items()}
-        await asyncio.to_thread(initialize_runtime, node_models)
+        await asyncio.to_thread(initialize_runtime)
         register_configuration()
 
     async def get_node_list(self) -> list[type[io.ComfyNode]]:

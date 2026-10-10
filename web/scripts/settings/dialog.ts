@@ -25,10 +25,6 @@ class SettingsDialog {
 
   private readonly limitFields = element('fieldset');
 
-  private readonly modelCheckFields = element('fieldset');
-
-  private readonly automatic = element('input');
-
   private readonly inputs = new Map<string, HTMLInputElement>();
 
   private configuration: Configuration | undefined;
@@ -57,7 +53,6 @@ class SettingsDialog {
       this.credentials(),
       element('p', message('settings.keyNotice')),
       this.limits(),
-      this.modelUpdates(),
       footer,
     );
     this.dialog.addEventListener('close', this.dispose.bind(this), { once: true });
@@ -160,45 +155,6 @@ class SettingsDialog {
   }
 
   /**
-   * Build the controls for checking public model sources.
-   * @returns The automatic model check form.
-   */
-  private modelUpdates(): HTMLFormElement {
-    const form = element('form');
-    this.modelCheckFields.disabled = true;
-    const automaticLabel = element('label', message('settings.automaticChecks'));
-    this.automatic.type = 'checkbox';
-    automaticLabel.prepend(this.automatic);
-    this.modelCheckFields.append(
-      element('legend', message('settings.modelUpdates')),
-      automaticLabel,
-      button(message('settings.saveChecks'), 'submit'),
-    );
-    form.append(this.modelCheckFields);
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      if (this.configuration && form.reportValidity()) this.saveModelUpdates(this.configuration);
-    });
-    return form;
-  }
-
-  /**
-   * Save automatic checks without changing the displayed model list.
-   * @param configuration - The settings and revision currently shown.
-   */
-  private saveModelUpdates(configuration: Configuration): void {
-    const settings = { catalog_auto_check: this.automatic.checked };
-    if (settings.catalog_auto_check === configuration.settings.catalog_auto_check) {
-      setText(this.status, message('settings.noCheckChanges'));
-      return;
-    }
-    this.updateSettings(message('settings.checksSaved'), browserRoutes.settings.values, 'PATCH', {
-      revision: configuration.revision,
-      settings,
-    });
-  }
-
-  /**
    * Show validated settings and apply the server's editing policy.
    * @param configuration - The last successful server response.
    */
@@ -211,7 +167,6 @@ class SettingsDialog {
       saved: message('settings.savedKey'),
       environment: message('settings.environmentKey'),
     }[configuration.credentialSource];
-    this.automatic.checked = configuration.settings.catalog_auto_check;
     const settings = new Map(Object.entries(configuration.settings));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       const input = this.inputs.get(name);
@@ -232,7 +187,7 @@ class SettingsDialog {
    */
   private updateSettings(success: string, route?: string, method?: string, body?: unknown): void {
     if (route === browserRoutes.settings.credential) this.key.value = '';
-    this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
+    this.keyFields.disabled = this.limitFields.disabled = true;
     this.reload.disabled = true;
     setText(this.status, message('working'));
     void this.requestSettings(success, route, method, body);
@@ -271,10 +226,7 @@ class SettingsDialog {
         );
     } finally {
       if (!this.controller.signal.aborted) {
-        this.keyFields.disabled =
-          this.limitFields.disabled =
-          this.modelCheckFields.disabled =
-            !this.configuration?.mutationAllowed;
+        this.keyFields.disabled = this.limitFields.disabled = !this.configuration?.mutationAllowed;
         this.reload.disabled = false;
       }
     }

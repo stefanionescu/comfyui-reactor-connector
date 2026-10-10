@@ -60,7 +60,7 @@ limit before running again.
 
 [Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

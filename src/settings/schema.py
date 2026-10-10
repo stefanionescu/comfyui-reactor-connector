@@ -3,17 +3,14 @@
 from dataclasses import fields
 from ..state.documents import Json
 from ..state.settings import Settings
+from ..config.settings import INTEGER_SETTINGS
 from ..errors import ErrorCode, ConnectorError
-from ..config.settings import INTEGER_SETTINGS, DEFAULT_DISCOVERY_AUTO_CHECK
-from ..config.messages.settings import SETTINGS_RANGE, SETTING_UNKNOWN, AUTOMATIC_CHECKS_TYPE, SETTINGS_WHOLE_NUMBERS
+from ..config.messages.settings import SETTINGS_RANGE, SETTING_UNKNOWN, SETTINGS_WHOLE_NUMBERS
 
 
 def default_settings() -> Settings:
     """Return the configured default for every setting."""
-    return Settings(
-        **{name: definition["default"] for name, definition in INTEGER_SETTINGS.items()},
-        catalog_auto_check=DEFAULT_DISCOVERY_AUTO_CHECK,
-    )
+    return Settings(**{name: definition["default"] for name, definition in INTEGER_SETTINGS.items()})
 
 
 def validate_settings(settings: Settings) -> None:
@@ -31,14 +28,11 @@ def parse_settings(document: dict[str, Json]) -> Settings:
         raise ConnectorError(ErrorCode.CONFIGURATION, SETTING_UNKNOWN)
     defaults = default_settings()
     integers: dict[str, int] = {}
-    for name in expected - {"catalog_auto_check"}:
+    for name in expected:
         value = document.get(name, getattr(defaults, name))
         if type(value) is not int:
             raise ConnectorError(ErrorCode.CONFIGURATION, SETTINGS_WHOLE_NUMBERS)
         integers[name] = value
-    automatic = document.get("catalog_auto_check", defaults.catalog_auto_check)
-    if not isinstance(automatic, bool):
-        raise ConnectorError(ErrorCode.CONFIGURATION, AUTOMATIC_CHECKS_TYPE)
-    settings = Settings(**integers, catalog_auto_check=automatic)
+    settings = Settings(**integers)
     validate_settings(settings)
     return settings

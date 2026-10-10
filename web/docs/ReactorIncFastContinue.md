@@ -42,7 +42,7 @@ replacement session automatically.
 Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not cancel
 this ordinary workflow. The prompts and clip count are fixed when you select Run.
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

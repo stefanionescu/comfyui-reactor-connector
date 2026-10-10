@@ -101,33 +101,6 @@
   padding: 0.5rem 0;
 }
 
-/* Model list */
-
-.reactor-models {
-  width: min(54rem, calc(100vw - 2rem));
-}
-.reactor-models ul {
-  list-style: none;
-  padding: 0;
-}
-.reactor-models li {
-  border-top: 1px solid var(--border-color, GrayText);
-  padding: 1rem 0;
-}
-.reactor-models h3 {
-  margin: 0 0 0.4rem;
-}
-.reactor-models code {
-  overflow-wrap: anywhere;
-}
-.reactor-models details {
-  margin: 0.75rem 0;
-}
-
-.reactor-models :where(li) p {
-  margin: 0.35rem 0;
-}
-
 /* Live controls */
 
 .reactor-controls {

@@ -93,7 +93,7 @@ Keep the live panel open until recording finishes. Closing it or losing its
 browser connection ends the session and discards the unfinished video. The
 preview has no sound.
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

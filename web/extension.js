@@ -75,64 +75,18 @@ var TEXT = {
     sceneTitle: "{model}: Scene Controls (Reactor)",
     editPrompt: "Edit Prompt"
   },
-  models: {
-    checkDue: "An automatic model check is due.",
-    checkRunning: "An automatic model check is running. Reopen this list to see its result.",
-    checkSchedule: "Last automatic check: {date}.",
-    checking: "Checking public model sources...",
-    checksOff: "Automatic model checks are off. Change this in Reactor settings.",
-    close: "Close Reactor models",
-    connectName: "Model ID: {name}",
-    count: "{visible} of {total} models",
-    guideUnavailable: "No matching public guide was found.",
-    installedList: "Showing installed nodes. Refresh Models to load public prices and guides.",
-    invalidResponse: "ComfyUI returned an invalid Reactor model list.",
-    lastRefresh: "Public prices and guides checked {date}.",
-    listChanged: "The model list has changed. Select Refresh Models to update your list.",
-    readFailed: "Cannot load models.",
-    reread: "Local model list loaded.",
-    reading: "Loading model list...",
-    readingLocal: "Loading the local model list...",
-    nodeUnavailable: "No connector node available.",
-    nodesAvailable: "Nodes available.",
-    openGuide: "Reactor model guide (opens in a new tab)",
-    refresh: "Refresh Models",
-    refreshed: "Model list refreshed.",
-    requestFailed: "The model list request failed.",
-    restore: "Restore Previous List",
-    restored: "Previous model list restored.",
-    search: "Search models",
-    searchPlaceholder: "Model name or ID",
-    sources: "Model sources and automatic checks",
-    title: "Reactor Models",
-    unreachable: "Cannot reach the Reactor model list. Check ComfyUI and try again.",
-    menu: "Reactor models"
-  },
   pointer: {
     held: "Pointer held.",
     position: " {x}% across, {y}% down.",
     released: "Pointer released.",
     stopped: "Pointer controls stopped."
   },
-  pricing: {
-    calculate: "Calculate credits for session time",
-    calculation: "{seconds} session seconds × {rate} credits per second = {credits} credits.",
-    enterTime: "Enter session time",
-    rate: "{rate} credits per session second.",
-    rateOutdated: "This rate was not found in the latest source check. Refresh Reactor models before relying on a calculation.",
-    rateUnavailable: "A current rate is not available. Refresh Reactor models to check for a rate.",
-    sessionTime: "session time to calculate (seconds)",
-    totalTimeNotice: "Use total session time, including setup and recording."
-  },
   settings: {
-    automaticChecks: "Check for model updates automatically",
-    checksSaved: "Model check settings saved.",
     clearKey: "Clear Saved Key",
     close: "Close Reactor settings",
     credentialLabel: "Reactor API key",
     credentials: "Credentials",
     environmentKey: "Set by REACTOR_API_KEY",
-    invalidChecks: "ComfyUI returned invalid model check settings.",
     invalidDefinition: "ComfyUI returned an invalid Reactor setting definition.",
     invalidLimit: "ComfyUI returned an invalid Reactor limit.",
     invalidResponse: "ComfyUI returned an invalid Reactor settings response.",
@@ -143,12 +97,9 @@ var TEXT = {
     limitsSaved: "Limits saved.",
     reread: "Settings loaded.",
     reading: "Loading settings...",
-    modelUpdates: "Model updates",
-    noCheckChanges: "No model check changes to save.",
     noLimitChanges: "No limit changes to save.",
     readOnly: "Changes are disabled in this host's multi-user mode.",
     reload: "Reload Settings",
-    saveChecks: "Save Model Check Settings",
     saveFailed: "ComfyUI could not save Reactor settings.",
     saveKey: "Save Key",
     saveLimits: "Save Limits",
@@ -180,7 +131,7 @@ function message(key, values = {}) {
   return String(value).replaceAll(/\{(\w+)\}/g, (placeholder, name) => {
     if (!Object.hasOwn(values, name)) return placeholder;
     const inserted = values[name];
-    return typeof inserted === "number" ? formatNumber(inserted) : String(inserted);
+    return typeof inserted === "number" ? new Intl.NumberFormat(selectedLocale()).format(inserted) : String(inserted);
   });
 }
 function setText(target, content) {
@@ -193,12 +144,6 @@ function selectedLocale() {
   } catch {
     return "en";
   }
-}
-function formatNumber(value, options) {
-  return new Intl.NumberFormat(selectedLocale(), options).format(value);
-}
-function formatDate(value) {
-  return new Date(value).toLocaleString(selectedLocale());
 }
 
 // web/scripts/extension.ts
@@ -232,11 +177,6 @@ var browserRoutes = {
     values: "/reactor-inc/v1/settings",
     credential: "/reactor-inc/v1/credential"
   },
-  models: {
-    read: "/reactor-inc/v1/catalog",
-    refresh: "/reactor-inc/v1/catalog/refresh",
-    rollback: "/reactor-inc/v1/catalog/rollback"
-  },
   live: {
     exchange: "/reactor-inc/v1/live/exchange",
     action: "/reactor-inc/v1/live/action",
@@ -247,19 +187,13 @@ var browserRoutes = {
 // web/scripts/browser.ts
 var browserLimits = {
   requestTimeoutMilliseconds: 1e4,
-  discoveryTimeoutMilliseconds: 3e4,
   pollIntervalMilliseconds: 100,
   actionTimeoutMilliseconds: 2e3,
   inputNudgeMilliseconds: 250,
   maxPendingInputs: 8,
   maxPreviewCharacters: 35e4,
-  minCalculatorSeconds: 0.1,
-  maxCalculatorSeconds: 3600,
   maxTextCharacters: 200,
-  maxErrorCharacters: 1024,
-  maxRetrievalTimeCharacters: 40,
-  maxModelNodeIds: 100,
-  maxModels: 1024
+  maxErrorCharacters: 1024
 };
 var browserInput = {
   pointerCenter: 0.5,
@@ -277,8 +211,6 @@ var browserPatterns = {
   revision: /^[a-f0-9]{64}$/,
   preview: /^[A-Za-z0-9+/]*={0,2}$/,
   capability: /^[A-Za-z0-9_-]{43}$/,
-  documentation: /^https:\/\/docs\.reactor\.inc\/model-api-reference\/[a-z0-9._-]+\/overview$/,
-  nodeId: /^ReactorInc[A-Za-z0-9]+$/,
   settingName: /^[a-z][a-z_]+$/
 };
 
@@ -906,28 +838,6 @@ function boolean(message$1) {
       if (typeof dataset.value === "boolean") dataset.typed = true;
       else _addIssue(this, "type", dataset, config$1);
       return dataset;
-    }
-  });
-}
-// @__NO_SIDE_EFFECTS__
-function nullable(wrapped, default_) {
-  return _standardSchema({
-    kind: "schema",
-    type: "nullable",
-    reference: nullable,
-    expects: `(${wrapped.expects} | null)`,
-    async: false,
-    wrapped,
-    default: default_,
-    "~run"(dataset, config$1) {
-      if (dataset.value === null) {
-        if (this.default !== void 0) dataset.value = /* @__PURE__ */ getDefault(this, dataset, config$1);
-        if (dataset.value === null) {
-          dataset.typed = true;
-          return dataset;
-        }
-      }
-      return this.wrapped["~run"](dataset, config$1);
     }
   });
 }
@@ -2076,9 +1986,9 @@ var ControlPanel = class {
       await this.sendControls();
       return reply;
     } catch (error) {
-      const current3 = await this.refresh();
-      if (!current3.closed && !current3.finishing) throw error;
-      return current3;
+      const current2 = await this.refresh();
+      if (!current2.closed && !current2.finishing) throw error;
+      return current2;
     }
   }
   /**
@@ -2151,378 +2061,6 @@ function openControls(value, fetcher) {
     panel?.dispose();
     throw error;
   }
-}
-
-// web/scripts/discovery/pricing.ts
-function formatCreditSummary(model, seconds) {
-  const rate = model.creditsPerSecond;
-  if (rate === null) return [message("pricing.rateUnavailable")];
-  const summary = [message("pricing.rate", { rate })];
-  if (!model.observed) {
-    summary.push(message("pricing.rateOutdated"));
-  } else if (seconds !== void 0) {
-    summary.push(
-      message("pricing.calculation", {
-        seconds,
-        rate,
-        credits: formatNumber(rate * seconds, { maximumFractionDigits: 2 })
-      })
-    );
-  }
-  return summary;
-}
-
-// web/scripts/discovery/row.ts
-function buildModelRow(model, seconds) {
-  const row = element("li");
-  row.append(element("h3", model.title), element("code", model.modelSlug));
-  const support = model.support === "available" ? message("models.nodesAvailable") : message("models.nodeUnavailable");
-  row.append(element("p", support));
-  if (model.connectionName)
-    row.append(element("p", message("models.connectName", { name: model.connectionName })));
-  for (const detail of formatCreditSummary(model, seconds)) row.append(element("p", detail));
-  if (model.documentationUrl) {
-    const link = element("a", message("models.openGuide"));
-    link.href = model.documentationUrl;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    row.append(link);
-  } else row.append(element("p", message("models.guideUnavailable")));
-  return row;
-}
-
-// web/scripts/discovery/schema.ts
-var shortTextSchema = pipe(
-  string(),
-  minLength(1),
-  maxLength(browserLimits.maxTextCharacters)
-);
-var retrievalTimeSchema = nullable(
-  pipe(
-    string(),
-    minLength(1),
-    maxLength(browserLimits.maxRetrievalTimeCharacters),
-    check((value) => Number.isFinite(Date.parse(value)))
-  )
-);
-var modelSchema = pipe(
-  object({
-    key: shortTextSchema,
-    name: shortTextSchema,
-    title: shortTextSchema,
-    connect_name: nullable(shortTextSchema),
-    documentation_url: nullable(pipe(string(), regex(browserPatterns.documentation))),
-    credits_per_second: nullable(pipe(number(), finite(), minValue(0))),
-    observed: boolean(),
-    support: picklist(["available", "adapter_required"]),
-    node_ids: pipe(
-      array(pipe(string(), regex(browserPatterns.nodeId))),
-      maxLength(browserLimits.maxModelNodeIds)
-    )
-  }),
-  transform((model) => {
-    return {
-      entryKey: model.key,
-      modelSlug: model.name,
-      title: model.title,
-      connectionName: model.connect_name,
-      documentationUrl: model.documentation_url,
-      creditsPerSecond: model.credits_per_second,
-      observed: model.observed,
-      support: model.support,
-      nodeIds: model.node_ids
-    };
-  })
-);
-var automaticCheckSchema = pipe(
-  object({
-    enabled: boolean(),
-    running: boolean(),
-    checked_at: retrievalTimeSchema,
-    update_available: nullable(boolean()),
-    error: nullable(
-      pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters))
-    )
-  }),
-  transform((check2) => {
-    return {
-      checkedAt: check2.checked_at,
-      updateAvailable: check2.update_available,
-      error: check2.error,
-      enabled: check2.enabled,
-      running: check2.running
-    };
-  })
-);
-var modelListSchema = pipe(
-  object({
-    revision: pipe(string(), regex(browserPatterns.revision)),
-    retrieved_at: retrievalTimeSchema,
-    models: pipe(array(modelSchema), minLength(1), maxLength(browserLimits.maxModels)),
-    can_rollback: boolean(),
-    mutation_allowed: boolean(),
-    automatic_check: optional(automaticCheckSchema)
-  }),
-  check((document2) => {
-    const keys = /* @__PURE__ */ new Set();
-    for (const model of document2.models) {
-      if (keys.has(model.entryKey)) return false;
-      keys.add(model.entryKey);
-    }
-    return true;
-  }),
-  transform((document2) => {
-    return {
-      revision: document2.revision,
-      retrievedAt: document2.retrieved_at,
-      canRollback: document2.can_rollback,
-      mutationAllowed: document2.mutation_allowed,
-      models: document2.models,
-      ...document2.automatic_check === void 0 ? {} : { automaticCheck: document2.automatic_check }
-    };
-  })
-);
-function parseModelList(value) {
-  const result = safeParse(modelListSchema, value);
-  if (!result.success) throw new Error(message("models.invalidResponse"));
-  return result.output;
-}
-
-// web/scripts/discovery/api.ts
-function modelRoute(action) {
-  if (action === "read") return browserRoutes.models.read;
-  if (action === "refresh") return browserRoutes.models.refresh;
-  return browserRoutes.models.rollback;
-}
-function metadataStatus(retrievedAt) {
-  if (retrievedAt === null) return message("models.installedList");
-  return message("models.lastRefresh", { date: formatDate(retrievedAt) });
-}
-async function requestModels(fetcher, signal, action, revision) {
-  const options = {
-    method: action === "read" ? "GET" : "POST",
-    cache: "no-store",
-    credentials: "same-origin",
-    signal: AbortSignal.any([
-      signal,
-      AbortSignal.timeout(browserLimits.discoveryTimeoutMilliseconds)
-    ]),
-    headers: { "Content-Type": "application/json", "X-Reactor-Comfy": "1" }
-  };
-  if (action === "rollback") options.body = JSON.stringify({ revision });
-  let response;
-  try {
-    response = await fetcher(modelRoute(action), options);
-  } catch {
-    throw new Error(message("models.unreachable"));
-  }
-  let body;
-  try {
-    body = await response.json();
-  } catch {
-    throw new Error(message("models.invalidResponse"));
-  }
-  if (!response.ok) {
-    throw new Error(parsePublicError(body) ?? message("models.requestFailed"));
-  }
-  return parseModelList(body);
-}
-
-// web/scripts/discovery/dialog.ts
-var current;
-function automaticStatus(check2) {
-  if (!check2) return "";
-  if (!check2.enabled) return message("models.checksOff");
-  if (check2.running) return message("models.checkRunning");
-  if (check2.error) return check2.error;
-  if (check2.updateAvailable === true) return message("models.listChanged");
-  if (check2.checkedAt)
-    return message("models.checkSchedule", { date: formatDate(check2.checkedAt) });
-  return message("models.checkDue");
-}
-var ModelDialog = class {
-  /**
-   * Build the searchable model browser.
-   * @param fetcher - ComfyUI's local API client.
-   */
-  constructor(fetcher) {
-    this.fetcher = fetcher;
-    this.dialog.className = "reactor-dialog reactor-models";
-    this.dialog.setAttribute("aria-labelledby", "reactor-models-title");
-    const heading = element("h2", message("models.title"));
-    heading.id = "reactor-models-title";
-    const close = button(message("close"));
-    close.setAttribute("aria-label", message("models.close"));
-    close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
-    const header = element("header");
-    header.append(heading, close);
-    const searchLabel = element("label", message("models.search"));
-    this.search.type = "search";
-    this.search.setAttribute("placeholder", message("models.searchPlaceholder"));
-    searchLabel.append(this.search);
-    this.status.setAttribute("role", "status");
-    this.status.setAttribute("aria-live", "polite");
-    this.list.setAttribute("aria-label", message("models.title"));
-    const sources = element("details");
-    sources.append(element("summary", message("models.sources")), this.checked, this.automatic);
-    this.dialog.append(
-      header,
-      this.actions(),
-      this.status,
-      searchLabel,
-      this.count,
-      this.calculation(),
-      sources,
-      this.list
-    );
-    this.search.addEventListener("input", this.updateView.bind(this));
-    this.duration.addEventListener("input", this.updateView.bind(this));
-    this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
-  }
-  fetcher;
-  dialog = element("dialog");
-  previousFocus = document.activeElement;
-  controller = new AbortController();
-  search = element("input");
-  duration = element("input");
-  refresh = button(message("models.refresh"));
-  rollback = button(message("models.restore"));
-  status = element("p", message("models.readingLocal"));
-  checked = element("p");
-  automatic = element("p");
-  count = element("p");
-  list = element("ul");
-  modelList;
-  /**
-   * Build actions to refresh or restore the model list.
-   * @returns The model browser actions.
-   */
-  actions() {
-    this.refresh.disabled = this.rollback.disabled = true;
-    this.refresh.addEventListener("click", this.updateModels.bind(this, "refresh"));
-    this.rollback.addEventListener("click", this.updateModels.bind(this, "rollback"));
-    const actions = element("div");
-    actions.className = "reactor-actions";
-    actions.append(this.refresh, this.rollback);
-    return actions;
-  }
-  /**
-   * Build the optional session time calculation.
-   * @returns The collapsed calculation controls.
-   */
-  calculation() {
-    const label = element("label", message("pricing.sessionTime"));
-    this.duration.type = "number";
-    this.duration.min = String(browserLimits.minCalculatorSeconds);
-    this.duration.max = String(browserLimits.maxCalculatorSeconds);
-    this.duration.step = "any";
-    this.duration.setAttribute("placeholder", message("pricing.enterTime"));
-    label.append(this.duration);
-    const calculation = element("details");
-    calculation.append(
-      element("summary", message("pricing.calculate")),
-      label,
-      element("p", message("pricing.totalTimeNotice"))
-    );
-    return calculation;
-  }
-  /** Update matching models and calculations from the current controls. */
-  updateView() {
-    const query = this.search.value.trim().toLowerCase();
-    const seconds = this.duration.validity.valid && this.duration.value !== "" ? this.duration.valueAsNumber : void 0;
-    const rows = document.createDocumentFragment();
-    for (const model of this.modelList?.models ?? []) {
-      const label = `${model.modelSlug} ${model.title} ${model.connectionName ?? ""}`;
-      if (label.toLowerCase().includes(query)) rows.appendChild(buildModelRow(model, seconds));
-    }
-    const visible = rows.childElementCount;
-    this.list.replaceChildren();
-    this.list.appendChild(rows);
-    setText(
-      this.count,
-      message("models.count", {
-        visible,
-        total: this.modelList?.models.length ?? 0
-      })
-    );
-  }
-  /**
-   * Read or update the locally stored model list.
-   * @param action - Read, refresh from public sources, or restore the previous list.
-   */
-  updateModels(action) {
-    this.refresh.disabled = this.rollback.disabled = true;
-    setText(
-      this.status,
-      action === "refresh" ? message("models.checking") : message("models.reading")
-    );
-    void this.requestModels(action);
-  }
-  /**
-   * Apply a model-list response while the dialog is open.
-   * @param action - The requested list operation.
-   * @returns When the request and action cleanup finish.
-   */
-  async requestModels(action) {
-    try {
-      const next = await requestModels(
-        this.fetcher,
-        this.controller.signal,
-        action,
-        this.modelList?.revision
-      );
-      if (this.controller.signal.aborted) return;
-      this.displayModels(next, action);
-    } catch (error) {
-      if (!this.controller.signal.aborted)
-        setText(this.status, error instanceof Error ? error.message : message("models.readFailed"));
-    } finally {
-      this.restoreActions();
-    }
-  }
-  /**
-   * Display a model list and the outcome of its requested operation.
-   * @param next - The validated local model list.
-   * @param action - The completed list operation.
-   */
-  displayModels(next, action) {
-    this.modelList = next;
-    setText(this.checked, metadataStatus(next.retrievedAt));
-    setText(this.automatic, automaticStatus(next.automaticCheck));
-    let status = message("models.reread");
-    if (action === "refresh") status = message("models.refreshed");
-    if (action === "rollback") status = message("models.restored");
-    setText(this.status, status);
-    this.updateView();
-  }
-  /** Re-enable allowed list changes after the current request finishes. */
-  restoreActions() {
-    if (this.controller.signal.aborted) return;
-    this.refresh.disabled = !this.modelList?.mutationAllowed;
-    this.rollback.disabled = !this.modelList?.mutationAllowed || !this.modelList.canRollback;
-  }
-  /** Show the dialog and read the local model list. */
-  show() {
-    document.body.append(this.dialog);
-    this.dialog.showModal();
-    this.updateModels("read");
-  }
-  /** Stop pending requests and return focus to the caller. */
-  dispose() {
-    this.controller.abort();
-    this.dialog.remove();
-    if (current === this) current = void 0;
-    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
-      this.previousFocus.focus();
-  }
-};
-function openModels(fetcher) {
-  if (current?.dialog.open) {
-    current.dialog.focus();
-    return;
-  }
-  current = new ModelDialog(fetcher);
-  current.show();
 }
 
 // web/scripts/live/state.ts
@@ -2868,7 +2406,6 @@ var configurationDocumentSchema = object({
   settings: unknownRecordSchema,
   credential_limit: unknown()
 });
-var checkSettingsSchema = object({ catalog_auto_check: boolean() });
 var credentialLimitSchema = pipe(number(), safeInteger(), minValue(1));
 function parseDefinitions(value) {
   const document2 = safeParse(unknownRecordSchema, value);
@@ -2889,11 +2426,8 @@ function parseConfiguration(value) {
   if (!result.success) throw new Error(message("settings.invalidResponse"));
   const document2 = result.output;
   const definitions = parseDefinitions(document2.integer_settings);
-  const checkSettings = safeParse(checkSettingsSchema, document2.settings);
   const credentialLimit = safeParse(credentialLimitSchema, document2.credential_limit);
-  if (!checkSettings.success || !credentialLimit.success) {
-    throw new Error(message("settings.invalidChecks"));
-  }
+  if (!credentialLimit.success) throw new Error(message("settings.invalidResponse"));
   const settings = new Map(Object.entries(document2.settings));
   for (const [name, definition] of Object.entries(definitions)) {
     const setting = safeParse(
@@ -2955,7 +2489,7 @@ async function requestConfiguration(fetcher, signal, route = browserRoutes.setti
 }
 
 // web/scripts/settings/dialog.ts
-var current2;
+var current;
 var SettingsDialog = class {
   /**
    * Build settings forms without contacting Reactor.
@@ -2982,7 +2516,6 @@ var SettingsDialog = class {
       this.credentials(),
       element("p", message("settings.keyNotice")),
       this.limits(),
-      this.modelUpdates(),
       footer
     );
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
@@ -2996,8 +2529,6 @@ var SettingsDialog = class {
   key = element("input");
   keyFields = element("fieldset");
   limitFields = element("fieldset");
-  modelCheckFields = element("fieldset");
-  automatic = element("input");
   inputs = /* @__PURE__ */ new Map();
   configuration;
   /**
@@ -3093,43 +2624,6 @@ var SettingsDialog = class {
     });
   }
   /**
-   * Build the controls for checking public model sources.
-   * @returns The automatic model check form.
-   */
-  modelUpdates() {
-    const form = element("form");
-    this.modelCheckFields.disabled = true;
-    const automaticLabel = element("label", message("settings.automaticChecks"));
-    this.automatic.type = "checkbox";
-    automaticLabel.prepend(this.automatic);
-    this.modelCheckFields.append(
-      element("legend", message("settings.modelUpdates")),
-      automaticLabel,
-      button(message("settings.saveChecks"), "submit")
-    );
-    form.append(this.modelCheckFields);
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (this.configuration && form.reportValidity()) this.saveModelUpdates(this.configuration);
-    });
-    return form;
-  }
-  /**
-   * Save automatic checks without changing the displayed model list.
-   * @param configuration - The settings and revision currently shown.
-   */
-  saveModelUpdates(configuration) {
-    const settings = { catalog_auto_check: this.automatic.checked };
-    if (settings.catalog_auto_check === configuration.settings.catalog_auto_check) {
-      setText(this.status, message("settings.noCheckChanges"));
-      return;
-    }
-    this.updateSettings(message("settings.checksSaved"), browserRoutes.settings.values, "PATCH", {
-      revision: configuration.revision,
-      settings
-    });
-  }
-  /**
    * Show validated settings and apply the server's editing policy.
    * @param configuration - The last successful server response.
    */
@@ -3142,7 +2636,6 @@ var SettingsDialog = class {
       saved: message("settings.savedKey"),
       environment: message("settings.environmentKey")
     }[configuration.credentialSource];
-    this.automatic.checked = configuration.settings.catalog_auto_check;
     const settings = new Map(Object.entries(configuration.settings));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
       const input = this.inputs.get(name);
@@ -3162,7 +2655,7 @@ var SettingsDialog = class {
    */
   updateSettings(success, route, method, body) {
     if (route === browserRoutes.settings.credential) this.key.value = "";
-    this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = true;
+    this.keyFields.disabled = this.limitFields.disabled = true;
     this.reload.disabled = true;
     setText(this.status, message("working"));
     void this.requestSettings(success, route, method, body);
@@ -3195,7 +2688,7 @@ var SettingsDialog = class {
         );
     } finally {
       if (!this.controller.signal.aborted) {
-        this.keyFields.disabled = this.limitFields.disabled = this.modelCheckFields.disabled = !this.configuration?.mutationAllowed;
+        this.keyFields.disabled = this.limitFields.disabled = !this.configuration?.mutationAllowed;
         this.reload.disabled = false;
       }
     }
@@ -3211,18 +2704,18 @@ var SettingsDialog = class {
     this.key.value = "";
     this.controller.abort();
     this.dialog.remove();
-    if (current2 === this) current2 = void 0;
+    if (current === this) current = void 0;
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected)
       this.previousFocus.focus();
   }
 };
 function openSettings(fetcher) {
-  if (current2?.dialog.open) {
-    current2.dialog.focus();
+  if (current?.dialog.open) {
+    current.dialog.focus();
     return;
   }
-  current2 = new SettingsDialog(fetcher);
-  current2.show();
+  current = new SettingsDialog(fetcher);
+  current.show();
 }
 
 // web/scripts/extension.ts
@@ -3251,17 +2744,12 @@ app2.registerExtension({
       id: "ReactorInc.OpenSettings",
       label: message("settings.menu"),
       function: openSettings.bind(null, requestLocal)
-    },
-    {
-      id: "ReactorInc.OpenCatalog",
-      label: message("models.menu"),
-      function: openModels.bind(null, requestLocal)
     }
   ],
   menuCommands: [
     {
       path: ["Extensions", "Reactor"],
-      commands: ["ReactorInc.OpenSettings", "ReactorInc.OpenCatalog"]
+      commands: ["ReactorInc.OpenSettings"]
     }
   ]
 });

@@ -10,7 +10,7 @@ export type Configuration = {
   credentialLimit: number;
   mutationAllowed: boolean;
   definitions: Record<string, SettingDefinition>;
-  settings: Record<string, number | boolean> & { catalog_auto_check: boolean };
+  settings: Record<string, number>;
 };
 
 const unknownRecordSchema = v.record(v.string(), v.unknown());
@@ -33,7 +33,6 @@ const configurationDocumentSchema = v.object({
   credential_limit: v.unknown(),
 });
 
-const checkSettingsSchema = v.object({ catalog_auto_check: v.boolean() });
 const credentialLimitSchema = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
 
 /**
@@ -70,11 +69,8 @@ export function parseConfiguration(value: unknown): Configuration {
   if (!result.success) throw new Error(message('settings.invalidResponse'));
   const document = result.output;
   const definitions = parseDefinitions(document.integer_settings);
-  const checkSettings = v.safeParse(checkSettingsSchema, document.settings);
   const credentialLimit = v.safeParse(credentialLimitSchema, document.credential_limit);
-  if (!checkSettings.success || !credentialLimit.success) {
-    throw new Error(message('settings.invalidChecks'));
-  }
+  if (!credentialLimit.success) throw new Error(message('settings.invalidResponse'));
   const settings = new Map(Object.entries(document.settings));
   for (const [name, definition] of Object.entries(definitions)) {
     const setting = v.safeParse(

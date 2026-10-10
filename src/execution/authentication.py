@@ -8,7 +8,7 @@ from http import HTTPStatus
 from ..errors import ErrorCode, ConnectorError
 from ..serialization import parse_json, mapping_value
 from ..state.credentials import Credential, SessionToken
-from ..config.messages.discovery import MODEL_AUTHORIZATION
+from ..config.messages.session import MODEL_AUTHORIZATION
 from ..config.security import (
     JWT_PATTERN_TEXT,
     SESSION_ENDPOINT,

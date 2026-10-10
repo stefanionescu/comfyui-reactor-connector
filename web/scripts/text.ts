@@ -80,65 +80,18 @@ const TEXT = {
     sceneTitle: '{model}: Scene Controls (Reactor)',
     editPrompt: 'Edit Prompt',
   },
-  models: {
-    checkDue: 'An automatic model check is due.',
-    checkRunning: 'An automatic model check is running. Reopen this list to see its result.',
-    checkSchedule: 'Last automatic check: {date}.',
-    checking: 'Checking public model sources...',
-    checksOff: 'Automatic model checks are off. Change this in Reactor settings.',
-    close: 'Close Reactor models',
-    connectName: 'Model ID: {name}',
-    count: '{visible} of {total} models',
-    guideUnavailable: 'No matching public guide was found.',
-    installedList: 'Showing installed nodes. Refresh Models to load public prices and guides.',
-    invalidResponse: 'ComfyUI returned an invalid Reactor model list.',
-    lastRefresh: 'Public prices and guides checked {date}.',
-    listChanged: 'The model list has changed. Select Refresh Models to update your list.',
-    readFailed: 'Cannot load models.',
-    reread: 'Local model list loaded.',
-    reading: 'Loading model list...',
-    readingLocal: 'Loading the local model list...',
-    nodeUnavailable: 'No connector node available.',
-    nodesAvailable: 'Nodes available.',
-    openGuide: 'Reactor model guide (opens in a new tab)',
-    refresh: 'Refresh Models',
-    refreshed: 'Model list refreshed.',
-    requestFailed: 'The model list request failed.',
-    restore: 'Restore Previous List',
-    restored: 'Previous model list restored.',
-    search: 'Search models',
-    searchPlaceholder: 'Model name or ID',
-    sources: 'Model sources and automatic checks',
-    title: 'Reactor Models',
-    unreachable: 'Cannot reach the Reactor model list. Check ComfyUI and try again.',
-    menu: 'Reactor models',
-  },
   pointer: {
     held: 'Pointer held.',
     position: ' {x}% across, {y}% down.',
     released: 'Pointer released.',
     stopped: 'Pointer controls stopped.',
   },
-  pricing: {
-    calculate: 'Calculate credits for session time',
-    calculation: '{seconds} session seconds × {rate} credits per second = {credits} credits.',
-    enterTime: 'Enter session time',
-    rate: '{rate} credits per session second.',
-    rateOutdated:
-      'This rate was not found in the latest source check. Refresh Reactor models before relying on a calculation.',
-    rateUnavailable: 'A current rate is not available. Refresh Reactor models to check for a rate.',
-    sessionTime: 'session time to calculate (seconds)',
-    totalTimeNotice: 'Use total session time, including setup and recording.',
-  },
   settings: {
-    automaticChecks: 'Check for model updates automatically',
-    checksSaved: 'Model check settings saved.',
     clearKey: 'Clear Saved Key',
     close: 'Close Reactor settings',
     credentialLabel: 'Reactor API key',
     credentials: 'Credentials',
     environmentKey: 'Set by REACTOR_API_KEY',
-    invalidChecks: 'ComfyUI returned invalid model check settings.',
     invalidDefinition: 'ComfyUI returned an invalid Reactor setting definition.',
     invalidLimit: 'ComfyUI returned an invalid Reactor limit.',
     invalidResponse: 'ComfyUI returned an invalid Reactor settings response.',
@@ -150,12 +103,9 @@ const TEXT = {
     limitsSaved: 'Limits saved.',
     reread: 'Settings loaded.',
     reading: 'Loading settings...',
-    modelUpdates: 'Model updates',
-    noCheckChanges: 'No model check changes to save.',
     noLimitChanges: 'No limit changes to save.',
     readOnly: "Changes are disabled in this host's multi-user mode.",
     reload: 'Reload Settings',
-    saveChecks: 'Save Model Check Settings',
     saveFailed: 'ComfyUI could not save Reactor settings.',
     saveKey: 'Save Key',
     saveLimits: 'Save Limits',
@@ -207,7 +157,9 @@ export function message(key: MessageKey, values: MessageValues = {}): string {
     if (!Object.hasOwn(values, name)) return placeholder;
     // eslint-disable-next-line security/detect-object-injection -- Interpolation reads an own property of the caller's display values and inserts it as plain text.
     const inserted = values[name];
-    return typeof inserted === 'number' ? formatNumber(inserted) : String(inserted);
+    return typeof inserted === 'number'
+      ? new Intl.NumberFormat(selectedLocale()).format(inserted)
+      : String(inserted);
   });
 }
 
@@ -236,23 +188,4 @@ export function selectedLocale(): string {
   } catch {
     return 'en';
   }
-}
-
-/**
- * Format display numbers without changing serialized values.
- * @param value - The number to display.
- * @param options - Precision and other display options.
- * @returns The number in the selected ComfyUI locale.
- */
-export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
-  return new Intl.NumberFormat(selectedLocale(), options).format(value);
-}
-
-/**
- * Format a server timestamp for the selected ComfyUI locale.
- * @param value - A validated timestamp.
- * @returns The local date and time.
- */
-export function formatDate(value: string): string {
-  return new Date(value).toLocaleString(selectedLocale());
 }

@@ -42,7 +42,7 @@ with the `camera` video input. A deployment without that input cannot run it.
 If the session end is unconfirmed, wait for its stated time limit before trying
 again. Correct the reported error before starting another session.
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

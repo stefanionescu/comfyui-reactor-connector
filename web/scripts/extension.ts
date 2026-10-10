@@ -4,7 +4,6 @@ import { api } from '../../scripts/api.js';
 import { app } from '../../scripts/app.js';
 import { requestLocal } from '#web/http.ts';
 import { openControls } from '#web/live/controls.ts';
-import { openModels } from '#web/discovery/dialog.ts';
 import { openSceneControls } from '#web/live/scene.ts';
 import { openSettings } from '#web/settings/dialog.ts';
 
@@ -37,16 +36,11 @@ app.registerExtension({
       label: message('settings.menu'),
       function: openSettings.bind(null, requestLocal),
     },
-    {
-      id: 'ReactorInc.OpenCatalog',
-      label: message('models.menu'),
-      function: openModels.bind(null, requestLocal),
-    },
   ],
   menuCommands: [
     {
       path: ['Extensions', 'Reactor'],
-      commands: ['ReactorInc.OpenSettings', 'ReactorInc.OpenCatalog'],
+      commands: ['ReactorInc.OpenSettings'],
     },
   ],
 });

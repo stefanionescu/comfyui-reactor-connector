@@ -2,8 +2,6 @@
 
 SETTINGS_PREFIX = "/reactor-inc/v1"
 
-MODELS_PREFIX = "/reactor-inc/v1/catalog"
-
 MAX_JSON_BYTES = 1_048_576
 
 MAX_JSON_DEPTH = 16

@@ -15,7 +15,6 @@ in ComfyUI. Models run on Reactor; no model weights are downloaded.
 - [Make your first video](#make-your-first-video)
 - [Choose a workflow](#choose-a-workflow)
 - [Nodes](#nodes)
-- [Find and refresh models](#find-and-refresh-models)
 - [Fix a setup problem](#fix-a-setup-problem)
 - [License](#license)
 
@@ -265,22 +264,6 @@ In your own graph, connect **video** to **Save Video**. Models with sound also
 return a separate **audio** output. Generation nodes also return [Recording details](ADVANCED.md#recording-details),
 which describes the saved file and its model. Prompt and shot builders work
 locally without contacting Reactor. HappyOyster is not supported.
-
-## Find and refresh models
-
-Models supported by the installed nodes appear before the first refresh.
-Refresh the list to load public prices and guides.
-
-Open **Extensions → Reactor → Reactor models** to search the list and select
-**Refresh Models** for the latest public prices and guides.
-
-**Refreshing the list does not install new nodes.** A model can run only when the
-connector includes code and nodes that support it. Entries show whether nodes
-are available. Your Reactor account determines access to each provider model.
-
-Reactor settings can enable automatic checks. They report changes; select
-**Refresh Models** to save the updated list. See [model updates](ADVANCED.md#model-updates)
-for how checks work and how to restore a previous list.
 
 ## Fix a setup problem
 

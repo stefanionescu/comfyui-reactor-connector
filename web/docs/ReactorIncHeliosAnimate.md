@@ -69,7 +69,7 @@ browser connection ends the live session and discards the unfinished video.
 The preview has no sound. Prompt changes are sent to Reactor but are not saved
 in **recording details**.
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

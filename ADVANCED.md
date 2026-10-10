@@ -1,6 +1,6 @@
 # ComfyUI Reactor Connector: Advanced Guide
 
-Use this guide for settings, live controls, model updates, and recovery. For
+Use this guide for settings, live controls, and recovery. For
 installation and your first run, see [the setup guide](README.md). Each node's
 native **Info** explains its inputs and model-specific limits.
 
@@ -8,8 +8,6 @@ native **Info** explains its inputs and model-specific limits.
 
 - [Keys and access](#keys-and-access)
 - [Session limits](#session-limits)
-- [Credit rates](#credit-rates)
-- [Model updates](#model-updates)
 - [Live controls](#live-controls)
 - [Recording details](#recording-details)
 - [Recording overhead](#recording-overhead)
@@ -25,7 +23,7 @@ Add your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**
 stays on your ComfyUI server and is sent only to Reactor; it is never returned to
 the window or written into a workflow.
 
-![The Reactor Settings dialog: the API key field with Save Key and Clear Saved Key, the maximum session duration and maximum upload size, and the automatic model check switch.](docs/images/settings-dialog.png)
+![The Reactor Settings dialog: the API key field with Save Key and Clear Saved Key, and the maximum session duration and maximum upload size.](docs/images/settings-dialog.png)
 
 `REACTOR_API_KEY` in the ComfyUI server environment takes precedence over a saved
 key. Change it where ComfyUI is launched, then restart ComfyUI.
@@ -54,69 +52,22 @@ not encrypted; other code running as the same operating-system user can read the
 included, so it must be longer than the video. **maximum upload size (MiB)**
 limits each image or video sent. One MiB is 1,048,576 bytes.
 
+Reactor bills each session by the second, setup included. See Reactor's
+[Pricing & Billing](https://docs.reactor.inc/resources/billing) for current rates.
+
 The connector runs one session at a time. Other runs wait up to 120 seconds.
 You can cancel while waiting, before connection.
 A rejected command or uncertain connection is not retried automatically.
 
 New runs use saved settings. A running session keeps its original key and limits.
 Changing the effective key or execution limits prevents reuse of an earlier
-ComfyUI result on the next run.
-Model-update settings do not affect reuse of saved results. Change **run number** to
-request a new run with otherwise unchanged inputs. A seed does not guarantee
+ComfyUI result on the next run. Change **run number** to request a new run with
+otherwise unchanged inputs. A seed does not guarantee
 identical results after a provider update.
 
 If another window saves settings first, reload before making your changes again.
 Invalid settings leave the previous file intact. Saving settings does not cancel
 active work or remove saved media.
-
-## Credit rates
-
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** for public rates.
-Expand **Calculate credits for session time** to multiply a rate by a chosen
-session time. Setup and recording preparation can add time beyond the video
-length. The calculation is not a quote or spending limit; refer to Reactor for
-actual charges. A missing or unconfirmed rate produces no calculation.
-
-Refresh the model list for current prices. **Model sources and automatic checks**
-shows when rates were checked.
-
-## Model updates
-
-Open **ComfyUI menu → Extensions → Reactor → Reactor models** to search the
-included list or your last saved list. Opening the dialog reads local information.
-Each entry shows its last checked rate, any available guide, and node support.
-
-Models supported by the installed nodes appear before the first refresh. Refresh the list to load public
-prices and metadata. Saved metadata stays in Reactor's private application-data folder on the ComfyUI server.
-
-**Refresh Models** reads Reactor's public prices and model guides. Entries come from
-published prices or guides; your account determines which models you can run.
-
-| Status                                              | Meaning                                                                                                            |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Nodes available                                     | This connector includes nodes for the model.                                                                       |
-| No connector node available                         | The model cannot run through this connector.                                                                       |
-| This rate was not found in the latest source check. | The earlier entry was retained. Its old rate is not a current quote. Absence does not prove the model was removed. |
-
-Refreshing does not add nodes, change their connections, or change active
-workflows. New models need support in the connector before they can run.
-
-A failed refresh leaves the current list intact. **Restore Previous List** restores
-the list saved before the latest refresh. Both actions keep your search text.
-Only the local ComfyUI user can change the list.
-
-### Automatic checks
-
-Under **Reactor settings → Model updates**, turn automatic checks on or off.
-When on, the connector checks at startup and every 24 hours while ComfyUI runs.
-Changes take effect within one minute; an active check can take up to 25 seconds
-to finish.
-
-Checks use the same public sources as refresh. They report changes without
-replacing the saved list. Expand **Model sources and automatic checks** in the
-model dialog, then select **Refresh Models** to save the checked list. Reopen the
-dialog to see a check that finished after you opened it. Failed checks keep the
-list and retry 24 hours later. Closing ComfyUI stops checking.
 
 ## Live controls
 
@@ -272,7 +223,6 @@ Read the error and the node's native **Info** before trying again. Pausing a vid
 | Video did not arrive in time | Check [Reactor status](https://status.reactor.inc/) and the session limit before retrying.       |
 | Recording cannot be saved    | Check disk space and media limits. Some models also need Reactor's recording service.            |
 | Session end is unconfirmed   | Wait for the configured session limit; do not repeatedly queue or clear wait records.            |
-| Model refresh fails          | Keep the current list and retry the public-source refresh later.                                 |
 | A live panel expires         | Let cleanup finish before running again.                                                         |
 | Camera is unavailable        | Allow access, select **Enable Camera**, and release the camera in another application if needed. |
 
@@ -380,8 +330,7 @@ list every task.
 | `mise run repo:security:rules`   | Download and verify the pinned Semgrep rule packs.                                                |
 | `mise run comfy:frontend:build`  | Build the shipped JavaScript and CSS.                                                             |
 | `mise run comfy:workflows:build` | Build the example graphs and workflow index.                                                      |
-| `mise run comfy:models:check`    | Read public prices and guides without saving them.                                                |
-| `mise run comfy:models:validate` | Check node registrations and guides.                                                              |
+| `mise run comfy:nodes:check`     | Check node registrations and guides.                                                              |
 | `mise run comfy:release:package` | Run checks, then build the official node.zip with comfy-cli and inspect it locally.               |
 | `mise run comfy:release:publish` | Check and package the connector, then publish a Registry version with comfy-cli.                  |
 

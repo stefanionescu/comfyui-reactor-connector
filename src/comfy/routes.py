@@ -1,4 +1,4 @@
-"""Register local routes and model discovery with ComfyUI."""
+"""Register local routes with ComfyUI."""
 
 import folder_paths
 from pathlib import Path
@@ -7,9 +7,6 @@ from server import PromptServer
 from ..runtime import get_runtime
 from ..paths import EXTENSION_ROOT
 from ..live.routes import LiveRoutes
-from ..discovery.routes import ModelRoutes
-from ..settings.store import read_settings
-from ..discovery.checker import ModelChecker
 from ..errors import ErrorCode, ConnectorError
 from ..settings.routes import ConfigurationRoutes
 from ..config.messages.settings import PRIVATE_STATE_LOCATION
@@ -34,8 +31,3 @@ def register_configuration() -> None:
         )
     ConfigurationRoutes(store, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
     LiveRoutes(get_runtime().browsers, is_multi_user=args.multi_user).register(PromptServer.instance.routes)
-    checker = ModelChecker(get_runtime().discovery, lambda: read_settings(directory))
-    PromptServer.instance.app.cleanup_ctx.append(checker.lifecycle)
-    ModelRoutes(get_runtime().discovery, is_multi_user=args.multi_user, checker=checker).register(
-        PromptServer.instance.routes
-    )

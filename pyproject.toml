@@ -207,16 +207,10 @@ source_modules = [ "src" ]
 forbidden_modules = [ "scripts", "quality" ]
 
 [[tool.importlinter.contracts]]
-name = "Settings and discovery must not import execution or host nodes"
+name = "Settings must not import execution or host nodes"
 type = "forbidden"
-source_modules = [ "src.settings", "src.discovery" ]
+source_modules = [ "src.settings" ]
 forbidden_modules = [ "src.execution", "src.nodes", "src.comfy" ]
-
-[[tool.importlinter.contracts]]
-name = "Discovery must not import media processing"
-type = "forbidden"
-source_modules = [ "src.discovery" ]
-forbidden_modules = [ "src.media" ]
 
 [[tool.importlinter.contracts]]
 name = "Execution must not import host nodes"
@@ -230,7 +224,6 @@ type = "forbidden"
 source_modules = [ "src.config" ]
 forbidden_modules = [
   "src.comfy",
-  "src.discovery",
   "src.execution",
   "src.http",
   "src.live",

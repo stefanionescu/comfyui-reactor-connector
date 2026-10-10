@@ -113,22 +113,6 @@
             "is_excluded": true
         },
         {
-            "path_regexes": ["^src/state/settings\\.py$"],
-            "languages": ["python"],
-            "categories": ["variables"],
-            "names": ["catalog_interval_hours", "catalog_auto_check"],
-            "allowed_banned_terms": ["catalog"],
-            "reason": "These names are the persisted settings fields exposed by the local configuration API."
-        },
-        {
-            "path_regexes": ["^src/state/discovery\\.py$"],
-            "languages": ["python"],
-            "categories": ["classes"],
-            "names": ["CatalogState"],
-            "allowed_banned_terms": ["catalog"],
-            "reason": "CatalogState stores the current and previous model snapshots for persistence and restoration."
-        },
-        {
             "path_regexes": ["^src/extension\\.py$"],
             "languages": ["python"],
             "categories": ["methods"],

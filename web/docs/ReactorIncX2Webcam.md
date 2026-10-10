@@ -49,7 +49,7 @@ If the session end is unconfirmed, wait for its stated time limit before trying
 again. If camera access fails, check permissions for Comfy Desktop or your
 browser and close other applications using the camera.
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

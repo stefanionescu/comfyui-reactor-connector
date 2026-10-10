@@ -64,7 +64,7 @@ The connector does not retry ambiguous session creation or model commands.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

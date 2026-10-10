@@ -83,7 +83,7 @@ video to hear the result. Sound on/off and resolution stay fixed for the recordi
 Let recording finish to save the result. **End Session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 

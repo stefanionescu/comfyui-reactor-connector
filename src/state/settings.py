@@ -12,13 +12,11 @@ class Settings:
     Attributes:
         max_session_seconds: Maximum remote session lifetime.
         max_upload_megabytes: Maximum source upload size.
-        catalog_auto_check: Whether public metadata checks are enabled.
 
     """
 
     max_session_seconds: int
     max_upload_megabytes: int
-    catalog_auto_check: bool
 
     def to_json(self) -> dict[str, Json]:
         """Return only non-secret settings for the local configuration route."""

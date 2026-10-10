@@ -62,7 +62,7 @@ model updates.
 
 [Reactor Fast H3 schema](https://docs.reactor.inc/model-api-reference/fast-h3/schema)
 
-For current session rates, open **Extensions → Reactor → Reactor models**.
+For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 
 ## Recording details
 
