@@ -1,34 +1,42 @@
-"""Generate Visko Stable video with synchronized audio."""
+"""Generate Visko Stable or Dynamic video with synchronized audio."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from ...media.output import owned_io
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
 from ...state.generation.visko import ViskoRequest
 from ..controls import live_control, generation_controls
-from ...execution.visko.operation import ViskoStableOperation
 from ...comfy.execution import generate_video, wait_for_execution
+from ...execution.visko.operation import ViskoStableOperation, ViskoDynamicOperation
+
+# Both Visko deployments take the same inputs; the model choice selects one.
+OPERATIONS: dict[str, type[ViskoStableOperation]] = {
+    "stable": ViskoStableOperation,
+    "dynamic": ViskoDynamicOperation,
+}
 
 
-class ViskoStableGenerate(VideoNode):
+class ViskoGenerate(VideoNode):
     """Generate video and sound from a prompt and an optional starting image."""
-
-    node_id: ClassVar[str] = "ReactorIncViskoStableGenerate"
-    display_name: ClassVar[str] = "Visko Stable: Generate Video (Reactor)"
-    operation_type: ClassVar[type[ViskoStableOperation]] = ViskoStableOperation
 
     @classmethod
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
-            node_id=cls.node_id,
-            display_name=cls.display_name,
+            node_id="ReactorIncViskoGenerate",
+            display_name="Visko: Generate Video (Reactor)",
             description="Generate video with sound from text or a starting image.",
             category="Reactor/Generate",
             search_aliases=["Reactor", "Visko", "audio", "image to video"],
             inputs=[
+                io.Combo.Input(
+                    "model",
+                    display_name="model",
+                    tooltip="Choose Reactor's Visko Orbis Stable or Dynamic version. Both take the same inputs.",
+                    options=list(OPERATIONS),
+                    default="stable",
+                ),
                 *generation_controls("visko"),
                 io.String.Input(
                     "audio_prompt",
@@ -74,6 +82,7 @@ class ViskoStableGenerate(VideoNode):
     async def generate(  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
         cls,
         *,
+        model: str,
         prompt: str,
         duration_seconds: float,
         seed: int,
@@ -101,7 +110,7 @@ class ViskoStableGenerate(VideoNode):
                 prompt_passthrough=prompt_passthrough,
             )
             return await generate_video(
-                cls.operation_type(request),
+                OPERATIONS[model](request),
                 interactive=interactive,
             )
 

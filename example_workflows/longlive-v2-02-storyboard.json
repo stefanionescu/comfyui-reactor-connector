@@ -52,7 +52,7 @@
     },
     {
       "id": 3,
-      "type": "ReactorIncLongLiveStoryboard",
+      "type": "ReactorIncLongLiveGenerate",
       "pos": [
         500,
         220
@@ -84,7 +84,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "ReactorIncLongLiveStoryboard"
+        "Node name for S&R": "ReactorIncLongLiveGenerate"
       },
       "widgets_values": [
         "A fox walks along a forest path. The camera follows slowly.",
@@ -92,7 +92,8 @@
         42,
         "fixed",
         0,
-        "[]"
+        "[]",
+        false
       ],
       "title": "LongLive: Generate Video with Shot Transitions (Reactor)"
     },

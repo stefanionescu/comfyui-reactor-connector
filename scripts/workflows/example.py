@@ -31,6 +31,7 @@ class Example:
 
     slug: str
     node_id: str
+    model: str
     inputs: dict[str, str | float | bool]
     sources: tuple[str, ...] = ()
     plan: Literal["none", "prompts", "shots"] = "none"

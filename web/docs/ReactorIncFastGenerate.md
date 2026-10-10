@@ -40,8 +40,8 @@ recording is ready.
 Use **fast-h3-02-image-to-video** for a starting picture. Add a second Load Image
 and connect it to **final image** to set the final frame.
 
-Use **fast-h3-03-first-and-last-frames** for a prepared two-image graph, or
-**fast-h3-04-ending-frame** to set only the final picture.
+Use **fast-h3-03-first-and-last-frames** for a prepared two-image graph. To set
+only the final picture, leave **starting image** empty.
 
 The saved result contains the selected clip without the idle video shown before
 it. Video and sound use the same recording times to stay aligned. Native `VIDEO` contains

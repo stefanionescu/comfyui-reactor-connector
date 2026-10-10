@@ -13,7 +13,7 @@ editing JSON.
 2. Choose its **start chunk** number and describe the scene in **scene prompt**.
 3. Connect **prompt sequence** to the next Add a Prompt node's **previous prompts (JSON)** input.
 4. Connect the last **prompt sequence** output to **prompt sequence (JSON)** on
-   **Helios: Generate Video from a Prompt Sequence (Reactor)**.
+   **Helios: Generate Video (Reactor)**.
    Set the opening prompt and recording length on that generation node.
 
 | Input                   | Meaning                                                                                              |

@@ -86,7 +86,7 @@ local prompt-sequence and storyboard builders.
 | Move through an image                    | LingBot or LingBot World 2 workflow with scene controls |
 | Continue several clips                   | Fast H3 continued-scene workflow                        |
 
-Ordinary Helios, LongLive, Visko, SANA, and X2 generation nodes have a **live controls** switch, off by default. LongLive storyboards keep their prepared shots.
+Helios, LongLive, Visko, SANA, and X2 generation nodes have a **live controls** switch, off by default. It cannot be combined with a Helios prompt sequence or LongLive shots.
 
 ### Change prompts or use a webcam
 

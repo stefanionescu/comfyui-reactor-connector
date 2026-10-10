@@ -14,34 +14,39 @@ EXAMPLES = (
     Example(
         "helios-01-text-to-video",
         "ReactorIncHeliosGenerate",
+        model="helios",
         inputs={
             "prompt": "A red ball rolls slowly across a wooden table. The camera stays still.",
             "duration_seconds": 5.0,
             "variation": 0,
             "seed": 42,
             "control_after_generate": "fixed",
+            "sequence": "[]",
             "interactive": False,
         },
     ),
     Example(
         "helios-02-image-to-video",
-        "ReactorIncHeliosAnimate",
+        "ReactorIncHeliosGenerate",
+        model="helios",
         inputs={
             "prompt": "The scene comes to life with gentle motion. Keep the subject and composition.",
             "duration_seconds": 5.0,
             "variation": 0,
             "seed": 42,
             "control_after_generate": "fixed",
+            "sequence": "[]",
             "interactive": False,
         },
         sources=("image",),
     ),
 )
 
-SEQUENCE_EXAMPLES = tuple(
+SEQUENCE_EXAMPLES = (
     Example(
-        f"helios-{'04-image-sequence' if image else '03-prompt-sequence'}",
-        "ReactorIncHeliosSequence",
+        "helios-03-prompt-sequence",
+        "ReactorIncHeliosGenerate",
+        model="helios",
         inputs={
             "prompt": "The camera moves slowly along a forest path in soft morning light.",
             "duration_seconds": 8,
@@ -49,11 +54,10 @@ SEQUENCE_EXAMPLES = tuple(
             "seed": 42,
             "control_after_generate": "fixed",
             "sequence": "[]",
+            "interactive": False,
         },
-        sources=("image",) if image else (),
         plan="prompts",
-    )
-    for image in (False, True)
+    ),
 )
 
 
@@ -63,5 +67,4 @@ LIVE_EXAMPLES = (
         "helios-05-live-prompt",
         prompt="The camera moves slowly along a sunlit forest path. Green leaves sway gently.",
     ),
-    build_live_example(EXAMPLES[1], "helios-06-live-image"),
 )

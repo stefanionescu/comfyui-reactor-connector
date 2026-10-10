@@ -12,7 +12,7 @@ editing JSON.
 1. Keep `[]` in **previous shots (JSON)** for the first later shot.
 2. Choose when the shot starts in **start chunk**, then set its transition and prompt.
 3. Connect the **shots** output to another LongLive: Add a Shot (Reactor) node's **previous shots (JSON)**
-   input to add another shot, or to **shots (JSON)** on **LongLive: Generate Video from a Storyboard (Reactor)** to generate the video.
+   input to add another shot, or to **shots (JSON)** on **LongLive: Generate Video (Reactor)** to generate the video.
 4. Set the opening prompt and video length on the generation node.
 
 | Input                 | Meaning                                                                                                          |
@@ -33,7 +33,7 @@ about 1.2 seconds at 24 frames per second. Record long enough to include the lat
 shots. A shot at chunk 20 will not appear in a two-second video.
 
 Example: add a soft pullback at chunk 1, then a cut to a lake at chunk 2. Connect
-the list to Reactor LongLive: Generate Video from a Storyboard and record five seconds. Watch
+the list to **LongLive: Generate Video (Reactor)** and record five seconds. Watch
 the resulting transitions; this node alone does not produce video.
 
 If the list is invalid, check ordering and connect the previous node's output

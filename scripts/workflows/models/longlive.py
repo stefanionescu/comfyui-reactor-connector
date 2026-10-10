@@ -12,18 +12,7 @@ EXAMPLES = (
     Example(
         "longlive-v2-01-text-to-video",
         "ReactorIncLongLiveGenerate",
-        inputs={
-            "prompt": "A fox walks along a forest path. The camera follows slowly.",
-            "duration_seconds": 5.0,
-            "variation": 0,
-            "seed": 42,
-            "control_after_generate": "fixed",
-            "interactive": False,
-        },
-    ),
-    Example(
-        "longlive-v2-02-storyboard",
-        "ReactorIncLongLiveStoryboard",
+        model="longlive-v2",
         inputs={
             "prompt": "A fox walks along a forest path. The camera follows slowly.",
             "duration_seconds": 5.0,
@@ -31,6 +20,21 @@ EXAMPLES = (
             "seed": 42,
             "control_after_generate": "fixed",
             "storyboard": "[]",
+            "interactive": False,
+        },
+    ),
+    Example(
+        "longlive-v2-02-storyboard",
+        "ReactorIncLongLiveGenerate",
+        model="longlive-v2",
+        inputs={
+            "prompt": "A fox walks along a forest path. The camera follows slowly.",
+            "duration_seconds": 5.0,
+            "variation": 0,
+            "seed": 42,
+            "control_after_generate": "fixed",
+            "storyboard": "[]",
+            "interactive": False,
         },
         plan="shots",
     ),

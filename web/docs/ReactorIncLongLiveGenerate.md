@@ -1,64 +1,44 @@
 # LongLive: Generate Video (Reactor)
 
-Generate a short video from an opening shot prompt with LongLive.
+Generates a video from an opening shot prompt with Reactor's LongLive model. You
+can schedule later shots and cuts, or change the prompt while it records.
 
 ## Inputs
 
-| Input                    | What to provide                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| scene prompt             | Describe the opening scene and motion. Use 1 to 20,000 characters.               |
-| video duration (seconds) | Video length, up to 60 seconds; default: 5 seconds.                              |
-| seed                     | Integer from 0 to 4,294,967,295; default: 42.                                    |
-| run number               | Change this number for another run; default: 0.                                  |
-| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false. |
+| Input                    | What it takes                                                                          |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| scene prompt             | The opening scene and motion, 1 to 20,000 characters.                                  |
+| video duration (seconds) | Recording length, up to 60 seconds. Default: 5.                                        |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                          |
+| run number               | Change it to run again with the same inputs.                                           |
+| shots (JSON)             | Optional. Connect the last **LongLive: Add a Shot** node. `[]` keeps the opening shot. |
+| live controls            | Change the prompt while it records. Off by default; not with scheduled shots.          |
 
-Example prompt: “A fox walks along a forest path. The camera follows slowly.”
-Use 2 seconds for a first video. For later shots and cuts, open the
-separate LongLive storyboard workflow.
+A soft transition changes the prompt within the scene; a cut starts a new scene.
+LongLive counts in chunks of 29 frames, about 1.2 seconds. Give each later shot
+a larger chunk number, starting at 1. Up to 32 later shots fit in 128 KB, and a
+later shot does not extend the recording. This model takes no starting image.
 
-## Run and save
+## Outputs
 
-1. Open **longlive-v2-01-text-to-video** in **Browse Templates → reactor-inc**.
-2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-3. Enter **scene prompt** in **LongLive: Generate Video**.
-4. Choose **video duration (seconds)**, then select **Run**.
-5. Play the result in **Save Video**. This node also saves the file.
+| Output | What it carries                    |
+| ------ | ---------------------------------- |
+| video  | The recorded video, without sound. |
 
-The node returns **video** without audio. In your own graph, connect **video**
-to ComfyUI's **Save Video** to keep the result after ComfyUI clears its
-temporary storage.
+## Use
 
-**video duration (seconds)** limits the recorded video. The session time limit in
-Reactor settings also applies. Unchanged inputs may reuse ComfyUI's cached
-result; change **run number** for another generation. Changing the account or
-execution limits can also cause another run. Seeds do not guarantee identical
-results after a model update.
-
-## Cancellation
-
-Use ComfyUI's cancel control to stop a queued or running workflow. With **live
-controls** off, closing the browser does not cancel the workflow. With live
-controls on, losing the live panel ends the session and discards the unfinished
-video. The connector disconnects after recording or failure. It does not retry
-failed commands or uncertain session creation.
-
-## Recovery
-
-Enter a prompt before running. If video stops arriving, check Reactor and your
-account before trying again. Use LongLive Storyboard to schedule later shots.
-This node does not accept a starting image.
-
-[LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **longlive-v2-01-text-to-video**, **longlive-v2-02-storyboard**, or
+   **longlive-v2-03-live-prompt** in **Browse Templates → reactor-inc**.
+3. Describe the opening shot, choose the length, and select **Run**.
+4. Play the result in **Save Video**, which also saves the file.
 
 ## Live controls
 
 Turn **live controls** on, select **Run**, then select **Start Session** in the
-live panel within 60 seconds. Use **Apply Prompt** to change later frames.
-Let recording finish to save the result. **End Session** discards the unfinished
-video. Panel prompt changes do not rewrite the saved workflow.
+live panel within 60 seconds. **Apply Prompt** changes later frames with a soft
+transition. Let recording finish to save the result; **End Session** discards
+it. Closing the panel or losing its browser connection ends the session. The
+preview has no sound, and panel changes do not rewrite the saved workflow.
 
-Keep the live panel open until recording finishes. Closing it or losing its
-browser connection ends the live session and discards the unfinished video. The
-preview has no sound.
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
+[LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)

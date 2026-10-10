@@ -1,59 +1,47 @@
 # Helios: Generate Video (Reactor)
 
-Generate a short video from a prompt using your Reactor account. Connect **video**
-to ComfyUI's **Save Video** node to preview and save the result.
+Generates a video from a prompt with Reactor's Helios model. You can start from
+an image, schedule later prompts, or change the prompt while it records.
 
 ## Inputs
 
-| Input                    | What to provide                                                                    |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| scene prompt             | Describe the scene and motion. Empty prompts are rejected before a session starts. |
-| video duration (seconds) | Requested video duration, from 0.1 to 60 seconds. Default: 5 seconds.              |
-| seed                     | Integer from 0 to 4,294,967,295. Zero is valid. Default: 42.                       |
-| run number               | Change this number to request another run with otherwise identical inputs.         |
-| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false.   |
+| Input                    | What it takes                                                                            |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| scene prompt             | The opening scene and motion, 1 to 20,000 characters.                                    |
+| video duration (seconds) | Recording length, from 0.1 to 60 seconds. Default: 5.                                    |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                            |
+| run number               | Change it to run again with the same inputs.                                             |
+| prompt sequence (JSON)   | Optional. Connect the last **Helios: Add a Prompt** node. `[]` keeps the opening prompt. |
+| starting image           | Optional. One RGB image, applied with the prompt. Reactor may crop or resize it.         |
+| live controls            | Change the prompt while it records. Off by default; not with a prompt sequence.          |
 
-## Run and save
+Later prompts need increasing chunk numbers; the opening prompt is chunk 0. A
+Helios chunk is 33 frames, not a second. A sequence holds up to 32 later prompts
+and 128 KB, and a later prompt does not extend the recording. A starting image
+must be at most 8,192 pixels per side and within the upload limit in Reactor
+settings. Describe what is already in the image and how it should move.
 
-1. Open **helios-01-text-to-video** in native **Browse Templates → reactor-inc**.
-2. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-3. Describe the scene in **scene prompt**. For example: “A red ball rolls slowly
-   across a wooden table. The camera stays still.”
-4. Choose **video duration (seconds)**, then select **Run**.
-5. Play the result in **Save Video**. This node also saves the file.
+## Outputs
 
-The Reactor node returns **video** without sound. In your own graph, connect
-**video** to **Save Video** to keep the result after ComfyUI clears its
-temporary storage.
+| Output | What it carries                    |
+| ------ | ---------------------------------- |
+| video  | The recorded video, without sound. |
 
-## Cancellation and recovery
+## Use
 
-Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel the workflow. With live
-controls on, closing the live panel or losing its browser connection ends the
-session and discards the unfinished video.
-
-Failed runs do not return a video. Correct any reported input error before
-running again. If video stops arriving, check your connection and Reactor
-account.
-
-A rejected command or lost connection ends the run; the connector does not retry
-it.
-
-Unchanged inputs may reuse ComfyUI's cached result. Change **run number** for
-another generation. Changing the key or execution limits can also cause another
-run. A seed does not guarantee identical results after a model update.
-
-[Reactor Helios reference](https://docs.reactor.inc/model-api-reference/helios/overview)
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **helios-01-text-to-video**, **helios-02-image-to-video**,
+   **helios-03-prompt-sequence**, or **helios-05-live-prompt** in **Browse
+   Templates → reactor-inc**.
+3. Describe the scene, choose the length, and select **Run**.
+4. Play the result in **Save Video**, which also saves the file.
 
 ## Live controls
 
 Turn **live controls** on, select **Run**, then select **Start Session** in the
-live panel within 60 seconds. Use **Apply Prompt** to change later frames.
-Let recording finish to save the result. **End Session** discards the unfinished
-video. Panel prompt changes do not rewrite the saved workflow.
+live panel within 60 seconds. **Apply Prompt** changes later frames. Let
+recording finish to save the result; **End Session** discards it. Closing the
+panel or losing its browser connection ends the session. The preview has no
+sound, and panel changes do not rewrite the saved workflow.
 
-Keep the live panel open until recording finishes. Closing it or losing its
-browser connection ends the live session and discards the unfinished video. The
-preview has no sound.
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
+[Reactor Helios reference](https://docs.reactor.inc/model-api-reference/helios/overview)

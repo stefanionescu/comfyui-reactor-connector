@@ -6,6 +6,7 @@ EXAMPLES = (
     Example(
         "ltx2-01-speaking-portrait",
         "ReactorIncLtxSpeak",
+        model="ltx2",
         inputs={
             "prompt": "A person faces the camera and speaks calmly.",
             "script": "Hello. Welcome to this short video.",

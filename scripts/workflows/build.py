@@ -41,7 +41,7 @@ from .serialize import (
 
 def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str, Json]) -> dict[str, Json]:
     """Assemble one example with its notes, connected inputs, outputs, and arranged layout."""
-    model = str(mapping_value(schemas[example.node_id])["model"])
+    model = example.model
     notes: list[Json] = [
         build_node(number, "MarkdownNote", [text], title=title)
         for number, title, text in zip(

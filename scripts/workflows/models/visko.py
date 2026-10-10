@@ -4,6 +4,7 @@ from ..example import Example
 from ..live import build_live_example
 
 RECORDING_INPUTS: dict[str, str | float | bool] = {
+    "model": "stable",
     "duration_seconds": 5.0,
     "variation": 0,
     "seed": 42,
@@ -28,31 +29,19 @@ IMAGE_INPUTS = RECORDING_INPUTS | {
 
 EXAMPLES = (
     Example(
-        "visko-stable-01-text-to-video",
-        "ReactorIncViskoStableGenerate",
+        "visko-01-text-to-video",
+        "ReactorIncViskoGenerate",
+        model="visko-orbis-stable",
         inputs=TEXT_INPUTS,
     ),
     Example(
-        "visko-stable-02-image-to-video",
-        "ReactorIncViskoStableGenerate",
-        inputs=IMAGE_INPUTS,
-        sources=("image",),
-    ),
-    Example(
-        "visko-dynamic-01-text-to-video",
-        "ReactorIncViskoDynamicGenerate",
-        inputs=TEXT_INPUTS,
-    ),
-    Example(
-        "visko-dynamic-02-image-to-video",
-        "ReactorIncViskoDynamicGenerate",
+        "visko-02-image-to-video",
+        "ReactorIncViskoGenerate",
+        model="visko-orbis-stable",
         inputs=IMAGE_INPUTS,
         sources=("image",),
     ),
 )
 
 
-LIVE_EXAMPLES = (
-    build_live_example(EXAMPLES[0], "visko-stable-03-live-prompt"),
-    build_live_example(EXAMPLES[2], "visko-dynamic-03-live-prompt"),
-)
+LIVE_EXAMPLES = (build_live_example(EXAMPLES[0], "visko-03-live-prompt"),)

@@ -7,6 +7,7 @@ EXAMPLES = (
     Example(
         "sana-streaming-01-edit-video",
         "ReactorIncSanaEditVideo",
+        model="sana-streaming",
         inputs={
             "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
             "duration_seconds": 5.0,
@@ -21,6 +22,7 @@ EXAMPLES = (
     Example(
         "sana-streaming-03-webcam",
         "ReactorIncSanaWebcam",
+        model="sana-streaming",
         inputs={
             "prompt": "Turn the scene into a watercolor painting.",
             "duration_seconds": 20,

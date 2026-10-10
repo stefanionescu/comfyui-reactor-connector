@@ -8,42 +8,34 @@ from .runtime import initialize_runtime
 from .nodes.sana.webcam import SanaWebcam
 from .nodes.sana.edit import SanaEditVideo
 from .nodes.fast.generate import FastGenerate
-from .nodes.helios.animate import HeliosAnimate
+from .nodes.visko.generate import ViskoGenerate
 from comfy_api.latest import io, ComfyExtension
 from .comfy.routes import register_configuration
 from .nodes.helios.prompt import HeliosAddPrompt
 from .nodes.longlive.shot import LongLiveAddShot
 from .nodes.fast.continuation import FastContinue
 from .nodes.helios.generate import HeliosGenerate
-from .nodes.helios.sequence import HeliosSequence
 from .nodes.lingbot.explore import LingBotExplore
-from .nodes.visko.stable import ViskoStableGenerate
 from .nodes.lingbot.world import LingBotWorldExplore
 from .nodes.longlive.generate import LongLiveGenerate
-from .nodes.visko.dynamic import ViskoDynamicGenerate
-from .nodes.longlive.storyboard import LongLiveStoryboard
 
 
-NODE_REGISTRATIONS: dict[type[io.ComfyNode], str] = {
-    SanaWebcam: "sana-streaming",
-    X2Webcam: "x2",
-    FastGenerate: "fast-h3",
-    FastContinue: "fast-h3",
-    LtxSpeak: "ltx2",
-    HeliosGenerate: "helios",
-    HeliosAnimate: "helios",
-    HeliosAddPrompt: "helios",
-    HeliosSequence: "helios",
-    LingBotExplore: "lingbot",
-    LingBotWorldExplore: "lingbot-world-2",
-    LongLiveGenerate: "longlive-v2",
-    LongLiveStoryboard: "longlive-v2",
-    LongLiveAddShot: "longlive-v2",
-    SanaEditVideo: "sana-streaming",
-    X2EditVideo: "x2",
-    ViskoStableGenerate: "visko-orbis-stable",
-    ViskoDynamicGenerate: "visko-orbis-dynamic",
-}
+NODE_REGISTRATIONS: tuple[type[io.ComfyNode], ...] = (
+    SanaWebcam,
+    X2Webcam,
+    FastGenerate,
+    FastContinue,
+    LtxSpeak,
+    HeliosGenerate,
+    HeliosAddPrompt,
+    LingBotExplore,
+    LingBotWorldExplore,
+    LongLiveGenerate,
+    LongLiveAddShot,
+    SanaEditVideo,
+    X2EditVideo,
+    ViskoGenerate,
+)
 
 
 class ReactorExtension(ComfyExtension):

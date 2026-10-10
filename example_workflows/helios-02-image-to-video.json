@@ -66,7 +66,7 @@
     },
     {
       "id": 3,
-      "type": "ReactorIncHeliosAnimate",
+      "type": "ReactorIncHeliosGenerate",
       "pos": [
         500,
         220
@@ -95,7 +95,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "ReactorIncHeliosAnimate"
+        "Node name for S&R": "ReactorIncHeliosGenerate"
       },
       "widgets_values": [
         "The scene comes to life with gentle motion. Keep the subject and composition.",
@@ -103,6 +103,7 @@
         42,
         "fixed",
         0,
+        "[]",
         false
       ],
       "title": "Helios: Animate an Image (Reactor)"

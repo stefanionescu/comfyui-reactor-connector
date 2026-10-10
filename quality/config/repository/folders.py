@@ -9,6 +9,7 @@ SINGLE_FILE_PACKAGE_ALLOWLIST = (
     "src/execution/visko",
     "src/execution/x2",
     "src/nodes/ltx",
+    "src/nodes/visko",
 )
 
 DISALLOWED_AMBIGUOUS_FOLDER_NAMES = (

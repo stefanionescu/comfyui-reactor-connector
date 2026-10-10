@@ -1,6 +1,6 @@
 {
   "last_node_id": 9,
-  "last_link_id": 2,
+  "last_link_id": 3,
   "nodes": [
     {
       "id": 1,
@@ -10,8 +10,8 @@
         60
       ],
       "size": [
-        440,
-        80
+        400,
+        120
       ],
       "flags": {},
       "order": 1,
@@ -22,25 +22,69 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Edit **scene prompt** to describe the scene or change you want.\n3. Select **Run** to create and save the video."
+        "1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.\n2. Upload an image in **Load Starting Image**.\n3. Edit **scene prompt** to name what is in your image and describe its motion. The example prompt describes a forest path.\n4. Select **Run** to create and save the video."
       ],
       "title": "Start Here"
     },
     {
-      "id": 3,
-      "type": "ReactorIncViskoDynamicGenerate",
+      "id": 2,
+      "type": "LoadImage",
       "pos": [
         40,
-        200
+        240
+      ],
+      "size": [
+        400,
+        310
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ],
+      "title": "Load Starting Image"
+    },
+    {
+      "id": 3,
+      "type": "ReactorIncViskoGenerate",
+      "pos": [
+        500,
+        240
       ],
       "size": [
         440,
-        470
+        500
       ],
       "flags": {},
       "order": 3,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
       "outputs": [
         {
           "name": "video",
@@ -53,33 +97,34 @@
           "name": "audio",
           "type": "AUDIO",
           "links": [
-            2
+            3
           ]
         }
       ],
       "properties": {
-        "Node name for S&R": "ReactorIncViskoDynamicGenerate"
+        "Node name for S&R": "ReactorIncViskoGenerate"
       },
       "widgets_values": [
-        "A small stream flows over smooth stones in a quiet forest.",
+        "stable",
+        "The camera moves slowly along a forest path. Ferns and leaves sway gently. Keep the trees, path, and lighting from the starting image.",
         5.0,
         42,
         "fixed",
         0,
-        "Water splashes softly over stones, with birds calling in the distance.",
+        "",
         "",
         true,
-        false,
+        true,
         false
       ],
-      "title": "Visko Dynamic: Generate Video with Audio (Reactor)"
+      "title": "Visko: Animate an Image with Audio (Reactor)"
     },
     {
       "id": 4,
       "type": "SaveVideo",
       "pos": [
-        540,
-        200
+        1000,
+        240
       ],
       "size": [
         360,
@@ -106,7 +151,7 @@
         "Node name for S&R": "SaveVideo"
       },
       "widgets_values": [
-        "video/reactor/visko-dynamic-01-text-to-video",
+        "video/reactor/visko-02-image-to-video",
         "auto",
         "auto",
         "auto"
@@ -117,8 +162,8 @@
       "id": 7,
       "type": "SaveAudioAdvanced",
       "pos": [
-        540,
-        570
+        1000,
+        610
       ],
       "size": [
         360,
@@ -131,7 +176,7 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": 2
+          "link": 3
         }
       ],
       "outputs": [
@@ -145,7 +190,7 @@
         "Node name for S&R": "SaveAudioAdvanced"
       },
       "widgets_values": [
-        "audio/reactor/visko-dynamic-01-text-to-video",
+        "audio/reactor/visko-02-image-to-video",
         "flac"
       ],
       "title": "Save Audio"
@@ -162,6 +207,14 @@
     ],
     [
       2,
+      2,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
       3,
       1,
       7,

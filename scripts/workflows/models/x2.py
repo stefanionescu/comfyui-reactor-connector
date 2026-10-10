@@ -7,6 +7,7 @@ EXAMPLES = (
     Example(
         "x2-01-edit-video",
         "ReactorIncX2EditVideo",
+        model="x2",
         inputs={
             "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
             "duration_seconds": 5.0,
@@ -22,6 +23,7 @@ EXAMPLES = (
     Example(
         "x2-02-reference-edit",
         "ReactorIncX2EditVideo",
+        model="x2",
         inputs={
             "prompt": "Replace the main subject with the subject from the reference image. Keep the background.",
             "duration_seconds": 5.0,
@@ -37,6 +39,7 @@ EXAMPLES = (
     Example(
         "x2-03-webcam",
         "ReactorIncX2Webcam",
+        model="x2",
         inputs={"prompt": "Turn the scene into a watercolor painting.", "duration_seconds": 20, "variation": 0},
         mode="webcam",
     ),

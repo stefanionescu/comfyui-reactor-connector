@@ -52,7 +52,7 @@
     },
     {
       "id": 3,
-      "type": "ReactorIncHeliosSequence",
+      "type": "ReactorIncHeliosGenerate",
       "pos": [
         500,
         220
@@ -84,7 +84,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "ReactorIncHeliosSequence"
+        "Node name for S&R": "ReactorIncHeliosGenerate"
       },
       "widgets_values": [
         "The camera moves slowly along a forest path in soft morning light.",
@@ -92,7 +92,8 @@
         42,
         "fixed",
         0,
-        "[]"
+        "[]",
+        false
       ],
       "title": "Helios: Follow a Prompt Sequence (Reactor)"
     },

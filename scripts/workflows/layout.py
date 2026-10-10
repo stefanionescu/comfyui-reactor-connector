@@ -37,7 +37,7 @@ def model_height(example: Example, model: str) -> int:
     """Reserve prompt space and the controls used by this model."""
     choices = (
         (example.clip_count > 1, 460),
-        (model.startswith("visko"), 470),
+        (model.startswith("visko"), 500),
         (model == "ltx2", 410),
         (model.startswith("lingbot"), 420),
         (model == "x2" and example.mode != "webcam", 360),

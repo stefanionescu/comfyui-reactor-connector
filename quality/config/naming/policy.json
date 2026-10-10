@@ -130,7 +130,7 @@
         },
         {
             "path_regexes": [
-                "(?:^src/execution/visko/operation\\.py$|^src/state/generation/visko\\.py$|^src/nodes/visko/stable\\.py$)"
+                "(?:^src/execution/visko/operation\\.py$|^src/state/generation/visko\\.py$|^src/nodes/visko/generate\\.py$)"
             ],
             "languages": ["python"],
             "categories": ["variables", "parameters"],

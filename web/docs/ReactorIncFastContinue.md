@@ -23,8 +23,9 @@ Saving requires one extra continuation, which uses credits and is excluded from
 the output. It requests up to 14.375 seconds; the session ends once your selected
 recording is ready.
 
-1. Open **fast-h3-05-continue-scene** or **fast-h3-06-continue-image** from Templates.
-2. Set the opening prompt. For the image example, upload a starting image.
+1. Open **fast-h3-05-continue-scene** from Templates.
+2. Set the opening prompt. To start from a picture, connect a **Load Image** node to
+   **starting image**.
 3. Choose a clip length and count. The examples request three clips of about six seconds.
 4. Enter later prompts if you want the scene to change between clips.
 5. Check maximum session duration in Reactor settings, then select **Run**.
