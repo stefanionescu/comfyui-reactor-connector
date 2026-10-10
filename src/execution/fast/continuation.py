@@ -101,7 +101,6 @@ class FastContinueOperation(FastGenerateOperation):
                 ErrorCode.CAPTURE,
                 (SEQUENCE_CAPTURE_LIMIT),
             )
-        events.model_timing.update(saved_start_seconds=start_seconds, saved_duration_seconds=duration)
         # The recorder needs later media to close its final fragment.
         tail = await self._enqueue(events, current, self.sequence.clip_count, duration=maximum)
         await events.call("recording_tail_build", clips.wait_ready(tail))

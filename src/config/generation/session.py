@@ -1,7 +1,5 @@
 """Generation session timing and startup limits."""
 
-MAX_MESSAGE_TYPES = 16
-
 MIN_CAPTURE_SECONDS = 0.1
 
 MAX_PROMPT_CHARACTERS = 20_000

@@ -1,6 +1,5 @@
 """Prepare a portrait and speech script for one LTX recording."""
 
-import json
 from typing import ClassVar
 from ...models import MODELS
 from ..transport import Transport
@@ -83,18 +82,7 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
             or minimum != int(minimum)
             or maximum != int(maximum)
         ):
-            raise ConnectorError(
-                ErrorCode.UNAVAILABLE,
-                SPEECH_PACE_MISSING,
-                diagnostic_detail=json.dumps(
-                    {
-                        "state_keys": sorted(state)[:40],
-                        "minimum_type": type(minimum).__name__,
-                        "maximum_type": type(maximum).__name__,
-                        "message_types": sorted(events.message_types),
-                    }
-                ),
-            )
+            raise ConnectorError(ErrorCode.UNAVAILABLE, SPEECH_PACE_MISSING)
         minimum, maximum = int(minimum), int(maximum)
         if not minimum <= inputs.words_per_minute <= maximum:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SPEECH_PACE_RANGE.format(minimum=minimum, maximum=maximum))

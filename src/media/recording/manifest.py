@@ -19,13 +19,9 @@ from ...config.media.recording import (
 INIT_URI = re.compile(INIT_URI_PATTERN_TEXT)
 
 
-def recording_error(reason: str = "Unsupported recording response.") -> ConnectorError:
-    """Separate the public recording error from its private diagnostic reason."""
-    return ConnectorError(
-        ErrorCode.CAPTURE,
-        RECORDING_UNSUPPORTED,
-        diagnostic_detail=reason,
-    )
+def recording_error(reason: str = "") -> ConnectorError:
+    """Report an unsupported recording with the reason it was refused, when there is one."""
+    return ConnectorError(ErrorCode.CAPTURE, f"{RECORDING_UNSUPPORTED} {reason}".strip())
 
 
 def recording_url(value: str, base: str = COORDINATOR) -> str:

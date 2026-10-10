@@ -1,17 +1,20 @@
 """Observe session failures alongside commands and media capture."""
 
 import asyncio
+from typing import cast
 from .transport import Transport
-from .failures import phase_error
-from typing import cast, TYPE_CHECKING
-from .diagnostics import describe_failure
 from ..errors import ErrorCode, ConnectorError
 from collections.abc import Callable, Coroutine
-from ..config.generation.session import MAX_MESSAGE_TYPES
-from ..config.messages.session import COMMAND_REJECTED, CAPTURE_DISCONNECTED
+from .failures import phase_error, provider_text
+from ..config.messages.session import COMMAND_REJECTED, PROVIDER_MESSAGE, CAPTURE_DISCONNECTED
 
-if TYPE_CHECKING:
-    from ..state.reports import FailureReport
+
+def rejection_message(payload: object) -> str:
+    """Add the reason Reactor gave for refusing a command, when it sent one."""
+    fields = cast("dict[str, object]", payload) if isinstance(payload, dict) else {}
+    reason = fields.get("reason")
+    detail = provider_text(reason) if isinstance(reason, str) else ""
+    return f"{COMMAND_REJECTED} {PROVIDER_MESSAGE.format(message=detail)}" if detail else COMMAND_REJECTED
 
 
 class SessionEvents:
@@ -24,16 +27,11 @@ class SessionEvents:
         self.active = True
         self.ready = False
         self.phase = "connect"
-        self.diagnostic: FailureReport | None = None
         self.generation_complete = asyncio.Event()
         self.state_ready = asyncio.Event()
         self.state: dict[str, object] = {}
         self.state_snapshots: dict[str, dict[str, object]] = {}
         self.state_signals = {kind: asyncio.Event() for kind in ("state", "state_update")}
-        self.message_types: set[str] = set()
-        self.capture_frames = 0
-        self.recording_window: dict[str, float] = {}
-        self.model_timing: dict[str, float] = {}
         self.handlers: list[tuple[str, Callable[..., None]]] = []
 
     def attach(self) -> None:
@@ -55,7 +53,6 @@ class SessionEvents:
         """Stop without retrying a potentially billable operation."""
         if not self.active:
             return
-        self.diagnostic = self.diagnostic or describe_failure(self.phase, error)
         self._fail(phase_error(error, self.phase))
 
     def on_message(self, message: object) -> None:
@@ -64,8 +61,6 @@ class SessionEvents:
             return
         envelope = cast("dict[str, object]", message)
         kind = envelope.get("type")
-        if isinstance(kind, str) and len(self.message_types) < MAX_MESSAGE_TYPES:
-            self.message_types.add(kind[:128])
         payload = envelope.get("data")
         if isinstance(kind, str) and kind in self.state_signals and isinstance(payload, dict):
             self.state = cast("dict[str, object]", payload)
@@ -75,7 +70,7 @@ class SessionEvents:
         if kind == "generation_complete":
             self.generation_complete.set()
         if kind in ("command_error", "action_error"):
-            self._fail(ConnectorError(ErrorCode.INVALID_INPUT, COMMAND_REJECTED))
+            self._fail(ConnectorError(ErrorCode.INVALID_INPUT, rejection_message(envelope.get("data"))))
 
     def on_status(self, status: object) -> None:
         """Fail if an established connection leaves its ready state."""
@@ -101,17 +96,6 @@ class SessionEvents:
         await self.state_signals[kind].wait()
         return self.state_snapshots[kind]
 
-    def on_recording_window(self, start: float, end: float, now: float, predicted_wait: float) -> None:
-        """Retain timing facts for private timeout evidence, without URLs or tokens."""
-        if not self.active:
-            return
-        self.recording_window = {
-            "start": start,
-            "end": end,
-            "now": now,
-            "predicted_wait_seconds": predicted_wait,
-        }
-
     async def command_reply(self, name: str, payload: dict[str, object]) -> object:
         """Return a reply only after checking separately reported model rejection."""
         self.check()
@@ -125,8 +109,7 @@ class SessionEvents:
         self.phase = phase
         try:
             return await operation
-        except Exception as error:  # noqa: BLE001 -- reason: Translate arbitrary SDK failures and keep their details only in private diagnostics.
-            self.diagnostic = self.diagnostic or describe_failure(phase, error)
+        except Exception as error:  # noqa: BLE001 -- reason: Translate arbitrary SDK failures into connector errors.
             raise phase_error(error, phase) from None
 
     async def guard[T](self, operation: Coroutine[object, object, T]) -> T:

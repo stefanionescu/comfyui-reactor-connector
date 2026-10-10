@@ -1,4 +1,4 @@
-"""Public recording facts and private failure records."""
+"""Public recording facts."""
 
 from __future__ import annotations
 
@@ -41,23 +41,3 @@ class RunReport:
             "connector_version": self.connector_version,
             "sdk_version": self.sdk_version,
         }
-
-
-@dataclass(frozen=True, slots=True, repr=False)
-class FailureReport:
-    """Private provider error details separated from public exceptions.
-
-    Attributes:
-        phase: Operation that failed.
-        code: Bounded provider or connector error code.
-        message: Bounded private error message.
-
-    """
-
-    phase: str
-    code: str
-    message: str
-
-    def __repr__(self) -> str:
-        """Hide private failure details from object representations."""
-        return "FailureReport(<private>)"

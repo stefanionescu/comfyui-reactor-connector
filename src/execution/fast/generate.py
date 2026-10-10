@@ -1,6 +1,5 @@
 """Build and play one Fast H3 clip with its accepted duration and native sound."""
 
-import json
 from typing import ClassVar
 from ...models import MODELS
 from ..transport import Transport
@@ -141,14 +140,7 @@ class FastGenerateOperation(VideoInputOperation[FastGenerateRequest]):
         await events.call("clip_playback", clips.finished.wait())
         end = seconds(clips.end_seconds)
         if abs(end - start - clip.seconds) > 1 / FRAME_RATE:
-            raise ConnectorError(
-                ErrorCode.CAPTURE,
-                CLIP_WINDOW_MISSING,
-                diagnostic_detail=json.dumps(
-                    {"start_seconds": start, "end_seconds": end, "clip_seconds": clip.seconds}
-                ),
-            )
-        events.model_timing.update(saved_start_seconds=start, saved_duration_seconds=clip.seconds)
+            raise ConnectorError(ErrorCode.CAPTURE, CLIP_WINDOW_MISSING)
         return start
 
     async def _state(self, transport: Transport, events: SessionEvents) -> dict[str, object]:

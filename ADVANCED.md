@@ -210,7 +210,8 @@ to the whole run.
 
 ## Recovery
 
-Read the error and the node's native **Info** before trying again. Pausing a video preview does not stop its session.
+Read the error and the node's native **Info** before trying again. When Reactor
+refuses a run, the error ends with **Reactor said:** and Reactor's own reason. Pausing a video preview does not stop its session.
 
 | Problem                      | Next step                                                                                        |
 | ---------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -220,14 +221,6 @@ Read the error and the node's native **Info** before trying again. Pausing a vid
 | Recording cannot be saved    | Check disk space and media limits. Some models also need Reactor's recording service.            |
 | A live panel expires         | Let cleanup finish before running again.                                                         |
 | Camera is unavailable        | Allow access, select **Enable Camera**, and release the camera in another application if needed. |
-
-### Private diagnostics
-
-`last-failure.json` in the state directory records the latest failed operation,
-error code, and a short message. Recognizable keys, tokens, the configured
-credential, and URLs are removed. The file is replaced by the next failure.
-It is not served to the window or included in workflow results, but it can contain
-private prompt or model details. Review any excerpt before sharing it.
 
 ## Update or remove
 

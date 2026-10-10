@@ -14,17 +14,16 @@ from ..state.reports import RunReport
 from ..live.options import LiveOptions
 from ..state.media import CaptureResult
 from ..state.session import SessionOutcome
+from contextlib import asynccontextmanager
 from .interaction import prepare_interaction
 from ..execution.report import prepare_report
 from ..errors import ErrorCode, ConnectorError
 from ..live.interaction import LiveInteraction
-from ..execution.diagnostics import save_failure
 from ..execution.operation import VideoOperation
 from ..config.messages.session import RUN_TIMEOUT
 from ..state.settings import ExecutionConfiguration
 from ..media.output import owned_io, discard_outputs
 from comfy_api.latest import io, ComfyAPI, InputImpl
-from contextlib import suppress, asynccontextmanager
 from ..execution.session.capture import capture_video
 from ..media.metadata.read import read_recording_metadata
 from collections.abc import Callable, Awaitable, AsyncGenerator
@@ -50,10 +49,9 @@ async def _run_session(
     operation: VideoOperation,
     configuration: ExecutionConfiguration,
     destination: Path,
-    report: RunReport,
     open_interaction: Callable[[], Awaitable[LiveInteraction | None]],
 ) -> tuple[CaptureResult, dict[str, Json] | None]:
-    """Own live controls, remote cleanup, and private failure diagnostics."""
+    """Own live controls and remote cleanup."""
     outcome = SessionOutcome()
     interaction = None
     try:
@@ -72,19 +70,6 @@ async def _run_session(
                 is_termination_confirmed=outcome.is_termination_confirmed,
                 failed=sys.exception() is not None,
             )
-        diagnostic = outcome.diagnostic
-        if diagnostic is not None:
-            # Diagnostic storage must not replace the original execution failure.
-            with suppress(OSError, ConnectorError):
-                await owned_io(
-                    partial(
-                        save_failure,
-                        get_runtime().configuration.directory,
-                        diagnostic,
-                        configuration.credential,
-                        run_id=report.run_id,
-                    )
-                )
 
 
 async def recording_report(
@@ -166,7 +151,6 @@ async def generate_video(
                     operation,
                     snapshot,
                     destination,
-                    report,
                     partial(prepare_interaction, operation, interactive=interactive, controls=controls),
                 )
             )

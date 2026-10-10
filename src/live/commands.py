@@ -50,13 +50,7 @@ class CameraCommands:
         except ConnectorError as error:
             self.events.on_error(error)
         except TimeoutError:
-            self.events.on_error(
-                ConnectorError(
-                    ErrorCode.TIMEOUT,
-                    CAMERA_COMMAND_TIMEOUT,
-                    diagnostic_detail=f"The {axis} reply exceeded {COMMAND_TIMEOUT_SECONDS} seconds.",
-                )
-            )
+            self.events.on_error(ConnectorError(ErrorCode.TIMEOUT, CAMERA_COMMAND_TIMEOUT))
 
     async def _apply(self, axis: str, change: CameraChange) -> None:
         """Send fresh camera input and record only acknowledged direction changes."""

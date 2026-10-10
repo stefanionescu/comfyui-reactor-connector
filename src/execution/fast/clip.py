@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import math
 import asyncio
 from uuid import UUID
@@ -49,18 +48,7 @@ def read_clip(payload: dict[str, object]) -> FastClip:
         or type(ready) is not bool
         or not math.isclose(duration, cast("float", frames) / FRAME_RATE, abs_tol=0.001)
     ):
-        raise ConnectorError(
-            ErrorCode.UNAVAILABLE,
-            CLIP_LENGTH,
-            diagnostic_detail=json.dumps(
-                {
-                    "frames_type": type(frames).__name__,
-                    "frames": frames if type(frames) in (int, float) else None,
-                    "seconds": duration,
-                    "ready_type": type(ready).__name__,
-                }
-            ),
-        )
+        raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_LENGTH)
     count = int(cast("float", frames))
     return FastClip(identity, count / FRAME_RATE, count, ready)
 
@@ -110,8 +98,6 @@ class FastClipEvents:
             self.playback_changed.set()
         if kind == "clip_finished" and clip.clip_id == self.clip_id:
             self.end_seconds = seconds(message_payload(envelope, "clip_finished").get("seconds_sent"))
-            self.events.model_timing["finished_clips"] = self.events.model_timing.get("finished_clips", 0) + 1
-            self.events.model_timing["last_clip_end_seconds"] = self.end_seconds
             self.finished.set()
 
     async def wait_ready(self, clip: FastClip) -> None:

@@ -1,7 +1,5 @@
 """Keep the SDK's loosely typed callbacks at one explicit boundary."""
 
-import math
-import time
 from pathlib import Path
 from typing import cast, Protocol
 from reactor_sdk import Clip, Reactor
@@ -10,8 +8,8 @@ from .authentication import mint_session_token
 from collections.abc import Callable, Sequence
 from ..state.credentials import Credential, SessionToken
 from ..media.recording.download import download_recording
+from ..config.messages.media import RECORDING_DISCONNECTED
 from ..config.messages.session import SESSION_DISCONNECTED, SESSION_ALREADY_CONNECTED
-from ..config.messages.media import RECORDING_TIMING, RECORDING_READINESS, RECORDING_DISCONNECTED
 
 
 class Track(Protocol):
@@ -108,7 +106,6 @@ class Transport(Protocol):
         *,
         maximum_bytes: int,
         timeout_seconds: float,
-        on_window: Callable[[float, float, float, float], None] | None = None,
     ) -> None:
         """Save the recording within its byte and time limits."""
         raise NotImplementedError
@@ -222,20 +219,11 @@ class SessionTransport:
         *,
         maximum_bytes: int,
         timeout_seconds: float,
-        on_window: Callable[[float, float, float, float], None] | None = None,
     ) -> None:
         """Use the private session token without handing it to a node or workflow."""
         if self.token is None:
             raise ConnectorError(ErrorCode.TRANSPORT, RECORDING_DISCONNECTED)
         clip = await self.request_recording()
-        markers = (clip.start_marker, clip.end_marker, clip.now_marker)
-        if not all(math.isfinite(value) and value >= 0 for value in markers):
-            raise ConnectorError(ErrorCode.CAPTURE, RECORDING_TIMING)
-        if on_window:
-            predicted_wait = clip.predicted_ready_at_ms / 1000 - time.time()
-            if not math.isfinite(predicted_wait):
-                raise ConnectorError(ErrorCode.CAPTURE, RECORDING_READINESS)
-            on_window(*markers, predicted_wait)
         await download_recording(
             clip.playlist_url,
             self.token,

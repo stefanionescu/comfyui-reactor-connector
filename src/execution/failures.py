@@ -1,12 +1,15 @@
-"""Translate SDK failures without retaining provider text in visible errors."""
+"""Translate SDK failures into shown errors that include Reactor's own message."""
 
+import re
 from ..errors import ErrorCode, ConnectorError
 from reactor_sdk import AuthError, ReactorError
+from ..config.diagnostics import REDACTIONS, MAX_MESSAGE_CHARACTERS
 from ..config.messages.session import (
     PHASE,
     RUN_FAILED,
     ACCESS_REFUSED,
     SESSION_TIMEOUT,
+    PROVIDER_MESSAGE,
     MODEL_UNAVAILABLE,
     PROVIDER_RATE_LIMIT,
     AUTHENTICATION_FAILED,
@@ -14,30 +17,17 @@ from ..config.messages.session import (
 )
 
 
-def diagnostic_code(error: object) -> str:
-    """Return only reviewed codes; upstream messages and unknown codes remain private."""
+def provider_text(text: str) -> str:
+    """Remove keys, tokens, and URLs from Reactor's text and keep it short."""
+    for pattern, replacement in REDACTIONS:
+        text = re.sub(pattern, replacement, text)
+    return text.strip()[:MAX_MESSAGE_CHARACTERS]
+
+
+def error_code(error: object) -> str:
+    """Return Reactor's own code, or a code naming the local failure."""
     if isinstance(error, ReactorError):
-        known = {
-            "INTERNAL_ERROR",
-            "NETWORK_ERROR",
-            "UNAUTHORIZED",
-            "NOT_FOUND",
-            "CONFLICT",
-            "RATE_LIMITED",
-            "BAD_REQUEST",
-            "SERVER_ERROR",
-            "VERSION_MISMATCH",
-            "DECODE_FAILED",
-            "INVALID_STATE",
-            "SESSION_TERMINAL",
-            "MESSAGE_TOO_LARGE",
-            "TRANSPORT_ERROR",
-            "DISCONNECTED",
-            "REQUEST_TIMEOUT",
-            "ABORTED",
-            "RECORDER_DISABLED",
-        }
-        return error.code if error.code in known else "PROVIDER_ERROR"
+        return error.code
     for kind, code in (
         (TypeError, "TYPE_ERROR"),
         (ValueError, "VALUE_ERROR"),
@@ -49,11 +39,15 @@ def diagnostic_code(error: object) -> str:
 
 
 def phase_error(error: object, phase: str) -> ConnectorError:
-    """Add a connector-owned operation name without copying a provider payload."""
-    safe = safe_error(error)
+    """Name the failed operation and add Reactor's own message when it sent one."""
     if isinstance(error, ConnectorError):
         return error
-    return ConnectorError(safe.code, PHASE.format(message=str(safe), phase=phase, code=diagnostic_code(error)))
+    safe = safe_error(error)
+    message = PHASE.format(message=str(safe), phase=phase, code=error_code(error))
+    detail = provider_text(error.message) if isinstance(error, ReactorError) else ""
+    if detail:
+        message = f"{message} {PROVIDER_MESSAGE.format(message=detail)}"
+    return ConnectorError(safe.code, message)
 
 
 PROVIDER_ERRORS = {
@@ -66,7 +60,7 @@ PROVIDER_ERRORS = {
 
 
 def safe_error(error: object) -> ConnectorError:
-    """Use known error categories; never include an upstream message or URL."""
+    """Map an SDK failure to a connector error category and its message."""
     if isinstance(error, ConnectorError):
         return error
     if isinstance(error, AuthError):

@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from dataclasses import dataclass
-
-if TYPE_CHECKING:
-    from .reports import FailureReport
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,13 +44,11 @@ class SessionOutcome:
     Attributes:
         is_connection_attempted: Whether provider setup began.
         is_termination_confirmed: Whether the provider confirmed termination.
-        diagnostic: Optional private failure details.
 
     """
 
     is_connection_attempted: bool = False
     is_termination_confirmed: bool = False
-    diagnostic: FailureReport | None = None
 
     @property
     def is_termination_uncertain(self) -> bool:
