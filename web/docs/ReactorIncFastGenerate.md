@@ -1,65 +1,41 @@
 # Fast H3: Generate Video (Reactor)
 
-Generate one video clip with audio. Connect **video** to **Save Video** and **audio**
-to **Save Audio (Advanced)**. Optional images can set its first and last frames.
+Generates one clip with sound from Reactor's Fast H3 model. Optional images set
+the first and last frames.
 
 ## Inputs
 
-| Input                    | What to provide                                                  |
-| ------------------------ | ---------------------------------------------------------------- |
-| scene prompt             | Required scene and sound description, up to 800 characters.      |
-| video duration (seconds) | Requested clip length, from 5.167 to 14.375 seconds. Default: 6. |
-| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                    |
-| run number               | Change this integer for another run. Default: 0.                 |
-| aspect ratio             | Canvas shape: 16:9, 1:1, 9:16, or 4:3. Default: 16:9.            |
-| starting image           | Optional first frame from Load Image.                            |
-| final image              | Optional last frame from a second Load Image.                    |
+| Input                    | What it takes                                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| scene prompt             | The scene, motion, and sound, up to 800 characters.                                               |
+| video duration (seconds) | Clip length, from 5.167 to 14.375 seconds. Default: 6. Fast H3 picks the nearest length it takes. |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                                     |
+| run number               | Change it to run again with the same inputs.                                                      |
+| aspect ratio             | `16:9`, `1:1`, `9:16`, or `4:3`. Default: `16:9`.                                                 |
+| starting image           | Optional first frame.                                                                             |
+| final image              | Optional last frame, with or without a first frame.                                               |
 
-Each image must contain one RGB frame, at most 8192 pixels per side, and fit
-the upload limit in Reactor settings. The model fits images to its canvas. Use matching image shapes to reduce
-cropping. You can provide the first frame, the last frame, both, or neither.
-Prepare pictures with the selected shape when preserving proportions matters.
+Each image is one RGB frame, at most 8,192 pixels per side and within the upload
+limit in Reactor settings. The model fits images to its canvas, so images in the
+chosen shape crop less. If the length Fast H3 accepts does not fit the session
+limit, the run stops before playback.
 
-Fast H3 chooses a supported duration near your request. Its accepted duration
-governs the saved clip. If that duration exceeds the host limit, the connector
-ends the session before playback and reports an error. Choose a shorter request
-with room below the limit. A previously unused length may take longer to build.
+## Outputs
 
-## Run and save
+| Output | What it carries                   |
+| ------ | --------------------------------- |
+| video  | The clip, with sound.             |
+| audio  | The same sound as 48 kHz samples. |
 
-Saving requires one extra continuation, which uses credits and is excluded from
-the output. It requests up to 14.375 seconds; the session ends once your selected
-recording is ready.
+## Use
 
-1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **fast-h3-01-text-to-video** in native **Browse Templates → reactor-inc**.
-3. Describe the scene, motion, and sound in **scene prompt**.
-4. Select **Run**. Wait for the clip to build, play, and become available for saving.
-5. Play the saved video and separate sound output.
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **fast-h3-01-text-to-video**, **fast-h3-02-image-to-video**, or
+   **fast-h3-03-first-and-last-frames** in **Browse Templates → reactor-inc**.
+3. Describe the scene, motion, and sound, then select **Run**.
+4. Play the result in **Save Video**; **Save Audio** keeps the sound alone.
 
-Use **fast-h3-02-image-to-video** for a starting picture. Add a second Load Image
-and connect it to **final image** to set the final frame.
-
-Use **fast-h3-03-first-and-last-frames** for a prepared two-image graph. To set
-only the final picture, leave **starting image** empty.
-
-The saved result contains the selected clip without the idle video shown before
-it. Video and sound use the same recording times to stay aligned. Native `VIDEO` contains
-H.264 video and AAC sound; native `AUDIO` contains 48 kHz samples. AAC decoding
-can include padding beyond the separate audio output's exact duration.
-
-## Failures and cancellation
-
-Building and recording readiness can
-take longer than playback. The host session cap includes all those stages. If
-the clip or recording is not ready in time, the node fails and removes partial
-media. It does not retry an ambiguous queue or playback command.
-
-Use ComfyUI's cancel control to end the session. Closing a tab or pausing
-a preview does not cancel. Unchanged inputs can reuse ComfyUI's cache. Change
-**run number** to run again. A seed cannot guarantee identical results after provider
-model updates.
+Saving needs one extra continuation of up to 14.375 seconds. It uses credits and
+is not saved.
 
 [Reactor Fast H3 schema](https://docs.reactor.inc/model-api-reference/fast-h3/schema)
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).

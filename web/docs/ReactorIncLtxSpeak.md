@@ -1,67 +1,41 @@
 # LTX: Make a Portrait Speak (Reactor)
 
-Animate one portrait speaking a script. Connect **Load Image** to **portrait image**, **video**
-to **Save Video**, and **audio** to **Save Audio (Advanced)**. The video includes
-sound; the separate audio output lets you save or process the speech alone.
+Animates one portrait speaking a script with Reactor's LTX model. The video has
+the speech; a separate audio output carries it alone.
 
 ## Inputs
 
-| Input                    | What to provide                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| portrait image           | One clear RGB portrait, with the whole head visible in a wide frame. Required.   |
-| scene prompt             | Optional scene description, up to 800 characters.                                |
-| spoken words             | Spoken words, from 1 to 10,000 characters. Required.                             |
-| video duration (seconds) | Requested saved video length, from 4 to 60 seconds. Default: 5.                  |
-| words per minute         | Speech pace. Default: 140. Reactor checks the supported range before generation. |
-| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                    |
-| run number               | Change this integer to request another run. Default: 0.                          |
+| Input                    | What it takes                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| portrait image           | One clear RGB portrait with the whole head visible.                                |
+| scene prompt             | Optional scene description, up to 800 characters.                                  |
+| spoken words             | The script, 1 to 10,000 characters.                                                |
+| video duration (seconds) | Saved length, from 4 to 60 seconds. Default: 5.                                    |
+| words per minute         | Speech pace. Default: 140. Reactor's supported range is checked before generation. |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                      |
+| run number               | Change it to run again with the same inputs.                                       |
 
-Use a front-facing portrait of one person. LTX fits the picture to a wide canvas;
-a tall portrait can lose the top of the head. Frame the image before uploading.
-Image batches, invalid pixels, and files above the upload limit in Reactor settings are rejected
-before connection. The image limit is 8192 pixels per side.
+Use a front-facing portrait of one person, at most 8,192 pixels per side and
+within the upload limit in Reactor settings. LTX fits the picture to a wide
+canvas, so a tall portrait can lose the top of the head. Fit the script to the
+length: at 140 words per minute, five seconds holds about 11 words, and a longer
+script can be cut off.
 
-Keep the script short enough for the chosen duration. At 140 words per minute,
-five seconds allows about 11 words. A longer script may be cut off. This node
-sets an explicit take length; it does not infer a longer duration from the script.
-LTX may generate up to 20 extra seconds to finish the recording. These seconds
-use credits and are not saved.
-The session time limit applies to the whole run.
-The connector accepts 1 to 1,000 words per minute and then checks the range
-reported by the connected model before starting.
+## Outputs
 
-## Run and save
+| Output | What it carries                                 |
+| ------ | ----------------------------------------------- |
+| video  | The speaking portrait, with sound.              |
+| audio  | The speech as 48 kHz samples, in the same time. |
 
-1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **ltx2-01-speaking-portrait** in native **Browse Templates → reactor-inc**.
-3. Upload a portrait in Load Image and edit **spoken words**.
-4. Select **Run**, then play the video and inspect the separate sound output.
+## Use
 
-The connector uploads the portrait and sends the script, speech pace, duration,
-seed, and optional scene description before starting. These settings stay the
-same throughout the run. Each run generates one video.
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **ltx2-01-speaking-portrait** in **Browse Templates → reactor-inc**.
+3. Upload a portrait in **Load Image** and edit **spoken words**.
+4. Select **Run**, then play the result in **Save Video**.
 
-Native `VIDEO` contains H.264 video and AAC audio. Native `AUDIO` contains 48 kHz
-mono or stereo samples. Both media outputs
-use the provider recording timestamps, starting at the first video frame. Leading
-audio is trimmed; a later audio start retains silence. Output ends at the requested
-duration or the available video end. AAC decoding can include codec padding beyond
-the exact length of the separate audio output.
-
-## Failures and cancellation
-
-Connecting, setting up, and preparing the
-recording can make session time longer than the saved video. The recording must
-be ready within the session time limit in Reactor settings, even if generation
-has finished. A timeout returns an error and
-removes partial media. The connector never substitutes a silent video for a failed
-recording.
-
-Use ComfyUI's cancel control to stop. Closing a tab or pausing playback does not
-end generation. Unchanged inputs may reuse the host cache. Change **run number** for
-another run; seeds do not guarantee identical output across model revisions.
-The connector does not retry ambiguous session creation or model commands.
+LTX can generate up to 20 extra seconds while Reactor prepares the recording.
+They use credits and are not saved, and the whole run must fit the session limit.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).

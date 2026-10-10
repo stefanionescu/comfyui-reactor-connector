@@ -1,42 +1,40 @@
 # LongLive: Add a Shot (Reactor)
 
-Add a later shot to a LongLive storyboard. This node prepares the shot list locally.
+Adds a later shot to a LongLive storyboard. It runs locally and opens no Reactor
+session.
 
-## Build a sequence
+## Inputs
 
-Connect **Add a Shot** nodes in order. **previous shots (JSON)** is an advanced
-control for entering a list directly. Select the node, open the properties panel,
-and expand **Advanced inputs** under **Parameters**. The examples do not require
-editing JSON.
+| Input                 | What it takes                                                                    |
+| --------------------- | -------------------------------------------------------------------------------- |
+| previous shots (JSON) | Earlier shots from another **Add a Shot** node. Default: `[]`.                   |
+| start chunk           | When this shot starts, from 1 to 100,000. Each later shot needs a larger number. |
+| transition            | `soft` changes the prompt within the scene; `cut` starts a new scene.            |
+| scene prompt          | The shot, 1 to 20,000 characters.                                                |
 
-1. Keep `[]` in **previous shots (JSON)** for the first later shot.
-2. Choose when the shot starts in **start chunk**, then set its transition and prompt.
-3. Connect the **shots** output to another LongLive: Add a Shot (Reactor) node's **previous shots (JSON)**
-   input to add another shot, or to **shots (JSON)** on **LongLive: Generate Video (Reactor)** to generate the video.
-4. Set the opening prompt and video length on the generation node.
+**previous shots (JSON)** is an advanced input: select the node, open the
+properties panel, and expand **Advanced inputs** to type a list. A LongLive chunk
+is 29 frames, about 1.2 seconds, counted from the start of generation. The
+opening shot is set on the generation node; do not add it here. A list holds up
+to 32 later shots and 128 KB, and the node rejects unknown fields, duplicate
+keys, empty prompts, and chunk numbers that repeat or go down.
 
-| Input                 | Meaning                                                                                                          |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| previous shots (JSON) | The earlier shot list. Default: `[]`. Connect another LongLive: Add a Shot (Reactor) node to extend its list.    |
-| start chunk           | Chunk number from the start of generation, from 1 to 100,000. Each later shot needs a larger number. Default: 1. |
-| transition            | `soft` changes the prompt within the scene. `cut` starts a new scene. Default: `soft`.                           |
-| scene prompt          | The later shot's description, from 1 to 20,000 characters.                                                       |
+## Outputs
 
-The output is a `STRING` containing a validated JSON shot list. It can be saved
-inside a normal workflow. Lists contain at most 32 later shots and 128 KB.
-Unknown fields, duplicate keys, repeated indices, descending order, and empty
-prompts are rejected. The opening shot is configured on the generation node;
-do not add it here at chunk zero.
+| Output | What it carries                                                             |
+| ------ | --------------------------------------------------------------------------- |
+| shots  | The shot list, for the next **Add a Shot** or **LongLive: Generate Video**. |
 
-LongLive generates frames in groups called chunks. Each chunk contains 29 frames,
-about 1.2 seconds at 24 frames per second. Record long enough to include the later
-shots. A shot at chunk 20 will not appear in a two-second video.
+## Use
 
-Example: add a soft pullback at chunk 1, then a cut to a lake at chunk 2. Connect
-the list to **LongLive: Generate Video (Reactor)** and record five seconds. Watch
-the resulting transitions; this node alone does not produce video.
+1. Keep `[]` in **previous shots (JSON)** for the first later shot, then set
+   **start chunk**, **transition**, and **scene prompt**.
+2. Connect **shots** to the next **Add a Shot** node's **previous shots (JSON)**.
+3. Connect the last **shots** to **shots (JSON)** on **LongLive: Generate Video
+   (Reactor)**, where you set the opening prompt and length.
 
-If the list is invalid, check ordering and connect the previous node's output
-instead of copying and editing its JSON.
+**longlive-v2-02-storyboard** adds a soft pullback at chunk 1 and a cut to a lake
+at chunk 2 in a five-second recording. Record long enough to reach every shot: a
+shot at chunk 20 does not appear in a two-second video.
 
 [LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)

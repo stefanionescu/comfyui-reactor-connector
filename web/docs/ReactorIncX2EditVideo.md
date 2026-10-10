@@ -1,95 +1,53 @@
 # X2: Edit Video (Reactor)
 
-Edit a local video through X2. Connect native **Load Video** or **Create Video**
-to **source video**, and connect **video** to **Save Video**. To replace or insert a subject,
-connect one **Load Image** output to **reference image** and describe the change.
-The result contains video without audio.
-
-Start with **keep queued frames** and **hold pointer** disabled. When using a
-reference, describe what to replace and what to preserve. Review the subject
-and background at the beginning, middle, and end; the model may apply only part
-of the requested change.
+Edits a local video clip with Reactor's X2 model. A reference image can replace
+or insert a subject, and you can drag on the output to steer it.
 
 ## Inputs
 
-| Input                    | What to provide                                                                                             |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| source video             | One standard dynamic range (SDR) color clip with at least 33 frames. Use native Load Video or Create Video. |
-| edit prompt              | An editing instruction of 1 to 1,000 characters. A blank prompt is rejected.                                |
-| video duration (seconds) | Requested output length, from 0.1 to 60 seconds. Default: 5 seconds.                                        |
-| run number               | Change this integer to request another run. Default: 0.                                                     |
-| keep queued frames       | Keep source frames in order when true. False favors recent frames and limits delay.                         |
-| hold pointer             | Hold the pointer at the chosen position while true. Default: false.                                         |
-| pointer x (0-1)          | Horizontal position: 0 is left, 1 is right. Default: 0.5.                                                   |
-| pointer y (0-1)          | Vertical position: 0 is top, 1 is bottom. Default: 0.5.                                                     |
-| reference image          | Optional single RGB image of the subject to insert or replace. Batches are rejected.                        |
-| live controls            | Open live controls in the ComfyUI window that runs the workflow. Default: false.                            |
+| Input                    | What it takes                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| source video             | One SDR color clip with at least 33 frames, from **Load Video** or **Create Video**. |
+| edit prompt              | The edit, 1 to 1,000 characters.                                                     |
+| video duration (seconds) | Recording length, from 0.1 to 60 seconds. Default: 5.                                |
+| run number               | Change it to run again with the same inputs. X2 has no seed.                         |
+| keep queued frames       | On keeps source frames in order; off favors recent frames and less delay.            |
+| hold pointer             | Hold the pointer at the position below for the whole run. Default: off.              |
+| pointer x (0-1)          | Horizontal position: 0 is the left edge, 1 the right. Default: 0.5.                  |
+| pointer y (0-1)          | Vertical position: 0 is the top edge, 1 the bottom. Default: 0.5.                    |
+| reference image          | Optional. One RGB image of the subject to insert or replace.                         |
+| live controls            | Change the prompt and drag the subject while it records. Default: off.               |
 
-X2 has no seed command. **run number** controls ComfyUI caching; it is not a model
-seed and does not guarantee reproducibility.
+The clip must be MP4, MOV, WebM, or AVI, with even dimensions, at most 4,096
+pixels per side, and 1 to 120 frames per second. HDR clips and clips with
+several video streams are rejected. The connector sends a temporary video-only
+copy of up to 60 seconds and stops if preparing it takes over 60 seconds. The
+clip plays once at its own frame rate, then holds its last frame. With a
+reference, describe what to replace and what to keep.
 
-Source clips must have even dimensions, at most 4096 pixels per side, and a frame
-rate from 1 to 120 fps. The connector supports MP4, MOV, WebM, and AVI. It rejects
-HDR, multiple video streams, and fewer than 33 usable frames before connecting.
-Files and frames must fit the configured upload and memory limits.
+## Outputs
 
-Preparation creates a temporary video-only MP4, respects native file trim
-windows, and limits source length to 60 seconds. Source audio and
-metadata are omitted. Preparation has a 60-second deadline and supports cancel.
+| Output | What it carries                  |
+| ------ | -------------------------------- |
+| video  | The edited video, without sound. |
 
-## Run and save
+## Use
 
-1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **x2-01-edit-video** in **Browse Templates → reactor-inc**.
-3. Upload a short clip in **Load Source Video**. Keep the example watercolor prompt for a first run.
-4. Select **Run**. **Save Video** saves the result and lets you play it.
-
-Use **x2-02-reference-edit** to provide a subject image as well. Choose an image
-with a clear subject and describe what to replace in the source clip.
-
-The local clip is published at its original frame rate. After its last frame, the
-input holds that frame until recording ends. The clip does not loop.
-Keeping queued source frames can delay the model's response; it does not guarantee that the
-saved video includes every source frame. X2 controls output resolution.
-
-The pointer refers to the output frame. This node holds one position during a
-run when **live controls** is off. Turn **live controls** on for live dragging
-and prompt changes. The reference image stays fixed. Release the pointer to stop steering; cleanup also releases it.
-
-In the live panel, a circle marks the point you choose. **Pointer held** or
-**Pointer released** confirms that the control was accepted. The position is
-measured from the picture's left and top edges. For keyboard use, focus the
-output picture and position the pointer with the arrow keys. Hold Space to hold
-the pointer; release Space or press Escape to release it. Losing focus also
-releases the pointer.
-
-The output is **video** without sound. In your own graph, connect **video** to
-ComfyUI's **Save Video** to keep the result after ComfyUI clears its temporary
-storage. Input copies are removed when the session ends or execution fails.
-
-## Cancellation
-
-Session time includes setup and can
-exceed output duration. The configured recording and server session limits apply.
-Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel it. With live controls on,
-losing the live panel ends the session and discards unfinished video.
-The connector disconnects after recording, failure, or cancellation. It does not
-automatically retry failed commands or uncertain session creation.
-
-Unchanged inputs may reuse ComfyUI's cache. Change **run number** for another run. If preparation fails, use a shorter SDR clip. If the provider rejects a
-reference or prompt, review those inputs before deciding to run again.
-
-[Reactor X2 schema](https://docs.reactor.inc/model-api-reference/x2/schema)
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **x2-01-edit-video**, **x2-02-reference-edit**, or **x2-04-live-prompt**
+   in **Browse Templates → reactor-inc**, and upload a clip in **Load Source
+   Video**.
+3. Keep the example prompt for a first run and select **Run**.
+4. Play the result in **Save Video**, which also saves the file.
 
 ## Live controls
 
 Turn **live controls** on, select **Run**, then select **Start Session** in the
-live panel within 60 seconds. Use **Apply Prompt** to change later frames.
-Let recording finish to save the result. **End Session** discards the unfinished
-video. Panel prompt changes do not rewrite the saved workflow.
+live panel within 60 seconds. **Apply Prompt** changes later frames. Drag on the
+output to steer the subject; a circle marks the point, and **Pointer held** or
+**Pointer released** confirms each change. With the keyboard, focus the picture,
+move the pointer with the arrow keys, and hold Space; Escape or leaving the
+picture releases it. X2 works on groups of frames, so changes can lag. Let
+recording finish to save the result; **End Session** discards it.
 
-Keep the live panel open until recording finishes. Closing it or losing its
-browser connection ends the session and discards the unfinished video. The
-preview has no sound.
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
+[Reactor X2 schema](https://docs.reactor.inc/model-api-reference/x2/schema)

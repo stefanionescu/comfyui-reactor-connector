@@ -1,44 +1,43 @@
 # SANA: Edit Webcam Video (Reactor)
 
-Turn your camera video into an edited scene and save the result without sound.
-Use a local, single-user ComfyUI installation with camera access.
-Your camera remains off until you enable it in the live panel.
+Edits your camera video live with Reactor's SANA model and saves the result
+without sound. It needs a local, single-user ComfyUI with camera access, and the
+camera stays off until you turn it on in the live panel.
 
 ## Inputs
 
-| Input                            | What to provide                                                                                                 |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| edit prompt                      | Describe the edit in up to 20,000 characters. Leave empty to reconstruct the camera input.                      |
-| video duration (seconds)         | Output length from 0.1 to 60 seconds. Default: 5 seconds.                                                       |
-| seed                             | Number from 0 to 4,294,967,295. Default: 42.                                                                    |
-| run number                       | Change this value for another run. Default: 0.                                                                  |
-| source refresh interval (chunks) | Return to the camera source after this many groups of generated frames. Use 0 to turn this off. Range: 0–1,000. |
+| Input                            | What it takes                                                           |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| edit prompt                      | The edit, up to 20,000 characters. Empty reconstructs the camera input. |
+| video duration (seconds)         | Recording length, from 0.1 to 60 seconds. Default: 5.                   |
+| seed                             | Integer from 0 to 4,294,967,295. Default: 42.                           |
+| run number                       | Change it to run again with the same inputs.                            |
+| source refresh interval (chunks) | Return to the camera after this many chunks of frames; 0 turns it off.  |
 
-## Run and save
+The browser sends up to ten frames per second at up to 640 × 480 pixels, and the
+connector repeats the latest frame on the model's 24 fps input. No microphone
+sound is sent and no camera recording is kept. The session ends after three
+seconds without a new camera frame. The SANA deployment must offer a `camera`
+video input.
 
-1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **sana-streaming-03-webcam** in **Browse Templates → reactor-inc**.
-3. Describe an edit, such as “Turn the scene into a watercolor painting.”
-4. Select **Run**, then **Enable Camera** in the live panel. Allow camera access.
-5. Check the camera preview. To change cameras, choose one and select **Switch Camera**.
-6. Select **Start Session** within 60 seconds.
-7. To change the edit, enter a live prompt and select **Apply Prompt**.
-8. Let recording finish. **Save Video** saves the result.
+## Outputs
 
-The node returns **video** without sound. SANA may take one or more groups of
-frames to apply a prompt change. Camera frames use up to 640 × 480 pixels. The
-browser sends at most ten new frames per second, and the connector repeats the
-latest frame on the model's 24 fps input. It sends no microphone audio and
-stores no separate camera recording.
+| Output | What it carries                  |
+| ------ | -------------------------------- |
+| video  | The edited video, without sound. |
 
-**End Session** discards the unfinished video. Camera input stops when the
-panel closes or recording ends. Losing camera input for three seconds ends
-the session. The session time limit also applies during setup and generation.
+## Use
 
-If camera access fails, use localhost or HTTPS, check camera permissions for Comfy Desktop or your browser, and
-close other applications using the camera. This node requires a SANA deployment
-with the `camera` video input. A deployment without that input cannot run it.
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **sana-streaming-03-webcam** in **Browse Templates → reactor-inc** and
+   describe an edit, such as “Turn the scene into a watercolor painting.”
+3. Select **Run**, then **Enable Camera** in the live panel and allow access. To
+   change cameras, choose one and select **Switch Camera**.
+4. Select **Start Session** within 60 seconds. **Apply Prompt** changes the edit.
+5. Let recording finish; **Save Video** saves the result. **End Session**
+   discards it.
 
-Correct the reported error before starting another session.
+If the camera does not start, use localhost or HTTPS, check camera permissions
+for Comfy Desktop or your browser, and close other apps using the camera.
 
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
+[Reactor SANA schema](https://docs.reactor.inc/model-api-reference/sana-streaming/schema)

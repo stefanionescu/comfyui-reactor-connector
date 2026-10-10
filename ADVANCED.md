@@ -12,7 +12,6 @@ native **Info** explains its inputs and model-specific limits.
 - [Recording overhead](#recording-overhead)
 - [Recovery](#recovery)
 - [Update or remove](#update-or-remove)
-- [Language](#language)
 - [Development commands](#development-commands)
 - [Official packaging and publishing](#official-packaging-and-publishing)
 
@@ -177,7 +176,19 @@ to the whole run.
 ## Recovery
 
 Read the error and the node's native **Info** before trying again. When Reactor
-refuses a run, the error ends with **Reactor said:** and Reactor's own reason. Pausing a video preview does not stop its session.
+refuses a run, the error ends with **Reactor said:** and Reactor's own reason.
+A failed run returns no video. The connector does not retry a rejected command
+or a lost connection.
+
+Use ComfyUI's cancel control to stop a queued or running workflow. Closing the
+browser or a workflow tab does not cancel a run without live controls, and
+pausing a video preview does not stop its session. With live controls on,
+closing the live panel or losing its browser connection ends the session and
+discards the unfinished video.
+
+Unchanged inputs can reuse ComfyUI's cached video. Change **run number** to run
+again. A new key or new limits in Reactor settings also start a new run. A seed
+does not guarantee the same result after Reactor updates a model.
 
 | Problem                      | Next step                                                                                        |
 | ---------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -208,13 +219,6 @@ Keep shared Python dependencies that other packs may use. Removing or updating
 the package preserves private state, media, and saved workflows. To remove state
 too, confirm all sessions ended and delete only its [state directory](#keys-and-access).
 Deleting a saved key does not revoke it in Reactor.
-
-## Language
-
-The connector's text is English, and ComfyUI's language setting does not change
-it. Dropdowns show the values the model receives, such as `idle` and `cut`; the
-node guides explain them. Workflow notes, node titles, prompts, and speech
-scripts are saved in the graph in English.
 
 ## Development commands
 

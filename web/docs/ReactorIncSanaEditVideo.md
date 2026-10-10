@@ -1,89 +1,50 @@
 # SANA: Edit Video (Reactor)
 
-Apply an edit prompt to a local video clip. Connect native **Load Video** or
-**Create Video** to **source video**, then connect **video** to **Save Video**. The output
-contains video without audio.
-
-Start with a clear subject and simple movement. For example, ask for a watercolor
-painting that keeps the clip’s composition and motion. Leave the prompt empty
-to compare SANA’s reconstruction with the original before asking for an edit.
+Applies an edit prompt to a local video clip with Reactor's SANA model. You can
+change the prompt while it records.
 
 ## Inputs
 
-| Input                            | What to provide                                                                                                                                  |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| source video                     | One standard dynamic range (SDR) color video with at least 33 frames. Use MP4, MOV, WebM, or AVI from Load Video, or native Create Video output. |
-| edit prompt                      | Describe the change to apply, using up to 20,000 characters. Leave empty to recreate the source without requesting an edit.                      |
-| video duration (seconds)         | Maximum output length, up to 60 seconds. Default: 5 seconds.                                                                                     |
-| seed                             | Integer from 0 to 4,294,967,295. Default: 42.                                                                                                    |
-| run number                       | Change this value for another run. Default: 0.                                                                                                   |
-| source refresh interval (chunks) | Return to the source image after this many groups of generated frames (chunks). Use 0 to turn this off. Range: 0–1,000; default: 0.              |
-| live controls                    | Open live controls in the ComfyUI window that runs the workflow. Default: false.                                                                 |
+| Input                            | What it takes                                                                             |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| source video                     | One SDR color clip with at least 33 frames, from **Load Video** or **Create Video**.      |
+| edit prompt                      | The change to apply, up to 20,000 characters. Empty recreates the source without an edit. |
+| video duration (seconds)         | Longest output, up to 60 seconds. Default: 5.                                             |
+| seed                             | Integer from 0 to 4,294,967,295. Default: 42.                                             |
+| run number                       | Change it to run again with the same inputs.                                              |
+| source refresh interval (chunks) | Return to the source after this many chunks of frames; 0 turns it off. Default: 0.        |
+| live controls                    | Change the prompt while it records. Default: off.                                         |
 
-Use a clip with even dimensions, no more than 4096 pixels on either side, and a
-frame rate from 1 to 120 fps. HDR, multiple video streams, unsupported containers,
-and fewer than 33 usable frames are rejected before connecting. File size and
-frame memory must fit the host upload and queue limits.
+The clip must be MP4, MOV, WebM, or AVI, with even dimensions, at most 4,096
+pixels per side, and 1 to 120 frames per second. HDR clips and clips with
+several video streams are rejected. The connector sends a temporary video-only
+copy of up to 60 seconds, without sound or metadata, and stops if preparing it
+takes over 60 seconds. The clip plays once; after its last frame SANA keeps the
+last input frame. The output can be shorter than requested.
 
-The connector prepares a temporary video-only MP4 before connecting. It respects
-native file trim windows and limits source length to 60 seconds.
-The source keeps its frame timing. Audio and file metadata are not sent to Reactor.
-Preparation stops if it takes more than 60 seconds. You can cancel it in ComfyUI.
+## Outputs
 
-## Run and save
+| Output | What it carries                  |
+| ------ | -------------------------------- |
+| video  | The edited video, without sound. |
 
-1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **sana-streaming-01-edit-video** in **Browse Templates → reactor-inc**.
-3. Upload a short clip in **Load Source Video** and describe the edit.
-4. Select **Run**. **Save Video** saves the result and lets you play it.
+## Use
 
-Start with a three- to five-second landscape clip. For example, enter
-“Change the scene to a soft watercolor painting. Keep the movement and composition.”
-To change the prompt while recording, use the live panel. Editing the prompt on
-the node and selecting **Run** starts another session.
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **sana-streaming-01-edit-video** or **sana-streaming-02-live-prompt** in
+   **Browse Templates → reactor-inc**, and upload a clip in **Load Source Video**.
+3. Describe the edit, such as “Change the scene to a soft watercolor painting.
+   Keep the movement and composition.”, then select **Run**.
+4. Play the result in **Save Video**, which also saves the file.
 
-The source clip plays once. If recording continues after the clip ends, SANA
-keeps using the last input frame. This node uses your uploaded file; it does not
-open your webcam.
-
-Recording stops at the chosen video length or when Reactor reports that the clip
-has finished. The output can be shorter than requested. The session time limit
-in Reactor settings also applies.
-
-The node returns **video** without sound. In your own graph, connect **video**
-to ComfyUI's **Save Video** to keep the result after ComfyUI clears its
-temporary storage. Input copies are removed after the session ends or the
-operation fails.
-
-## Cancellation
-
-Session time includes upload and setup,
-so it can exceed the output duration. The host recording and session limits apply.
-The connector disconnects after recording, failure, or cancellation and does not
-automatically retry rejected commands or uncertain session creation.
-
-Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel the workflow. With live
-controls on, losing the live panel ends the session and discards unfinished video. Unchanged inputs may reuse ComfyUI's cache; change **run number**
-to request another run. Seeds do not guarantee identical output after a
-provider update.
-
-## Recovery
-
-If source preparation fails, use a shorter SDR MP4 with one video stream and at
-least 33 frames. Read the error shown in ComfyUI before running again. If Reactor
-rejects the clip or prompt, the session ends without an automatic retry.
-
-[Reactor SANA schema](https://docs.reactor.inc/model-api-reference/sana-streaming/schema)
+Start with a three- to five-second landscape clip. An empty prompt shows SANA's
+reconstruction, which helps judge an edit.
 
 ## Live controls
 
 Turn **live controls** on, select **Run**, then select **Start Session** in the
-live panel within 60 seconds. Use **Apply Prompt** to change later frames.
-Let recording finish to save the result. **End Session** discards the unfinished
-video. Panel prompt changes do not rewrite the saved workflow.
+live panel within 60 seconds. **Apply Prompt** changes later frames. Let
+recording finish to save the result; **End Session** discards it. The preview has
+no sound, and panel changes do not rewrite the saved workflow.
 
-Keep the live panel open until recording finishes. Closing it or losing its
-browser connection ends the session and discards the unfinished video. The
-preview has no sound.
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
+[Reactor SANA schema](https://docs.reactor.inc/model-api-reference/sana-streaming/schema)

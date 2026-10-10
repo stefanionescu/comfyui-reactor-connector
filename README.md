@@ -122,76 +122,34 @@ After updating, open an example in a new tab. Existing graphs keep their saved
 notes, prompts, and layout. Notes and node titles are saved in the graph in
 English; changing the interface language does not translate them.
 
-### Fast H3
-
-| Workflow JSON                                                                                      | Input                                | Guide                                            |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------ |
-| [Fast H3: Generate a Clip with Audio](example_workflows/fast-h3-01-text-to-video.json)             | Scene and sound prompt               | [Node guide](web/docs/ReactorIncFastGenerate.md) |
-| [Fast H3: Animate an Image](example_workflows/fast-h3-02-image-to-video.json)                      | Image and prompt                     | [Node guide](web/docs/ReactorIncFastGenerate.md) |
-| [Fast H3: Connect Two Images with Motion](example_workflows/fast-h3-03-first-and-last-frames.json) | First image, final image, and prompt | [Node guide](web/docs/ReactorIncFastGenerate.md) |
-| [Fast H3: Continue a Scene](example_workflows/fast-h3-05-continue-scene.json)                      | Prompts for continued clips          | [Node guide](web/docs/ReactorIncFastContinue.md) |
-
-### Helios
-
-| Workflow JSON                                                                             | Input             | Guide                                              |
-| ----------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------- |
-| [Helios: Generate Video](example_workflows/helios-01-text-to-video.json)                  | Scene prompt      | [Node guide](web/docs/ReactorIncHeliosGenerate.md) |
-| [Helios: Animate an Image](example_workflows/helios-02-image-to-video.json)               | Image and prompt  | [Node guide](web/docs/ReactorIncHeliosGenerate.md) |
-| [Helios: Follow a Prompt Sequence](example_workflows/helios-03-prompt-sequence.json)      | Scheduled prompts | [Node guide](web/docs/ReactorIncHeliosGenerate.md) |
-| [Helios: Change the Prompt While Recording](example_workflows/helios-05-live-prompt.json) | Live prompt       | [Node guide](web/docs/ReactorIncHeliosGenerate.md) |
-
-### LingBot
-
-| Workflow JSON                                                                                 | Input                                  | Guide                                              |
-| --------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------- |
-| [LingBot: Explore an Image](example_workflows/lingbot-01-explore-image.json)                  | Image and prompt                       | [Node guide](web/docs/ReactorIncLingBotExplore.md) |
-| [LingBot: Explore an Image with Live Controls](example_workflows/lingbot-02-live-camera.json) | Image and prompt; live keys or buttons | [Node guide](web/docs/ReactorIncLingBotExplore.md) |
-
-### LingBot World 2
-
-| Workflow JSON                                                                                                 | Input                                  | Guide                                                    |
-| ------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
-| [LingBot World 2: Explore an Image](example_workflows/lingbot-world-2-01-explore-image.json)                  | Image and prompt                       | [Node guide](web/docs/ReactorIncLingBotWorld2Explore.md) |
-| [LingBot World 2: Explore an Image with Live Controls](example_workflows/lingbot-world-2-02-live-camera.json) | Image and prompt; live keys or buttons | [Node guide](web/docs/ReactorIncLingBotWorld2Explore.md) |
-
-### LongLive
-
-| Workflow JSON                                                                                      | Input                                  | Guide                                                |
-| -------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------- |
-| [LongLive: Generate Video](example_workflows/longlive-v2-01-text-to-video.json)                    | Scene prompt                           | [Node guide](web/docs/ReactorIncLongLiveGenerate.md) |
-| [LongLive: Generate Video with Shot Transitions](example_workflows/longlive-v2-02-storyboard.json) | Opening prompt and two scheduled shots | [Node guide](web/docs/ReactorIncLongLiveGenerate.md) |
-| [LongLive: Change the Prompt While Recording](example_workflows/longlive-v2-03-live-prompt.json)   | Live prompt                            | [Node guide](web/docs/ReactorIncLongLiveGenerate.md) |
-
-### LTX
-
-| Workflow JSON                                                                  | Input                      | Guide                                        |
-| ------------------------------------------------------------------------------ | -------------------------- | -------------------------------------------- |
-| [LTX: Make a Portrait Speak](example_workflows/ltx2-01-speaking-portrait.json) | Portrait and speech script | [Node guide](web/docs/ReactorIncLtxSpeak.md) |
-
-### SANA
-
-| Workflow JSON                                                                                   | Input                          | Guide                                             |
-| ----------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------- |
-| [SANA: Edit Video](example_workflows/sana-streaming-01-edit-video.json)                         | Video and edit prompt          | [Node guide](web/docs/ReactorIncSanaEditVideo.md) |
-| [SANA: Change the Prompt While Recording](example_workflows/sana-streaming-02-live-prompt.json) | Source video and live controls | [Node guide](web/docs/ReactorIncSanaEditVideo.md) |
-| [SANA: Edit Webcam Video](example_workflows/sana-streaming-03-webcam.json)                      | Webcam and live edit prompt    | [Node guide](web/docs/ReactorIncSanaWebcam.md)    |
-
-### Visko
-
-| Workflow JSON                                                                           | Input                  | Guide                                             |
-| --------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------- |
-| [Visko: Generate Video with Audio](example_workflows/visko-01-text-to-video.json)       | Scene and sound prompt | [Node guide](web/docs/ReactorIncViskoGenerate.md) |
-| [Visko: Animate an Image with Audio](example_workflows/visko-02-image-to-video.json)    | Image and prompt       | [Node guide](web/docs/ReactorIncViskoGenerate.md) |
-| [Visko: Change the Prompt While Recording](example_workflows/visko-03-live-prompt.json) | Live prompt            | [Node guide](web/docs/ReactorIncViskoGenerate.md) |
-
-### X2
-
-| Workflow JSON                                                                      | Input                                   | Guide                                           |
-| ---------------------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------- |
-| [X2: Edit Video](example_workflows/x2-01-edit-video.json)                          | Video and edit prompt                   | [Node guide](web/docs/ReactorIncX2EditVideo.md) |
-| [X2: Edit with a Reference Image](example_workflows/x2-02-reference-edit.json)     | Video, edit prompt, and reference image | [Node guide](web/docs/ReactorIncX2EditVideo.md) |
-| [X2: Edit Webcam Video with Pointer Controls](example_workflows/x2-03-webcam.json) | Webcam and live edit prompt             | [Node guide](web/docs/ReactorIncX2Webcam.md)    |
-| [X2: Drag and Edit a Video](example_workflows/x2-04-live-prompt.json)              | Source video and live controls          | [Node guide](web/docs/ReactorIncX2EditVideo.md) |
+| Workflow JSON                                                                                                 | Input                                   | Guide                                                    |
+| ------------------------------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------- |
+| [Fast H3: Generate a Clip with Audio](example_workflows/fast-h3-01-text-to-video.json)                        | Scene and sound prompt                  | [Node guide](web/docs/ReactorIncFastGenerate.md)         |
+| [Fast H3: Animate an Image](example_workflows/fast-h3-02-image-to-video.json)                                 | Image and prompt                        | [Node guide](web/docs/ReactorIncFastGenerate.md)         |
+| [Fast H3: Connect Two Images with Motion](example_workflows/fast-h3-03-first-and-last-frames.json)            | First image, final image, and prompt    | [Node guide](web/docs/ReactorIncFastGenerate.md)         |
+| [Fast H3: Continue a Scene](example_workflows/fast-h3-05-continue-scene.json)                                 | Prompts for continued clips             | [Node guide](web/docs/ReactorIncFastContinue.md)         |
+| [Helios: Generate Video](example_workflows/helios-01-text-to-video.json)                                      | Scene prompt                            | [Node guide](web/docs/ReactorIncHeliosGenerate.md)       |
+| [Helios: Animate an Image](example_workflows/helios-02-image-to-video.json)                                   | Image and prompt                        | [Node guide](web/docs/ReactorIncHeliosGenerate.md)       |
+| [Helios: Follow a Prompt Sequence](example_workflows/helios-03-prompt-sequence.json)                          | Scheduled prompts                       | [Node guide](web/docs/ReactorIncHeliosGenerate.md)       |
+| [Helios: Change the Prompt While Recording](example_workflows/helios-05-live-prompt.json)                     | Live prompt                             | [Node guide](web/docs/ReactorIncHeliosGenerate.md)       |
+| [LingBot: Explore an Image](example_workflows/lingbot-01-explore-image.json)                                  | Image and prompt                        | [Node guide](web/docs/ReactorIncLingBotExplore.md)       |
+| [LingBot: Explore an Image with Live Controls](example_workflows/lingbot-02-live-camera.json)                 | Image and prompt; live keys or buttons  | [Node guide](web/docs/ReactorIncLingBotExplore.md)       |
+| [LingBot World 2: Explore an Image](example_workflows/lingbot-world-2-01-explore-image.json)                  | Image and prompt                        | [Node guide](web/docs/ReactorIncLingBotWorld2Explore.md) |
+| [LingBot World 2: Explore an Image with Live Controls](example_workflows/lingbot-world-2-02-live-camera.json) | Image and prompt; live keys or buttons  | [Node guide](web/docs/ReactorIncLingBotWorld2Explore.md) |
+| [LongLive: Generate Video](example_workflows/longlive-v2-01-text-to-video.json)                               | Scene prompt                            | [Node guide](web/docs/ReactorIncLongLiveGenerate.md)     |
+| [LongLive: Generate Video with Shot Transitions](example_workflows/longlive-v2-02-storyboard.json)            | Opening prompt and two scheduled shots  | [Node guide](web/docs/ReactorIncLongLiveGenerate.md)     |
+| [LongLive: Change the Prompt While Recording](example_workflows/longlive-v2-03-live-prompt.json)              | Live prompt                             | [Node guide](web/docs/ReactorIncLongLiveGenerate.md)     |
+| [LTX: Make a Portrait Speak](example_workflows/ltx2-01-speaking-portrait.json)                                | Portrait and speech script              | [Node guide](web/docs/ReactorIncLtxSpeak.md)             |
+| [SANA: Edit Video](example_workflows/sana-streaming-01-edit-video.json)                                       | Video and edit prompt                   | [Node guide](web/docs/ReactorIncSanaEditVideo.md)        |
+| [SANA: Change the Prompt While Recording](example_workflows/sana-streaming-02-live-prompt.json)               | Source video and live controls          | [Node guide](web/docs/ReactorIncSanaEditVideo.md)        |
+| [SANA: Edit Webcam Video](example_workflows/sana-streaming-03-webcam.json)                                    | Webcam and live edit prompt             | [Node guide](web/docs/ReactorIncSanaWebcam.md)           |
+| [Visko: Generate Video with Audio](example_workflows/visko-01-text-to-video.json)                             | Scene and sound prompt                  | [Node guide](web/docs/ReactorIncViskoGenerate.md)        |
+| [Visko: Animate an Image with Audio](example_workflows/visko-02-image-to-video.json)                          | Image and prompt                        | [Node guide](web/docs/ReactorIncViskoGenerate.md)        |
+| [Visko: Change the Prompt While Recording](example_workflows/visko-03-live-prompt.json)                       | Live prompt                             | [Node guide](web/docs/ReactorIncViskoGenerate.md)        |
+| [X2: Edit Video](example_workflows/x2-01-edit-video.json)                                                     | Video and edit prompt                   | [Node guide](web/docs/ReactorIncX2EditVideo.md)          |
+| [X2: Edit with a Reference Image](example_workflows/x2-02-reference-edit.json)                                | Video, edit prompt, and reference image | [Node guide](web/docs/ReactorIncX2EditVideo.md)          |
+| [X2: Edit Webcam Video with Pointer Controls](example_workflows/x2-03-webcam.json)                            | Webcam and live edit prompt             | [Node guide](web/docs/ReactorIncX2Webcam.md)             |
+| [X2: Drag and Edit a Video](example_workflows/x2-04-live-prompt.json)                                         | Source video and live controls          | [Node guide](web/docs/ReactorIncX2EditVideo.md)          |
 
 ### Sample inputs
 
@@ -242,11 +200,11 @@ These images show frames from Reactor output. Your results can differ.
 Select a Reactor node and open its native **Info** for inputs, limits, and
 examples. Nodes with detailed behavior show their bundled guide there.
 
-![Fast H3: Generate Video on the canvas: sockets for a starting image and a final image; outputs for video, audio, and recording details; then the scene and sound prompt, video duration, seed, run number, and aspect ratio.](docs/images/fast-h3-node.png)
+![Fast H3: Generate Video on the canvas: sockets for a starting image and a final image; outputs for video and audio; then the scene and sound prompt, video duration, seed, run number, and aspect ratio.](docs/images/fast-h3-node.png)
 
 In your own graph, connect **video** to **Save Video**. Models with sound also
 return a separate **audio** output. Prompt and shot builders work
-locally without contacting Reactor. HappyOyster is not supported.
+locally without contacting Reactor.
 
 ## Fix a setup problem
 

@@ -1,81 +1,53 @@
 # LingBot: Explore an Image (Reactor)
 
-Move through a scene from your image and save a video. Choose a direction for
-the camera to follow, or turn on **live controls** to steer with keys and buttons.
-Recording stops after the duration you choose.
-
-## Set up and run
-
-1. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **lingbot-01-explore-image** in **Browse Templates → reactor-inc**.
-   Upload one picture in **Load Starting Image**.
-3. Describe the scene in **scene prompt** and choose the video length in **video duration (seconds)**.
-4. Choose camera directions, or turn on **live controls** to use keys and buttons.
-5. Select **Run**.
-6. Play the result in **Save Video**. It also saves the file.
-
-For a first run, use a picture of a path or room with clear depth. Set **movement**
-to `forward`, set **turn left or right** and **look up or down** to `idle` (stop),
-and record two seconds.
+Moves through a scene from your image with Reactor's LingBot model and saves
+a video. Choose camera directions before the run, or steer live with keys and
+buttons.
 
 ## Inputs
 
-| Input                    | What it does                                                                                                            |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| starting image           | Starting picture. Connect one image from Load Image; batches are not supported.                                         |
-| scene prompt             | Describe the scene and motion in 1 to 1,000 characters.                                                                 |
-| video duration (seconds) | Video length, up to 60 seconds. Default: 5.                                                                             |
-| seed                     | Number sent to the model. Range: 0–4,294,967,295; default: 42. It does not guarantee identical results.                 |
-| run number               | Change this number to request another run with the same other settings. Default: 0.                                     |
-| movement                 | `forward`, `back`, `strafe_left` (move left), `strafe_right` (move right), or `idle` (stop).                            |
-| turn left or right       | `left` or `right` keeps turning the camera. Choose `idle` to stop turning.                                              |
-| look up or down          | `up` or `down` keeps tilting the camera. Choose `idle` to stop tilting. Combine with horizontal look if needed.         |
-| turn per step (degrees)  | Degrees per latent frame (an internal model step). Larger values turn faster; 0 stops turning. Range: 0–30; default: 5. |
-| live controls            | Open the live controls. Default: off. The camera starts still; the panel controls replace the direction inputs above.   |
+| Input                    | What it takes                                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------------------------- |
+| starting image           | One picture to start from. Batches are not supported.                                              |
+| scene prompt             | The scene and motion, 1 to 1,000 characters.                                                       |
+| video duration (seconds) | Recording length, up to 60 seconds. Default: 5.                                                    |
+| seed                     | Integer from 0 to 4,294,967,295. Default: 42.                                                      |
+| run number               | Change it to run again with the same inputs.                                                       |
+| movement                 | `forward`, `back`, `strafe_left`, `strafe_right`, or `idle` (stop).                                |
+| turn left or right       | `left` or `right` keeps turning; `idle` stops.                                                     |
+| look up or down          | `up` or `down` keeps tilting; `idle` stops.                                                        |
+| turn per step (degrees)  | How fast the camera turns, from 0 to 30. Default: 5.                                               |
+| live controls            | Steer live instead. Default: off. The camera starts still and the panel replaces the inputs above. |
 
-Choose one movement direction at a time. In the live panel, forward or back takes priority over sideways movement.
-Camera changes take time to appear because the model applies them as it generates
-new frames. Once set, a direction stays active until you change or release it.
-
-## Live controls
-
-Select Run with **live controls** on. Wait for the live picture, then click it to use
-**W, A, S, D** to move and the **arrow keys** to look around. Click a direction
-button for a short movement, or hold it to keep moving.
-
-Edit **scene prompt** and select **Apply Prompt** to change later frames. Use
-up to 1,000 characters. For example: “A sunny clearing opens ahead.” The starting
-image stays fixed, and the saved workflow keeps its original prompt. Clicking
-the text field releases held camera movement.
-
-**Escape**, changing window focus, or hiding the tab releases held movement.
-Let recording finish to save the video. **End Session** stops early and discards
-the video from that run. These controls work in the ComfyUI window that started the workflow. Multi-user mode is not supported.
-
-The preview shows up to ten frames per second at up to 640 × 360 pixels.
-The saved video keeps the model's original resolution. This operation has no sound.
+Choose one movement direction at a time; in the live panel, forward or back wins over sideways. Camera changes show up as the model generates new frames, and a
+direction stays on until you change it.
 
 ## Outputs
 
-**video** connects to **Save Video** or another ComfyUI video node.
+| Output | What it carries                    |
+| ------ | ---------------------------------- |
+| video  | The recorded video, without sound. |
 
-Unchanged inputs may reuse ComfyUI's cached video. Change **run number** for
-another generation. Setup also uses session time, so the saved video length is
-not the billed duration.
+## Use
 
-## Stop and recover
+1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+2. Open **lingbot-01-explore-image** or **lingbot-02-live-camera** in **Browse
+   Templates → reactor-inc**, and upload a picture in **Load Starting Image**.
+3. Describe the scene, choose the length and directions, and select **Run**.
+4. Play the result in **Save Video**, which also saves the file.
 
-Use ComfyUI's cancel control to stop a queued or running workflow. With **live
-controls** off, closing the browser does not cancel it. With live controls on,
-closing the live panel ends the session. A lost browser connection ends the
-session after five seconds without contact. Both discard unfinished video.
+For a first run, use a picture of a path or room with clear depth, set
+**movement** to `forward` and the other directions to `idle`, and record two
+seconds. A saved video cannot reopen the scene.
 
-If video stops arriving, check your connection and Reactor account. Correct
-reported input errors before trying again.
+## Live controls
 
-A saved video cannot reopen the scene on Reactor. Playing it again only repeats
-the recording.
+Turn **live controls** on and select **Run**. When the live picture appears,
+click it and use **W, A, S, D** to move and the **arrow keys** to look around, or
+click a direction button briefly or hold it. **Escape**, leaving the window, or
+hiding the tab releases held movement. **Apply Prompt** changes later frames, up
+to 1,000 characters; the starting image and the saved workflow stay as they
+were. Let recording finish to save the video; **End Session** discards it. The
+preview shows up to ten frames per second at up to 640 × 360 pixels.
 
 [Reactor LingBot schema](https://docs.reactor.inc/model-api-reference/lingbot/schema)
-
-For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
