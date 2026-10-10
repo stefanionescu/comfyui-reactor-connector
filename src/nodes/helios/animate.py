@@ -48,5 +48,4 @@ class HeliosAnimate(VideoNode):
         return await generate_video(
             HeliosOperation(HeliosRequest(prompt, duration_seconds, seed, image=encoded)),
             interactive=interactive,
-            node_id=cls.define_schema().node_id,
         )

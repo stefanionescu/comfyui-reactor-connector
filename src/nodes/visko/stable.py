@@ -69,7 +69,6 @@ class ViskoStableGenerate(VideoNode):
             outputs=[
                 io.Video.Output(display_name="video"),
                 io.Audio.Output(display_name="audio"),
-                io.String.Output(display_name="recording details"),
             ],
         )
 
@@ -106,7 +105,6 @@ class ViskoStableGenerate(VideoNode):
             return await generate_video(
                 cls.operation_type(request),
                 interactive=interactive,
-                node_id=cls.define_schema().node_id,
             )
 
         return await wait_for_execution(asyncio.create_task(start()))

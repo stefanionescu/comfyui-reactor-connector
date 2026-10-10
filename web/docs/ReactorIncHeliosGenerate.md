@@ -22,9 +22,9 @@ to ComfyUI's **Save Video** node to preview and save the result.
 4. Choose **video duration (seconds)**, then select **Run**.
 5. Play the result in **Save Video**. This node also saves the file.
 
-The Reactor node returns **video** without sound and **recording details** as
-text. In your own graph, connect **video** to **Save Video** to keep the result
-after ComfyUI clears its temporary storage.
+The Reactor node returns **video** without sound. In your own graph, connect
+**video** to **Save Video** to keep the result after ComfyUI clears its
+temporary storage.
 
 ## Cancellation and recovery
 
@@ -53,14 +53,7 @@ Let recording finish to save the result. **End Session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
 Keep the live panel open until recording finishes. Closing it or losing its
-browser connection ends the live session and discards the unfinished video.
-The preview has no sound. Prompt changes are sent to Reactor but are not saved
-in **recording details**.
+browser connection ends the live session and discards the unfinished video. The
+preview has no sound.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

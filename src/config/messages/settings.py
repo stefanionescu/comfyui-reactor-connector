@@ -7,7 +7,6 @@ KEY_EMPTY = (
 KEY_REQUIRED = "Set your Reactor API key in Reactor settings or the server environment before running."
 KEY_UNREADABLE = "Cannot read the saved Reactor key. Check its private file."
 KEY_WHITESPACE = "The API key cannot contain whitespace."
-PACKAGE_VERSION_MISSING = "The connector's version is missing. Reinstall the package."
 PRIVATE_STATE_LOCATION = "Keep Reactor's private state outside ComfyUI, its package, and its media folders."
 RUNTIME_NOT_READY = "Reactor has not finished loading. Restart ComfyUI."
 SETTINGS_CHANGED = "Settings changed. Reload them before saving."

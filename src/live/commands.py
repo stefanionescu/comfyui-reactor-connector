@@ -17,8 +17,6 @@ class CameraCommands:
         self.events = events
         self.queues = {axis: asyncio.Queue[CameraChange](maxsize=MAX_QUEUED_MOVEMENTS) for axis in axes}
         self.desired = dict.fromkeys(axes, "idle")
-        self.accepted: dict[str, int] = {}
-        self.maximum_reply_seconds = 0.0
         self.workers = [asyncio.create_task(self._axis(axis)) for axis in axes]
 
     def submit(self, state: BrowserInput) -> None:
@@ -53,15 +51,11 @@ class CameraCommands:
             self.events.on_error(ConnectorError(ErrorCode.TIMEOUT, CAMERA_COMMAND_TIMEOUT))
 
     async def _apply(self, axis: str, change: CameraChange) -> None:
-        """Send fresh camera input and record only acknowledged direction changes."""
+        """Send fresh camera input and wait for Reactor to acknowledge it."""
         if change.value != "idle" and time.monotonic() - change.queued_at > MAX_QUEUED_MOVEMENT_SECONDS:
             raise ConnectorError(ErrorCode.TIMEOUT, CAMERA_INPUT_STALE)
-        started = time.monotonic()
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
             await self.events.command_reply(f"set_{axis}", {axis: change.value})
-        self.maximum_reply_seconds = max(self.maximum_reply_seconds, time.monotonic() - started)
-        label = f"{axis}:{change.value}"
-        self.accepted[label] = self.accepted.get(label, 0) + 1
 
     async def stop(self) -> None:
         """Cancel and await all axis workers, then discard queued movement."""

@@ -55,7 +55,7 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
     validate_sources(schemas[example.node_id], example.sources)
     widgets = widget_values(schemas[example.node_id], example.inputs)
     generation = build_node(GENERATION_ID, example.node_id, widgets, title=example.title)
-    generation["outputs"] = [build_output("video", "VIDEO", [1]), build_output("metadata", "STRING", [])]
+    generation["outputs"] = [build_output("video", "VIDEO", [1])]
     save = build_node(
         SAVE_VIDEO_ID,
         "SaveVideo",
@@ -204,7 +204,6 @@ def append_sound_output(
     generation["outputs"] = [
         build_output("video", "VIDEO", [1]),
         build_output("audio", "AUDIO", [link_id]),
-        build_output("metadata", "STRING", []),
     ]
     sound = build_node(
         SAVE_AUDIO_ID,

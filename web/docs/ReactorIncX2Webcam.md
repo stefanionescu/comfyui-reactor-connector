@@ -15,7 +15,7 @@ remains off until you enable it in the live panel.
 | reference image          | Optional single RGB image of a subject to insert or replace. Connect Load Image. |
 
 X2 has no seed control. The reference image is set before generation and stays
-fixed during the session. The node returns **video** without sound and **recording details** as text.
+fixed during the session. The node returns **video** without sound.
 
 ## Run and save
 
@@ -49,9 +49,3 @@ If camera access fails, check permissions for Comfy Desktop or your browser and
 close other applications using the camera.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

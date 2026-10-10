@@ -68,7 +68,6 @@ class SanaEditVideo(VideoNode):
                 SanaRequest(prompt, duration_seconds, seed, anchor_interval=anchor_interval),
                 source,
                 interactive=interactive,
-                node_id=cls.define_schema().node_id,
             )
         )
         return await wait_for_execution(task)
@@ -79,7 +78,6 @@ async def _edit(
     source: Input.Video,
     *,
     interactive: bool,
-    node_id: str,
 ) -> io.NodeOutput:
     """Prepare source frames within the input limits and close them after the edit."""
     settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
@@ -87,5 +85,4 @@ async def _edit(
         return await generate_video(
             SanaOperation(replace(request, video=video)),
             interactive=interactive,
-            node_id=node_id,
         )

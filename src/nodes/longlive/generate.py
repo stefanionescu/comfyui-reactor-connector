@@ -40,5 +40,4 @@ class LongLiveGenerate(VideoNode):
         return await generate_video(
             LongLiveOperation(LongLiveRequest(prompt, duration_seconds, seed)),
             interactive=interactive,
-            node_id=cls.define_schema().node_id,
         )

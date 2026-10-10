@@ -3,7 +3,6 @@
 import sys
 from src.media import encoding
 from src.media.video import worker as video
-from src.media.metadata import worker as metadata
 from src.media.recording import worker as recording
 
 
@@ -12,7 +11,6 @@ def main() -> int:
     operations = {
         "capture": encoding.main,
         "video": video.main,
-        "metadata": metadata.main,
         "recording": recording.main,
     }
     arguments = sys.argv[1:]

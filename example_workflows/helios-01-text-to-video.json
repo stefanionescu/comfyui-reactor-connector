@@ -48,11 +48,6 @@
           "links": [
             1
           ]
-        },
-        {
-          "name": "metadata",
-          "type": "STRING",
-          "links": []
         }
       ],
       "properties": {

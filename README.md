@@ -261,8 +261,7 @@ examples. Nodes with detailed behavior show their bundled guide there.
 ![Fast H3: Generate Video on the canvas: sockets for a starting image and a final image; outputs for video, audio, and recording details; then the scene and sound prompt, video duration, seed, run number, and aspect ratio.](docs/images/fast-h3-node.png)
 
 In your own graph, connect **video** to **Save Video**. Models with sound also
-return a separate **audio** output. Generation nodes also return [Recording details](ADVANCED.md#recording-details),
-which describes the saved file and its model. Prompt and shot builders work
+return a separate **audio** output. Prompt and shot builders work
 locally without contacting Reactor. HappyOyster is not supported.
 
 ## Fix a setup problem

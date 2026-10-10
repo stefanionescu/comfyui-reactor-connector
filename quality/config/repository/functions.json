@@ -42,8 +42,8 @@
             },
             {
                 "path": "src/live/interaction.py",
-                "names": ["LiveInteraction.closed", "LiveInteraction.summary"],
-                "reason": "Implements the session interaction callbacks that record termination and report acknowledged controls."
+                "names": ["LiveInteraction.closed"],
+                "reason": "Implements the session interaction callbacks that record termination."
             },
             {
                 "path": "src/live/routes.py",

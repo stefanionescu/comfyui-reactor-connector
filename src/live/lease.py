@@ -35,7 +35,6 @@ class BrowserLease:
         self.axes = tuple((axis, "idle") for axis in choices)
         self.current_axes = self.axes
         self.pending: deque[BrowserInput] = deque()
-        self.dropped_states = 0
         self.release_pending = False
         self.end = False
         self.end_requested = False
@@ -144,7 +143,6 @@ class BrowserLease:
             age = time.monotonic() - self.last_seen
             stale_queue = self.pending and time.monotonic() - self.pending[0].received_at > STALE_INPUT_SECONDS
             if age > STALE_INPUT_SECONDS or self.end or stale_queue:
-                self.dropped_states += len(self.pending)
                 self.pending.clear()
                 self.axes = self.current_axes = tuple((axis, "idle") for axis in self.choices)
                 self.release_pending = True
@@ -178,7 +176,6 @@ class BrowserLease:
             self.release_pending = True
         elif axes != self.axes:
             if len(self.pending) >= MAX_PENDING_INPUTS:
-                self.dropped_states += len(self.pending)
                 self.pending.clear()
                 self.current_axes = tuple((axis, "idle") for axis in self.choices)
                 self.release_pending = True

@@ -128,11 +128,6 @@
           "links": [
             4
           ]
-        },
-        {
-          "name": "metadata",
-          "type": "STRING",
-          "links": []
         }
       ],
       "properties": {

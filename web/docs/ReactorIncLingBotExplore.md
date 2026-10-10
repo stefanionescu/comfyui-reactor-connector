@@ -58,13 +58,10 @@ The saved video keeps the model's original resolution. This operation has no sou
 ## Outputs
 
 **video** connects to **Save Video** or another ComfyUI video node.
-**recording details** describes the saved file and model. For live runs, it also
-lists camera commands the model confirmed receiving and the number of preview
-frames. Receiving a command does not prove that the requested movement is visible.
 
-Unchanged inputs may reuse ComfyUI's cached video and report. Change **run number**
-for another generation. Setup also uses session time, so the saved video length
-is not the billed duration.
+Unchanged inputs may reuse ComfyUI's cached video. Change **run number** for
+another generation. Setup also uses session time, so the saved video length is
+not the billed duration.
 
 ## Stop and recover
 

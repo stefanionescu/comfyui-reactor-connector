@@ -63,10 +63,9 @@ output picture and position the pointer with the arrow keys. Hold Space to hold
 the pointer; release Space or press Escape to release it. Losing focus also
 releases the pointer.
 
-The outputs are **video** without sound and **recording details** as text. In
-your own graph, connect **video** to ComfyUI's **Save Video** to keep the result
-after ComfyUI clears its temporary storage. Input copies
-are removed when the session ends or execution fails.
+The output is **video** without sound. In your own graph, connect **video** to
+ComfyUI's **Save Video** to keep the result after ComfyUI clears its temporary
+storage. Input copies are removed when the session ends or execution fails.
 
 ## Cancellation
 
@@ -94,9 +93,3 @@ browser connection ends the session and discards the unfinished video. The
 preview has no sound.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

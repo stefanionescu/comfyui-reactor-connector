@@ -58,7 +58,6 @@ class LtxSpeak(VideoNode):
             outputs=[
                 io.Video.Output(display_name="video"),
                 io.Audio.Output(display_name="audio"),
-                io.String.Output(display_name="recording details"),
             ],
         )
 
@@ -73,7 +72,7 @@ class LtxSpeak(VideoNode):
         words_per_minute: int,
         image: Input.Image,
     ) -> io.NodeOutput:
-        """Animate the portrait speaking the script and return video, audio, and recording details."""
+        """Animate the portrait speaking the script and return video and audio."""
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
@@ -86,6 +85,6 @@ class LtxSpeak(VideoNode):
                 script=script,
                 words_per_minute=words_per_minute,
             )
-            return await generate_video(LtxSpeakOperation(request), node_id=cls.define_schema().node_id)
+            return await generate_video(LtxSpeakOperation(request))
 
         return await wait_for_execution(asyncio.create_task(start()))

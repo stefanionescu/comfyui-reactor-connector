@@ -52,5 +52,4 @@ class LingBotWorldExplore(VideoNode):
         return await generate_video(
             LingBotWorldOperation(request),
             interactive=interactive,
-            node_id=cls.define_schema().node_id,
         )

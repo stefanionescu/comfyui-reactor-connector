@@ -103,7 +103,6 @@ class X2Webcam(VideoNode):
                 return await generate_video(
                     request,
                     controls=build_live_options(request, webcam=camera),
-                    node_id=cls.define_schema().node_id,
                 )
             finally:
                 await camera.close()

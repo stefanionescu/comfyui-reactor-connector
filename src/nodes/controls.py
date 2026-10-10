@@ -58,8 +58,8 @@ def generation_controls(prompt_key: str = "video", *, duration: io.Input | None 
 
 
 def video_outputs() -> list[io.Output]:
-    """Declare the native video and recording-details output sockets."""
-    return [io.Video.Output(display_name="video"), io.String.Output(display_name="recording details")]
+    """Declare the native video output socket."""
+    return [io.Video.Output(display_name="video")]
 
 
 def live_control() -> io.Input:

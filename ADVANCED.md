@@ -9,7 +9,6 @@ native **Info** explains its inputs and model-specific limits.
 - [Keys and access](#keys-and-access)
 - [Session limits](#session-limits)
 - [Live controls](#live-controls)
-- [Recording details](#recording-details)
 - [Recording overhead](#recording-overhead)
 - [Recovery](#recovery)
 - [Update or remove](#update-or-remove)
@@ -157,39 +156,6 @@ the end message. The connector does not reconnect automatically.
 clip's final frame to build the next clip. Choose a clip count and later prompts.
 The result is one video with sound. Recording ends after the chosen number of
 clips; their combined length must be 60 seconds or less.
-
-## Recording details
-
-The **recording details** output is a JSON string describing the saved media.
-Its serialized socket name remains `metadata`. Connect it to a text display or
-another node to inspect it; saving the video does not save this text separately.
-
-| Field                              | Meaning                                                            |
-| ---------------------------------- | ------------------------------------------------------------------ |
-| `schema_version`                   | Report format version, currently `1`.                              |
-| `run_id`                           | Random local execution ID; grants no session access.               |
-| `node_id`, `model_name`            | Node ID and model connection name used for the run.                |
-| `connector_version`, `sdk_version` | Connector and installed Reactor SDK versions.                      |
-| `frames`                           | Number of encoded video frames.                                    |
-| `width`, `height`                  | Saved dimensions in pixels.                                        |
-| `file_bytes`                       | Completed MP4 size, including embedded audio.                      |
-| `has_audio`                        | Whether the MP4 has an audio track; the track may contain silence. |
-| `requested_duration_seconds`       | Requested length; clip length times count for continued scenes.    |
-| `duration_seconds`                 | Duration reported by the MP4 video stream, or `null` if absent.    |
-| `timestamp_mode`                   | Frame-timing method described below.                               |
-
-`sender` preserves received timestamps. `fallback_fps` uses the adapter's frame
-rate when the stream supplies no initial timestamp. `recording_pts` uses the
-downloaded Reactor recording's timestamps to align video and sound.
-
-A `live` object can include acknowledged action counts, preview frames, and
-control timing. Acknowledgment does not prove the requested change is visible.
-Saved length can differ from the request when the model chooses another accepted
-length or ends early. File details do not assess visual quality or billed time.
-
-Reports omit prompts, images, keys, tokens, remote session IDs, and absolute paths.
-ComfyUI may reuse a cached report and its `run_id`; pressing **Run** does not prove
-a new session started. Do not rerun solely to update a report.
 
 ## Recording overhead
 

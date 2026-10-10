@@ -25,11 +25,11 @@ Your camera remains off until you enable it in the live panel.
 7. To change the edit, enter a live prompt and select **Apply Prompt**.
 8. Let recording finish. **Save Video** saves the result.
 
-The node returns **video** without sound and **recording details** as text. SANA may take one
-or more groups of frames to apply a prompt change. Camera frames use up to
-640 × 480 pixels. The browser sends at most ten new frames per second, and
-the connector repeats the latest frame on the model's 24 fps input.
-It sends no microphone audio and stores no separate camera recording.
+The node returns **video** without sound. SANA may take one or more groups of
+frames to apply a prompt change. Camera frames use up to 640 × 480 pixels. The
+browser sends at most ten new frames per second, and the connector repeats the
+latest frame on the model's 24 fps input. It sends no microphone audio and
+stores no separate camera recording.
 
 **End Session** discards the unfinished video. Camera input stops when the
 panel closes or recording ends. Losing camera input for three seconds ends
@@ -42,9 +42,3 @@ with the `camera` video input. A deployment without that input cannot run it.
 Correct the reported error before starting another session.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

@@ -33,12 +33,7 @@ class LiveInteraction:
         self.action_workers: list[asyncio.Task[None]] = []
         self.active = False
         self.commands: CameraCommands | None = None
-        self.preview_frames = 0
-        self.accepted_actions = 0
         self.pointer_active = False
-        self.controls_started_at: float | None = None
-        self.controls_seconds = 0.0
-        self.early_video = False
 
     async def connected(self, transport: Transport, track: Track, events: SessionEvents) -> None:
         """Subscribe to preview frames, watch the owning client, and start the action workers."""
@@ -51,11 +46,9 @@ class LiveInteraction:
             asyncio.create_task(self._actions(events, kind)) for kind in ("prompt", "audio_prompt", "pointer")
         ]
 
-    def configured(self, *, video_started: bool) -> None:
-        """Enable controls after model setup and record when they became available."""
+    def configured(self) -> None:
+        """Enable controls after model setup."""
         self.active = True
-        self.controls_started_at = time.monotonic()
-        self.early_video = video_started
         self.lease.enable_controls()
 
     async def _observe(self, events: SessionEvents) -> None:
@@ -82,7 +75,6 @@ class LiveInteraction:
             encoded = await owned_io(self.preview.encode)
             if encoded:
                 self.lease.frame(encoded)
-                self.preview_frames += 1
             await asyncio.sleep(INPUT_POLL_SECONDS)
 
     async def _actions(self, events: SessionEvents, name: str) -> None:
@@ -99,7 +91,6 @@ class LiveInteraction:
                 payload = self.lease.take_action(name) if self.active else None
                 if payload is not None:
                     await self._send_action(events, name, payload)
-                    self.accepted_actions += 1
                 await asyncio.sleep(INPUT_POLL_SECONDS)
         except asyncio.CancelledError:
             raise
@@ -138,8 +129,6 @@ class LiveInteraction:
         await asyncio.gather(*self.action_workers, return_exceptions=True)
         self.action_workers.clear()
         self.active = False
-        if self.controls_started_at is not None:
-            self.controls_seconds = time.monotonic() - self.controls_started_at
         self.lease.finish()
         self.preview.close()
         try:
@@ -163,15 +152,3 @@ class LiveInteraction:
     def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
         """Publish the final failure and termination status to the owning client."""
         self.lease.close(is_termination_confirmed=is_termination_confirmed, failed=failed)
-
-    def summary(self) -> dict[str, Json]:
-        """Report acknowledged controls, not an inference about visible model motion."""
-        return {
-            "acknowledged_camera_changes": dict(self.commands.accepted) if self.commands else {},
-            "maximum_command_reply_seconds": (round(self.commands.maximum_reply_seconds, 3) if self.commands else 0.0),
-            "encoded_preview_frames": self.preview_frames,
-            "discarded_stale_input_states": self.lease.dropped_states,
-            "controls_available_seconds": round(self.controls_seconds, 3),
-            "video_arrived_before_controls": self.early_video,
-            "acknowledged_live_actions": self.accepted_actions,
-        }

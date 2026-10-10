@@ -83,9 +83,3 @@ Let recording finish to save the result. **End Session** discards the unfinished
 video. Panel prompt changes do not rewrite the saved workflow.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

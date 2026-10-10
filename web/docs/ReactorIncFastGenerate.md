@@ -63,8 +63,3 @@ model updates.
 [Reactor Fast H3 schema](https://docs.reactor.inc/model-api-reference/fast-h3/schema)
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-This output describes the saved file and model. See the
-field reference (**recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

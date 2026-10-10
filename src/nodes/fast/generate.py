@@ -63,7 +63,6 @@ class FastGenerate(VideoNode):
             outputs=[
                 io.Video.Output(display_name="video"),
                 io.Audio.Output(display_name="audio"),
-                io.String.Output(display_name="recording details"),
             ],
         )
 
@@ -85,6 +84,6 @@ class FastGenerate(VideoNode):
             first = await owned_io(partial(encode_png, image)) if image is not None else None
             last = await owned_io(partial(encode_png, ending_image)) if ending_image is not None else None
             request = FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last)
-            return await generate_video(FastGenerateOperation(request), node_id=cls.define_schema().node_id)
+            return await generate_video(FastGenerateOperation(request))
 
         return await wait_for_execution(asyncio.create_task(start()))

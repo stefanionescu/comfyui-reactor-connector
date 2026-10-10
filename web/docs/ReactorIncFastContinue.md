@@ -30,10 +30,10 @@ recording is ready.
 5. Check maximum session duration in Reactor settings, then select **Run**.
 6. **Save Video** saves the sequence with sound. **Save Audio** saves a separate audio file.
 
-The node returns `VIDEO`, `AUDIO`, and recording details as `STRING`. It queues
-one continuation ahead while earlier clips play. If the next clip is still
-building, the output holds the previous frame. That wait can lengthen the saved
-video, which must stay within 60 seconds.
+The node returns `VIDEO` and `AUDIO`. It queues one continuation ahead while
+earlier clips play. If the next clip is still building, the output holds the
+previous frame. That wait can lengthen the saved video, which must stay within
+60 seconds.
 
 Setup, clip building, playback, and recording cleanup all count toward the session
 limit. A timeout discards the unfinished video; the connector does not start a
@@ -43,8 +43,3 @@ Use ComfyUI's cancel control to stop early. Closing the ComfyUI window does not 
 this ordinary workflow. The prompts and clip count are fixed when you select Run.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-This output describes the saved file and model. See the
-field reference (**recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

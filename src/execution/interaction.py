@@ -13,8 +13,8 @@ class SessionInteraction(Protocol):
         """Attach live controls to the connected transport, output track, and session events."""
         raise NotImplementedError
 
-    def configured(self, *, video_started: bool) -> None:
-        """Mark the model ready for live actions and identify whether video has started."""
+    def configured(self) -> None:
+        """Mark the model ready for live actions."""
         raise NotImplementedError
 
     async def stop(self) -> None:

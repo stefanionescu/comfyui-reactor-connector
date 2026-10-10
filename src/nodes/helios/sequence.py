@@ -61,5 +61,4 @@ class HeliosSequence(VideoNode):
         encoded = await asyncio.to_thread(encode_png, image) if image is not None else None
         return await generate_video(
             HeliosOperation(HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts)),
-            node_id=cls.define_schema().node_id,
         )

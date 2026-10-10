@@ -55,11 +55,6 @@
           "links": [
             2
           ]
-        },
-        {
-          "name": "metadata",
-          "type": "STRING",
-          "links": []
         }
       ],
       "properties": {

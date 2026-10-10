@@ -51,5 +51,4 @@ class LongLiveStoryboard(VideoNode):
         shots = parse_storyboard(storyboard)
         return await generate_video(
             LongLiveOperation(LongLiveRequest(prompt, duration_seconds, seed, shots=shots)),
-            node_id=cls.define_schema().node_id,
         )

@@ -79,7 +79,6 @@ class FastContinue(VideoNode):
             outputs=[
                 io.Video.Output(display_name="video"),
                 io.Audio.Output(display_name="audio"),
-                io.String.Output(display_name="recording details"),
             ],
         )
 
@@ -110,6 +109,6 @@ class FastContinue(VideoNode):
                 clip_count=clip_count,
                 later_prompts=tuple(later_prompts.splitlines()),
             )
-            return await generate_video(FastContinueOperation(request), node_id=cls.define_schema().node_id)
+            return await generate_video(FastContinueOperation(request))
 
         return await wait_for_execution(asyncio.create_task(start()))

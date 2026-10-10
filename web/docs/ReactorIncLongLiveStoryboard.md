@@ -36,9 +36,9 @@ transitions in the saved result.
 4. Choose **video duration (seconds)**, then select **Run**.
 5. Play the result in **Save Video**. This node also saves the file.
 
-The node returns **video** without audio and **recording details** as text.
-In your own graph, connect **video** to ComfyUI's **Save Video** to keep the
-result after ComfyUI clears its temporary storage.
+The node returns **video** without audio. In your own graph, connect **video**
+to ComfyUI's **Save Video** to keep the result after ComfyUI clears its
+temporary storage.
 
 **video duration (seconds)** limits the recorded video. The session time limit in
 Reactor settings also applies. Unchanged inputs may reuse ComfyUI's cached
@@ -62,9 +62,3 @@ does not accept a starting image.
 [LongLive schema](https://docs.reactor.inc/model-api-reference/longlive-v2/schema)
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

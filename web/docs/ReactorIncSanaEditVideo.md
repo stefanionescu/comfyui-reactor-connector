@@ -50,10 +50,10 @@ Recording stops at the chosen video length or when Reactor reports that the clip
 has finished. The output can be shorter than requested. The session time limit
 in Reactor settings also applies.
 
-The node returns **video** without sound and **recording details** as text. In
-your own graph, connect **video** to ComfyUI's **Save Video** to keep the result
-after ComfyUI clears its temporary storage. Input copies are
-removed after the session ends or the operation fails.
+The node returns **video** without sound. In your own graph, connect **video**
+to ComfyUI's **Save Video** to keep the result after ComfyUI clears its
+temporary storage. Input copies are removed after the session ends or the
+operation fails.
 
 ## Cancellation
 
@@ -87,9 +87,3 @@ browser connection ends the session and discards the unfinished video. The
 preview has no sound.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

@@ -65,8 +65,3 @@ The connector does not retry ambiguous session creation or model commands.
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-This output describes the saved file and model. See the
-field reference (**recording details** in the bundled `ADVANCED.md`) for timing, privacy, and cache behavior.

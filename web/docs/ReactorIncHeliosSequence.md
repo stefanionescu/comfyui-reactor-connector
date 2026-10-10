@@ -38,9 +38,9 @@ consistent. It records eight seconds; the optional image stays fixed.
 3. Set your key privately in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
 4. Select **Run**. Play the result in **Save Video**.
 
-The node returns **video** without audio and **recording details** as text.
-Connect **video** to ComfyUI's **Save Video** to keep the temporary result.
-Seeds do not guarantee identical output after a provider update.
+The node returns **video** without audio. Connect **video** to ComfyUI's **Save
+Video** to keep the temporary result. Seeds do not guarantee identical output
+after a provider update.
 
 Recording stops at **video duration (seconds)**; the separate host session limit
 also applies. Use ComfyUI's cancel control to stop a run. Closing the ComfyUI window
@@ -60,9 +60,3 @@ Reactor account.
 [Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
-
-## Recording details
-
-**recording details** describes the saved file, model, and timing. It does not
-measure visual quality or billed time. ComfyUI can reuse a cached report; do not
-run another paid generation solely to refresh it.

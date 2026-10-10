@@ -55,7 +55,7 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
         await session.interaction.connected(session.transport, track, session.events)
     recording_window = await session.operation.begin_generation(session.transport, session.events)
     if session.interaction is not None:
-        session.interaction.configured(video_started=session.capture.first_frame.is_set())
+        session.interaction.configured()
     session.events.phase = "capture"
     async with asyncio.timeout(FIRST_FRAME_TIMEOUT_SECONDS):
         await session.capture.first_frame.wait()

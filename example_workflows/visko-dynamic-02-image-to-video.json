@@ -99,11 +99,6 @@
           "links": [
             3
           ]
-        },
-        {
-          "name": "metadata",
-          "type": "STRING",
-          "links": []
         }
       ],
       "properties": {

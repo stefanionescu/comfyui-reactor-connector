@@ -123,7 +123,6 @@ class X2EditVideo(VideoNode):
                 source,
                 reference_image,
                 interactive=interactive,
-                node_id=cls.define_schema().node_id,
             ),
         )
         return await wait_for_execution(task)
@@ -165,7 +164,6 @@ async def _edit(
     reference_image: Input.Image | None,
     *,
     interactive: bool,
-    node_id: str,
 ) -> io.NodeOutput:
     """Prepare source frames within the input limits and close them after the edit."""
     settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
@@ -174,5 +172,4 @@ async def _edit(
         return await generate_video(
             X2Operation(replace(request, image=image, video=video)),
             interactive=interactive,
-            node_id=node_id,
         )

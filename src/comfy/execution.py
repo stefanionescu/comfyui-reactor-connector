@@ -1,34 +1,29 @@
 """Apply private settings and ComfyUI cancellation to model execution."""
 
 import sys
-import json
 import asyncio
 import tempfile
 import folder_paths
 from pathlib import Path
 from functools import partial
 from ..runtime import get_runtime
-from ..state.documents import Json
 from ..media.audio import read_audio
-from ..state.reports import RunReport
 from ..live.options import LiveOptions
 from ..state.media import CaptureResult
 from ..state.session import SessionOutcome
 from contextlib import asynccontextmanager
 from .interaction import prepare_interaction
-from ..execution.report import prepare_report
 from ..errors import ErrorCode, ConnectorError
 from ..live.interaction import LiveInteraction
 from ..execution.operation import VideoOperation
 from ..config.messages.session import RUN_TIMEOUT
+from ..config.media.capture import MAX_QUEUE_BYTES
 from ..state.settings import ExecutionConfiguration
 from ..media.output import owned_io, discard_outputs
 from comfy_api.latest import io, ComfyAPI, InputImpl
 from ..execution.session.capture import capture_video
-from ..media.metadata.read import read_recording_metadata
 from collections.abc import Callable, Awaitable, AsyncGenerator
 from ..config.generation.session import CANCELLATION_POLL_SECONDS
-from ..config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
 from comfy.model_management import InterruptProcessingException, throw_exception_if_processing_interrupted
 
 
@@ -50,20 +45,19 @@ async def _run_session(
     configuration: ExecutionConfiguration,
     destination: Path,
     open_interaction: Callable[[], Awaitable[LiveInteraction | None]],
-) -> tuple[CaptureResult, dict[str, Json] | None]:
+) -> CaptureResult:
     """Own live controls and remote cleanup."""
     outcome = SessionOutcome()
     interaction = None
     try:
         interaction = await open_interaction()
-        result = await capture_video(
+        return await capture_video(
             operation,
             configuration,
             destination,
             outcome=outcome,
             interaction=interaction,
         )
-        return result, interaction.summary() if interaction is not None else None
     finally:
         if interaction is not None:
             interaction.closed(
@@ -72,25 +66,7 @@ async def _run_session(
             )
 
 
-async def recording_report(
-    report: RunReport,
-    result: CaptureResult,
-    interaction_summary: dict[str, Json] | None,
-) -> str:
-    """Combine saved media facts with the execution and live-control report."""
-    facts = report.to_json()
-    recording = await wait_for_execution(asyncio.create_task(read_recording_metadata(result, MAX_CAPTURE_BYTES)))
-    facts.update(recording)
-    if interaction_summary is not None:
-        facts["live"] = interaction_summary
-    return json.dumps(facts)
-
-
-async def node_output(
-    result: CaptureResult,
-    metadata: str,
-    interaction_summary: dict[str, Json] | None,
-) -> io.NodeOutput:
+async def node_output(result: CaptureResult) -> io.NodeOutput:
     """Create native ComfyUI outputs and release temporary audio after loading its samples."""
     if result.audio_path is not None:
         audio_path = result.audio_path
@@ -98,11 +74,8 @@ async def node_output(
             audio = await owned_io(lambda: read_audio(audio_path, MAX_QUEUE_BYTES))
         finally:
             await discard_outputs(audio_path, error=sys.exception())
-        return io.NodeOutput(InputImpl.VideoFromFile(str(result.path)), audio, metadata)
-    video = InputImpl.VideoFromFile(str(result.path))
-    if interaction_summary is not None:
-        return io.NodeOutput(video, metadata, ui={"reactor_live": [interaction_summary]})
-    return io.NodeOutput(video, metadata)
+        return io.NodeOutput(InputImpl.VideoFromFile(str(result.path)), audio)
+    return io.NodeOutput(InputImpl.VideoFromFile(str(result.path)))
 
 
 @asynccontextmanager
@@ -132,7 +105,6 @@ async def _temporary_video() -> AsyncGenerator[Path, None]:
 async def generate_video(
     operation: VideoOperation,
     *,
-    node_id: str,
     interactive: bool = False,
     controls: LiveOptions | None = None,
 ) -> io.NodeOutput:
@@ -142,7 +114,6 @@ async def generate_video(
     configuration = get_runtime().configuration
     snapshot = await asyncio.to_thread(configuration.execution_snapshot)
     operation.validate(snapshot.settings)
-    report = await owned_io(lambda: prepare_report(node_id, operation.connection_name, operation.duration_seconds))
     await progress.set_progress(1, 3)
     try:
         async with _temporary_video() as destination:
@@ -154,10 +125,9 @@ async def generate_video(
                     partial(prepare_interaction, operation, interactive=interactive, controls=controls),
                 )
             )
-            result, interaction_summary = await wait_for_execution(task)
+            result = await wait_for_execution(task)
             await progress.set_progress(2, 3)
-            metadata = await recording_report(report, result, interaction_summary)
-            output = await node_output(result, metadata, interaction_summary)
+            output = await node_output(result)
             await progress.set_progress(3, 3)
             return output
     except ConnectorError as error:
