@@ -69,11 +69,10 @@ is not the billed duration.
 
 ## Stop and recover
 
-Use ComfyUI's cancel control to stop a queued or running workflow. With **live controls** off, closing the browser does not cancel it. With live controls on,
+Use ComfyUI's cancel control to stop a queued or running workflow. With **live
+controls** off, closing the browser does not cancel it. With live controls on,
 closing the live panel ends the session. A lost browser connection ends the
-session after five seconds without contact. Both discard unfinished video. Cleanup has its own
-time limit. Wait for confirmation that the session ended before trying again.
-If confirmation is missing, check Reactor Usage and wait for the session limit.
+session after five seconds without contact. Both discard unfinished video.
 
 If video stops arriving, check your connection and Reactor account. Correct
 reported input errors before trying again.

@@ -55,8 +55,6 @@ limits each image or video sent. One MiB is 1,048,576 bytes.
 Reactor bills each session by the second, setup included. See Reactor's
 [Pricing & Billing](https://docs.reactor.inc/resources/billing) for current rates.
 
-The connector runs one session at a time. Other runs wait up to 120 seconds.
-You can cancel while waiting, before connection.
 A rejected command or uncertain connection is not retried automatically.
 
 New runs use saved settings. A running session keeps its original key and limits.
@@ -151,8 +149,7 @@ ComfyUI cancellation also ends the run. Closing a workflow tab does not cancel i
 
 The session ends if the live panel stops responding for five seconds. Webcam input
 also ends after three seconds without a new frame. Cleanup can take longer; wait for
-the end message. If termination is unconfirmed, wait for the session limit before
-another run. The connector does not reconnect automatically.
+the end message. The connector does not reconnect automatically.
 
 ### Continue a scene
 
@@ -219,22 +216,10 @@ Read the error and the node's native **Info** before trying again. Pausing a vid
 | ---------------------------- | ------------------------------------------------------------------------------------------------ |
 | Missing or rejected key      | Check Reactor settings and any server environment key, which takes precedence.                   |
 | Rejected input               | Check the node's prompt, image, video, duration, and size limits.                                |
-| Another session is active    | Let it finish. Wait for confirmed cleanup before another run.                                    |
 | Video did not arrive in time | Check [Reactor status](https://status.reactor.inc/) and the session limit before retrying.       |
 | Recording cannot be saved    | Check disk space and media limits. Some models also need Reactor's recording service.            |
-| Session end is unconfirmed   | Wait for the configured session limit; do not repeatedly queue or clear wait records.            |
 | A live panel expires         | Let cleanup finish before running again.                                                         |
 | Camera is unavailable        | Allow access, select **Enable Camera**, and release the camera in another application if needed. |
-
-### Recover after a restart
-
-If ComfyUI closes before session termination is confirmed, a private record
-keeps the required wait time. New runs show the remaining seconds. Restarting,
-changing keys, or lowering limits does not bypass it. Processes sharing the
-same state directory cannot run Reactor sessions at the same time.
-
-Do not delete `session.json` or `session.lock` to skip a wait. If a record is
-damaged, confirm that no session remains active in Reactor before repairing it.
 
 ### Private diagnostics
 

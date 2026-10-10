@@ -1,4 +1,4 @@
-"""Session timing, admission, and outcome records."""
+"""Session timing and outcome records."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from .reports import FailureReport
-    from asyncio import Event, AbstractEventLoop
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,7 +43,7 @@ class ControlValues:
 
 @dataclass(slots=True)
 class SessionOutcome:
-    """Termination facts used to decide whether another session may start.
+    """Termination facts that session cleanup reports.
 
     Attributes:
         is_connection_attempted: Whether provider setup began.
@@ -61,17 +60,3 @@ class SessionOutcome:
     def is_termination_uncertain(self) -> bool:
         """Report whether a connection was attempted without confirmed termination."""
         return self.is_connection_attempted and not self.is_termination_confirmed
-
-
-@dataclass(eq=False, slots=True)
-class AdmissionTicket:
-    """A wake-up event owned by the loop requesting admission.
-
-    Attributes:
-        loop: Requesting event loop.
-        changed: Admission-change notification for that loop.
-
-    """
-
-    loop: AbstractEventLoop
-    changed: Event

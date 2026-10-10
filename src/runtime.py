@@ -4,7 +4,6 @@ from .storage import state_directory
 from .live.registry import BrowserRegistry
 from .errors import ErrorCode, ConnectorError
 from .settings.store import ConfigurationStore
-from .execution.admission import SessionAdmission
 from .config.messages.settings import RUNTIME_NOT_READY
 
 
@@ -12,21 +11,18 @@ class Runtime:
     """State shared by this connector's nodes across executor event loops.
 
     Attributes:
-        sessions: Process-wide session admission queue.
         browsers: Registry of active browser controls.
         configuration: Private settings and credentials store.
 
     """
 
-    __slots__ = ("browsers", "configuration", "sessions")
+    __slots__ = ("browsers", "configuration")
 
-    sessions: SessionAdmission
     browsers: BrowserRegistry
     configuration: ConfigurationStore
 
     def __init__(self) -> None:
         """Create process-wide services and place their state under one private directory."""
-        self.sessions = SessionAdmission()
         self.browsers = BrowserRegistry()
         self.configuration = ConfigurationStore(state_directory())
 

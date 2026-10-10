@@ -45,9 +45,8 @@ ends the session. Check browser camera permissions and use localhost or HTTPS
 if the camera cannot start.
 
 The session time limit in Reactor settings applies during setup and generation.
-If the session end is unconfirmed, wait for its stated time limit before trying
-again. If camera access fails, check permissions for Comfy Desktop or your
-browser and close other applications using the camera.
+If camera access fails, check permissions for Comfy Desktop or your browser and
+close other applications using the camera.
 
 For current session rates, see Reactor's [Pricing & Billing](https://docs.reactor.inc/resources/billing).
 

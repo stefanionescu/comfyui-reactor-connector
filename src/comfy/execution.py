@@ -27,15 +27,10 @@ from comfy_api.latest import io, ComfyAPI, InputImpl
 from contextlib import suppress, asynccontextmanager
 from ..execution.session.capture import capture_video
 from ..media.metadata.read import read_recording_metadata
-from ..execution.session.reservation import SessionReservation
 from collections.abc import Callable, Awaitable, AsyncGenerator
+from ..config.generation.session import CANCELLATION_POLL_SECONDS
 from ..config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
 from comfy.model_management import InterruptProcessingException, throw_exception_if_processing_interrupted
-from ..config.generation.session import (
-    QUEUE_TIMEOUT_SECONDS,
-    CLEANUP_TIMEOUT_SECONDS,
-    CANCELLATION_POLL_SECONDS,
-)
 
 
 async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
@@ -51,57 +46,45 @@ async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
             await asyncio.gather(task, return_exceptions=True)
 
 
-async def _generate_admitted_video(
+async def _run_session(
     operation: VideoOperation,
     configuration: ExecutionConfiguration,
     destination: Path,
     report: RunReport,
     open_interaction: Callable[[], Awaitable[LiveInteraction | None]],
 ) -> tuple[CaptureResult, dict[str, Json] | None]:
-    """Own admission, live controls, remote cleanup, and private failure diagnostics."""
-    settings = configuration.settings
-    admission = get_runtime().sessions
-    async with admission.slot(QUEUE_TIMEOUT_SECONDS):
-        outcome = SessionOutcome()
-        interaction = None
-        try:
-            interaction = await open_interaction()
-            # A connection may start near the end of local setup. Keep the record
-            # for that window plus the full remote session limit and cleanup.
-            reservation = SessionReservation(
-                get_runtime().configuration.directory,
-                2 * settings.max_session_seconds + CLEANUP_TIMEOUT_SECONDS,
+    """Own live controls, remote cleanup, and private failure diagnostics."""
+    outcome = SessionOutcome()
+    interaction = None
+    try:
+        interaction = await open_interaction()
+        result = await capture_video(
+            operation,
+            configuration,
+            destination,
+            outcome=outcome,
+            interaction=interaction,
+        )
+        return result, interaction.summary() if interaction is not None else None
+    finally:
+        if interaction is not None:
+            interaction.closed(
+                is_termination_confirmed=outcome.is_termination_confirmed,
+                failed=sys.exception() is not None,
             )
-            async with reservation.protect(outcome):
-                result = await capture_video(
-                    operation,
-                    configuration,
-                    destination,
-                    outcome=outcome,
-                    interaction=interaction,
-                )
-            return result, interaction.summary() if interaction is not None else None
-        finally:
-            if interaction is not None:
-                interaction.closed(
-                    is_termination_confirmed=outcome.is_termination_confirmed,
-                    failed=sys.exception() is not None,
-                )
-            if outcome.is_termination_uncertain:
-                admission.block_for(settings.max_session_seconds)
-            diagnostic = outcome.diagnostic
-            if diagnostic is not None:
-                # Diagnostic storage must not replace the original execution failure.
-                with suppress(OSError, ConnectorError):
-                    await owned_io(
-                        partial(
-                            save_failure,
-                            get_runtime().configuration.directory,
-                            diagnostic,
-                            configuration.credential,
-                            run_id=report.run_id,
-                        )
+        diagnostic = outcome.diagnostic
+        if diagnostic is not None:
+            # Diagnostic storage must not replace the original execution failure.
+            with suppress(OSError, ConnectorError):
+                await owned_io(
+                    partial(
+                        save_failure,
+                        get_runtime().configuration.directory,
+                        diagnostic,
+                        configuration.credential,
+                        run_id=report.run_id,
                     )
+                )
 
 
 async def recording_report(
@@ -179,7 +162,7 @@ async def generate_video(
     try:
         async with _temporary_video() as destination:
             task = asyncio.create_task(
-                _generate_admitted_video(
+                _run_session(
                     operation,
                     snapshot,
                     destination,

@@ -55,8 +55,7 @@ provide one image within the upload limit; batches are not accepted.
 
 If a change is missing, check its chunk number and the recording length. If
 generation fails, correct the reported input error or check your connection and
-Reactor account. If the session end is unconfirmed, wait for its stated time
-limit before running again.
+Reactor account.
 
 [Helios command reference](https://docs.reactor.inc/model-api-reference/helios/schema)
 

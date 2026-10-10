@@ -66,10 +66,9 @@ does not cancel the workflow. With live controls on, closing the live panel or
 losing its browser connection ends the session and discards unfinished video.
 
 Unchanged inputs may reuse ComfyUI's cached result. Change **run number** for
-another generation. If the session limit expires before recording is ready,
-try a shorter video or increase **maximum session duration (seconds)** in Reactor
-settings. Correct reported input errors before trying again. If the session end
-is unconfirmed, wait for its stated time limit before starting another run.
+another generation. If the session limit expires before recording is ready, try
+a shorter video or increase **maximum session duration (seconds)** in Reactor
+settings. Correct reported input errors before trying again.
 
 [Reactor Visko Dynamic schema](https://docs.reactor.inc/model-api-reference/visko-orbis-dynamic/schema)
 

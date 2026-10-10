@@ -44,12 +44,10 @@ session and discards the unfinished video.
 
 Failed runs do not return a video. Correct any reported input error before
 running again. If video stops arriving, check your connection and Reactor
-account. If the session's end is unconfirmed, wait for the stated session limit
-before trying again. Do not restart ComfyUI to bypass this wait.
+account.
 
-The connector runs one session at a time. Other runs wait up to 120 seconds and
-can be cancelled before they connect. A rejected
-command or lost connection ends the run; the connector does not retry it.
+A rejected command or lost connection ends the run; the connector does not retry
+it.
 
 Unchanged inputs may reuse ComfyUI's cached result. Change **run number** for
 another generation. Changing the key or execution limits can also cause another

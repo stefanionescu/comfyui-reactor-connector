@@ -17,35 +17,13 @@ MODEL_UNAVAILABLE = "The requested Reactor model or protocol is unavailable. Che
 PHASE = "{message} Stage: {phase}. Code: {code}."
 PROVIDER_RATE_LIMIT = "Reactor is limiting requests. Wait before starting another run."
 PROVIDER_REQUEST_TIMEOUT = "Reactor did not reply within its request limit."
-QUEUE_TIMEOUT = "Timed out waiting for another Reactor run to finish. This waiting run did not open a session."
 RUN_FAILED = "Reactor could not complete this run. Check your connection and account status."
 RUN_TIMEOUT = "Reactor did not finish within the configured time limit."
 SESSION_ALREADY_CONNECTED = "This Reactor session cannot be connected again."
 SESSION_DEADLINE = "The session deadline expired during this operation."
 SESSION_DISCONNECTED = "The Reactor session is not connected."
-SESSION_IN_OTHER_PROCESS = "Another ComfyUI process is using Reactor. Let its run finish before trying again."
 SESSION_LIMIT_TOO_SHORT = (
     "Set maximum session duration (seconds) in Reactor settings longer than the video, to leave time for setup."
 )
-SESSION_RECORD_DAMAGED = (
-    "The saved Reactor session record is damaged. Check Reactor Usage before repairing the session record in the "
-    "connector's private settings folder."
-)
-SESSION_RECORD_PERMISSIONS = (
-    "The Reactor session record could not be updated. The saved wait still applies. Check access to the connector's "
-    "private settings folder."
-)
-SESSION_RECORD_UNREADABLE = (
-    "The Reactor session record could not be read or saved. No session was started. Check access to the connector's "
-    "private settings folder."
-)
-SESSION_RECORD_UPDATE_FAILED = "The Reactor session record could not be updated. The saved wait still applies."
 SESSION_TIMEOUT = "Reactor exceeded the configured time limit."
-SESSION_WAIT = (
-    "An earlier Reactor session may still be running. Wait {seconds} seconds before another run. Restarting ComfyUI "
-    "does not clear this wait."
-)
-TERMINATION_UNCONFIRMED = "Session termination is unconfirmed. Wait for its server limit before retrying."
-TERMINATION_WAIT = (
-    "An earlier Reactor session has unconfirmed termination. Wait {seconds} seconds before starting another run."
-)
+TERMINATION_UNCONFIRMED = "Reactor did not confirm the session ended. Reactor ends it at the session limit."

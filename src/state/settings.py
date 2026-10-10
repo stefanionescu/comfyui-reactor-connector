@@ -25,7 +25,7 @@ class Settings:
 
 @dataclass(frozen=True, slots=True)
 class ExecutionConfiguration:
-    """One private settings and credential snapshot for an admitted operation.
+    """One private settings and credential snapshot for one operation.
 
     Attributes:
         settings: Effective execution limits and preferences.

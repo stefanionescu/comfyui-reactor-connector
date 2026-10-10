@@ -36,14 +36,11 @@ results after a model update.
 
 ## Cancellation
 
-Use ComfyUI's cancel control to stop a queued or running workflow.
-With **live controls** off, closing the browser does not cancel the workflow.
-With live controls on, losing the live panel ends the session and discards the
-unfinished video.
-The connector runs one session at a time and disconnects after recording or
-failure. It does not retry failed commands or uncertain session creation. If
-it cannot confirm that the session ended, wait for the stated time limit before
-trying again.
+Use ComfyUI's cancel control to stop a queued or running workflow. With **live
+controls** off, closing the browser does not cancel the workflow. With live
+controls on, losing the live panel ends the session and discards the unfinished
+video. The connector disconnects after recording or failure. It does not retry
+failed commands or uncertain session creation.
 
 ## Recovery
 
