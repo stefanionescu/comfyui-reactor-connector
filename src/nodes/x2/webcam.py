@@ -1,7 +1,6 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from functools import partial
 from ...media.output import owned_io
@@ -28,8 +27,6 @@ from ...config.nodes import (
 
 class X2Webcam(VideoNode):
     """Open X2 webcam and dragging controls and record the resulting video."""
-
-    contract: ClassVar[str] = "x2-webcam-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

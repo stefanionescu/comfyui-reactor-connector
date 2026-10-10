@@ -1,7 +1,6 @@
 """Generate a Helios video from connected, scheduled prompts."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
@@ -14,8 +13,6 @@ from ..controls import video_outputs, generation_controls
 
 class HeliosSequence(VideoNode):
     """Generate a video with prompt changes prepared before the run."""
-
-    contract: ClassVar[str] = "helios-sequence-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

@@ -15,8 +15,6 @@ from ...comfy.execution import generate_video, wait_for_execution
 class ViskoStableGenerate(VideoNode):
     """Generate video and sound from a prompt and an optional starting image."""
 
-    contract: ClassVar[str] = "ReactorIncViskoStableGenerate-recording-v1"
-
     node_id: ClassVar[str] = "ReactorIncViskoStableGenerate"
     display_name: ClassVar[str] = "Visko Stable: Generate Video (Reactor)"
     operation_type: ClassVar[type[ViskoStableOperation]] = ViskoStableOperation

@@ -1,7 +1,6 @@
 """Record a LingBot World 2 scene with separate forward and sideways controls."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from .schema import lingbot_schema
 from ...media.images import encode_png
@@ -13,8 +12,6 @@ from ...execution.lingbot.operation import LingBotWorldOperation
 
 class LingBotWorldExplore(VideoNode):
     """Record World 2 with separate forward/back and sideways controls."""
-
-    contract: ClassVar[str] = "lingbot-world-2-video-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

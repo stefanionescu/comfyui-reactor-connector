@@ -138,7 +138,7 @@ async def generate_video(
         raise ConnectorError(ErrorCode.TIMEOUT, RUN_TIMEOUT) from None
 
 
-async def operation_fingerprint(contract: str) -> str:
-    """Include the adapter revision and private execution generation in the cache key."""
+async def operation_fingerprint() -> str:
+    """Return the token that changes when the key or execution limits change."""
     snapshot = await asyncio.to_thread(get_runtime().configuration.execution_snapshot)
-    return f"{contract}:{snapshot.generation}"
+    return snapshot.generation

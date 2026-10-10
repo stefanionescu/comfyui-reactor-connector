@@ -1,7 +1,6 @@
 """Expose a queued Fast H3 clip through native ComfyUI media sockets."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from functools import partial
 from ...media.output import owned_io
@@ -23,8 +22,6 @@ from ...config.generation.fast import (
 
 class FastGenerate(VideoNode):
     """Generate one clip, wait for readiness, and save its playback with sound."""
-
-    contract: ClassVar[str] = "fast-queued-recording-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

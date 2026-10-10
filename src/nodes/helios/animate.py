@@ -1,7 +1,6 @@
 """Animate an input image with Helios."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from ...media.images import encode_png
 from comfy_api.latest import io, Input
@@ -13,8 +12,6 @@ from ..controls import live_control, video_outputs, generation_controls
 
 class HeliosAnimate(VideoNode):
     """Animate one image with a text prompt."""
-
-    contract: ClassVar[str] = "helios-video-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

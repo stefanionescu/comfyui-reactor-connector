@@ -1,7 +1,6 @@
 """Expose LTX speech with a required native portrait and synchronized media."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from ...media.output import owned_io
 from ...media.images import encode_png
@@ -20,8 +19,6 @@ from ...config.generation.speech import (
 
 class LtxSpeak(VideoNode):
     """Animate one portrait speaking the supplied script."""
-
-    contract: ClassVar[str] = "ltx-speech-recording-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

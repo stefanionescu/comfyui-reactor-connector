@@ -3,7 +3,6 @@
 import asyncio
 import folder_paths
 from pathlib import Path
-from typing import ClassVar
 from ..base import VideoNode
 from dataclasses import replace
 from ...runtime import get_runtime
@@ -19,8 +18,6 @@ from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL,
 
 class SanaEditVideo(VideoNode):
     """Apply a written edit to a video clip."""
-
-    contract: ClassVar[str] = "sana-source-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

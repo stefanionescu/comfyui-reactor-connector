@@ -1,6 +1,5 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
-from typing import ClassVar
 from ..base import VideoNode
 from comfy_api.latest import io
 from ...media.webcam import WebcamFrames
@@ -14,8 +13,6 @@ from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL,
 
 class SanaWebcam(VideoNode):
     """Open the webcam controls and record the SANA video edit."""
-
-    contract: ClassVar[str] = "sana-webcam-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

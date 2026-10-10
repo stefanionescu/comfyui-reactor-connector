@@ -1,7 +1,6 @@
 """Continue a scene across several clips without queuing another ComfyUI run."""
 
 import asyncio
-from typing import ClassVar
 from ..base import VideoNode
 from functools import partial
 from ...media.output import owned_io
@@ -26,8 +25,6 @@ from ...config.generation.fast import (
 
 class FastContinue(VideoNode):
     """Join a sequence of Fast H3 clips that continue from each previous final frame."""
-
-    contract: ClassVar[str] = "fast-continue-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

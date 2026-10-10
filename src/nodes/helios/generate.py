@@ -1,6 +1,5 @@
 """Generate a video from a text prompt with Helios."""
 
-from typing import ClassVar
 from ..base import VideoNode
 from comfy_api.latest import io
 from ...comfy.execution import generate_video
@@ -11,8 +10,6 @@ from ..controls import live_control, video_outputs, generation_controls
 
 class HeliosGenerate(VideoNode):
     """Generate a video from a text prompt."""
-
-    contract: ClassVar[str] = "helios-video-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

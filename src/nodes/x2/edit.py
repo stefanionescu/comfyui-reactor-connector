@@ -3,7 +3,6 @@
 import asyncio
 import folder_paths
 from pathlib import Path
-from typing import ClassVar
 from ..base import VideoNode
 from dataclasses import replace
 from ...runtime import get_runtime
@@ -34,8 +33,6 @@ from ...config.nodes import (
 
 class X2EditVideo(VideoNode):
     """Edit a local video using a prompt, an optional subject image, and a pointer position."""
-
-    contract: ClassVar[str] = "x2-source-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

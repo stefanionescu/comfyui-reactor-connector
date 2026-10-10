@@ -1,6 +1,5 @@
 """Generate a LongLive scene from an opening shot prompt."""
 
-from typing import ClassVar
 from ..base import VideoNode
 from comfy_api.latest import io
 from ...comfy.execution import generate_video
@@ -11,8 +10,6 @@ from ..controls import live_control, video_outputs, generation_controls
 
 class LongLiveGenerate(VideoNode):
     """Start a LongLive scene from its opening shot prompt."""
-
-    contract: ClassVar[str] = "longlive-video-v2"
 
     @classmethod
     def define_schema(cls) -> io.Schema:

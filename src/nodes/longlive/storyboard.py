@@ -1,6 +1,5 @@
 """Generate a LongLive video from scheduled shots and transitions."""
 
-from typing import ClassVar
 from ..base import VideoNode
 from comfy_api.latest import io
 from ...comfy.execution import generate_video
@@ -12,8 +11,6 @@ from ...execution.longlive.storyboard import parse_storyboard
 
 class LongLiveStoryboard(VideoNode):
     """Generate a video from scheduled shots and transitions."""
-
-    contract: ClassVar[str] = "longlive-storyboard-v1"
 
     @classmethod
     def define_schema(cls) -> io.Schema:
