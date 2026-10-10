@@ -4,6 +4,7 @@ import { valid } from 'semver';
 import { parseArgs } from 'node:util';
 
 import {
+  PACKAGE_JSON_COMMIT_PATTERN,
   PACKAGE_JSON_DEFAULT_FILES,
   PACKAGE_JSON_DEPENDENCY_KEYS,
 } from '#config/package-json/manifest.js';
@@ -13,7 +14,7 @@ const files = positionals.length ? positionals : PACKAGE_JSON_DEFAULT_FILES;
 const errors = [];
 
 /**
- * Require an exact dependency version without choosing a replacement for a range.
+ * Require an exact dependency version or full commit hash without choosing a replacement for a range.
  * @param content - The manifest text.
  * @param file - The manifest path for diagnostics.
  * @returns Failures identified by dependency section and package name.
@@ -25,9 +26,9 @@ function checkExactVersions(content, file) {
     const dependencies = sections.get(section);
     if (!dependencies) continue;
     for (const [name, version] of Object.entries(dependencies)) {
-      if (valid(version) !== null) continue;
+      if (valid(version) !== null || PACKAGE_JSON_COMMIT_PATTERN.test(version)) continue;
       failures.push(
-        `${file}: ${section}[${JSON.stringify(name)}]: Choose an exact version; found ${JSON.stringify(version)}.`,
+        `${file}: ${section}[${JSON.stringify(name)}]: Choose an exact version or a full commit hash; found ${JSON.stringify(version)}.`,
       );
     }
   }

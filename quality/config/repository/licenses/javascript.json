@@ -32,6 +32,11 @@
             "reason": "The package uses the permissive two-clause BSD license."
         },
         {
+            "package": "argparse",
+            "licenses": ["PSF-2.0", "Python-2.0"],
+            "reason": "These ports of Python's argparse use the permissive Python licenses: version 2 under Python-2.0 and version 3 under PSF-2.0. The lint tools use them; esbuild copies nothing from them into web/extension.js."
+        },
+        {
             "package": "caniuse-lite",
             "licenses": ["CC-BY-4.0"],
             "reason": "The package supplies browser compatibility data under CC BY 4.0; keep its attribution when distributing that data."

@@ -28,7 +28,7 @@
         "license-checker": "25.0.1",
         "linkinator": "7.6.1",
         "madge": "8.0.0",
-        "markdownlint-cli2": "0.23.2",
+        "markdownlint-cli2": "0.23.3",
         "prettier": "3.8.1",
         "semver": "7.8.5",
         "stylelint": "17.4.0",
@@ -41,7 +41,9 @@
         "#web/*": "./web/scripts/*"
     },
     "overrides": {
-        "smol-toml": "1.8.0"
+        "braces": "github:FSDevelop/braces#d0d575e55e74a4e0218e5248fafb79efc3e54ebb",
+        "katex": "0.18.11",
+        "smol-toml": "1.9.1"
     },
     "dependencies": {
         "valibot": "1.5.0"
