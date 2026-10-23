@@ -50,7 +50,7 @@ class ViskoGenerate(VideoNode):
                     "resolution",
                     display_name="resolution",
                     default="",
-                    tooltip="Leave blank for the model default, or use an offered resolution name.",
+                    tooltip="Leave blank for default, or use an offered resolution name.",
                 ),
                 io.Boolean.Input(
                     "audio_enabled",
