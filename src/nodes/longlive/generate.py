@@ -1,6 +1,6 @@
 """Generate a LongLive scene from an opening shot prompt and optional scheduled shots."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 
 from comfy_api.latest import io
 
@@ -12,16 +12,6 @@ from ...config.messages.inputs import LIVE_CONTROLS_STORYBOARD
 from ...state.generation.longlive import LongLiveRequest
 from ...execution.longlive.operation import LongLiveOperation
 from ...execution.longlive.storyboard import parse_storyboard
-
-
-class LongLiveInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the LongLive node, apart from the run number."""
-
-    prompt: str
-    duration_seconds: float
-    seed: int
-    storyboard: str
-    interactive: NotRequired[bool]
 
 
 class LongLiveGenerate(VideoNode):
@@ -55,11 +45,20 @@ class LongLiveGenerate(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[LongLiveInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        prompt: str,
+        duration_seconds: float,
+        seed: int,
+        storyboard: str,
+        interactive: bool = False,
+    ) -> io.NodeOutput:
         """Generate a LongLive video from the opening shot, scheduled shots, or live changes."""
-        shots = parse_storyboard(inputs['storyboard'])
-        interactive = inputs.get('interactive', False)
+        shots = parse_storyboard(storyboard)
         if shots and interactive:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_CONTROLS_STORYBOARD)
-        request = LongLiveRequest(inputs['prompt'], inputs['duration_seconds'], inputs['seed'], shots=shots)
-        return await generate_video(LongLiveOperation(request), interactive=interactive)
+        return await generate_video(
+            LongLiveOperation(LongLiveRequest(prompt, duration_seconds, seed, shots=shots)),
+            interactive=interactive,
+        )

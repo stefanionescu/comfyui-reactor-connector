@@ -1,6 +1,6 @@
 """Expose X2 editing through native video and optional image sockets."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
 from pathlib import Path
 from functools import partial
@@ -29,20 +29,6 @@ from ...comfy.execution import generate_video, wait_for_execution
 from ...media.video.input import prepared_video
 from ...state.generation.x2 import X2Request
 from ...execution.x2.operation import X2Operation
-
-
-class X2EditInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the X2 edit node, apart from the run number."""
-
-    source: Input.Video
-    prompt: str
-    duration_seconds: float
-    keep_backlog: bool
-    pointer_active: bool
-    pointer_x: float
-    pointer_y: float
-    reference_image: NotRequired[Input.Image | None]
-    interactive: NotRequired[bool]
 
 
 class X2EditVideo(VideoNode):
@@ -99,27 +85,38 @@ class X2EditVideo(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[X2EditInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        source: Input.Video,
+        prompt: str,
+        duration_seconds: float,
+        keep_backlog: bool,
+        pointer_active: bool,
+        pointer_x: float,
+        pointer_y: float,
+        reference_image: Input.Image | None = None,
+        interactive: bool = False,
+    ) -> io.NodeOutput:
         """Edit the source video with X2 and optional reference-image or live controls."""
-        reference_image = inputs.get('reference_image')
         request = X2Request(
-            inputs['prompt'],
-            inputs['duration_seconds'],
+            prompt,
+            duration_seconds,
             0,
-            keep_backlog=inputs['keep_backlog'],
-            pointer_active=inputs['pointer_active'],
-            pointer_x=inputs['pointer_x'],
-            pointer_y=inputs['pointer_y'],
+            keep_backlog=keep_backlog,
+            pointer_active=pointer_active,
+            pointer_x=pointer_x,
+            pointer_y=pointer_y,
         )
 
         async def edit() -> io.NodeOutput:
             """Encode the reference image, then prepare the source frames within the input limits and close them."""
             settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
             image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))
-            async with prepared_video(inputs['source'], settings, Path(folder_paths.get_temp_directory())) as video:
+            async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
                 return await generate_video(
                     X2Operation(replace(request, image=image, video=video)),
-                    interactive=inputs.get('interactive', False),
+                    interactive=interactive,
                 )
 
         return await wait_for_execution(asyncio.create_task(edit()))

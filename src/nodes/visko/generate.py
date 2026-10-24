@@ -1,8 +1,7 @@
 """Generate Visko Stable or Dynamic video with synchronized audio."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
-from functools import partial
 
 from comfy_api.latest import Input, io
 
@@ -19,21 +18,6 @@ OPERATIONS: dict[str, type[ViskoStableOperation]] = {
     'stable': ViskoStableOperation,
     'dynamic': ViskoDynamicOperation,
 }
-
-
-class ViskoInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the Visko node, apart from the run number."""
-
-    model: str
-    prompt: str
-    duration_seconds: float
-    seed: int
-    audio_prompt: str
-    resolution: str
-    audio_enabled: bool
-    prompt_passthrough: bool
-    image: NotRequired[Input.Image | None]
-    interactive: NotRequired[bool]
 
 
 class ViskoGenerate(VideoNode):
@@ -101,26 +85,39 @@ class ViskoGenerate(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[ViskoInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        model: str,
+        prompt: str,
+        duration_seconds: float,
+        seed: int,
+        audio_prompt: str,
+        resolution: str,
+        audio_enabled: bool,
+        prompt_passthrough: bool,
+        image: Input.Image | None = None,
+        interactive: bool = False,
+    ) -> io.NodeOutput:
         """Generate Visko video and audio from the selected text, image, and sound controls."""
-        image = inputs.get('image')
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
-            encoded = None if image is None else await owned_io(partial(encode_png, image))
+            source_image = image
+            encoded = None if source_image is None else await owned_io(lambda: encode_png(source_image))
             request = ViskoRequest(
-                inputs['prompt'],
-                inputs['duration_seconds'],
-                inputs['seed'],
+                prompt,
+                duration_seconds,
+                seed,
                 image=encoded,
-                audio_prompt=inputs['audio_prompt'],
-                resolution=inputs['resolution'],
-                audio_enabled=inputs['audio_enabled'],
-                prompt_passthrough=inputs['prompt_passthrough'],
+                audio_prompt=audio_prompt,
+                resolution=resolution,
+                audio_enabled=audio_enabled,
+                prompt_passthrough=prompt_passthrough,
             )
             return await generate_video(
-                OPERATIONS[inputs['model']](request),
-                interactive=inputs.get('interactive', False),
+                OPERATIONS[model](request),
+                interactive=interactive,
             )
 
         return await wait_for_execution(asyncio.create_task(start()))

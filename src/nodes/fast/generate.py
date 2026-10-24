@@ -1,6 +1,6 @@
 """Expose a queued Fast H3 clip through native ComfyUI media sockets."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
 from functools import partial
 
@@ -21,17 +21,6 @@ from ...config.generation.fast import (
     DEFAULT_CLIP_SECONDS,
 )
 from ...execution.fast.generate import FastGenerateOperation
-
-
-class FastGenerateInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the Fast H3 node, apart from the run number."""
-
-    prompt: str
-    duration_seconds: float
-    seed: int
-    aspect: str
-    image: NotRequired[Input.Image | None]
-    ending_image: NotRequired[Input.Image | None]
 
 
 class FastGenerate(VideoNode):
@@ -82,22 +71,23 @@ class FastGenerate(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[FastGenerateInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        prompt: str,
+        duration_seconds: float,
+        seed: int,
+        aspect: str,
+        image: Input.Image | None = None,
+        ending_image: Input.Image | None = None,
+    ) -> io.NodeOutput:
         """Generate a Fast H3 video with optional starting and ending images."""
-        image, ending_image = inputs.get('image'), inputs.get('ending_image')
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             first = await owned_io(partial(encode_png, image)) if image is not None else None
             last = await owned_io(partial(encode_png, ending_image)) if ending_image is not None else None
-            request = FastGenerateRequest(
-                inputs['prompt'],
-                inputs['duration_seconds'],
-                inputs['seed'],
-                image=first,
-                aspect=inputs['aspect'],
-                ending_image=last,
-            )
+            request = FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last)
             return await generate_video(FastGenerateOperation(request))
 
         return await wait_for_execution(asyncio.create_task(start()))

@@ -13,6 +13,10 @@ enabled = true
 [format]
 quotes = "single"
 
+[[naming.override]]
+allowed_names = ["x2", "X2EditVideo", "X2Operation", "X2Request", "X2Webcam"]
+reason = "X2 is the name of Reactor's model, digit included; its packages, modules, and classes are named after it, as those of the other model families are."
+
 [spelling.allowed_words]
 SANA = "SANA is the name of a video model that Reactor runs, written in capitals; it is not an acronym to spell out."
 LTX = "LTX is the name of a video model that Reactor runs, written in capitals; it is not an acronym to spell out."
@@ -22,10 +26,6 @@ JPEG = "JPEG is the image file format name, which readers know."
 PNG = "PNG is the image file format name, which readers know."
 WAV = "WAV is the audio file format name, which readers know."
 MP4 = "MP4 is the video file format name, which readers know."
-
-[[naming.override]]
-allowed_names = ["x2", "X2EditInputs", "X2EditVideo", "X2Operation", "X2Request", "X2Webcam", "X2WebcamInputs"]
-reason = "X2 is the name of Reactor's model, digit included; its packages, modules, and classes are named after it, as those of the other model families are."
 
 [python]
 externals = ["comfy", "comfy_api", "comfy_execution", "comfy_extras", "folder_paths", "nodes", "server", "torch"]
@@ -193,6 +193,11 @@ exit_codes = [1]
 output = { format = "lines" }
 
 [[ignore]]
+check = "duplication/jscpd"
+paths = ["src/nodes/**"]
+reason = "Each video node repeats the ComfyUI node shape (imports, define_schema, generate); jscpd's strict mode matches that shape with names and strings set aside."
+
+[[ignore]]
 check = "javascript/eslint"
 rule = "gspot/import-boundaries"
 paths = ["web/scripts/extension.ts", "web/scripts/http.ts", "web/scripts/text.ts"]
@@ -212,19 +217,14 @@ reason = "ComfyUI serves ../../scripts/app.js and ../../scripts/api.js at runtim
 
 [[ignore]]
 check = "naming/paths"
-rule = "banned-word"
-paths = ["ADVANCED.md"]
-reason = "ADVANCED.md is the advanced guide of every pack in the family, the name its readers and the README link know."
-
-[[ignore]]
-check = "structure/shared-prefixes"
-paths = ["example_workflows/**"]
-reason = "ComfyUI's template browser reads one flat example_workflows folder, and the owner names each workflow <family>-<two-digit number>-<task>."
+paths = ["web/docs/**"]
+reason = "ComfyUI reads each node's help page from web/docs/<node id>.md, so the file name must equal the registered node ID."
 
 [[ignore]]
 check = "naming/paths"
-paths = ["web/docs/**"]
-reason = "ComfyUI reads each node's help page from web/docs/<node id>.md, so the file name must equal the registered node ID."
+rule = "banned-word"
+paths = ["ADVANCED.md"]
+reason = "ADVANCED.md is the advanced guide of every pack in the family, the name its readers and the README link know."
 
 [[ignore]]
 check = "prose/vale"
@@ -248,6 +248,11 @@ check = "python/vulture"
 names = ["define_schema", "execute", "validate_inputs", "fingerprint_inputs"]
 paths = ["src/nodes/**"]
 reason = "ComfyUI calls each node's define_schema, execute, validate_inputs, and fingerprint_inputs by name."
+
+[[ignore]]
+check = "structure/shared-prefixes"
+paths = ["example_workflows/**"]
+reason = "ComfyUI's template browser reads one flat example_workflows folder, and the owner names each workflow <family>-<two-digit number>-<task>."
 
 [[ignore]]
 check = "structure/trivial-functions"

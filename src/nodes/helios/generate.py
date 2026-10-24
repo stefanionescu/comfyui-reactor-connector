@@ -1,6 +1,6 @@
 """Generate a Helios video from a prompt, an optional starting image, and optional scheduled prompts."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
 
 from comfy_api.latest import Input, io
@@ -14,17 +14,6 @@ from ...config.messages.inputs import LIVE_CONTROLS_SEQUENCE
 from ...state.generation.helios import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
 from ...execution.helios.operation import HeliosOperation
-
-
-class HeliosInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the Helios node, apart from the run number."""
-
-    prompt: str
-    duration_seconds: float
-    seed: int
-    sequence: str
-    image: NotRequired[Input.Image | None]
-    interactive: NotRequired[bool]
 
 
 class HeliosGenerate(VideoNode):
@@ -64,15 +53,22 @@ class HeliosGenerate(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[HeliosInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        prompt: str,
+        duration_seconds: float,
+        seed: int,
+        sequence: str,
+        image: Input.Image | None = None,
+        interactive: bool = False,
+    ) -> io.NodeOutput:
         """Generate a Helios video from the opening prompt, scheduled prompts, or live changes."""
-        prompts = parse_sequence(inputs['sequence'])
-        interactive = inputs.get('interactive', False)
+        prompts = parse_sequence(sequence)
         if prompts and interactive:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_CONTROLS_SEQUENCE)
-        image = inputs.get('image')
         encoded = await asyncio.to_thread(encode_png, image) if image is not None else None
-        request = HeliosRequest(
-            inputs['prompt'], inputs['duration_seconds'], inputs['seed'], image=encoded, prompts=prompts
+        return await generate_video(
+            HeliosOperation(HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts)),
+            interactive=interactive,
         )
-        return await generate_video(HeliosOperation(request), interactive=interactive)

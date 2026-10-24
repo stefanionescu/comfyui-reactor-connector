@@ -1,6 +1,6 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
 from functools import partial
 
@@ -22,14 +22,6 @@ from ...comfy.execution import generate_video, wait_for_execution
 from ...comfy.interaction import build_live_options
 from ...state.generation.x2 import X2Request
 from ...execution.x2.operation import X2Operation
-
-
-class X2WebcamInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the X2 webcam node, apart from the run number."""
-
-    prompt: str
-    duration_seconds: float
-    reference_image: NotRequired[Input.Image | None]
 
 
 class X2Webcam(VideoNode):
@@ -70,9 +62,14 @@ class X2Webcam(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[X2WebcamInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        prompt: str,
+        duration_seconds: float,
+        reference_image: Input.Image | None = None,
+    ) -> io.NodeOutput:
         """Open X2 webcam and dragging controls and record the resulting video."""
-        reference_image = inputs.get('reference_image')
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
@@ -81,8 +78,8 @@ class X2Webcam(VideoNode):
                 image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))
                 request = X2Operation(
                     X2Request(
-                        inputs['prompt'],
-                        inputs['duration_seconds'],
+                        prompt,
+                        duration_seconds,
                         0,
                         image=image,
                         pointer_x=DEFAULT_POINTER_POSITION,
@@ -90,7 +87,10 @@ class X2Webcam(VideoNode):
                     ),
                     webcam=camera,
                 )
-                return await generate_video(request, controls=build_live_options(request, webcam=camera))
+                return await generate_video(
+                    request,
+                    controls=build_live_options(request, webcam=camera),
+                )
             finally:
                 await camera.close()
 

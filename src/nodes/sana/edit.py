@@ -1,6 +1,6 @@
 """Expose SANA file editing with native ComfyUI video input and output."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
 from pathlib import Path
 from dataclasses import replace
@@ -17,17 +17,6 @@ from ...media.video.input import prepared_video
 from ...state.generation.sana import SanaRequest
 from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
 from ...execution.sana.operation import SanaOperation
-
-
-class SanaEditInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the SANA edit node, apart from the run number."""
-
-    source: Input.Video
-    prompt: str
-    duration_seconds: float
-    seed: int
-    anchor_interval: int
-    interactive: NotRequired[bool]
 
 
 class SanaEditVideo(VideoNode):
@@ -69,19 +58,26 @@ class SanaEditVideo(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[SanaEditInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        source: Input.Video,
+        prompt: str,
+        duration_seconds: float,
+        seed: int,
+        anchor_interval: int,
+        interactive: bool = False,
+    ) -> io.NodeOutput:
         """Edit the source video with SANA and return the recorded result."""
-        request = SanaRequest(
-            inputs['prompt'], inputs['duration_seconds'], inputs['seed'], anchor_interval=inputs['anchor_interval']
-        )
+        request = SanaRequest(prompt, duration_seconds, seed, anchor_interval=anchor_interval)
 
         async def edit() -> io.NodeOutput:
             """Prepare the source frames within the input limits, and close them after the edit."""
             settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
-            async with prepared_video(inputs['source'], settings, Path(folder_paths.get_temp_directory())) as video:
+            async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
                 return await generate_video(
                     SanaOperation(replace(request, video=video)),
-                    interactive=inputs.get('interactive', False),
+                    interactive=interactive,
                 )
 
         return await wait_for_execution(asyncio.create_task(edit()))

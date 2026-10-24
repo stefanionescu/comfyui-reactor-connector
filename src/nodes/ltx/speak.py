@@ -1,8 +1,7 @@
 """Expose LTX speech with a required native portrait and synchronized media."""
 
-from typing import Unpack, TypedDict, override
+from typing import override
 import asyncio
-from functools import partial
 
 from comfy_api.latest import Input, io
 
@@ -19,17 +18,6 @@ from ...config.generation.speech import (
     MIN_WORDS_PER_MINUTE,
     DEFAULT_WORDS_PER_MINUTE,
 )
-
-
-class LtxSpeakInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the LTX node, apart from the run number."""
-
-    prompt: str
-    duration_seconds: float
-    seed: int
-    script: str
-    words_per_minute: int
-    image: Input.Image
 
 
 class LtxSpeak(VideoNode):
@@ -75,19 +63,28 @@ class LtxSpeak(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[LtxSpeakInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        prompt: str,
+        duration_seconds: float,
+        seed: int,
+        script: str,
+        words_per_minute: int,
+        image: Input.Image,
+    ) -> io.NodeOutput:
         """Animate the portrait speaking the script and return video and audio."""
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
-            encoded = await owned_io(partial(encode_png, inputs['image']))
+            encoded = await owned_io(lambda: encode_png(image))
             request = LtxSpeakRequest(
-                inputs['prompt'],
-                inputs['duration_seconds'],
-                inputs['seed'],
+                prompt,
+                duration_seconds,
+                seed,
                 image=encoded,
-                script=inputs['script'],
-                words_per_minute=inputs['words_per_minute'],
+                script=script,
+                words_per_minute=words_per_minute,
             )
             return await generate_video(LtxSpeakOperation(request))
 

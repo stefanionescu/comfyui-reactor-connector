@@ -1,6 +1,6 @@
 """Continue a scene across several clips without queuing another ComfyUI run."""
 
-from typing import Unpack, TypedDict, NotRequired, override
+from typing import override
 import asyncio
 from functools import partial
 
@@ -24,18 +24,6 @@ from ...config.generation.fast import (
     DEFAULT_CLIP_SECONDS,
 )
 from ...execution.fast.continuation import FastContinueOperation
-
-
-class FastContinueInputs(TypedDict):
-    """The saved inputs that ComfyUI passes to the Fast H3 continuation node, apart from the run number."""
-
-    prompt: str
-    clip_seconds: float
-    seed: int
-    aspect: str
-    clip_count: int
-    later_prompts: str
-    image: NotRequired[Input.Image | None]
 
 
 class FastContinue(VideoNode):
@@ -99,22 +87,31 @@ class FastContinue(VideoNode):
 
     @classmethod
     @override
-    async def generate(cls, **inputs: Unpack[FastContinueInputs]) -> io.NodeOutput:
+    async def generate(
+        cls,
+        *,
+        prompt: str,
+        clip_seconds: float,
+        seed: int,
+        aspect: str,
+        clip_count: int,
+        later_prompts: str,
+        image: Input.Image | None = None,
+    ) -> io.NodeOutput:
         """Join a sequence of Fast H3 clips that continue from each previous final frame."""
-        image = inputs.get('image')
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             encoded = None if image is None else await owned_io(partial(encode_png, image))
             request = FastContinueRequest(
-                inputs['prompt'],
-                inputs['clip_seconds'] * inputs['clip_count'],
-                inputs['seed'],
+                prompt,
+                clip_seconds * clip_count,
+                seed,
                 image=encoded,
-                aspect=inputs['aspect'],
-                clip_seconds=inputs['clip_seconds'],
-                clip_count=inputs['clip_count'],
-                later_prompts=tuple(inputs['later_prompts'].splitlines()),
+                aspect=aspect,
+                clip_seconds=clip_seconds,
+                clip_count=clip_count,
+                later_prompts=tuple(later_prompts.splitlines()),
             )
             return await generate_video(FastContinueOperation(request))
 
