@@ -35,7 +35,7 @@ async def export_schemas(interpreter: Path, root: Path, environment: dict[str, s
     process = await asyncio.create_subprocess_exec(
         str(interpreter),
         '-m',
-        f'{root.name}.scripts.nodes.schema',
+        f'{root.name}.scripts.nodes.export',
         cwd=root.parent,
         env=environment,
         stdout=asyncio.subprocess.PIPE,

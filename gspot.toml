@@ -9,6 +9,7 @@ enabled = true
 
 [ci]
 enabled = true
+setup_command = ["mise", "run", "ci:setup"]
 
 [format]
 quotes = "single"
@@ -236,6 +237,12 @@ check = "python/vulture"
 names = ["comfy_entrypoint"]
 paths = ["__init__.py"]
 reason = "ComfyUI calls the package's comfy_entrypoint by name."
+
+[[ignore]]
+check = "python/vulture"
+names = ["cpu"]
+paths = ["scripts/nodes/export.py"]
+reason = "ComfyUI's model_management reads args.cpu when its device code loads; the schema export sets it so ComfyUI loads without a graphics card."
 
 [[ignore]]
 check = "python/vulture"
