@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, BinaryIO
 import asyncio
+
 from ..tasks import wait_shielded
-from typing import BinaryIO, TYPE_CHECKING
 from ..errors import ErrorCode, ConnectorError
 from ..config.messages.media import OUTPUT_SIZE, OUTPUT_CLOSED
 
 if TYPE_CHECKING:
+    from types import TracebackType
     from typing import Self
     from pathlib import Path
-    from types import TracebackType
     from collections.abc import Callable
 
 
@@ -26,17 +27,13 @@ class FileOutput:
         self.created = False
         self.stream: BinaryIO | None = None
 
-    def _open(self) -> None:
-        """Create a new output without overwriting an existing file."""
-        self.stream = self.path.open("xb")
-        self.created = True
-
     def _write(self, content: bytes) -> None:
-        """Write only while the output is open and the byte limit allows it."""
+        """Create the output on the first write without overwriting an existing file, then write while it is open."""
+        if not self.created:
+            self.stream = self.path.open('xb')
+            self.created = True
         if self.stream is None:
             raise ConnectorError(ErrorCode.CAPTURE, OUTPUT_CLOSED)
-        if self.written + len(content) > self.maximum_bytes:
-            raise ConnectorError(ErrorCode.CAPTURE, OUTPUT_SIZE)
         self.stream.write(content)
         self.written += len(content)
 
@@ -54,13 +51,16 @@ class FileOutput:
                 self.path.unlink(missing_ok=True)
 
     async def write(self, content: bytes) -> None:
-        """Complete the submitted write off the event loop before allowing cancellation."""
+        """Check the byte limit, then complete the write off the event loop before allowing cancellation."""
+        if self.written + len(content) > self.maximum_bytes:
+            raise ConnectorError(ErrorCode.CAPTURE, OUTPUT_SIZE)
         await owned_io(lambda: self._write(content))
 
     async def __aenter__(self) -> Self:
         """Create the output off the event loop and discard it if entry fails."""
         try:
-            await owned_io(self._open)
+            # An empty first write creates the file.
+            await owned_io(lambda: self._write(b''))
         except BaseException:
             await owned_io(lambda: self._close(discard=True))
             raise
@@ -109,4 +109,4 @@ async def discard_outputs(*paths: Path, error: BaseException | None) -> None:
     except OSError:
         if error is None:
             raise
-        error.add_note("Some temporary recording files could not be removed.")
+        error.add_note('Some temporary recording files could not be removed.')

@@ -1,20 +1,27 @@
-"""Encode framed RGB input in a standalone, terminable worker process."""
+"""Encode framed red, green, and blue (RGB) input in a standalone, terminable worker process."""
 
-import av
+from __future__ import annotations
+
 import sys
 import json
 import struct
-import numpy as np
+from typing import TYPE_CHECKING, BinaryIO, cast
 from pathlib import Path
 from fractions import Fraction
-from typing import cast, BinaryIO
-from .protocol import report_outcome
-from .streams import VideoStream, MediaWriter
+
+import av
+import numpy as np
+
 from src.state.workers import EncoderSettings
+
+from ..config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCODER_PIXEL_FORMAT
 from ..config.media.images import RGB_CHANNELS
 from ..config.media.capture import FRAME_HEADER_FORMAT, MAX_FRAME_DIMENSION, MIN_FRAME_DIMENSION
-from ..config.media.video import ENCODER_CRF, ENCODER_NAME, ENCODER_PRESET, ENCODER_PIXEL_FORMAT
 
+if TYPE_CHECKING:
+    from av.packet import Packet
+    from av.video.stream import VideoStream
+    from av.container.output import OutputContainer
 
 WORKER_ARGUMENT_COUNT = 6
 
@@ -31,9 +38,9 @@ def _receive(source: BinaryIO, limit: int) -> tuple[int, int, int, bytes] | None
     if not header:
         return None
     if len(header) != FRAME_HEADER.size:
-        msg = "truncated"
+        msg = 'truncated'
         raise EncodingError(msg)
-    width, height, timestamp = cast("tuple[int, int, int]", FRAME_HEADER.unpack(header))
+    width, height, timestamp = cast('tuple[int, int, int]', FRAME_HEADER.unpack(header))
     size = width * height * RGB_CHANNELS
     if (
         not (
@@ -43,78 +50,76 @@ def _receive(source: BinaryIO, limit: int) -> tuple[int, int, int, bytes] | None
         or height % 2
         or size > limit
     ):
-        msg = "frame_size"
+        msg = 'frame_size'
         raise EncodingError(msg)
     pixels = source.read(size)
     if len(pixels) != size:
-        msg = "truncated"
+        msg = 'truncated'
         raise EncodingError(msg)
     return width, height, timestamp, pixels
 
 
-def _mux(container: MediaWriter, packets: list[object], settings: EncoderSettings) -> None:
+def _mux(container: OutputContainer, packets: list[Packet[VideoStream]], settings: EncoderSettings) -> None:
     """Write encoded packets while enforcing the output file limit."""
     for packet in packets:
-        container.mux(packet)
+        container.mux(packet)  # pyright: ignore[reportUnknownMemberType] # reason: PyAV's stubs leave Packet without its stream type.
         if settings.path.stat().st_size > settings.output_bytes:
-            msg = "file_limit"
+            msg = 'file_limit'
             raise EncodingError(msg)
 
 
 def _encode_frames(
-    source: BinaryIO, container: MediaWriter, stream: VideoStream, settings: EncoderSettings
+    source: BinaryIO, container: OutputContainer, stream: VideoStream, settings: EncoderSettings
 ) -> tuple[int, str]:
     """Encode increasing timestamps within the requested duration and flush the final packets."""
     first_timestamp: int | None = None
     previous_pts = -1
     frame_count = 0
-    timestamp_mode = "sender"
+    timestamp_mode = 'sender'
     while (received := _receive(source, settings.frame_bytes)) is not None:
         width, height, timestamp, pixels = received
         if first_timestamp is None:
             first_timestamp = timestamp
-            timestamp_mode = "sender" if timestamp > 0 else "fallback_fps"
+            timestamp_mode = 'sender' if timestamp > 0 else 'fallback_fps'
             stream.width, stream.height = width, height
         if (stream.width, stream.height) != (width, height):
-            msg = "dimensions"
+            msg = 'dimensions'
             raise EncodingError(msg)
         pts = (
-            timestamp - first_timestamp if timestamp_mode == "sender" else round(frame_count * 1_000_000 / settings.fps)
+            timestamp - first_timestamp if timestamp_mode == 'sender' else round(frame_count * 1_000_000 / settings.fps)
         )
         if pts <= previous_pts:
-            msg = "timestamps"
+            msg = 'timestamps'
             raise EncodingError(msg)
         if pts >= settings.duration_us:
             break
         array = np.frombuffer(pixels, dtype=np.uint8).reshape(height, width, RGB_CHANNELS)
-        frame = av.VideoFrame.from_ndarray(array, format="rgb24")
+        frame = av.VideoFrame.from_ndarray(array, format='rgb24')
         frame.pts, frame.time_base = pts, Fraction(1, 1_000_000)
-        _mux(container, stream.encode(frame), settings)
+        _mux(container, stream.encode(frame), settings)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # reason: PyAV's stubs leave Packet without its stream type.
         previous_pts = pts
         frame_count += 1
     if not frame_count:
-        msg = "no_frames"
+        msg = 'no_frames'
         raise EncodingError(msg)
-    _mux(container, stream.encode(), settings)
+    _mux(container, stream.encode(), settings)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # reason: PyAV's stubs leave Packet without its stream type.
     return frame_count, timestamp_mode
 
 
 def encode(source: BinaryIO, settings: EncoderSettings) -> dict[str, str | int]:
     """Write an MP4 within the recording limits and report its size, timing, or errors."""
-    output = cast("MediaWriter", av.open(str(settings.path), mode="w", format="mp4"))
-    with output as container:
-        stream = container.add_stream(ENCODER_NAME, rate=Fraction(settings.fps))
-        stream.pix_fmt = ENCODER_PIXEL_FORMAT
+    with av.open(str(settings.path), mode='w', format='mp4') as container:
+        stream = container.add_stream(ENCODER_NAME, rate=Fraction(settings.fps), pix_fmt=ENCODER_PIXEL_FORMAT)  # pyright: ignore[reportUnknownMemberType] # reason: PyAV's stubs leave Packet without its stream type.
         stream.time_base = Fraction(1, 1_000_000)
         stream.codec_context.time_base = Fraction(1, 1_000_000)
-        stream.options = {"preset": ENCODER_PRESET, "crf": ENCODER_CRF}
-        sys.stdout.write(json.dumps({"ready": True}) + "\n")
+        stream.options = {'preset': ENCODER_PRESET, 'crf': ENCODER_CRF}
+        sys.stdout.write(json.dumps({'ready': True}) + '\n')
         sys.stdout.flush()
         frames, mode = _encode_frames(source, container, stream, settings)
     if settings.path.stat().st_size > settings.output_bytes:
-        msg = "file_limit"
+        msg = 'file_limit'
         raise EncodingError(msg)
-    return {"frames": frames, "timestamp_mode": mode}
+    return {'frames': frames, 'timestamp_mode': mode}
 
 
 def read_settings(arguments: list[str]) -> EncoderSettings:
@@ -131,10 +136,3 @@ def read_settings(arguments: list[str]) -> EncoderSettings:
     if min(settings.duration_us, settings.frame_bytes, settings.output_bytes, settings.fps) < 1:
         raise ValueError
     return settings
-
-
-def main(arguments: list[str]) -> int:
-    """Run only as an explicitly launched worker; do not import the ComfyUI host."""
-    return report_outcome(
-        lambda: encode(sys.stdin.buffer, read_settings(arguments)), fallback_code="encoder_failed", known=EncodingError
-    )

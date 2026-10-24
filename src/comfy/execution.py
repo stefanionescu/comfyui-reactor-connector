@@ -2,29 +2,32 @@
 
 import sys
 import asyncio
-import tempfile
-import folder_paths
 from pathlib import Path
+import tempfile
 from functools import partial
-from ..runtime import get_runtime
-from ..media.audio import read_audio
-from ..live.options import LiveOptions
-from ..state.media import CaptureResult
-from ..state.session import SessionOutcome
 from contextlib import asynccontextmanager
-from .interaction import prepare_interaction
-from ..errors import ErrorCode, ConnectorError
-from ..live.interaction import LiveInteraction
-from ..execution.operation import VideoOperation
-from ..config.messages.session import RUN_TIMEOUT
-from ..config.media.capture import MAX_QUEUE_BYTES
-from ..state.settings import ExecutionConfiguration
-from ..media.output import owned_io, discard_outputs
-from comfy_api.latest import io, ComfyAPI, InputImpl
-from ..execution.session.capture import capture_video
 from collections.abc import Callable, Awaitable, AsyncGenerator
-from ..config.generation.session import CANCELLATION_POLL_SECONDS
+
+import folder_paths
+from comfy_api.latest import ComfyAPI, InputImpl, io
 from comfy.model_management import InterruptProcessingException, throw_exception_if_processing_interrupted
+
+from ..errors import ErrorCode, ConnectorError
+from ..runtime import get_runtime
+from .interaction import prepare_interaction
+from ..media.audio import read_audio
+from ..state.media import CaptureResult
+from ..live.options import LiveOptions
+from ..media.output import owned_io, discard_outputs
+from ..state.session import SessionOutcome
+from ..state.settings import ExecutionConfiguration
+from ..execution.inputs import VideoOperation
+from ..live.interaction import LiveInteraction
+from ..config.media.capture import MAX_QUEUE_BYTES
+from ..execution.interaction import SessionInteraction
+from ..config.messages.session import RUN_TIMEOUT
+from ..config.generation.session import CANCELLATION_POLL_SECONDS
+from ..execution.session.capture import capture_video
 
 
 async def wait_for_execution[T](task: asyncio.Task[T]) -> T:
@@ -51,16 +54,25 @@ async def _run_session(
     interaction = None
     try:
         interaction = await open_interaction()
+        hooks = None
+        if interaction is not None:
+            lease = interaction.lease
+            hooks = SessionInteraction(
+                interaction.connected,
+                lease.enable_controls,
+                interaction.stop,
+                lambda is_confirmed, failed: lease.close(is_termination_confirmed=is_confirmed, failed=failed),
+            )
         return await capture_video(
             operation,
             configuration,
             destination,
             outcome=outcome,
-            interaction=interaction,
+            interaction=hooks,
         )
     finally:
         if interaction is not None:
-            interaction.closed(
+            interaction.lease.close(
                 is_termination_confirmed=outcome.is_termination_confirmed,
                 failed=sys.exception() is not None,
             )
@@ -87,7 +99,7 @@ async def _temporary_video() -> AsyncGenerator[Path, None]:
         """Retain the path so cancellation can remove it after file creation finishes."""
         nonlocal destination
         with tempfile.NamedTemporaryFile(
-            prefix="reactor-", suffix=".mp4", dir=folder_paths.get_temp_directory(), delete=False
+            prefix='reactor-', suffix='.mp4', dir=folder_paths.get_temp_directory(), delete=False
         ) as temporary:
             destination = Path(temporary.name)
         return destination
@@ -99,7 +111,7 @@ async def _temporary_video() -> AsyncGenerator[Path, None]:
         is_complete = True
     finally:
         if not is_complete and destination is not None:
-            await discard_outputs(destination, destination.with_suffix(".wav"), error=sys.exception())
+            await discard_outputs(destination, destination.with_suffix('.wav'), error=sys.exception())
 
 
 async def generate_video(
@@ -111,16 +123,15 @@ async def generate_video(
     """Return a native video only after encoding and remote cleanup succeed."""
     progress = ComfyAPI().execution
     await progress.set_progress(0, 3)
-    configuration = get_runtime().configuration
-    snapshot = await asyncio.to_thread(configuration.execution_snapshot)
-    operation.validate(snapshot.settings)
+    configuration = await asyncio.to_thread(get_runtime().configuration.read_execution_configuration)
+    operation.validate(configuration.settings)
     await progress.set_progress(1, 3)
     try:
         async with _temporary_video() as destination:
             task = asyncio.create_task(
                 _run_session(
                     operation,
-                    snapshot,
+                    configuration,
                     destination,
                     partial(prepare_interaction, operation, interactive=interactive, controls=controls),
                 )
@@ -136,9 +147,3 @@ async def generate_video(
         raise
     except TimeoutError:
         raise ConnectorError(ErrorCode.TIMEOUT, RUN_TIMEOUT) from None
-
-
-async def operation_fingerprint() -> str:
-    """Return the token that changes when the key or execution limits change."""
-    snapshot = await asyncio.to_thread(get_runtime().configuration.execution_snapshot)
-    return snapshot.generation

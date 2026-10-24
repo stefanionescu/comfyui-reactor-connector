@@ -1,4 +1,4 @@
-# X2: Edit Video (Reactor)
+# X2: Edit Video
 
 Edits a local video clip with Reactor's X2 model. A reference image can replace
 or insert a subject, and you can drag on the output to steer it.
@@ -19,10 +19,10 @@ or insert a subject, and you can drag on the output to steer it.
 | live controls            | Change the prompt and drag the subject while it records. Default: off.               |
 
 The clip must be MP4, MOV, WebM, or AVI, with even dimensions, at most 4,096
-pixels per side, and 1 to 120 frames per second. HDR clips and clips with
-several video streams are rejected. The connector sends a temporary video-only
+pixels per side, and 1 to 120 frames per second. The connector rejects high
+dynamic range (HDR) clips and clips with several video streams. The connector sends a temporary video-only
 copy of up to 60 seconds and stops if preparing it takes over 60 seconds. The
-clip plays once at its own frame rate, then holds its last frame. With a
+clip plays once at its own frame rate, then holds its last frame. When you use a
 reference, describe what to replace and what to keep.
 
 ## Outputs
@@ -33,9 +33,9 @@ reference, describe what to replace and what to keep.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
 2. Open **x2-01-edit-video**, **x2-02-reference-edit**, or **x2-04-live-prompt**
-   in **Browse Templates → reactor-inc**, and upload a clip in **Load Source
+   in **Browse Templates > reactor-inc**, and upload a clip in **Load Source
    Video**.
 3. Keep the example prompt for a first run and select **Run**.
 4. Play the result in **Save Video**, which also saves the file.

@@ -3,33 +3,27 @@
 import io
 import sys
 import math
+from typing import BinaryIO
 import asyncio
 from pathlib import Path
-from typing import BinaryIO
-from ..process import MediaProcess
-from ...paths import EXTENSION_ROOT
-from ...state.settings import Settings
 from tempfile import TemporaryDirectory
-from ..output import owned_io, FileOutput
-from .components import prepare_components
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator
+
 from comfy_api.latest import Input, InputImpl
-from ..units import convert_mebibytes_to_bytes
+
+from ...paths import EXTENSION_ROOT
+from ..output import FileOutput, owned_io
 from ...errors import ErrorCode, ConnectorError
+from ..process import MediaProcess
+from .components import prepare_components
 from ...config.nodes import MAX_DURATION_SECONDS
+from ...state.settings import Settings
+from ...config.settings import BYTES_PER_MEBIBYTE
+from ...config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
 from ...config.media.capture import MAX_QUEUE_BYTES
 from ...config.media.workers import INPUT_TIMEOUT_SECONDS
 from ...config.messages.media import LOCAL_SOURCE_REQUIRED
-from ...config.media.video import MIN_SOURCE_FRAMES, SOURCE_COPY_CHUNK_BYTES
-
-
-def input_error() -> ConnectorError:
-    """Describe the accepted local video input without exposing a source path."""
-    return ConnectorError(
-        ErrorCode.INVALID_INPUT,
-        LOCAL_SOURCE_REQUIRED,
-    )
 
 
 async def _copy_source(source: str | io.BytesIO, destination: Path, maximum: int) -> None:
@@ -37,7 +31,7 @@ async def _copy_source(source: str | io.BytesIO, destination: Path, maximum: int
     if isinstance(source, io.BytesIO):
         with source.getbuffer() as buffer:
             if buffer.nbytes > maximum:
-                raise input_error()
+                raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
             async with FileOutput(destination, maximum) as output:
                 for offset in range(0, buffer.nbytes, SOURCE_COPY_CHUNK_BYTES):
                     await output.write(bytes(buffer[offset : offset + SOURCE_COPY_CHUNK_BYTES]))
@@ -49,27 +43,23 @@ async def _copy_file(path: Path, destination: Path, maximum: int) -> None:
     """Copy one local source off the host loop and retain stream ownership through cancellation."""
     valid = path.is_absolute() and await owned_io(lambda: path.is_file() and path.stat().st_size <= maximum)
     if not valid:
-        raise input_error()
-    stream: BinaryIO | None = None
-
-    def open_source() -> None:
-        """Retain the source stream so its owner can close it after cancellation."""
-        nonlocal stream
-        stream = path.open("rb")
+        raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
+    # The opening thread adds the stream here, so the owner closes it even when cancellation interrupts the wait.
+    streams: list[BinaryIO] = []
 
     def read_chunk() -> bytes:
         """Read one chunk only after the source stream has opened."""
-        if stream is None:
-            raise input_error()
-        return stream.read(SOURCE_COPY_CHUNK_BYTES)
+        if not streams:
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
+        return streams[0].read(SOURCE_COPY_CHUNK_BYTES)
 
     try:
-        await owned_io(open_source)
+        await owned_io(lambda: streams.append(path.open('rb')))
         async with FileOutput(destination, maximum) as output:
             while chunk := await owned_io(read_chunk):
                 await output.write(chunk)
     finally:
-        if stream is not None:
+        for stream in streams:
             await owned_io(stream.close)
 
 
@@ -77,11 +67,11 @@ async def _copy_file(path: Path, destination: Path, maximum: int) -> None:
 async def prepared_video(video: Input.Video, settings: Settings, temporary_root: Path) -> AsyncGenerator[Path]:
     """Own source and output copies until the model has finished using them."""
     if not isinstance(video, (InputImpl.VideoFromFile, InputImpl.VideoFromComponents)):
-        raise input_error()
-    maximum = convert_mebibytes_to_bytes(settings.max_upload_megabytes)
-    with TemporaryDirectory(prefix="reactor-source-", dir=temporary_root) as directory:
-        source = Path(directory) / "source.video"
-        destination = Path(directory) / "input.mp4"
+        raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
+    maximum = settings.max_upload_megabytes * BYTES_PER_MEBIBYTE
+    with TemporaryDirectory(prefix='reactor-source-', dir=temporary_root) as directory:
+        source = Path(directory) / 'source.video'
+        destination = Path(directory) / 'input.mp4'
         try:
             async with asyncio.timeout(INPUT_TIMEOUT_SECONDS):
                 if isinstance(video, InputImpl.VideoFromComponents):
@@ -89,7 +79,7 @@ async def prepared_video(video: Input.Video, settings: Settings, temporary_root:
                 else:
                     await _prepare_file(video, source, destination, maximum)
         except (OSError, ValueError):
-            raise input_error() from None
+            raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED) from None
         yield destination
 
 
@@ -103,14 +93,14 @@ async def _prepare_file(
     await _copy_source(video.get_stream_source(), source, maximum)
     start, duration = await owned_io(video.get_active_trim_window)
     if not all(math.isfinite(value) and value >= 0 for value in (start, duration)):
-        raise input_error()
+        raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
     duration = min(duration or MAX_DURATION_SECONDS, MAX_DURATION_SECONDS)
     worker = MediaProcess(
         [
             sys.executable,
-            "-I",
+            '-I',
             str(EXTENSION_ROOT),
-            "video",
+            'video',
             str(source),
             str(destination),
             str(start),
@@ -120,6 +110,6 @@ async def _prepare_file(
         ]
     )
     result = await worker.run(asyncio.Event(), asyncio.Event())
-    frames = result.get("frames")
+    frames = result.get('frames')
     if type(frames) is not int or frames < MIN_SOURCE_FRAMES:
-        raise input_error()
+        raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)

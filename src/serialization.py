@@ -3,18 +3,20 @@
 import json
 import math
 from typing import cast
-from .state.documents import Json
+
 from .errors import ErrorCode, ConnectorError
 from .config.security import MAX_JSON_BYTES, MAX_JSON_DEPTH
-from .config.messages.requests import JSON_SIZE, JSON_DEPTH, JSON_MAPPING, JSON_SYNTAX, JSON_VALUES, JSON_DUPLICATE_KEY
+from .config.messages.requests import JSON_SIZE, JSON_DEPTH, JSON_SYNTAX, JSON_VALUES, JSON_MAPPING, JSON_DUPLICATE_KEY
+
+type Json = bool | int | float | str | list[Json] | dict[str, Json] | None
 
 
 def parse_json(text: str, *, max_bytes: int = MAX_JSON_BYTES, max_depth: int = MAX_JSON_DEPTH) -> Json:
     """Reject oversized, nested, duplicate-key, and non-finite JSON input."""
-    if len(text.encode("utf-8")) > max_bytes:
+    if len(text.encode('utf-8')) > max_bytes:
         raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_SIZE)
     try:
-        value = cast("object", json.loads(text, object_pairs_hook=_unique_fields))
+        value = cast('object', json.loads(text, object_pairs_hook=_unique_fields))
         return validate_json(value, max_depth=max_depth)
     except (ValueError, RecursionError) as error:
         raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_SYNTAX) from error
@@ -40,12 +42,12 @@ def validate_json(value: object, *, max_depth: int = MAX_JSON_DEPTH) -> Json:
     if isinstance(value, float) and math.isfinite(value):
         return value
     if isinstance(value, list):
-        items = cast("list[object]", value)
+        items = cast('list[object]', value)
         return [validate_json(item, max_depth=max_depth - 1) for item in items]
     if isinstance(value, dict):
-        entries = cast("dict[object, object]", value)
+        entries = cast('dict[object, object]', value)
         if all(isinstance(key, str) for key in entries):
-            return {cast("str", key): validate_json(item, max_depth=max_depth - 1) for key, item in entries.items()}
+            return {cast('str', key): validate_json(item, max_depth=max_depth - 1) for key, item in entries.items()}
     raise ConnectorError(ErrorCode.INVALID_INPUT, JSON_VALUES)
 
 

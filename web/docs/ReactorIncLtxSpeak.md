@@ -1,4 +1,4 @@
-# LTX: Make a Portrait Speak (Reactor)
+# LTX: Make a Portrait Speak
 
 Animates one portrait speaking a script with Reactor's LTX model. The video has
 the speech; a separate audio output carries it alone.
@@ -18,8 +18,8 @@ the speech; a separate audio output carries it alone.
 Use a front-facing portrait of one person, at most 8,192 pixels per side and
 within the upload limit in Reactor settings. LTX fits the picture to a wide
 canvas, so a tall portrait can lose the top of the head. Fit the script to the
-length: at 140 words per minute, five seconds holds about 11 words, and a longer
-script can be cut off.
+length: at 140 words per minute, five seconds holds about 11 words, and the video
+can end before a longer script does.
 
 ## Outputs
 
@@ -30,12 +30,13 @@ script can be cut off.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **ltx2-01-speaking-portrait** in **Browse Templates → reactor-inc**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
+2. Open **ltx2-01-speaking-portrait** in **Browse Templates > reactor-inc**.
 3. Upload a portrait in **Load Image** and edit **spoken words**.
 4. Select **Run**, then play the result in **Save Video**.
 
 LTX can generate up to 20 extra seconds while Reactor prepares the recording.
-They use credits and are not saved, and the whole run must fit the session limit.
+They use credits, the connector does not save them, and the whole run must fit
+the session limit.
 
 [Reactor LTX schema](https://docs.reactor.inc/model-api-reference/ltx/schema)

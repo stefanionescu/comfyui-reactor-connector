@@ -1,4 +1,4 @@
-# SANA: Edit Video (Reactor)
+# SANA: Edit Video
 
 Applies an edit prompt to a local video clip with Reactor's SANA model. You can
 change the prompt while it records.
@@ -16,8 +16,8 @@ change the prompt while it records.
 | live controls                    | Change the prompt while it records. Default: off.                                         |
 
 The clip must be MP4, MOV, WebM, or AVI, with even dimensions, at most 4,096
-pixels per side, and 1 to 120 frames per second. HDR clips and clips with
-several video streams are rejected. The connector sends a temporary video-only
+pixels per side, and 1 to 120 frames per second. The connector rejects high
+dynamic range (HDR) clips and clips with several video streams. The connector sends a temporary video-only
 copy of up to 60 seconds, without sound or metadata, and stops if preparing it
 takes over 60 seconds. The clip plays once; after its last frame SANA keeps the
 last input frame. The output can be shorter than requested.
@@ -30,11 +30,11 @@ last input frame. The output can be shorter than requested.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
 2. Open **sana-streaming-01-edit-video** or **sana-streaming-02-live-prompt** in
-   **Browse Templates → reactor-inc**, and upload a clip in **Load Source Video**.
-3. Describe the edit, such as “Change the scene to a soft watercolor painting.
-   Keep the movement and composition.”, then select **Run**.
+   **Browse Templates > reactor-inc**, and upload a clip in **Load Source Video**.
+3. Describe the edit, such as "Change the scene to a soft watercolor painting.
+   Keep the movement and composition.", then select **Run**.
 4. Play the result in **Save Video**, which also saves the file.
 
 Start with a three- to five-second landscape clip. An empty prompt shows SANA's

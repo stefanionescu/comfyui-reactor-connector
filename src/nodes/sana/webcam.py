@@ -1,43 +1,50 @@
 """Record edits from a camera explicitly enabled in the owning browser."""
 
-from ..base import VideoNode
+from typing import override
+
 from comfy_api.latest import io
+
+from ..base import VideoNode
+from ..controls import build_inputs, build_outputs
 from ...media.webcam import WebcamFrames
 from ...comfy.execution import generate_video
-from ...state.generation.sana import SanaRequest
 from ...comfy.interaction import build_live_options
-from ...execution.sana.operation import SanaOperation
-from ..controls import video_outputs, generation_controls
+from ...state.generation.sana import SanaRequest
 from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
+from ...execution.sana.operation import SanaOperation
 
 
 class SanaWebcam(VideoNode):
     """Open the webcam controls and record the SANA video edit."""
 
     @classmethod
+    @override
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
-            node_id="ReactorIncSanaWebcam",
-            display_name="SANA: Edit Webcam Video (Reactor)",
-            description="Enable a webcam in the live panel, then record an edited video.",
-            category="Reactor/Live",
+            node_id='ReactorIncSanaWebcam',
+            display_name='SANA: Edit Webcam Video (Reactor)',
+            description='Enable a webcam in the live panel, then record an edited video.',
+            category='Reactor/Live',
             search_aliases=[],
-            inputs=[
-                *generation_controls("webcam"),
-                io.Int.Input(
-                    "anchor_interval",
-                    display_name="source refresh interval (chunks)",
-                    tooltip="Return to the camera source after this many model chunks. Use 0 to turn this off.",
-                    default=DEFAULT_ANCHOR_INTERVAL,
-                    min=MIN_ANCHOR_INTERVAL,
-                    max=MAX_ANCHOR_INTERVAL,
-                ),
-            ],
-            outputs=video_outputs(),
+            inputs=build_inputs(
+                'webcam',
+                trailing=[
+                    io.Int.Input(
+                        'anchor_interval',
+                        display_name='source refresh interval (chunks)',
+                        tooltip='Return to the camera source after this many model chunks. Use 0 to turn this off.',
+                        default=DEFAULT_ANCHOR_INTERVAL,
+                        min=MIN_ANCHOR_INTERVAL,
+                        max=MAX_ANCHOR_INTERVAL,
+                    ),
+                ],
+            ),
+            outputs=build_outputs(has_audio=False),
         )
 
     @classmethod
+    @override
     async def generate(cls, *, prompt: str, duration_seconds: float, seed: int, anchor_interval: int) -> io.NodeOutput:
         """Open the webcam controls and record the SANA video edit."""
         camera = WebcamFrames()

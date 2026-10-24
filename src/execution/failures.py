@@ -1,8 +1,10 @@
 """Translate SDK failures into shown errors that include Reactor's own message."""
 
 import re
-from ..errors import ErrorCode, ConnectorError
+
 from reactor_sdk import AuthError, ReactorError
+
+from ..errors import ErrorCode, ConnectorError
 from ..config.diagnostics import REDACTIONS, MAX_MESSAGE_CHARACTERS
 from ..config.messages.session import (
     PHASE,
@@ -29,13 +31,13 @@ def error_code(error: object) -> str:
     if isinstance(error, ReactorError):
         return error.code
     for kind, code in (
-        (TypeError, "TYPE_ERROR"),
-        (ValueError, "VALUE_ERROR"),
-        (OSError, "IO_ERROR"),
+        (TypeError, 'TYPE_ERROR'),
+        (ValueError, 'VALUE_ERROR'),
+        (OSError, 'IO_ERROR'),
     ):
         if isinstance(error, kind):
             return code
-    return "CONNECTOR_ERROR"
+    return 'CONNECTOR_ERROR'
 
 
 def phase_error(error: object, phase: str) -> ConnectorError:
@@ -44,18 +46,18 @@ def phase_error(error: object, phase: str) -> ConnectorError:
         return error
     safe = safe_error(error)
     message = PHASE.format(message=str(safe), phase=phase, code=error_code(error))
-    detail = provider_text(error.message) if isinstance(error, ReactorError) else ""
+    detail = provider_text(error.message) if isinstance(error, ReactorError) else ''
     if detail:
-        message = f"{message} {PROVIDER_MESSAGE.format(message=detail)}"
+        message = f'{message} {PROVIDER_MESSAGE.format(message=detail)}'
     return ConnectorError(safe.code, message)
 
 
 PROVIDER_ERRORS = {
-    "UNAUTHORIZED": (ErrorCode.AUTHENTICATION, ACCESS_REFUSED),
-    "RATE_LIMITED": (ErrorCode.UNAVAILABLE, PROVIDER_RATE_LIMIT),
-    "REQUEST_TIMEOUT": (ErrorCode.TIMEOUT, PROVIDER_REQUEST_TIMEOUT),
-    "NOT_FOUND": (ErrorCode.UNAVAILABLE, MODEL_UNAVAILABLE),
-    "VERSION_MISMATCH": (ErrorCode.UNAVAILABLE, MODEL_UNAVAILABLE),
+    'UNAUTHORIZED': (ErrorCode.AUTHENTICATION, ACCESS_REFUSED),
+    'RATE_LIMITED': (ErrorCode.UNAVAILABLE, PROVIDER_RATE_LIMIT),
+    'REQUEST_TIMEOUT': (ErrorCode.TIMEOUT, PROVIDER_REQUEST_TIMEOUT),
+    'NOT_FOUND': (ErrorCode.UNAVAILABLE, MODEL_UNAVAILABLE),
+    'VERSION_MISMATCH': (ErrorCode.UNAVAILABLE, MODEL_UNAVAILABLE),
 }
 
 

@@ -1,4 +1,4 @@
-# X2: Edit Webcam Video (Reactor)
+# X2: Edit Webcam Video
 
 Edits your camera video live with Reactor's X2 model, and you drag on the output
 to steer the subject. It saves the result without sound. It needs a local,
@@ -15,8 +15,8 @@ it on in the live panel.
 | reference image          | Optional. One RGB image of a subject to insert or replace.   |
 
 The browser sends up to ten frames per second at up to 640 × 480 pixels, and the
-connector repeats the latest frame on the model's 24 fps input. No microphone
-sound is sent and no camera recording is kept. The session ends after three
+connector repeats the latest frame on the model's 24 fps input. The connector
+sends no microphone sound and keeps no camera recording. The session ends after three
 seconds without a new camera frame. The reference image stays fixed.
 
 ## Outputs
@@ -27,8 +27,8 @@ seconds without a new camera frame. The reference image stays fixed.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **x2-03-webcam** in **Browse Templates → reactor-inc** and describe the
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
+2. Open **x2-03-webcam** in **Browse Templates > reactor-inc** and describe the
    edit.
 3. Select **Run**, then **Enable Camera** in the live panel and allow access. To
    change cameras, choose one and select **Switch Camera**.

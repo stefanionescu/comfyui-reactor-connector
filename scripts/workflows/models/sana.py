@@ -1,39 +1,39 @@
 """Describe SANA workflow inputs and controls."""
 
-from ..example import Example
 from ..live import build_live_example
+from ..example import Example
 
 EXAMPLES = (
     Example(
-        "sana-streaming-01-edit-video",
-        "ReactorIncSanaEditVideo",
-        model="sana-streaming",
+        'sana-streaming-01-edit-video',
+        'ReactorIncSanaEditVideo',
+        model='sana-streaming',
         inputs={
-            "prompt": "Change the scene to a soft watercolor painting. Keep the movement and composition.",
-            "duration_seconds": 5.0,
-            "variation": 0,
-            "seed": 42,
-            "control_after_generate": "fixed",
-            "anchor_interval": 0,
-            "interactive": False,
+            'prompt': 'Change the scene to a soft watercolor painting. Keep the movement and composition.',
+            'duration_seconds': 5.0,
+            'variation': 0,
+            'seed': 42,
+            'control_after_generate': 'fixed',
+            'anchor_interval': 0,
+            'interactive': False,
         },
-        sources=("source",),
+        sources=('source',),
     ),
     Example(
-        "sana-streaming-03-webcam",
-        "ReactorIncSanaWebcam",
-        model="sana-streaming",
+        'sana-streaming-03-webcam',
+        'ReactorIncSanaWebcam',
+        model='sana-streaming',
         inputs={
-            "prompt": "Turn the scene into a watercolor painting.",
-            "duration_seconds": 20,
-            "variation": 0,
-            "seed": 42,
-            "control_after_generate": "fixed",
-            "anchor_interval": 0,
+            'prompt': 'Turn the scene into a watercolor painting.',
+            'duration_seconds': 20,
+            'variation': 0,
+            'seed': 42,
+            'control_after_generate': 'fixed',
+            'anchor_interval': 0,
         },
-        mode="webcam",
+        mode='webcam',
     ),
 )
 
 
-LIVE_EXAMPLES = (build_live_example(EXAMPLES[0], "sana-streaming-02-live-prompt"),)
+LIVE_EXAMPLES = (build_live_example(EXAMPLES[0], 'sana-streaming-02-live-prompt'),)

@@ -19,7 +19,7 @@ class LiveOptions:
         webcam: Optional browser frame source.
         is_passthrough_enabled: Whether to send prompts without preprocessing.
         audio_prompt: Opening sound prompt.
-        is_audio_enabled: Whether generated audio is enabled.
+        is_audio_enabled: Whether the model generates audio.
 
     """
 
@@ -27,5 +27,5 @@ class LiveOptions:
     prompt: str
     webcam: WebcamFrames | None = None
     is_passthrough_enabled: bool = False
-    audio_prompt: str = ""
+    audio_prompt: str = ''
     is_audio_enabled: bool = False

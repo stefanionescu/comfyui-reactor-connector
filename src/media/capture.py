@@ -5,16 +5,17 @@ from __future__ import annotations
 import sys
 import queue
 import struct
+from typing import TYPE_CHECKING, cast
 import asyncio
 import threading
+
 import numpy as np
-from .process import MediaProcess
+
 from ..paths import EXTENSION_ROOT
-from typing import cast, TYPE_CHECKING
 from ..errors import ErrorCode, ConnectorError
-from ..config.media.video import DEFAULT_FRAME_RATE
+from .process import MediaProcess
 from ..state.media import VideoFrame, CaptureResult
-from ..config.messages.session import CAPTURE_QUEUE_FULL
+from ..config.media.video import DEFAULT_FRAME_RATE
 from ..config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
 from ..config.media.capture import MAX_QUEUED_FRAMES, FRAME_HEADER_FORMAT
 from ..config.messages.media import (
@@ -25,13 +26,16 @@ from ..config.messages.media import (
     VIDEO_ARRIVAL_RATE,
     VIDEO_ENCODING_FAILED,
 )
+from ..config.messages.session import CAPTURE_QUEUE_FULL
 
 FRAME_HEADER = struct.Struct(FRAME_HEADER_FORMAT)
 
 if TYPE_CHECKING:
     from pathlib import Path
+
     from numpy.typing import NDArray
-    from ..state.documents import Json
+
+    from ..serialization import Json
 
 
 class VideoCapture:
@@ -43,7 +47,7 @@ class VideoCapture:
         duration_seconds: float,
         queue_bytes: int,
         output_bytes: int,
-        fallback_fps: int = DEFAULT_FRAME_RATE,
+        default_fps: int = DEFAULT_FRAME_RATE,
     ) -> None:
         """Create frame buffers, cross-thread signals, and an isolated encoder with capture limits."""
         self.path = path
@@ -65,19 +69,19 @@ class VideoCapture:
         self.encoder = MediaProcess(
             [
                 sys.executable,
-                "-I",
+                '-I',
                 str(EXTENSION_ROOT),
-                "capture",
+                'capture',
                 str(path),
                 str(self.duration_us),
                 str(queue_bytes),
                 str(output_bytes),
-                str(fallback_fps),
+                str(default_fps),
             ]
         )
 
     def receive(self, pixels: object, _frame_id: int, timestamp_us: int, _user_data: bytes) -> None:
-        """Copy one SDK frame; reject it if the frame queue or memory limit is reached."""
+        """Copy one SDK frame; reject it when the frame queue or memory limit is full."""
         if self.stopped.is_set() or self.source_finished.is_set():
             return
         try:
@@ -99,7 +103,7 @@ class VideoCapture:
                 return False
             if self.held_bytes + array.nbytes > self.queue_bytes:
                 raise ConnectorError(ErrorCode.CAPTURE, VIDEO_ARRIVAL_RATE)
-            owned = array.tobytes(order="C")
+            owned = array.tobytes(order='C')
             try:
                 height, width = array.shape[:2]
                 self.pending.put_nowait(VideoFrame(owned, width, height, timestamp_us))
@@ -112,8 +116,8 @@ class VideoCapture:
         """Require valid encoder metadata and preserve any earlier frame-delivery failure."""
         if self.failure:
             raise self.failure
-        frames, mode = result.get("frames"), result.get("timestamp_mode")
-        if type(frames) is not int or frames < 1 or mode not in ("sender", "fallback_fps"):
+        frames, mode = result.get('frames'), result.get('timestamp_mode')
+        if type(frames) is not int or frames < 1 or mode not in ('sender', 'fallback_fps'):
             raise ConnectorError(ErrorCode.CAPTURE, ENCODER_METADATA)
         return CaptureResult(self.path, frames, str(mode))
 
@@ -147,7 +151,7 @@ class VideoCapture:
             if failure is not None:
                 raise failure from None
             raise
-        except Exception:  # noqa: BLE001 -- reason: Translate native encoder failures without exposing paths or native error text.
+        except Exception:  # noqa: BLE001 # reason: Translate native encoder failures without exposing paths or native error text.
             raise ConnectorError(ErrorCode.CAPTURE, VIDEO_ENCODING_FAILED) from None
         else:
             success = True
@@ -192,10 +196,10 @@ class VideoCapture:
 
 
 def frame_pixels(pixels: object, timestamp_us: int) -> NDArray[np.uint8]:
-    """Require an RGB byte array and a nonnegative sender timestamp before copying a frame."""
+    """Require a red, green, and blue (RGB) byte array and a nonnegative sender timestamp before copying a frame."""
     if not isinstance(pixels, np.ndarray):
         raise ConnectorError(ErrorCode.CAPTURE, VIDEO_FRAME_TYPE)
-    array = cast("NDArray[np.uint8]", pixels)
+    array = cast('NDArray[np.uint8]', pixels)
     if array.dtype != np.uint8 or array.ndim != RGB_ARRAY_DIMENSIONS or array.shape[2] != RGB_CHANNELS:
         raise ConnectorError(ErrorCode.CAPTURE, VIDEO_FRAME_COLOR)
     if type(timestamp_us) is not int or not 0 <= timestamp_us < 2**63:

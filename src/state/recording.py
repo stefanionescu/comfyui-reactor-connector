@@ -50,6 +50,7 @@ class RecordingSettings:
         source: Local fragmented recording source.
         destination: Encoded video destination.
         wav: Separate audio destination.
+
         duration_seconds: Selected recording duration.
         max_output_bytes: Encoded output byte limit.
         max_memory_bytes: Decoded sample byte limit.

@@ -1,4 +1,4 @@
-# LongLive: Generate Video (Reactor)
+# LongLive: Generate Video
 
 Generates a video from an opening shot prompt with Reactor's LongLive model. You
 can schedule later shots and cuts, or change the prompt while it records.
@@ -27,9 +27,9 @@ later shot does not extend the recording. This model takes no starting image.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
 2. Open **longlive-v2-01-text-to-video**, **longlive-v2-02-storyboard**, or
-   **longlive-v2-03-live-prompt** in **Browse Templates → reactor-inc**.
+   **longlive-v2-03-live-prompt** in **Browse Templates > reactor-inc**.
 3. Describe the opening shot, choose the length, and select **Run**.
 4. Play the result in **Save Video**, which also saves the file.
 

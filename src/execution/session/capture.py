@@ -1,24 +1,28 @@
 """Run a model and encoder within the configured recording and session limits."""
 
 import sys
+from typing import cast
 import asyncio
 from pathlib import Path
-from ..failures import safe_error
+
+from reactor_sdk import Track
+
 from ..events import SessionEvents
-from ..cleanup import finish_session
-from ..operation import VideoOperation
-from .resources import SessionResources
-from ...state.media import CaptureResult
-from ...media.capture import VideoCapture
-from ...media.output import discard_outputs
-from ..interaction import SessionInteraction
+from ..inputs import VideoOperation
 from ...errors import ErrorCode, ConnectorError
+from ..cleanup import finish_session
+from ..failures import safe_error
+from .resources import SessionResources
+from ..transport import SessionTransport, FrameRegistration
+from ..interaction import SessionInteraction
+from ...state.media import CaptureResult
+from ...media.output import discard_outputs
+from ...media.capture import VideoCapture
+from ...state.session import SessionOutcome, RecordingWindow
 from ...state.settings import ExecutionConfiguration
+from ...config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
 from ...config.messages.media import VIDEO_TRACK_MISSING
 from ...media.recording.assemble import prepare_recording
-from ..transport import Track, Transport, SessionTransport
-from ...state.session import SessionOutcome, RecordingWindow
-from ...config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
 from ...config.generation.session import (
     CAPTURE_DRAIN_SECONDS,
     CONNECT_TIMEOUT_SECONDS,
@@ -26,12 +30,12 @@ from ...config.generation.session import (
 )
 
 
-def _video_track(transport: Transport) -> Track:
+def _video_track(transport: SessionTransport) -> Track:
     """Require exactly one receive-only main video track."""
     tracks = [
         track
-        for track in transport.tracks
-        if track.name == "main_video" and track.kind == "video" and track.direction == "recvonly"
+        for track in transport.get_client().tracks
+        if track.name == 'main_video' and track.kind == 'video' and track.direction == 'recvonly'
     ]
     if len(tracks) != 1:
         raise ConnectorError(ErrorCode.UNAVAILABLE, VIDEO_TRACK_MISSING)
@@ -40,23 +44,24 @@ def _video_track(transport: Transport) -> Track:
 
 async def _capture_generation(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
     """Connect, configure the model, and capture the requested video and recording."""
-    recording_window = RecordingWindow(0, session.operation.duration_seconds)
+    recording_window = RecordingWindow(0, session.operation.inputs.duration_seconds)
     await session.capture.ready.wait()
     if session.worker.done():
         return await session.worker, recording_window
     async with asyncio.timeout(CONNECT_TIMEOUT_SECONDS):
         session.outcome.is_connection_attempted = True
-        await session.events.call("connect", session.transport.connect())
-    session.events.check()
+        await session.events.call('connect', session.transport.connect())
+    if session.events.failure.done() and not session.events.failure.cancelled():
+        raise session.events.failure.result()
     track = _video_track(session.transport)
     session.track = track
-    track.on_frame(session.capture.receive)
+    cast('FrameRegistration', track.on_frame)(session.capture.receive)
     if session.interaction is not None:
         await session.interaction.connected(session.transport, track, session.events)
     recording_window = await session.operation.begin_generation(session.transport, session.events)
     if session.interaction is not None:
         session.interaction.configured()
-    session.events.phase = "capture"
+    session.events.phase = 'capture'
     async with asyncio.timeout(FIRST_FRAME_TIMEOUT_SECONDS):
         await session.capture.first_frame.wait()
     if session.operation.requires_audio:
@@ -67,9 +72,9 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
     result = await asyncio.shield(session.worker)
     if session.operation.requires_audio:
         await session.events.call(
-            "recording",
+            'recording',
             session.transport.save_recording(
-                session.capture.path.with_suffix(".recording.mp4"),
+                session.capture.path.with_suffix('.recording.mp4'),
                 maximum_bytes=MAX_CAPTURE_BYTES,
                 timeout_seconds=session.settings.max_session_seconds,
             ),
@@ -120,10 +125,10 @@ async def capture_video(
     settings = configuration.settings
     capture = VideoCapture(
         destination,
-        operation.duration_seconds,
+        operation.inputs.duration_seconds,
         MAX_QUEUE_BYTES,
         MAX_CAPTURE_BYTES,
-        fallback_fps=operation.fallback_fps,
+        default_fps=operation.default_fps,
     )
     try:
         transport = SessionTransport(operation.connection_name, configuration.credential, settings.max_session_seconds)
@@ -141,14 +146,14 @@ async def capture_video(
         result, recording_window = await _capture_session(session)
         if operation.requires_audio:
             result = await prepare_recording(
-                destination.with_suffix(".recording.mp4"),
+                destination.with_suffix('.recording.mp4'),
                 destination,
                 recording_window.duration_seconds,
                 start_seconds=recording_window.start_seconds,
             )
     except asyncio.CancelledError:
         raise
-    except Exception as error:  # noqa: BLE001 -- reason: Translate SDK and native media failures at the public execution boundary.
+    except Exception as error:  # noqa: BLE001 # reason: Translate SDK and native media failures at the public execution boundary.
         raise safe_error(error) from None
     else:
         return result
@@ -156,8 +161,8 @@ async def capture_video(
         error = sys.exception()
         discarded: list[Path] = []
         if operation.requires_audio:
-            discarded.append(destination.with_suffix(".recording.mp4"))
+            discarded.append(destination.with_suffix('.recording.mp4'))
         if error is not None:
-            discarded.extend((destination, destination.with_suffix(".wav")))
+            discarded.extend((destination, destination.with_suffix('.wav')))
         if discarded:
             await discard_outputs(*discarded, error=error)

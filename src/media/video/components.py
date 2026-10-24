@@ -4,19 +4,19 @@ import sys
 import math
 import struct
 import asyncio
-import numpy as np
 from pathlib import Path
-from ..output import owned_io
 from functools import partial
-from ..process import MediaProcess
-from ...paths import EXTENSION_ROOT
-from ...state.settings import Settings
+
+import numpy as np
 from comfy_api.latest import Input, InputImpl
-from ..units import convert_mebibytes_to_bytes
+
+from ...paths import EXTENSION_ROOT
+from ..output import owned_io
 from ...errors import ErrorCode, ConnectorError
+from ..process import MediaProcess
 from ...config.nodes import MAX_DURATION_SECONDS
-from ...config.media.images import RGB_CHANNELS, BATCH_IMAGE_DIMENSIONS
-from ...config.media.capture import MAX_QUEUE_BYTES, FRAME_HEADER_FORMAT
+from ...state.settings import Settings
+from ...config.settings import BYTES_PER_MEBIBYTE
 from ...config.media.video import (
     COMPONENT_BITS,
     MAX_FRAME_RATE,
@@ -24,6 +24,8 @@ from ...config.media.video import (
     MAX_FRAME_DIMENSION,
     MIN_FRAME_DIMENSION,
 )
+from ...config.media.images import RGB_CHANNELS, BATCH_IMAGE_DIMENSIONS
+from ...config.media.capture import MAX_QUEUE_BYTES, FRAME_HEADER_FORMAT
 from ...config.messages.media import (
     SOURCE_PIXELS,
     SOURCE_DIMENSIONS,
@@ -36,11 +38,11 @@ FRAME_HEADER = struct.Struct(FRAME_HEADER_FORMAT)
 
 
 def _pixels(frame: Input.Image) -> bytes:
-    """Convert finite normalized image values to clipped RGB bytes."""
+    """Convert finite normalized image values to clipped red, green, and blue (RGB) bytes."""
     array = frame.detach().cpu().numpy()
     if not np.isfinite(array).all():
         raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_PIXELS)
-    return np.rint(np.clip(array, 0, 1) * 255).astype(np.uint8).tobytes(order="C")
+    return np.rint(np.clip(array, 0, 1) * 255).astype(np.uint8).tobytes(order='C')
 
 
 async def prepare_components(video: InputImpl.VideoFromComponents, destination: Path, settings: Settings) -> None:
@@ -52,7 +54,7 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         or images.shape[3] != RGB_CHANNELS
         or not 1 <= rate <= MAX_FRAME_RATE
         or video.get_bit_depth() != COMPONENT_BITS
-        or video.get_color_space() != "sRGB"
+        or video.get_color_space() != 'sRGB'
     ):
         raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_FORMAT)
     total, height, width, _ = images.shape
@@ -82,16 +84,16 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
     worker = MediaProcess(
         [
             sys.executable,
-            "-I",
+            '-I',
             str(EXTENSION_ROOT),
-            "capture",
+            'capture',
             str(destination),
             str(round(MAX_DURATION_SECONDS * 1_000_000)),
             str(MAX_QUEUE_BYTES),
-            str(convert_mebibytes_to_bytes(settings.max_upload_megabytes)),
+            str(settings.max_upload_megabytes * BYTES_PER_MEBIBYTE),
             str(round(rate)),
         ]
     )
     result = await worker.run(asyncio.Event(), asyncio.Event(), feed)
-    if result.get("frames") != count:
+    if result.get('frames') != count:
         raise ConnectorError(ErrorCode.CAPTURE, SOURCE_FRAMES_LOST)

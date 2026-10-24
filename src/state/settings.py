@@ -1,8 +1,8 @@
 """Execution settings and private configuration snapshot records."""
 
-from .documents import Json
+from dataclasses import field, dataclass
+
 from .credentials import Credential
-from dataclasses import field, asdict, dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,10 +17,6 @@ class Settings:
 
     max_session_seconds: int
     max_upload_megabytes: int
-
-    def to_json(self) -> dict[str, Json]:
-        """Return only non-secret settings for the local configuration route."""
-        return asdict(self)
 
 
 @dataclass(frozen=True, slots=True)

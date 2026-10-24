@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import math
-import asyncio
 from uuid import UUID
-from typing import cast, TYPE_CHECKING
-from ...state.generation.fast import FastClip
+from typing import TYPE_CHECKING, cast
+import asyncio
+
 from ...errors import ErrorCode, ConnectorError
+from ...state.generation.fast import FastClip
 from ...config.generation.fast import FRAME_RATE, MAX_CLIP_FRAMES, MAX_QUEUED_CLIPS, MAX_MEDIA_SECONDS
 from ...config.messages.inputs import (
     CLIP_REPLY,
@@ -27,12 +28,12 @@ if TYPE_CHECKING:
 
 def read_clip(payload: dict[str, object]) -> FastClip:
     """Validate the clip identity, readiness, and agreement between duration and frame count."""
-    raw = payload.get("clip")
+    raw = payload.get('clip')
     if not isinstance(raw, dict):
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_MISSING)
-    clip = cast("dict[str, object]", raw)
-    identity, frames, ready = clip.get("clip_id"), clip.get("frames"), clip.get("ready")
-    duration = seconds(clip.get("seconds"))
+    clip = cast('dict[str, object]', raw)
+    identity, frames, ready = clip.get('clip_id'), clip.get('frames'), clip.get('ready')
+    duration = seconds(clip.get('seconds'))
     if not isinstance(identity, str):
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_IDENTIFIER)
     try:
@@ -43,13 +44,13 @@ def read_clip(payload: dict[str, object]) -> FastClip:
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_IDENTIFIER)
     if (
         type(frames) not in (int, float)
-        or not 1 <= cast("float", frames) <= MAX_CLIP_FRAMES
-        or int(cast("float", frames)) != frames
+        or not 1 <= cast('float', frames) <= MAX_CLIP_FRAMES
+        or int(cast('float', frames)) != frames
         or type(ready) is not bool
-        or not math.isclose(duration, cast("float", frames) / FRAME_RATE, abs_tol=0.001)
+        or not math.isclose(duration, cast('float', frames) / FRAME_RATE, abs_tol=0.001)
     ):
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_LENGTH)
-    count = int(cast("float", frames))
+    count = int(cast('float', frames))
     return FastClip(identity, count / FRAME_RATE, count, ready)
 
 
@@ -67,16 +68,16 @@ class FastClipEvents:
         self.finished = asyncio.Event()
         self.clip_id: str | None = None
         self.end_seconds: float | None = None
-        events.transport.on("message", self.observe)
-        events.handlers.append(("message", self.observe))
+        events.transport.on('message', self.observe)
+        events.handlers.append(('message', self.observe))
 
     def observe(self, message: object) -> None:
         """Record relevant clip updates and forward invalid replies to the session failure signal."""
         if not isinstance(message, dict):
             return
-        envelope = cast("dict[str, object]", message)
-        kind = envelope.get("type")
-        if kind not in ("clip_generated", "clip_finished", "clip_failed", "clip_stopped"):
+        envelope = cast('dict[str, object]', message)
+        kind = envelope.get('type')
+        if kind not in ('clip_generated', 'clip_finished', 'clip_failed', 'clip_stopped'):
             return
         try:
             self._record_clip(envelope, str(kind))
@@ -85,19 +86,19 @@ class FastClipEvents:
 
     def _record_clip(self, envelope: dict[str, object], kind: str) -> None:
         """Validate a clip update and advance generation or playback signals."""
-        if kind in ("clip_failed", "clip_stopped"):
+        if kind in ('clip_failed', 'clip_stopped'):
             raise ConnectorError(ErrorCode.CAPTURE, CLIP_UNFINISHED)
         clip = read_clip(message_payload(envelope, str(kind)))
         if len(self.clips) >= self.limit and clip.clip_id not in self.clips:
             raise ConnectorError(ErrorCode.UNAVAILABLE, CLIPS_UNEXPECTED)
         self.clips[clip.clip_id] = clip
-        if kind == "clip_generated":
+        if kind == 'clip_generated':
             self.generated.set()
         else:
-            self.finished_at[clip.clip_id] = seconds(message_payload(envelope, "clip_finished").get("seconds_sent"))
+            self.finished_at[clip.clip_id] = seconds(message_payload(envelope, 'clip_finished').get('seconds_sent'))
             self.playback_changed.set()
-        if kind == "clip_finished" and clip.clip_id == self.clip_id:
-            self.end_seconds = seconds(message_payload(envelope, "clip_finished").get("seconds_sent"))
+        if kind == 'clip_finished' and clip.clip_id == self.clip_id:
+            self.end_seconds = seconds(message_payload(envelope, 'clip_finished').get('seconds_sent'))
             self.finished.set()
 
     async def wait_ready(self, clip: FastClip) -> None:
@@ -130,15 +131,15 @@ class FastClipEvents:
 def message_payload(message: object, kind: str) -> dict[str, object]:
     """Require a matching message type and an object payload."""
     if isinstance(message, dict):
-        envelope = cast("dict[str, object]", message)
-        payload = envelope.get("data")
-        if envelope.get("type") == kind and isinstance(payload, dict):
-            return cast("dict[str, object]", payload)
+        envelope = cast('dict[str, object]', message)
+        payload = envelope.get('data')
+        if envelope.get('type') == kind and isinstance(payload, dict):
+            return cast('dict[str, object]', payload)
     raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_REPLY)
 
 
 def seconds(value: object) -> float:
     """Validate a provider media time before using it to select a recording interval."""
-    if type(value) not in (int, float) or not 0 <= cast("float", value) <= MAX_MEDIA_SECONDS:
+    if type(value) not in (int, float) or not 0 <= cast('float', value) <= MAX_MEDIA_SECONDS:
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_MEDIA_TIME)
-    return float(cast("float", value))
+    return float(cast('float', value))

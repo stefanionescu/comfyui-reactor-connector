@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class VideoFrame:
-    """An owned RGB frame and its sender timestamp.
+    """An owned red, green, and blue (RGB) frame and its sender timestamp.
 
     Attributes:
         pixels: Packed RGB pixel bytes.

@@ -1,85 +1,87 @@
 """Expose SANA file editing with native ComfyUI video input and output."""
 
+from typing import Unpack, TypedDict, NotRequired, override
 import asyncio
-import folder_paths
 from pathlib import Path
-from ..base import VideoNode
 from dataclasses import replace
+
+import folder_paths
+from comfy_api.latest import Input, io
+
+from ..base import VideoNode
 from ...runtime import get_runtime
-from comfy_api.latest import io, Input
+from ..controls import build_inputs, build_outputs
 from ...settings.store import read_settings
+from ...comfy.execution import generate_video, wait_for_execution
 from ...media.video.input import prepared_video
 from ...state.generation.sana import SanaRequest
-from ...execution.sana.operation import SanaOperation
-from ...comfy.execution import generate_video, wait_for_execution
-from ..controls import live_control, video_outputs, generation_controls
 from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL, DEFAULT_ANCHOR_INTERVAL
+from ...execution.sana.operation import SanaOperation
+
+
+class SanaEditInputs(TypedDict):
+    """The saved inputs that ComfyUI passes to the SANA edit node, apart from the run number."""
+
+    source: Input.Video
+    prompt: str
+    duration_seconds: float
+    seed: int
+    anchor_interval: int
+    interactive: NotRequired[bool]
 
 
 class SanaEditVideo(VideoNode):
     """Apply a written edit to a video clip."""
 
     @classmethod
+    @override
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
-            node_id="ReactorIncSanaEditVideo",
-            display_name="SANA: Edit Video (Reactor)",
-            description="Edit a video from your computer using a text prompt. Choose the output length.",
-            category="Reactor/Edit",
-            search_aliases=["Reactor", "SANA", "video to video", "edit"],
-            inputs=[
-                io.Video.Input(
-                    "source",
-                    display_name="source video",
-                    tooltip="Connect one local SDR clip with at least 33 frames.",
-                ),
-                *generation_controls("edit"),
-                io.Int.Input(
-                    "anchor_interval",
-                    display_name="source refresh interval (chunks)",
-                    tooltip="Return to the source image after this many model chunks. Use 0 to turn this off.",
-                    default=DEFAULT_ANCHOR_INTERVAL,
-                    min=MIN_ANCHOR_INTERVAL,
-                    max=MAX_ANCHOR_INTERVAL,
-                ),
-                live_control(),
-            ],
-            outputs=video_outputs(),
+            node_id='ReactorIncSanaEditVideo',
+            display_name='SANA: Edit Video (Reactor)',
+            description='Edit a video from your computer using a text prompt. Choose the output length.',
+            category='Reactor/Edit',
+            search_aliases=['Reactor', 'SANA', 'video to video', 'edit'],
+            inputs=build_inputs(
+                'edit',
+                leading=[
+                    io.Video.Input(
+                        'source',
+                        display_name='source video',
+                        tooltip='Connect one local SDR clip with at least 33 frames.',
+                    ),
+                ],
+                trailing=[
+                    io.Int.Input(
+                        'anchor_interval',
+                        display_name='source refresh interval (chunks)',
+                        tooltip='Return to the source image after this many model chunks. Use 0 to turn this off.',
+                        default=DEFAULT_ANCHOR_INTERVAL,
+                        min=MIN_ANCHOR_INTERVAL,
+                        max=MAX_ANCHOR_INTERVAL,
+                    ),
+                ],
+                is_live=True,
+            ),
+            outputs=build_outputs(has_audio=False),
         )
 
     @classmethod
-    async def generate(
-        cls,
-        *,
-        source: Input.Video,
-        prompt: str,
-        duration_seconds: float,
-        seed: int,
-        anchor_interval: int,
-        interactive: bool = False,
-    ) -> io.NodeOutput:
+    @override
+    async def generate(cls, **inputs: Unpack[SanaEditInputs]) -> io.NodeOutput:
         """Edit the source video with SANA and return the recorded result."""
-        task = asyncio.create_task(
-            _edit(
-                SanaRequest(prompt, duration_seconds, seed, anchor_interval=anchor_interval),
-                source,
-                interactive=interactive,
-            )
+        request = SanaRequest(
+            inputs['prompt'], inputs['duration_seconds'], inputs['seed'], anchor_interval=inputs['anchor_interval']
         )
-        return await wait_for_execution(task)
 
+        async def edit() -> io.NodeOutput:
+            """Prepare the source frames within the input limits, and close them after the edit."""
+            settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
+            async with prepared_video(inputs['source'], settings, Path(folder_paths.get_temp_directory())) as video:
+                return await generate_video(
+                    SanaOperation(replace(request, video=video)),
+                    interactive=inputs.get('interactive', False),
+                )
 
-async def _edit(
-    request: SanaRequest,
-    source: Input.Video,
-    *,
-    interactive: bool,
-) -> io.NodeOutput:
-    """Prepare source frames within the input limits and close them after the edit."""
-    settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
-    async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
-        return await generate_video(
-            SanaOperation(replace(request, video=video)),
-            interactive=interactive,
-        )
+        return await wait_for_execution(asyncio.create_task(edit()))

@@ -2,33 +2,36 @@
 
 import asyncio
 from pathlib import Path
-from ..output import owned_io
-from .frames import PreparedFrames
+from dataclasses import field, dataclass
 from collections.abc import Callable
-from ...execution.transport import Track
+
+from reactor_sdk import Track
+
+from .frames import PreparedFrames
+from ..output import owned_io
 
 
+@dataclass(slots=True)
 class VideoPublication:
-    """Repeat the final input frame until recording finishes or is cancelled."""
+    """Repeat the final input frame until the recording finishes or its task ends.
 
-    def __init__(self) -> None:
-        """Prepare ownership of the source publication task and its start signal."""
-        self.task: asyncio.Task[None] | None = None
-        self.started: asyncio.Event | None = None
+    Attributes:
+        task: The source publication task, once it starts.
+        started: Set when timed playback may begin, after the model accepts its initial configuration.
+
+    """
+
+    task: asyncio.Task[None] | None = None
+    started: asyncio.Event = field(default_factory=asyncio.Event)
 
     async def begin(self, path: Path, track: Track, fail: Callable[[object], None]) -> None:
-        """Start the publisher and wait until the first frame is sent or setup fails."""
+        """Start the publisher and wait until it sends the first frame or setup fails."""
         ready = asyncio.Event()
         self.started = asyncio.Event()
         self.task = asyncio.create_task(self._run(path, track, fail, ready, self.started))
         await ready.wait()
         if self.task.done():
             await self.task
-
-    def resume(self) -> None:
-        """Allow timed playback after the model has accepted its initial configuration."""
-        if self.started is not None:
-            self.started.set()
 
     async def _run(
         self,
@@ -70,7 +73,7 @@ class VideoPublication:
         """Cancel and await source publication before releasing its start signal."""
         task = self.task
         self.task = None
-        self.started = None
+        self.started = asyncio.Event()
         if task is not None:
             if not task.done():
                 task.cancel()

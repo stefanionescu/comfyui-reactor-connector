@@ -1,12 +1,14 @@
 """Validate LongLive storyboards before allocating a remote session."""
 
 import json
-from ...state.generation.longlive import Shot
+from dataclasses import asdict
+
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
-from ...config.generation.session import MAX_PROMPT_CHARACTERS
-from ...config.generation.prompts import OPTIONS_TRANSITION, MAX_SHOTS, MAX_SHOT_CHUNK, MAX_STORYBOARD_BYTES
 from ...config.messages.inputs import SHOT_CHUNK, SHOT_PROMPT, SHOT_TRANSITION, STORYBOARD_SIZE, STORYBOARD_ORDER
+from ...config.generation.prompts import MAX_SHOTS, MAX_SHOT_CHUNK, OPTIONS_TRANSITION, MAX_STORYBOARD_BYTES
+from ...config.generation.session import MAX_PROMPT_CHARACTERS
+from ...state.generation.longlive import Shot
 
 
 def validate_shot(shot: Shot) -> None:
@@ -30,12 +32,12 @@ def parse_storyboard(value: str) -> tuple[Shot, ...]:
     shots: list[Shot] = []
     for item in payload:
         fields = mapping_value(item)
-        if set(fields) != {"at_session_chunk", "transition", "prompt"}:
+        if set(fields) != {'at_session_chunk', 'transition', 'prompt'}:
             raise invalid
         chunk, transition, prompt = (
-            fields["at_session_chunk"],
-            fields["transition"],
-            fields["prompt"],
+            fields['at_session_chunk'],
+            fields['transition'],
+            fields['prompt'],
         )
         if type(chunk) is not int or type(transition) is not str or type(prompt) is not str:
             raise invalid
@@ -50,6 +52,6 @@ def parse_storyboard(value: str) -> tuple[Shot, ...]:
 def append_shot(previous: str, shot: Shot) -> str:
     """Append a shot and validate the complete serialized storyboard."""
     validate_shot(shot)
-    encoded = json.dumps([item.to_dict() for item in (*parse_storyboard(previous), shot)])
+    encoded = json.dumps([asdict(item) for item in (*parse_storyboard(previous), shot)])
     parse_storyboard(encoded)
     return encoded

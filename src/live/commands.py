@@ -2,11 +2,12 @@
 
 import time
 import asyncio
-from ..execution.events import SessionEvents
+
 from ..errors import ErrorCode, ConnectorError
 from ..state.live import BrowserInput, CameraChange
-from ..config.messages.live import CAMERA_INPUT_STALE, CAMERA_COMMAND_LIMIT, CAMERA_COMMAND_TIMEOUT
 from ..config.live import MAX_QUEUED_MOVEMENTS, COMMAND_TIMEOUT_SECONDS, MAX_QUEUED_MOVEMENT_SECONDS
+from ..execution.events import SessionEvents
+from ..config.messages.live import CAMERA_INPUT_STALE, CAMERA_COMMAND_LIMIT, CAMERA_COMMAND_TIMEOUT
 
 
 class CameraCommands:
@@ -16,7 +17,7 @@ class CameraCommands:
         """Start a separate ordered command worker for each camera axis."""
         self.events = events
         self.queues = {axis: asyncio.Queue[CameraChange](maxsize=MAX_QUEUED_MOVEMENTS) for axis in axes}
-        self.desired = dict.fromkeys(axes, "idle")
+        self.desired = dict.fromkeys(axes, 'idle')
         self.workers = [asyncio.create_task(self._axis(axis)) for axis in axes]
 
     def submit(self, state: BrowserInput) -> None:
@@ -35,7 +36,7 @@ class CameraCommands:
 
     async def _axis(self, axis: str) -> None:
         """Send one axis in order and report stale input or unacknowledged commands."""
-        current = "idle"
+        current = 'idle'
         try:
             while True:
                 change = await self.queues[axis].get()
@@ -52,10 +53,10 @@ class CameraCommands:
 
     async def _apply(self, axis: str, change: CameraChange) -> None:
         """Send fresh camera input and wait for Reactor to acknowledge it."""
-        if change.value != "idle" and time.monotonic() - change.queued_at > MAX_QUEUED_MOVEMENT_SECONDS:
+        if change.value != 'idle' and time.monotonic() - change.queued_at > MAX_QUEUED_MOVEMENT_SECONDS:
             raise ConnectorError(ErrorCode.TIMEOUT, CAMERA_INPUT_STALE)
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
-            await self.events.command_reply(f"set_{axis}", {axis: change.value})
+            await self.events.command_reply(f'set_{axis}', {axis: change.value})
 
     async def stop(self) -> None:
         """Cancel and await all axis workers, then discard queued movement."""

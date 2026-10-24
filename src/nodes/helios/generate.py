@@ -1,68 +1,78 @@
 """Generate a Helios video from a prompt, an optional starting image, and optional scheduled prompts."""
 
+from typing import Unpack, TypedDict, NotRequired, override
 import asyncio
+
+from comfy_api.latest import Input, io
+
 from ..base import VideoNode
-from ...media.images import encode_png
-from comfy_api.latest import io, Input
-from ...comfy.execution import generate_video
 from ...errors import ErrorCode, ConnectorError
+from ..controls import build_inputs, build_outputs
+from ...media.images import encode_png
+from ...comfy.execution import generate_video
+from ...config.messages.inputs import LIVE_CONTROLS_SEQUENCE
 from ...state.generation.helios import HeliosRequest
 from ...execution.helios.prompts import parse_sequence
 from ...execution.helios.operation import HeliosOperation
-from ...config.messages.inputs import LIVE_CONTROLS_SEQUENCE
-from ..controls import live_control, video_outputs, generation_controls
+
+
+class HeliosInputs(TypedDict):
+    """The saved inputs that ComfyUI passes to the Helios node, apart from the run number."""
+
+    prompt: str
+    duration_seconds: float
+    seed: int
+    sequence: str
+    image: NotRequired[Input.Image | None]
+    interactive: NotRequired[bool]
 
 
 class HeliosGenerate(VideoNode):
-    """Generate a video from a prompt, with an optional starting image and prompt sequence."""
+    """Generate a video from a prompt, an optional starting image, and an optional prompt sequence."""
 
     @classmethod
+    @override
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
-            node_id="ReactorIncHeliosGenerate",
-            display_name="Helios: Generate Video (Reactor)",
-            category="Reactor/Generate",
-            description="Generate a video from a scene prompt, with an optional starting image and prompt sequence.",
-            search_aliases=["Reactor", "Helios", "text to video", "image to video", "prompt sequence"],
-            inputs=[
-                *generation_controls(),
-                io.String.Input(
-                    "sequence",
-                    display_name="prompt sequence (JSON)",
-                    tooltip="Optionally connect Reactor Helios: Add a Prompt. [] keeps the opening prompt.",
-                    default="[]",
-                    multiline=False,
-                    advanced=True,
-                ),
-                io.Image.Input(
-                    "image",
-                    display_name="starting image",
-                    tooltip="Optionally connect one starting RGB image.",
-                    optional=True,
-                ),
-                live_control(),
-            ],
-            outputs=video_outputs(),
+            node_id='ReactorIncHeliosGenerate',
+            display_name='Helios: Generate Video (Reactor)',
+            category='Reactor/Generate',
+            description='Generate a video from a scene prompt, with an optional starting image and prompt sequence.',
+            search_aliases=['Reactor', 'Helios', 'text to video', 'image to video', 'prompt sequence'],
+            inputs=build_inputs(
+                trailing=[
+                    io.String.Input(
+                        'sequence',
+                        display_name='prompt sequence (JSON)',
+                        tooltip='Optionally connect Reactor Helios: Add a Prompt. [] keeps the opening prompt.',
+                        default='[]',
+                        multiline=False,
+                        advanced=True,
+                    ),
+                    io.Image.Input(
+                        'image',
+                        display_name='starting image',
+                        tooltip='Optionally connect one starting RGB image.',
+                        optional=True,
+                    ),
+                ],
+                is_live=True,
+            ),
+            outputs=build_outputs(has_audio=False),
         )
 
     @classmethod
-    async def generate(
-        cls,
-        *,
-        prompt: str,
-        duration_seconds: float,
-        seed: int,
-        sequence: str,
-        image: Input.Image | None = None,
-        interactive: bool = False,
-    ) -> io.NodeOutput:
+    @override
+    async def generate(cls, **inputs: Unpack[HeliosInputs]) -> io.NodeOutput:
         """Generate a Helios video from the opening prompt, scheduled prompts, or live changes."""
-        prompts = parse_sequence(sequence)
+        prompts = parse_sequence(inputs['sequence'])
+        interactive = inputs.get('interactive', False)
         if prompts and interactive:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_CONTROLS_SEQUENCE)
+        image = inputs.get('image')
         encoded = await asyncio.to_thread(encode_png, image) if image is not None else None
-        return await generate_video(
-            HeliosOperation(HeliosRequest(prompt, duration_seconds, seed, image=encoded, prompts=prompts)),
-            interactive=interactive,
+        request = HeliosRequest(
+            inputs['prompt'], inputs['duration_seconds'], inputs['seed'], image=encoded, prompts=prompts
         )
+        return await generate_video(HeliosOperation(request), interactive=interactive)

@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import wave
-import torch
+from typing import TYPE_CHECKING, TypedDict, cast
+
 import numpy as np
+import torch
+
 from ..errors import ErrorCode, ConnectorError
-from typing import cast, TypedDict, TYPE_CHECKING
+from ..config.media.audio import SAMPLE_RATE, MAX_CHANNELS, MIN_CHANNELS, PCM_SAMPLE_BYTES
 from ..config.messages.media import AUDIO_LIMIT, AUDIO_INCOMPLETE
-from ..config.media.audio import MAX_CHANNELS, MIN_CHANNELS, SAMPLE_RATE, PCM_SAMPLE_BYTES
 
 if TYPE_CHECKING:
     from pathlib import Path
+    from collections.abc import Callable
+
     from torch import Tensor
     from numpy.typing import NDArray
-    from collections.abc import Callable
 
     type AudioConversion = Callable[[NDArray[np.float32]], Tensor]
 
@@ -27,8 +30,8 @@ class NativeAudio(TypedDict):
 
 
 def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
-    """Load a size-limited PCM recording as normalized ComfyUI audio."""
-    with wave.open(str(path), "rb") as reader:
+    """Load a size-limited pulse-code modulation (PCM) recording as normalized ComfyUI audio."""
+    with wave.open(str(path), 'rb') as reader:
         count, channels = reader.getnframes(), reader.getnchannels()
         # Leave room for decoded samples and conversion buffers within the sample budget.
         if (
@@ -42,7 +45,7 @@ def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
         content = reader.readframes(count)
         if len(content) != count * channels * PCM_SAMPLE_BYTES:
             raise ConnectorError(ErrorCode.CAPTURE, AUDIO_INCOMPLETE)
-    values = np.frombuffer(content, dtype="<i2").reshape(count, channels).T.astype(np.float32)
+    values = np.frombuffer(content, dtype='<i2').reshape(count, channels).T.astype(np.float32)
     values /= 32768
-    from_numpy = cast("AudioConversion", torch.from_numpy)
-    return {"waveform": from_numpy(values).unsqueeze(0), "sample_rate": SAMPLE_RATE}
+    from_numpy = cast('AudioConversion', torch.from_numpy)
+    return {'waveform': from_numpy(values).unsqueeze(0), 'sample_rate': SAMPLE_RATE}

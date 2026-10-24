@@ -1,7 +1,7 @@
-# Visko: Generate Video (Reactor)
+# Visko: Generate Video
 
-Generates a scene with sound from Reactor's Visko Orbis model, from text or a
-starting image. You can change the scene and the sound while it records.
+Generates a scene with sound from Reactor's Visko Orbis model. It starts from
+text or from a starting image. You can change the scene and the sound while it records.
 
 ## Inputs
 
@@ -33,9 +33,9 @@ are in the [Visko Orbis schema](https://docs.reactor.inc/model-api-reference/vis
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
 2. Open **visko-01-text-to-video**, **visko-02-image-to-video**, or
-   **visko-03-live-prompt** in **Browse Templates → reactor-inc**.
+   **visko-03-live-prompt** in **Browse Templates > reactor-inc**.
 3. Describe the scene and its sound, then select **Run**.
 4. Play the result in **Save Video**; **Save Audio** keeps the sound alone.
 

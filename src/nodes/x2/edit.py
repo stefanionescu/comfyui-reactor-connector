@@ -1,25 +1,18 @@
 """Expose X2 editing through native video and optional image sockets."""
 
+from typing import Unpack, TypedDict, NotRequired, override
 import asyncio
-import folder_paths
 from pathlib import Path
-from ..base import VideoNode
+from functools import partial
 from dataclasses import replace
+
+import folder_paths
+from comfy_api.latest import Input, io
+
+from ..base import VideoNode
 from ...runtime import get_runtime
-from ...media.output import owned_io
-from ...media.images import encode_png
-from comfy_api.latest import io, Input
-from ...settings.store import read_settings
-from ...state.generation.x2 import X2Request
-from ...media.video.input import prepared_video
-from ...execution.x2.operation import X2Operation
-from ..controls import live_control, video_outputs
-from ...config.generation.prompts import DEFAULT_PROMPTS
-from ...comfy.execution import generate_video, wait_for_execution
+from ..controls import build_inputs, build_outputs
 from ...config.nodes import (
-    MAX_VARIATION,
-    MIN_VARIATION,
-    DEFAULT_VARIATION,
     MAX_DURATION_SECONDS,
     MAX_POINTER_POSITION,
     MIN_DURATION_SECONDS,
@@ -29,144 +22,130 @@ from ...config.nodes import (
     DEFAULT_DURATION_SECONDS,
     DEFAULT_POINTER_POSITION,
 )
+from ...media.images import encode_png
+from ...media.output import owned_io
+from ...settings.store import read_settings
+from ...comfy.execution import generate_video, wait_for_execution
+from ...media.video.input import prepared_video
+from ...state.generation.x2 import X2Request
+from ...execution.x2.operation import X2Operation
+
+
+class X2EditInputs(TypedDict):
+    """The saved inputs that ComfyUI passes to the X2 edit node, apart from the run number."""
+
+    source: Input.Video
+    prompt: str
+    duration_seconds: float
+    keep_backlog: bool
+    pointer_active: bool
+    pointer_x: float
+    pointer_y: float
+    reference_image: NotRequired[Input.Image | None]
+    interactive: NotRequired[bool]
 
 
 class X2EditVideo(VideoNode):
     """Edit a local video using a prompt, an optional subject image, and a pointer position."""
 
     @classmethod
+    @override
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
         return io.Schema(
-            node_id="ReactorIncX2EditVideo",
-            display_name="X2: Edit Video (Reactor)",
-            description="Edit a local video with a prompt, an optional reference image, and pointer controls.",
-            category="Reactor/Edit",
-            search_aliases=["Reactor", "X2", "video to video", "reference"],
-            inputs=[
-                io.Video.Input(
-                    "source",
-                    display_name="source video",
-                    tooltip="Connect one local SDR clip of at least 33 frames.",
-                ),
-                io.String.Input(
-                    "prompt",
-                    display_name="edit prompt",
-                    placeholder="edit prompt",
-                    tooltip="Describe the edit in 1 to 1,000 characters.",
-                    multiline=True,
-                    default=DEFAULT_PROMPTS["edit"],
-                ),
-                io.Float.Input(
-                    "duration_seconds",
-                    display_name="video duration (seconds)",
+            node_id='ReactorIncX2EditVideo',
+            display_name='X2: Edit Video (Reactor)',
+            description='Edit a local video with a prompt, an optional reference image, and pointer controls.',
+            category='Reactor/Edit',
+            search_aliases=['Reactor', 'X2', 'video to video', 'reference'],
+            inputs=build_inputs(
+                'edit',
+                leading=[
+                    io.Video.Input(
+                        'source',
+                        display_name='source video',
+                        tooltip='Connect one local SDR clip of at least 33 frames.',
+                    ),
+                ],
+                duration=io.Float.Input(
+                    'duration_seconds',
+                    display_name='video duration (seconds)',
                     default=DEFAULT_DURATION_SECONDS,
                     min=MIN_DURATION_SECONDS,
                     max=MAX_DURATION_SECONDS,
                     step=STEP_DURATION_SECONDS,
                 ),
-                io.Int.Input(
-                    "variation",
-                    display_name="run number",
-                    tooltip="Change this number to run again with unchanged inputs.",
-                    default=DEFAULT_VARIATION,
-                    min=MIN_VARIATION,
-                    max=MAX_VARIATION,
-                ),
-                io.Boolean.Input(
-                    "keep_backlog",
-                    display_name="keep queued frames",
-                    default=False,
-                    tooltip="Keep source frames in order. This can increase output delay.",
-                ),
-                *pointer_controls(),
-                io.Image.Input(
-                    "reference_image",
-                    display_name="reference image",
-                    optional=True,
-                    tooltip="Optional single RGB image of the subject to insert or replace.",
-                ),
-                live_control(),
-            ],
-            outputs=video_outputs(),
+                trailing=[
+                    io.Boolean.Input(
+                        'keep_backlog',
+                        display_name='keep queued frames',
+                        default=False,
+                        tooltip='Keep source frames in order. This can increase output delay.',
+                    ),
+                    *_pointer_inputs(),
+                    io.Image.Input(
+                        'reference_image',
+                        display_name='reference image',
+                        optional=True,
+                        tooltip='Optional single RGB image of the subject to insert or replace.',
+                    ),
+                ],
+                prompt_tooltip='Describe the edit in 1 to 1,000 characters.',
+                has_seed=False,
+                is_live=True,
+            ),
+            outputs=build_outputs(has_audio=False),
         )
 
     @classmethod
-    async def generate(  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
-        cls,
-        *,
-        source: Input.Video,
-        prompt: str,
-        duration_seconds: float,
-        keep_backlog: bool,
-        pointer_active: bool,
-        pointer_x: float,
-        pointer_y: float,
-        reference_image: Input.Image | None = None,
-        interactive: bool = False,
-    ) -> io.NodeOutput:
+    @override
+    async def generate(cls, **inputs: Unpack[X2EditInputs]) -> io.NodeOutput:
         """Edit the source video with X2 and optional reference-image or live controls."""
-        task = asyncio.create_task(
-            _edit(
-                X2Request(
-                    prompt,
-                    duration_seconds,
-                    0,
-                    keep_backlog=keep_backlog,
-                    pointer_active=pointer_active,
-                    pointer_x=pointer_x,
-                    pointer_y=pointer_y,
-                ),
-                source,
-                reference_image,
-                interactive=interactive,
-            ),
+        reference_image = inputs.get('reference_image')
+        request = X2Request(
+            inputs['prompt'],
+            inputs['duration_seconds'],
+            0,
+            keep_backlog=inputs['keep_backlog'],
+            pointer_active=inputs['pointer_active'],
+            pointer_x=inputs['pointer_x'],
+            pointer_y=inputs['pointer_y'],
         )
-        return await wait_for_execution(task)
+
+        async def edit() -> io.NodeOutput:
+            """Encode the reference image, then prepare the source frames within the input limits and close them."""
+            settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
+            image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))
+            async with prepared_video(inputs['source'], settings, Path(folder_paths.get_temp_directory())) as video:
+                return await generate_video(
+                    X2Operation(replace(request, image=image, video=video)),
+                    interactive=inputs.get('interactive', False),
+                )
+
+        return await wait_for_execution(asyncio.create_task(edit()))
 
 
-def pointer_controls() -> list[io.Input]:
-    """Choose whether to hold the pointer and where to place it."""
-    return [
-        io.Boolean.Input(
-            "pointer_active",
-            display_name="hold pointer",
-            default=False,
-            tooltip="Hold the pointer at the chosen position while recording.",
-        ),
+def _pointer_inputs() -> list[io.Input]:
+    """Choose whether to hold the pointer, and where to place it on each axis."""
+    hold = io.Boolean.Input(
+        'pointer_active',
+        display_name='hold pointer',
+        default=False,
+        tooltip='Hold the pointer at the chosen position while recording.',
+    )
+    positions = [
         io.Float.Input(
-            "pointer_x",
-            display_name="pointer x (0-1)",
-            tooltip="0 is the left edge; 1 is the right edge.",
+            f'pointer_{axis}',
+            display_name=f'pointer {axis} (0-1)',
+            tooltip=tooltip,
             default=DEFAULT_POINTER_POSITION,
             min=MIN_POINTER_POSITION,
             max=MAX_POINTER_POSITION,
             step=STEP_POINTER_POSITION,
-        ),
-        io.Float.Input(
-            "pointer_y",
-            display_name="pointer y (0-1)",
-            tooltip="0 is the top edge; 1 is the bottom edge.",
-            default=DEFAULT_POINTER_POSITION,
-            min=MIN_POINTER_POSITION,
-            max=MAX_POINTER_POSITION,
-            step=STEP_POINTER_POSITION,
-        ),
+        )
+        for axis, tooltip in (
+            ('x', '0 is the left edge; 1 is the right edge.'),
+            ('y', '0 is the top edge; 1 is the bottom edge.'),
+        )
     ]
-
-
-async def _edit(
-    request: X2Request,
-    source: Input.Video,
-    reference_image: Input.Image | None,
-    *,
-    interactive: bool,
-) -> io.NodeOutput:
-    """Prepare source frames within the input limits and close them after the edit."""
-    settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
-    image = None if reference_image is None else await owned_io(lambda: encode_png(reference_image))
-    async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
-        return await generate_video(
-            X2Operation(replace(request, image=image, video=video)),
-            interactive=interactive,
-        )
+    return [hold, *positions]

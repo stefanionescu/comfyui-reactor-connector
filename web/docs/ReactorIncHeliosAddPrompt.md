@@ -1,4 +1,4 @@
-# Helios: Add a Prompt (Reactor)
+# Helios: Add a Prompt
 
 Adds a later prompt to a Helios prompt sequence. It runs locally and opens no
 Reactor session.
@@ -27,11 +27,10 @@ fields, duplicate keys, empty prompts, and chunk numbers that repeat or go down.
 
 1. Keep `[]` in **previous prompts (JSON)** for the first later prompt, then set
    **start chunk** and **scene prompt**.
-2. Connect **prompt sequence** to the next **Add a Prompt** node's **previous
-   prompts (JSON)**.
+2. Connect **prompt sequence** to **previous prompts (JSON)** on the next
+   **Add a Prompt** node.
 3. Connect the last **prompt sequence** to **prompt sequence (JSON)** on
-   **Helios: Generate Video (Reactor)**, where you set the opening prompt and
-   length.
+   **Helios: Generate Video**, where you set the opening prompt and length.
 
 **helios-03-prompt-sequence** adds sunlight at chunk 1 and a clearing at chunk 3
 in an eight-second recording. A prompt that starts after the recording ends does

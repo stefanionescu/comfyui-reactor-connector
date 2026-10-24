@@ -7,6 +7,7 @@ import type { Invitation } from '#web/live/schema.ts';
 
 /**
  * Send one ordered live action through the local ComfyUI server.
+ *
  * @param fetcher - ComfyUI's local API client.
  * @param owner - The session lease and private control capability.
  * @param sequence - The increasing action sequence for this panel.
@@ -16,34 +17,34 @@ import type { Invitation } from '#web/live/schema.ts';
  * @returns When the server accepts the action; failures throw an error.
  */
 export async function sendAction(
-  fetcher: Fetcher,
-  owner: Pick<Invitation, 'lease' | 'capability'>,
-  sequence: number,
-  name: string,
-  fields: Record<string, unknown>,
-  signal: AbortSignal,
+    fetcher: Fetcher,
+    owner: Pick<Invitation, 'lease' | 'capability'>,
+    sequence: number,
+    name: string,
+    fields: Record<string, unknown>,
+    signal: AbortSignal,
 ): Promise<void> {
-  const response = await fetcher(browserRoutes.live.action, {
-    method: 'POST',
-    cache: 'no-store',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)]),
-    headers: { 'Content-Type': 'application/json', 'X-Reactor-Comfy': '1' },
-    body: JSON.stringify({
-      lease: owner.lease,
-      capability: owner.capability,
-      sequence,
-      action: name,
-      fields,
-    }),
-  });
-  signal.throwIfAborted();
-  if (!response.ok) {
-    let document: unknown;
-    try {
-      document = await response.json();
-    } catch {
-      throw new Error(message('live.actionRejected'));
+    const response = await fetcher(browserRoutes.live.action, {
+        method: 'POST',
+        cache: 'no-store',
+        signal: AbortSignal.any([signal, AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)]),
+        headers: { 'Content-Type': 'application/json', 'X-Reactor-Comfy': '1' },
+        body: JSON.stringify({
+            lease: owner.lease,
+            capability: owner.capability,
+            sequence,
+            action: name,
+            fields,
+        }),
+    });
+    signal.throwIfAborted();
+    if (!response.ok) {
+        let document: unknown;
+        try {
+            document = await response.json();
+        } catch {
+            throw new Error(message('live.actionRejected'));
+        }
+        throw new Error(parsePublicError(document) ?? message('live.actionRejected'));
     }
-    throw new Error(parsePublicError(document) ?? message('live.actionRejected'));
-  }
 }

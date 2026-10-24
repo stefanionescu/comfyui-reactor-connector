@@ -1,20 +1,20 @@
 """Messages for private settings, keys, and state storage."""
 
 KEY_EMPTY = (
-    "Copy the complete API key from your Reactor account without surrounding spaces. Keys must contain 1 to {maximum} "
-    "characters; do not shorten a key to fit."
+    'Copy the complete API key from your Reactor account without surrounding spaces. Keys must contain 1 to {maximum} '
+    'characters; do not shorten a key to fit.'
 )
-KEY_REQUIRED = "Set your Reactor API key in Reactor settings or the server environment before running."
-KEY_UNREADABLE = "Cannot read the saved Reactor key. Check its private file."
-KEY_WHITESPACE = "The API key cannot contain whitespace."
+KEY_REQUIRED = 'Set your Reactor API key in Reactor settings or the server environment before running.'
+KEY_UNREADABLE = 'Cannot read the saved Reactor key. Check its private file.'
+KEY_WHITESPACE = 'The API key cannot contain whitespace.'
 PRIVATE_STATE_LOCATION = "Keep Reactor's private state outside ComfyUI, its package, and its media folders."
-RUNTIME_NOT_READY = "Reactor has not finished loading. Restart ComfyUI."
-SETTINGS_CHANGED = "Settings changed. Reload them before saving."
-SETTINGS_RANGE = "Choose a setting within the range shown in Reactor settings."
-SETTINGS_UNREADABLE = "Cannot load Reactor execution settings. Check the limits and private key."
-SETTINGS_WHOLE_NUMBERS = "Use whole numbers for Reactor limits."
-SETTING_READ_ONLY = "This setting cannot be changed here."
-SETTING_UNKNOWN = "The settings contain an unknown option."
-STATE_DIRECTORY_ABSOLUTE = "Use an absolute state directory path."
-STATE_FILE_SIZE = "The state file exceeds its size limit."
-STATE_UNREADABLE = "Cannot read connector state. Check its location and permissions."
+RUNTIME_NOT_READY = 'Reactor has not finished loading. Restart ComfyUI.'
+SETTINGS_CHANGED = 'Settings changed. Reload them before saving.'
+SETTINGS_RANGE = 'Choose a setting within the range shown in Reactor settings.'
+SETTINGS_UNREADABLE = 'Cannot load Reactor execution settings. Check the limits and private key.'
+SETTINGS_WHOLE_NUMBERS = 'Use whole numbers for Reactor limits.'
+SETTING_READ_ONLY = 'This setting cannot be changed here.'
+SETTING_UNKNOWN = 'The settings contain an unknown option.'
+STATE_DIRECTORY_ABSOLUTE = 'Use an absolute state directory path.'
+STATE_FILE_SIZE = 'The state file exceeds its size limit.'
+STATE_UNREADABLE = 'Cannot read connector state. Check its location and permissions.'

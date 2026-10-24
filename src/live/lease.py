@@ -4,10 +4,10 @@ import time
 import secrets
 import threading
 from collections import deque
-from ..state.documents import Json
+from collections.abc import Mapping
+
 from ..errors import ErrorCode, ConnectorError
 from ..state.live import BrowserInput, BrowserExchange
-from ..config.messages.live import LIVE_INPUT_ORDER, CAMERA_STATE_REQUIRED, LIVE_SESSION_UNAVAILABLE
 from ..config.live import (
     LEASE_BYTES,
     MAX_SEQUENCE,
@@ -18,6 +18,8 @@ from ..config.live import (
     CLIENT_TIMEOUT_SECONDS,
     MAX_PREVIEW_CHARACTERS,
 )
+from ..serialization import Json
+from ..config.messages.live import LIVE_INPUT_ORDER, CAMERA_STATE_REQUIRED, LIVE_SESSION_UNAVAILABLE
 
 
 class BrowserLease:
@@ -32,7 +34,7 @@ class BrowserLease:
         self.created_at = time.monotonic()
         self.last_seen = self.created_at
         self.sequence = -1
-        self.axes = tuple((axis, "idle") for axis in choices)
+        self.axes = tuple((axis, 'idle') for axis in choices)
         self.current_axes = self.axes
         self.pending: deque[BrowserInput] = deque()
         self.release_pending = False
@@ -44,47 +46,47 @@ class BrowserLease:
         self.closed = False
         self.is_termination_confirmed = False
         self.failed = False
-        self.preview: str = ""
+        self.preview: str = ''
         self.preview_sequence = 0
-
-    def __repr__(self) -> str:
-        """Hide session identifiers and capabilities from object representations."""
-        return "BrowserLease(<private>)"
-
-    def invitation(self) -> dict[str, Json]:
-        """Send only to the browser that owns the executing prompt."""
-        return {
-            "lease": self.identifier,
-            "capability": self._capability,
-            "axes": {axis: list(values) for axis, values in self.choices.items()},
+        # Sent only to the browser that owns the executing prompt.
+        self.invitation: dict[str, Json] = {
+            'lease': self.identifier,
+            'capability': self._capability,
+            'axes': {axis: list(values) for axis, values in self.choices.items()},
         }
 
     def authorize(self, capability: Json) -> None:
         """Require the exact private capability and a live, recently connected client."""
-        self._validate_capability(capability)
-        with self.lock:
-            if self.closed or self.end or time.monotonic() - self.last_seen > CLIENT_TIMEOUT_SECONDS:
-                raise unavailable()
-
-    def _validate_capability(self, capability: Json) -> None:
-        """Compare a size-limited capability without exposing session state."""
         if (
             not isinstance(capability, str)
             or not capability.isascii()
             or len(capability) != CAPABILITY_CHARACTERS
             or not secrets.compare_digest(capability, self._capability)
         ):
-            raise unavailable()
+            raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
+        with self.lock:
+            if self.closed or self.end or time.monotonic() - self.last_seen > CLIENT_TIMEOUT_SECONDS:
+                raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
 
     def _parse_exchange(self, document: dict[str, Json]) -> BrowserExchange:
-        """Validate untrusted browser state before acquiring the session lock."""
-        expected = {"lease", "capability", "sequence", "axes", "end", "release", "preview_sequence"}
-        if document.keys() != expected:
-            raise unavailable()
-        self._validate_capability(document["capability"])
-        sequence, axes, end = document["sequence"], document["axes"], document["end"]
-        preview_sequence = document["preview_sequence"]
-        release = document["release"]
+        """Validate untrusted browser state before acquiring the session lock.
+
+        A closed session still answers with its final status, so this checks the capability without the liveness
+        checks of authorize.
+        """
+        expected = {'lease', 'capability', 'sequence', 'axes', 'end', 'release', 'preview_sequence'}
+        capability = document.get('capability')
+        if (
+            document.keys() != expected
+            or not isinstance(capability, str)
+            or not capability.isascii()
+            or len(capability) != CAPABILITY_CHARACTERS
+            or not secrets.compare_digest(capability, self._capability)
+        ):
+            raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
+        sequence, axes, end = document['sequence'], document['axes'], document['end']
+        preview_sequence = document['preview_sequence']
+        release = document['release']
         if (
             type(sequence) is not int
             or not 0 <= sequence <= MAX_SEQUENCE
@@ -95,7 +97,7 @@ class BrowserLease:
             or not isinstance(axes, dict)
             or axes.keys() != self.choices.keys()
             or any(value not in self.choices[axis] for axis, value in axes.items())
-            or (release and any(value != "idle" for value in axes.values()))
+            or (release and any(value != 'idle' for value in axes.values()))
         ):
             raise ConnectorError(ErrorCode.INVALID_INPUT, CAMERA_STATE_REQUIRED)
         return BrowserExchange(sequence, axes, end, release, preview_sequence)
@@ -104,7 +106,7 @@ class BrowserLease:
         """Apply ordered browser state while the caller holds the session lock."""
         if not self.closed and now - self.last_seen > CLIENT_TIMEOUT_SECONDS:
             self.end = True
-            raise unavailable()
+            raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
         if exchange.sequence <= self.sequence:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_INPUT_ORDER)
         self.sequence = exchange.sequence
@@ -116,26 +118,22 @@ class BrowserLease:
             if not self.finishing:
                 self._accept_axes(exchange.sequence, exchange.axes, now, release=exchange.release)
 
-    def _status(self, now: float, preview_sequence: int) -> dict[str, Json]:
-        """Serialize session status while the caller holds the session lock."""
-        return {
-            "closed": self.closed,
-            "termination_confirmed": self.is_termination_confirmed,
-            "failed": self.failed,
-            "controls_ready": self.controls_ready and not self.closed,
-            "finishing": self.finishing,
-            "elapsed_seconds": round(now - self.created_at, 1),
-            "preview_sequence": self.preview_sequence,
-            "preview": self.preview if preview_sequence != self.preview_sequence else "",
-        }
-
     def exchange(self, document: dict[str, Json]) -> dict[str, Json]:
         """Validate client state, accept ordered input, and return the latest session status."""
         exchange = self._parse_exchange(document)
         with self.lock:
             now = time.monotonic()
             self._accept_exchange(exchange, now)
-            return self._status(now, exchange.preview_sequence)
+            return {
+                'closed': self.closed,
+                'termination_confirmed': self.is_termination_confirmed,
+                'failed': self.failed,
+                'controls_ready': self.controls_ready and not self.closed,
+                'finishing': self.finishing,
+                'elapsed_seconds': round(now - self.created_at, 1),
+                'preview_sequence': self.preview_sequence,
+                'preview': self.preview if exchange.preview_sequence != self.preview_sequence else '',
+            }
 
     def read(self) -> BrowserInput:
         """Read queued movement or release controls when input becomes stale."""
@@ -144,7 +142,7 @@ class BrowserLease:
             stale_queue = self.pending and time.monotonic() - self.pending[0].received_at > STALE_INPUT_SECONDS
             if age > STALE_INPUT_SECONDS or self.end or stale_queue:
                 self.pending.clear()
-                self.axes = self.current_axes = tuple((axis, "idle") for axis in self.choices)
+                self.axes = self.current_axes = tuple((axis, 'idle') for axis in self.choices)
                 self.release_pending = True
             if self.release_pending:
                 self.release_pending = False
@@ -162,10 +160,10 @@ class BrowserLease:
                 self.sequence, self.current_axes, self.end or self.closed or age > CLIENT_TIMEOUT_SECONDS
             )
 
-    def _accept_axes(self, sequence: int, values: dict[str, Json], now: float, *, release: bool) -> None:
+    def _accept_axes(self, sequence: int, values: Mapping[str, object], now: float, *, release: bool) -> None:
         """Keep brief key presses; discard stale input to avoid delayed movement."""
         axes = tuple(
-            (axis, value if isinstance(value, str) and not self.end else "idle")
+            (axis, value if isinstance(value, str) and not self.end else 'idle')
             for axis in self.choices
             for value in (values[axis],)
         )
@@ -177,22 +175,12 @@ class BrowserLease:
         elif axes != self.axes:
             if len(self.pending) >= MAX_PENDING_INPUTS:
                 self.pending.clear()
-                self.current_axes = tuple((axis, "idle") for axis in self.choices)
+                self.current_axes = tuple((axis, 'idle') for axis in self.choices)
                 self.release_pending = True
             self.pending.append(state)
         elif self.pending and self.pending[-1].axes == axes:
             self.pending[-1] = state
         self.axes = axes
-
-    def is_ready(self) -> bool:
-        """Report whether a client has connected and the session remains open."""
-        with self.lock:
-            return self.ready and not self.end and not self.closed
-
-    def was_ended_by_user(self) -> bool:
-        """Distinguish an explicit end request from a disconnected client."""
-        with self.lock:
-            return self.end_requested
 
     def enable_controls(self) -> None:
         """Allow input after model setup unless the session has already closed."""
@@ -221,12 +209,7 @@ class BrowserLease:
         with self.lock:
             self.closed = True
             self.end = True
-            self.preview = ""
+            self.preview = ''
             self.pending.clear()
             self.is_termination_confirmed = is_termination_confirmed
             self.failed = failed
-
-
-def unavailable() -> ConnectorError:
-    """Return a public error without revealing whether a private session exists."""
-    return ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)

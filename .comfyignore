@@ -1,33 +1,35 @@
-# Browser source
+# Browser source; the built bundle ships
 /web/scripts/
-/web/styles/
+
 
 # Development tools and instructions
 /scripts/
-/quality/
 /.mise/
-/.githooks/
-/rules/
+/.gspot/
+/.github/
+/gspot.toml
 /AGENTS.md
-/CLAUDE.md
 
 # Development dependencies and configuration
 /package.json
 /bun.lock
 /bunfig.toml
 /tsconfig.json
-/pyrightconfig.json
 /uv.lock
 /mise.toml
 /.gitignore
 /.gitattributes
-/.prettierignore
-/.prettierrc*
-/.markdownlint*
-/.stylelintrc*
-/.typos.toml
-/.editorconfig
 /.comfyignore
+
+# Tool files that gspot writes from gspot.toml
+/.editorconfig
+/.markdownlint.jsonc
+/.prettierignore
+/.stylelintrc.json
+/eslint.config.mjs
+/prettier.config.mjs
+/pyrightconfig.json
+/ruff.toml
 
 # Local dependencies and generated artifacts
 /dist/
@@ -37,6 +39,7 @@
 /.artifacts/
 /.cache/
 /.ruff_cache/
+/.import_linter_cache/
 
 # Python caches
 **/__pycache__/
@@ -45,6 +48,7 @@
 # Private settings and credentials
 **/.env
 **/.env.*
+/.mise.local.toml
 
 # Logs and operating system files
 **/*.log

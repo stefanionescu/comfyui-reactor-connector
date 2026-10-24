@@ -4,26 +4,28 @@ from __future__ import annotations
 
 import io
 import time
+from typing import TYPE_CHECKING
 import asyncio
 import threading
-import numpy as np
-from typing import TYPE_CHECKING
+
 from PIL import Image, UnidentifiedImageError
+import numpy as np
+
 from ..errors import ErrorCode, ConnectorError
-from ..config.messages.live import CAMERA_DIMENSIONS, CAMERA_FRAME_SIZE, CAMERA_FRAME_ORDER, CAMERA_INPUT_STOPPED
 from ..config.media.webcam import (
     MAX_CAMERA_WIDTH,
     CAMERA_FRAME_RATE,
     MAX_CAMERA_HEIGHT,
-    CAMERA_READY_SECONDS,
     MAX_CAMERA_JPEG_BYTES,
     CAMERA_TIMEOUT_SECONDS,
 )
+from ..config.messages.live import CAMERA_DIMENSIONS, CAMERA_FRAME_SIZE, CAMERA_FRAME_ORDER, CAMERA_INPUT_STOPPED
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
     from collections.abc import Callable
-    from ..execution.transport import Track
+
+    from reactor_sdk import Track
+    from numpy.typing import NDArray
 
 
 class WebcamFrames:
@@ -47,12 +49,12 @@ class WebcamFrames:
         try:
             with Image.open(io.BytesIO(content)) as image:
                 if (
-                    image.format != "JPEG"
+                    image.format != 'JPEG'
                     or not 1 <= image.width <= MAX_CAMERA_WIDTH
                     or not 1 <= image.height <= MAX_CAMERA_HEIGHT
                 ):
                     raise invalid
-                pixels = np.asarray(image.convert("RGB"), dtype=np.uint8).copy()
+                pixels = np.asarray(image.convert('RGB'), dtype=np.uint8).copy()
         except (OSError, ValueError, UnidentifiedImageError):
             raise invalid from None
         with self.lock:
@@ -62,19 +64,6 @@ class WebcamFrames:
             self.pixels = pixels
             self.received_at = time.monotonic()
 
-    def is_ready(self) -> bool:
-        """Require a recent camera frame before starting a session."""
-        with self.lock:
-            return (
-                not self.closed
-                and self.pixels is not None
-                and time.monotonic() - self.received_at < CAMERA_READY_SECONDS
-            )
-
-    async def begin(self, track: Track, fail: Callable[[object], None]) -> None:
-        """Start the camera publisher on the provider session event loop."""
-        self.task = asyncio.create_task(self._publish(track, fail))
-
     def _current_frame(self) -> NDArray[np.uint8]:
         """Read the latest camera pixels and reject a closed, empty, or stale input."""
         with self.lock:
@@ -83,7 +72,7 @@ class WebcamFrames:
             raise ConnectorError(ErrorCode.TRANSPORT, CAMERA_INPUT_STOPPED)
         return pixels
 
-    async def _publish(self, track: Track, fail: Callable[[object], None]) -> None:
+    async def publish(self, track: Track, fail: Callable[[object], None]) -> None:
         """Send the latest frame at the camera rate and report missing or stale input."""
         try:
             while True:
@@ -91,7 +80,7 @@ class WebcamFrames:
                 await asyncio.sleep(1 / CAMERA_FRAME_RATE)
         except asyncio.CancelledError:
             raise
-        except Exception as error:  # noqa: BLE001 -- reason: Forward all publisher failures to the session owner so it terminates the session.
+        except Exception as error:  # noqa: BLE001 # reason: Forward all publisher failures to the session owner so it terminates the session.
             fail(error)
 
     def clear(self) -> None:

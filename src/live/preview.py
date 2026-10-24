@@ -4,18 +4,20 @@ import io
 import math
 import time
 import base64
+from typing import TYPE_CHECKING, cast
 import threading
-import numpy as np
+
 from PIL import Image
-from typing import cast, TYPE_CHECKING
-from ..config.media.capture import MAX_FRAME_DIMENSION
-from ..config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
+import numpy as np
+
 from ..config.live import (
     MAX_PREVIEW_WIDTH,
     MAX_PREVIEW_HEIGHT,
     PREVIEW_JPEG_QUALITY,
     PREVIEW_INTERVAL_SECONDS,
 )
+from ..config.media.images import RGB_CHANNELS, RGB_ARRAY_DIMENSIONS
+from ..config.media.capture import MAX_FRAME_DIMENSION
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -32,10 +34,10 @@ class PreviewFrames:
         self.closed = False
 
     def receive(self, pixels: object, _frame_id: int, _timestamp_us: int, _user_data: bytes) -> None:
-        """Keep a reduced copy of a valid RGB frame at the preview rate limit."""
+        """Keep a reduced copy of a valid red, green, and blue (RGB) frame at the preview rate limit."""
         if not isinstance(pixels, np.ndarray):
             return
-        array = cast("NDArray[np.uint8]", pixels)
+        array = cast('NDArray[np.uint8]', pixels)
         if array.dtype != np.uint8 or array.ndim != RGB_ARRAY_DIMENSIONS or array.shape[2] != RGB_CHANNELS:
             return
         height, width = array.shape[:2]
@@ -54,10 +56,10 @@ class PreviewFrames:
         with self.lock:
             array, self.pending = self.pending, None
         if array is None:
-            return ""
+            return ''
         with Image.fromarray(array) as image, io.BytesIO() as stream:
-            image.save(stream, format="JPEG", quality=PREVIEW_JPEG_QUALITY)
-            return base64.b64encode(stream.getvalue()).decode("ascii")
+            image.save(stream, format='JPEG', quality=PREVIEW_JPEG_QUALITY)
+            return base64.b64encode(stream.getvalue()).decode('ascii')
 
     def close(self) -> None:
         """Reject later frames and discard any pending preview."""

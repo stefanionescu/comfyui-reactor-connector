@@ -1,15 +1,17 @@
 """Continue a scene across several clips without queuing another ComfyUI run."""
 
+from typing import Unpack, TypedDict, NotRequired, override
 import asyncio
-from ..base import VideoNode
 from functools import partial
-from ...media.output import owned_io
+
+from comfy_api.latest import Input, io
+
+from ..base import VideoNode
+from ..controls import build_inputs, build_outputs
 from ...media.images import encode_png
-from comfy_api.latest import io, Input
-from ..controls import generation_controls
-from ...state.generation.fast import FastContinueRequest
-from ...execution.fast.continuation import FastContinueOperation
+from ...media.output import owned_io
 from ...comfy.execution import generate_video, wait_for_execution
+from ...state.generation.fast import FastContinueRequest
 from ...config.generation.fast import (
     DEFAULT_ASPECT,
     MAX_CLIP_COUNT,
@@ -21,90 +23,98 @@ from ...config.generation.fast import (
     DEFAULT_CLIP_COUNT,
     DEFAULT_CLIP_SECONDS,
 )
+from ...execution.fast.continuation import FastContinueOperation
+
+
+class FastContinueInputs(TypedDict):
+    """The saved inputs that ComfyUI passes to the Fast H3 continuation node, apart from the run number."""
+
+    prompt: str
+    clip_seconds: float
+    seed: int
+    aspect: str
+    clip_count: int
+    later_prompts: str
+    image: NotRequired[Input.Image | None]
 
 
 class FastContinue(VideoNode):
     """Join a sequence of Fast H3 clips that continue from each previous final frame."""
 
     @classmethod
+    @override
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
         duration = io.Float.Input(
-            "clip_seconds",
-            display_name="clip duration (seconds)",
-            tooltip="Length of each clip. Fast H3 chooses the closest supported length.",
+            'clip_seconds',
+            display_name='clip duration (seconds)',
+            tooltip='Length of each clip. Fast H3 chooses the closest supported length.',
             default=DEFAULT_CLIP_SECONDS,
             min=MIN_CLIP_SECONDS,
             max=MAX_CLIP_SECONDS,
             step=STEP_CLIP_SECONDS,
         )
         return io.Schema(
-            node_id="ReactorIncFastContinue",
-            display_name="Fast H3: Continue a Scene (Reactor)",
-            description="Chain clips from their previous final frame and save one video with sound.",
-            category="Reactor/Generate",
+            node_id='ReactorIncFastContinue',
+            display_name='Fast H3: Continue a Scene (Reactor)',
+            description='Chain clips from their previous final frame and save one video with sound.',
+            category='Reactor/Generate',
             search_aliases=[],
-            inputs=[
-                *generation_controls("continuation", duration=duration),
-                io.Combo.Input("aspect", display_name="aspect ratio", options=OPTIONS_ASPECT, default=DEFAULT_ASPECT),
-                io.Int.Input(
-                    "clip_count",
-                    display_name="number of clips",
-                    tooltip="Number of clips in one session. Their combined length must be 60 seconds or less.",
-                    default=DEFAULT_CLIP_COUNT,
-                    min=MIN_CLIP_COUNT,
-                    max=MAX_CLIP_COUNT,
-                ),
-                io.String.Input(
-                    "later_prompts",
-                    display_name="later clip prompts",
-                    placeholder="later clip prompts",
-                    tooltip=(
-                        "Optional later scenes: one prompt per line, starting with clip 2. "
-                        "Empty uses the opening prompt."
+            inputs=build_inputs(
+                'continuation',
+                duration=duration,
+                trailing=[
+                    io.Combo.Input(
+                        'aspect', display_name='aspect ratio', options=OPTIONS_ASPECT, default=DEFAULT_ASPECT
                     ),
-                    multiline=True,
-                    default="",
-                ),
-                io.Image.Input(
-                    "image",
-                    display_name="starting image",
-                    optional=True,
-                    tooltip="Optional first frame for the first clip.",
-                ),
-            ],
-            outputs=[
-                io.Video.Output(display_name="video"),
-                io.Audio.Output(display_name="audio"),
-            ],
+                    io.Int.Input(
+                        'clip_count',
+                        display_name='number of clips',
+                        tooltip='Number of clips in one session. Their combined length must be 60 seconds or less.',
+                        default=DEFAULT_CLIP_COUNT,
+                        min=MIN_CLIP_COUNT,
+                        max=MAX_CLIP_COUNT,
+                    ),
+                    io.String.Input(
+                        'later_prompts',
+                        display_name='later clip prompts',
+                        placeholder='later clip prompts',
+                        tooltip=(
+                            'Optional later scenes: one prompt per line, starting with clip 2. '
+                            'Empty uses the opening prompt.'
+                        ),
+                        multiline=True,
+                        default='',
+                    ),
+                    io.Image.Input(
+                        'image',
+                        display_name='starting image',
+                        optional=True,
+                        tooltip='Optional first frame for the first clip.',
+                    ),
+                ],
+            ),
+            outputs=build_outputs(has_audio=True),
         )
 
     @classmethod
-    async def generate(
-        cls,
-        *,
-        prompt: str,
-        clip_seconds: float,
-        seed: int,
-        aspect: str,
-        clip_count: int,
-        later_prompts: str,
-        image: Input.Image | None = None,
-    ) -> io.NodeOutput:
+    @override
+    async def generate(cls, **inputs: Unpack[FastContinueInputs]) -> io.NodeOutput:
         """Join a sequence of Fast H3 clips that continue from each previous final frame."""
+        image = inputs.get('image')
 
         async def start() -> io.NodeOutput:
             """Prepare media inside the owned task before starting the Reactor session."""
             encoded = None if image is None else await owned_io(partial(encode_png, image))
             request = FastContinueRequest(
-                prompt,
-                clip_seconds * clip_count,
-                seed,
+                inputs['prompt'],
+                inputs['clip_seconds'] * inputs['clip_count'],
+                inputs['seed'],
                 image=encoded,
-                aspect=aspect,
-                clip_seconds=clip_seconds,
-                clip_count=clip_count,
-                later_prompts=tuple(later_prompts.splitlines()),
+                aspect=inputs['aspect'],
+                clip_seconds=inputs['clip_seconds'],
+                clip_count=inputs['clip_count'],
+                later_prompts=tuple(inputs['later_prompts'].splitlines()),
             )
             return await generate_video(FastContinueOperation(request))
 

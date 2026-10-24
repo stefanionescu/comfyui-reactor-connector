@@ -1,7 +1,8 @@
 """Fast H3 request and clip result values."""
 
-from .inputs import VideoInputs
 from dataclasses import dataclass
+
+from .inputs import VideoInputs
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

@@ -1,8 +1,11 @@
 """Video input dimensions, formats, and frame limits."""
 
+from typing import Final
+
 SOURCE_COPY_CHUNK_BYTES = 65_536
 
-# ITU-T H.273 transfer-characteristic codes for PQ and HLG HDR video.
+# The H.273 transfer-characteristic codes, a standard of the International Telecommunication Union, for the two
+# high dynamic range formats: perceptual quantizer and hybrid log-gamma.
 HDR_TRANSFER_CODES = (16, 18)
 
 MAX_FRAME_RATE = 120
@@ -21,10 +24,11 @@ MAX_COMPONENT_BITS = 8
 
 MAX_START_SECONDS = 3600
 
-ENCODER_NAME = "libx264"
+# Final keeps the literal codec name, so PyAV's typing returns a video stream.
+ENCODER_NAME: Final = 'libx264'
 
-ENCODER_PIXEL_FORMAT = "yuv420p"
+ENCODER_PIXEL_FORMAT = 'yuv420p'
 
-ENCODER_PRESET = "veryfast"
+ENCODER_PRESET = 'veryfast'
 
-ENCODER_CRF = "18"
+ENCODER_CRF = '18'

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 import av
-from typing import cast, TYPE_CHECKING
+
 from ...errors import ErrorCode, ConnectorError
-from ...config.media.video import DEFAULT_FRAME_RATE, MAX_FRAME_RATE
+from ...config.media.video import MAX_FRAME_RATE, DEFAULT_FRAME_RATE
 from ...config.messages.media import (
     SOURCE_FRAME_RATE,
     SOURCE_READER_CLOSED,
@@ -14,10 +16,11 @@ from ...config.messages.media import (
 )
 
 if TYPE_CHECKING:
-    import numpy as np
     from pathlib import Path
-    from numpy.typing import NDArray
     from collections.abc import Iterator
+
+    import numpy as np
+    from numpy.typing import NDArray
     from av.container.input import InputContainer
 
 
@@ -33,7 +36,7 @@ class PreparedFrames:
 
     def open(self) -> tuple[NDArray[np.uint8], float]:
         """Open the prepared video and require a supported frame rate and a first timestamped frame."""
-        self.container = av.open(str(self.path), mode="r")
+        self.container = av.open(str(self.path), mode='r')
         rate = self.container.streams.video[0].average_rate
         if rate is None or not 1 <= rate <= MAX_FRAME_RATE:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_FRAME_RATE)
@@ -45,7 +48,7 @@ class PreparedFrames:
         return first
 
     def next(self) -> tuple[NDArray[np.uint8], float] | None:
-        """Decode the next RGB frame and require its presentation timestamp."""
+        """Decode the next red, green, and blue (RGB) frame and require its presentation timestamp."""
         if self.frames is None:
             raise ConnectorError(ErrorCode.CAPTURE, SOURCE_READER_CLOSED)
         frame = next(self.frames, None)
@@ -53,7 +56,7 @@ class PreparedFrames:
             return None
         if frame.pts is None or frame.time_base is None:
             raise ConnectorError(ErrorCode.CAPTURE, SOURCE_TIMESTAMP_MISSING)
-        return cast("NDArray[np.uint8]", frame.to_ndarray(format="rgb24")), float(frame.pts * frame.time_base)
+        return cast('NDArray[np.uint8]', frame.to_ndarray(format='rgb24')), float(frame.pts * frame.time_base)
 
     def close(self) -> None:
         """Close the media container and release the frame iterator."""

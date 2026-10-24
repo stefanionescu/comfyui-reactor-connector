@@ -1,50 +1,62 @@
-"""Record a LingBot scene from an image and camera directions."""
+"""Record a LingBot or LingBot World 2 scene from an image and camera directions."""
 
-import asyncio
+from typing import Unpack, override
+
+from comfy_api.latest import io
+
 from ..base import VideoNode
-from .schema import lingbot_schema
-from ...media.images import encode_png
-from comfy_api.latest import io, Input
+from .schema import LingBotInputs, LingBotWorldInputs, lingbot_inputs, build_operation
+from ..controls import build_outputs
 from ...comfy.execution import generate_video
-from ...state.generation.lingbot import LingBotRequest
-from ...execution.lingbot.operation import LingBotOperation
 
 
 class LingBotExplore(VideoNode):
     """Record a LingBot scene using a starting image and camera directions."""
 
     @classmethod
+    @override
     def define_schema(cls) -> io.Schema:
         """Define the inputs and outputs saved in ComfyUI workflows."""
-        return lingbot_schema(world2=False)
+        return io.Schema(
+            node_id='ReactorIncLingBotExplore',
+            display_name='LingBot: Explore an Image (Reactor)',
+            description='Move through a scene from your image and save a video. Choose how long to record.',
+            category='Reactor/Worlds',
+            search_aliases=['Reactor', 'LingBot', 'camera', 'world', 'image to video'],
+            inputs=lingbot_inputs(is_world_two=False),
+            outputs=build_outputs(has_audio=False),
+        )
 
     @classmethod
-    async def generate(  # noqa: PLR0913 -- reason: ComfyUI requires one named argument for each saved node input.
-        cls,
-        *,
-        image: Input.Image,
-        prompt: str,
-        duration_seconds: float,
-        seed: int,
-        movement: str,
-        look_horizontal: str,
-        look_vertical: str,
-        rotation_speed_deg: float,
-        interactive: bool = False,
-    ) -> io.NodeOutput:
+    @override
+    async def generate(cls, **inputs: Unpack[LingBotInputs]) -> io.NodeOutput:
         """Explore the starting image with the selected LingBot camera controls."""
-        encoded = await asyncio.to_thread(encode_png, image)
-        request = LingBotRequest(
-            prompt=prompt,
-            duration_seconds=duration_seconds,
-            seed=seed,
-            image=encoded,
-            movement="idle" if interactive else movement,
-            look_horizontal="idle" if interactive else look_horizontal,
-            look_vertical="idle" if interactive else look_vertical,
-            rotation_speed_deg=rotation_speed_deg,
+        interactive = inputs.get('interactive', False)
+        operation = await build_operation(inputs, interactive=interactive, lateral=None)
+        return await generate_video(operation, interactive=interactive)
+
+
+class LingBotWorldExplore(VideoNode):
+    """Record World 2 with separate forward/back and sideways controls."""
+
+    @classmethod
+    @override
+    def define_schema(cls) -> io.Schema:
+        """Define the inputs and outputs saved in ComfyUI workflows."""
+        return io.Schema(
+            node_id='ReactorIncLingBotWorld2Explore',
+            display_name='LingBot World 2: Explore an Image (Reactor)',
+            description='Move through a scene from your image and save a video. Choose how long to record.',
+            category='Reactor/Worlds',
+            search_aliases=['Reactor', 'LingBot World 2', 'camera', 'world', 'image to video'],
+            inputs=lingbot_inputs(is_world_two=True),
+            outputs=build_outputs(has_audio=False),
         )
-        return await generate_video(
-            LingBotOperation(request),
-            interactive=interactive,
-        )
+
+    @classmethod
+    @override
+    async def generate(cls, **inputs: Unpack[LingBotWorldInputs]) -> io.NodeOutput:
+        """Explore the starting image with LingBot World 2 movement and camera controls."""
+        interactive = inputs.get('interactive', False)
+        operation = await build_operation(inputs, interactive=interactive, lateral=inputs['lateral'])
+        return await generate_video(operation, interactive=interactive)

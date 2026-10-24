@@ -1,7 +1,8 @@
 """LingBot camera and image-conditioning records."""
 
-from .inputs import VideoInputs
 from dataclasses import dataclass
+
+from .inputs import VideoInputs
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -12,7 +13,7 @@ class LingBotRequest(VideoInputs):
         movement: Selected camera movement.
         look_horizontal: Horizontal camera direction.
         look_vertical: Vertical camera direction.
-        rotation_speed_deg: Camera turn in degrees per latent frame (an internal model step).
+        rotation_speed_deg: Camera turn in degrees per latent frame, an internal model step.
 
     """
 

@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
 import asyncio
-from comfy.cli_args import args
+
 from server import PromptServer
-from ..runtime import get_runtime
-from ..live.options import LiveOptions
-from ..live.controls import ControlLease
-from ..models import MODELS_BY_CONNECTION
-from ..errors import ErrorCode, ConnectorError
-from ..live.interaction import LiveInteraction
-from typing import cast, Protocol, TYPE_CHECKING
-from ..config.generation.world import CAMERA_AXES
+from comfy.cli_args import args
 from comfy_execution.utils import get_executing_context
+
+from ..errors import ErrorCode, ConnectorError
+from ..models import MODELS_BY_CONNECTION
+from ..runtime import get_runtime
 from ..config.live import (
     INPUT_POLL_SECONDS,
     MIN_QUEUE_ITEM_FIELDS,
@@ -21,26 +19,21 @@ from ..config.live import (
     CAMERA_INVITATION_TIMEOUT_SECONDS,
     CONTROL_INVITATION_TIMEOUT_SECONDS,
 )
+from ..live.options import LiveOptions
+from ..live.controls import ControlLease
+from ..live.interaction import LiveInteraction
 from ..config.messages.live import (
     LIVE_CANCELLED,
     LIVE_PANEL_CLOSED,
     BROWSER_OWNER_MISSING,
     LIVE_HOST_REQUIREMENTS,
 )
-
+from ..state.generation.visko import ViskoRequest
+from ..config.generation.world import CAMERA_AXES
 
 if TYPE_CHECKING:
-    from ..state.documents import Json
     from ..media.webcam import WebcamFrames
-    from ..execution.operation import VideoOperation
-
-
-class _BrowserSender(Protocol):
-    """Send a live-control invitation to its submitting browser."""
-
-    def send_sync(self, event: str, payload: dict[str, Json], client: str) -> None:
-        """Queue the event for one browser without blocking model execution."""
-        raise NotImplementedError(event, payload, client)
+    from ..execution.inputs import VideoOperation
 
 
 def _owner() -> tuple[str, str]:
@@ -49,12 +42,12 @@ def _owner() -> tuple[str, str]:
     if args.multi_user or context is None:
         raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_HOST_REQUIREMENTS)
     running, _ = cast(
-        "tuple[list[tuple[object, ...]], list[object]]",
+        'tuple[list[tuple[object, ...]], list[object]]',
         PromptServer.instance.prompt_queue.get_current_queue_volatile(),
     )
     for item in running:
         if len(item) >= MIN_QUEUE_ITEM_FIELDS and item[1] == context.prompt_id and isinstance(item[3], dict):
-            client = cast("dict[str, object]", item[3]).get("client_id")
+            client = cast('dict[str, object]', item[3]).get('client_id')
             if isinstance(client, str) and 1 <= len(client) <= MAX_CLIENT_ID_CHARACTERS:
                 return client, context.node_id
     raise ConnectorError(ErrorCode.UNAVAILABLE, BROWSER_OWNER_MISSING)
@@ -65,7 +58,9 @@ async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> Non
     async with asyncio.timeout(timeout_seconds):
         while not lease.is_ready():
             if lease.read().end:
-                if lease.was_ended_by_user():
+                with lease.lock:
+                    is_ended_by_user = lease.end_requested
+                if is_ended_by_user:
                     raise ConnectorError(ErrorCode.INTERRUPTED, LIVE_CANCELLED)
                 raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_PANEL_CLOSED)
             await asyncio.sleep(INPUT_POLL_SECONDS)
@@ -85,9 +80,8 @@ async def _invite(
     lease = ControlLease(options, choices=choices, started=choices is not None)
     get_runtime().browsers.add(lease)
     try:
-        invitation = lease.invitation()
-        invitation.update(node_id=node, duration_seconds=duration_seconds)
-        cast("_BrowserSender", PromptServer.instance).send_sync(event, invitation, client)
+        invitation = {**lease.invitation, 'node_id': node, 'duration_seconds': duration_seconds}
+        PromptServer.instance.send_sync(event, invitation, client)  # pyright: ignore[reportUnknownMemberType] # reason: ComfyUI leaves send_sync untyped.
         await _wait_for_controls(lease, timeout_seconds)
     except BaseException:
         lease.close(is_termination_confirmed=True, failed=True)
@@ -110,27 +104,29 @@ async def prepare_interaction(
         choices = {axis: tuple(CAMERA_AXES[axis]) for axis in axes}
         return await _invite(
             options,
-            operation.duration_seconds,
-            event="reactor-inc.live",
+            operation.inputs.duration_seconds,
+            event='reactor-inc.live',
             timeout_seconds=CAMERA_INVITATION_TIMEOUT_SECONDS,
             choices=choices,
         )
     return await _invite(
         options,
-        operation.duration_seconds,
-        event="reactor-inc.controls",
+        operation.inputs.duration_seconds,
+        event='reactor-inc.controls',
         timeout_seconds=CONTROL_INVITATION_TIMEOUT_SECONDS,
     )
 
 
 def build_live_options(operation: VideoOperation, *, webcam: WebcamFrames | None = None) -> LiveOptions:
-    """Translate execution-owned control values into live-session options."""
-    values = operation.build_control_values()
-    return LiveOptions(
-        operation.connection_name,
-        values.prompt,
-        webcam,
-        is_passthrough_enabled=values.is_passthrough_enabled,
-        audio_prompt=values.audio_prompt,
-        is_audio_enabled=values.is_audio_enabled,
-    )
+    """Translate the request of the operation into live-session options; only Visko has sound and passthrough."""
+    inputs = operation.inputs
+    if isinstance(inputs, ViskoRequest):
+        return LiveOptions(
+            operation.connection_name,
+            inputs.prompt,
+            webcam,
+            is_passthrough_enabled=inputs.prompt_passthrough,
+            audio_prompt=inputs.audio_prompt,
+            is_audio_enabled=inputs.audio_enabled,
+        )
+    return LiveOptions(operation.connection_name, inputs.prompt, webcam)

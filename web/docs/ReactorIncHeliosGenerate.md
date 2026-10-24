@@ -1,4 +1,4 @@
-# Helios: Generate Video (Reactor)
+# Helios: Generate Video
 
 Generates a video from a prompt with Reactor's Helios model. You can start from
 an image, schedule later prompts, or change the prompt while it records.
@@ -19,7 +19,7 @@ Later prompts need increasing chunk numbers; the opening prompt is chunk 0. A
 Helios chunk is 33 frames, not a second. A sequence holds up to 32 later prompts
 and 128 KB, and a later prompt does not extend the recording. A starting image
 must be at most 8,192 pixels per side and within the upload limit in Reactor
-settings. Describe what is already in the image and how it should move.
+settings. Describe what is already in the image and the motion you want.
 
 ## Outputs
 
@@ -29,10 +29,10 @@ settings. Describe what is already in the image and how it should move.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
 2. Open **helios-01-text-to-video**, **helios-02-image-to-video**,
    **helios-03-prompt-sequence**, or **helios-05-live-prompt** in **Browse
-   Templates → reactor-inc**.
+   Templates > reactor-inc**.
 3. Describe the scene, choose the length, and select **Run**.
 4. Play the result in **Save Video**, which also saves the file.
 

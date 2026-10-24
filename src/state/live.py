@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
-    from .documents import Json
+    from collections.abc import Mapping
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,7 +18,7 @@ class BrowserInput:
         axes: Requested camera directions.
         end: Whether the browser requested a stop.
         received_at: Monotonic arrival time.
-        release: Whether held directions should be released.
+        release: Whether the session releases held directions.
 
     """
 
@@ -51,13 +51,13 @@ class BrowserExchange:
         sequence: Monotonic browser input number.
         axes: Requested axis values.
         end: Whether the browser requested a stop.
-        release: Whether held controls should be released.
+        release: Whether the session releases held controls.
         preview_sequence: Last preview received by the browser.
 
     """
 
     sequence: int
-    axes: dict[str, Json]
+    axes: Mapping[str, object]
     end: bool
     release: bool
     preview_sequence: int

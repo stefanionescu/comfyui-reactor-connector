@@ -1,7 +1,8 @@
 """Helios request and scheduled prompt records."""
 
-from .inputs import VideoInputs
 from dataclasses import dataclass
+
+from .inputs import VideoInputs
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,10 +17,6 @@ class ScheduledPrompt:
 
     chunk: int
     prompt: str
-
-    def to_dict(self) -> dict[str, object]:
-        """Encode the scheduled prompt using Reactor command field names."""
-        return {"chunk": self.chunk, "prompt": self.prompt}
 
 
 @dataclass(frozen=True, slots=True)

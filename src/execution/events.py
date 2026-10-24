@@ -1,107 +1,94 @@
 """Observe session failures alongside commands and media capture."""
 
-import asyncio
 from typing import cast
-from .transport import Transport
+import asyncio
+from collections.abc import Coroutine
+
 from ..errors import ErrorCode, ConnectorError
-from collections.abc import Callable, Coroutine
 from .failures import phase_error, provider_text
+from .transport import Callback, SessionTransport
 from ..config.messages.session import COMMAND_REJECTED, PROVIDER_MESSAGE, CAPTURE_DISCONNECTED
 
 
 def rejection_message(payload: object) -> str:
     """Add the reason Reactor gave for refusing a command, when it sent one."""
-    fields = cast("dict[str, object]", payload) if isinstance(payload, dict) else {}
-    reason = fields.get("reason")
-    detail = provider_text(reason) if isinstance(reason, str) else ""
-    return f"{COMMAND_REJECTED} {PROVIDER_MESSAGE.format(message=detail)}" if detail else COMMAND_REJECTED
+    fields = cast('dict[str, object]', payload) if isinstance(payload, dict) else {}
+    reason = fields.get('reason')
+    detail = provider_text(reason) if isinstance(reason, str) else ''
+    return f'{COMMAND_REJECTED} {PROVIDER_MESSAGE.format(message=detail)}' if detail else COMMAND_REJECTED
 
 
 class SessionEvents:
     """Own error callbacks and ignore events after teardown starts."""
 
-    def __init__(self, transport: Transport) -> None:
+    def __init__(self, transport: SessionTransport) -> None:
         """Create session signals and failure storage on the current event loop."""
         self.transport = transport
         self.failure: asyncio.Future[ConnectorError] = asyncio.get_running_loop().create_future()
         self.active = True
         self.ready = False
-        self.phase = "connect"
+        self.phase = 'connect'
         self.generation_complete = asyncio.Event()
         self.state_ready = asyncio.Event()
         self.state: dict[str, object] = {}
-        self.state_snapshots: dict[str, dict[str, object]] = {}
-        self.state_signals = {kind: asyncio.Event() for kind in ("state", "state_update")}
-        self.handlers: list[tuple[str, Callable[..., None]]] = []
+        self.latest_states: dict[str, dict[str, object]] = {}
+        self.state_signals = {kind: asyncio.Event() for kind in ('state', 'state_update')}
+        self.handlers: list[tuple[str, Callback]] = []
 
     def attach(self) -> None:
-        """Register before connection so early errors cannot be missed."""
+        """Register before connection, so the session receives every early error."""
         for event, callback in (
-            ("error", self.on_error),
-            ("message", self.on_message),
-            ("status_changed", self.on_status),
+            ('error', self.on_error),
+            ('message', self.on_message),
+            ('status_changed', self.on_status),
         ):
             self.transport.on(event, callback)
             self.handlers.append((event, callback))
 
-    def _fail(self, error: ConnectorError) -> None:
-        """Preserve the first failure while the session is active."""
-        if self.active and not self.failure.done():
-            self.failure.set_result(error)
-
     def on_error(self, error: object) -> None:
         """Stop without retrying a potentially billable operation."""
-        if not self.active:
+        if not self.active or self.failure.done():
             return
-        self._fail(phase_error(error, self.phase))
+        self.failure.set_result(phase_error(error, self.phase))
 
     def on_message(self, message: object) -> None:
         """Track model state separately from command acknowledgements."""
         if not self.active or not isinstance(message, dict):
             return
-        envelope = cast("dict[str, object]", message)
-        kind = envelope.get("type")
-        payload = envelope.get("data")
+        envelope = cast('dict[str, object]', message)
+        kind = envelope.get('type')
+        payload = envelope.get('data')
         if isinstance(kind, str) and kind in self.state_signals and isinstance(payload, dict):
-            self.state = cast("dict[str, object]", payload)
+            self.state = cast('dict[str, object]', payload)
             self.state_ready.set()
-            self.state_snapshots[kind] = self.state
+            self.latest_states[kind] = self.state
             self.state_signals[kind].set()
-        if kind == "generation_complete":
+        if kind == 'generation_complete':
             self.generation_complete.set()
-        if kind in ("command_error", "action_error"):
-            self._fail(ConnectorError(ErrorCode.INVALID_INPUT, rejection_message(envelope.get("data"))))
+        if kind in ('command_error', 'action_error') and not self.failure.done():
+            self.failure.set_result(ConnectorError(ErrorCode.INVALID_INPUT, rejection_message(envelope.get('data'))))
 
     def on_status(self, status: object) -> None:
         """Fail if an established connection leaves its ready state."""
         if not self.active:
             return
-        if status == "ready":
+        if status == 'ready':
             self.ready = True
-        elif self.ready:
-            self._fail(
-                ConnectorError(
-                    ErrorCode.TRANSPORT,
-                    CAPTURE_DISCONNECTED,
-                )
-            )
+        elif self.ready and not self.failure.done():
+            self.failure.set_result(ConnectorError(ErrorCode.TRANSPORT, CAPTURE_DISCONNECTED))
 
-    def check(self) -> None:
-        """Do not start another operation after a reported failure."""
+    def accept_reply(self, reply: object) -> None:
+        """Read the state that a command reply carries, then stop on a reported failure."""
+        self.on_message(reply)
         if self.failure.done() and not self.failure.cancelled():
             raise self.failure.result()
 
-    async def snapshot(self, kind: str) -> dict[str, object]:
-        """Read the model's documented state event without mixing runtime snapshots."""
-        await self.state_signals[kind].wait()
-        return self.state_snapshots[kind]
-
     async def command_reply(self, name: str, payload: dict[str, object]) -> object:
         """Return a reply only after checking separately reported model rejection."""
-        self.check()
-        reply = await self.call(name, self.transport.send_command(name, payload))
-        self.on_message(reply)
-        self.check()
+        if self.failure.done() and not self.failure.cancelled():
+            raise self.failure.result()
+        reply = await self.call(name, self.transport.get_client().send_command(name, payload))
+        self.accept_reply(reply)
         return reply
 
     async def call[T](self, phase: str, operation: Coroutine[object, object, T]) -> T:
@@ -109,7 +96,7 @@ class SessionEvents:
         self.phase = phase
         try:
             return await operation
-        except Exception as error:  # noqa: BLE001 -- reason: Translate arbitrary SDK failures into connector errors.
+        except Exception as error:  # noqa: BLE001 # reason: Translate arbitrary SDK failures into connector errors.
             raise phase_error(error, phase) from None
 
     async def guard[T](self, operation: Coroutine[object, object, T]) -> T:

@@ -1,4 +1,4 @@
-/* web/styles/interface.css */
+/* web/scripts/interface.css */
 .reactor-dialog {
   box-sizing: border-box;
   width: min(38rem, calc(100vw - 2rem));
@@ -218,7 +218,7 @@
   border: 1px solid var(--border-color, GrayText);
   border-radius: 0.45rem;
 }
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .reactor-webcam {
     grid-template-columns: 1fr;
   }
@@ -283,7 +283,7 @@
   grid-template-columns: repeat(4, 1fr);
   touch-action: none;
 }
-@media (max-width: 420px) {
+@media (width <= 420px) {
   .reactor-live .reactor-actions {
     grid-template-columns: repeat(2, 1fr);
   }

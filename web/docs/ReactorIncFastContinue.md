@@ -1,4 +1,4 @@
-# Fast H3: Continue a Scene (Reactor)
+# Fast H3: Continue a Scene
 
 Makes several connected clips in one Reactor session and saves them as one video
 with sound. Each clip starts from the previous clip's last frame.
@@ -29,8 +29,8 @@ building, playback, and recording all count toward the session limit.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **fast-h3-05-continue-scene** in **Browse Templates → reactor-inc**. To
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
+2. Open **fast-h3-05-continue-scene** in **Browse Templates > reactor-inc**. To
    start from a picture, connect a **Load Image** node to **starting image**.
 3. Set the opening prompt, the clip length and count, and any later prompts.
 4. Check the maximum session duration in Reactor settings, then select **Run**.

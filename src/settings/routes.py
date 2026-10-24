@@ -1,68 +1,72 @@
 """Serve private settings and credential changes through guarded local routes."""
 
 import asyncio
-from aiohttp import web
-from ..state.documents import Json
-from ..http.guard import local_route
-from .store import ConfigurationStore
-from ..http.request import read_document
-from ..serialization import mapping_value
-from ..config.security import SETTINGS_PREFIX
+from dataclasses import field, dataclass
 from collections.abc import Callable, Awaitable
+
+from aiohttp import web
+
+from .store import ConfigurationStore
+from ..routing.guard import local_route
+from ..serialization import Json, mapping_value
+from ..config.security import SETTINGS_PREFIX
+from ..routing.request import read_document
 from ..config.messages.requests import CLEAR_KEY_BODY, SINGLE_KEY_REQUIRED, SETTINGS_REVISION_REQUIRED
 
+type Route = Callable[[web.Request], Awaitable[dict[str, Json]]]
 
+
+@dataclass(frozen=True, slots=True)
 class ConfigurationRoutes:
-    """Register routes once during the host's extension load phase."""
+    """Register routes once during the host's extension load phase.
 
-    def __init__(self, store: ConfigurationStore, *, is_multi_user: bool = False) -> None:
-        """Bind the configuration store and the host's multi-user access policy."""
-        self.store = store
-        self.is_multi_user = is_multi_user
+    Attributes:
+        store: Private settings and credential store.
+        is_multi_user: Whether the host serves several users, which makes the settings read-only.
 
-    async def status(self, _request: web.Request) -> dict[str, Json]:
-        """Return effective settings and whether the current host permits changes."""
-        result = await asyncio.to_thread(self.store.status)
-        return self._add_mutation_permission(result)
+    """
+
+    store: ConfigurationStore
+    is_multi_user: bool = field(default=False, kw_only=True)
 
     async def settings(self, request: web.Request) -> dict[str, Json]:
         """Validate a settings patch and save it against the caller's current revision."""
         document = await read_document(request)
-        if document.keys() != {"revision", "settings"} or not isinstance(document["revision"], str):
+        if document.keys() != {'revision', 'settings'} or not isinstance(document['revision'], str):
             raise web.HTTPBadRequest(text=SETTINGS_REVISION_REQUIRED)
-        return self._add_mutation_permission(
-            await asyncio.to_thread(
-                self.store.update_settings, mapping_value(document["settings"]), document["revision"]
-            )
+        return await asyncio.to_thread(
+            self.store.update_settings, mapping_value(document['settings']), document['revision']
         )
 
     async def credential(self, request: web.Request) -> dict[str, Json]:
         """Accept one API key and save it only through the private configuration store."""
         document = await read_document(request)
-        if document.keys() != {"api_key"} or not isinstance(document["api_key"], str):
+        if document.keys() != {'api_key'} or not isinstance(document['api_key'], str):
             raise web.HTTPBadRequest(text=SINGLE_KEY_REQUIRED)
-        return self._add_mutation_permission(await asyncio.to_thread(self.store.save_credential, document["api_key"]))
+        return await asyncio.to_thread(self.store.save_credential, document['api_key'])
 
     async def clear_credential(self, request: web.Request) -> dict[str, Json]:
         """Remove the saved key after rejecting unexpected request content."""
         if request.can_read_body:
             raise web.HTTPBadRequest(text=CLEAR_KEY_BODY)
-        return self._add_mutation_permission(await asyncio.to_thread(self.store.clear_credential))
+        return await asyncio.to_thread(self.store.clear_credential)
 
-    def _add_mutation_permission(self, result: dict[str, Json]) -> dict[str, Json]:
-        """Add the settings editor permission to one configuration response."""
-        result["mutation_allowed"] = not self.is_multi_user
-        return result
+    def _guard(self, route: Route, *, is_mutation: bool) -> Callable[[web.Request], Awaitable[web.Response]]:
+        """Apply the host access policy to one route, and tell the editor whether the host permits changes."""
 
-    def _guard(
-        self, callback: Callable[[web.Request], Awaitable[dict[str, Json]]], *, is_mutation: bool
-    ) -> Callable[[web.Request], Awaitable[web.Response]]:
-        """Apply the host access policy to one configuration route."""
-        return local_route(callback, is_mutation=is_mutation, is_multi_user=self.is_multi_user)
+        async def respond(request: web.Request) -> dict[str, Json]:
+            """Run the route and add the settings editor permission to its result."""
+            result = await route(request)
+            result['mutation_allowed'] = not self.is_multi_user
+            return result
+
+        return local_route(respond, is_mutation=is_mutation, is_multi_user=self.is_multi_user)
 
     def register(self, routes: web.RouteTableDef) -> None:
         """Register guarded status, settings, key-save, and key-removal endpoints."""
-        routes.get(SETTINGS_PREFIX + "/status")(self._guard(self.status, is_mutation=False))
-        routes.patch(SETTINGS_PREFIX + "/settings")(self._guard(self.settings, is_mutation=True))
-        routes.put(SETTINGS_PREFIX + "/credential")(self._guard(self.credential, is_mutation=True))
-        routes.delete(SETTINGS_PREFIX + "/credential")(self._guard(self.clear_credential, is_mutation=True))
+        routes.get(SETTINGS_PREFIX + '/status')(
+            self._guard(lambda _request: asyncio.to_thread(self.store.status), is_mutation=False)
+        )
+        routes.patch(SETTINGS_PREFIX + '/settings')(self._guard(self.settings, is_mutation=True))
+        routes.put(SETTINGS_PREFIX + '/credential')(self._guard(self.credential, is_mutation=True))
+        routes.delete(SETTINGS_PREFIX + '/credential')(self._guard(self.clear_credential, is_mutation=True))

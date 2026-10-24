@@ -2,21 +2,21 @@
 
 import json
 import hashlib
-import threading
 from pathlib import Path
-from dataclasses import fields
-from ..state.documents import Json
-from .conflict import SettingsConflictError
+import secrets
+import threading
+from dataclasses import asdict, fields
+
+from .schema import DEFAULT_SETTINGS, parse_settings
 from ..errors import ErrorCode, ConnectorError
-from .execution import ConfigurationGeneration
-from .schema import parse_settings, default_settings
-from ..serialization import parse_json, mapping_value
-from ..config.security import MAX_CREDENTIAL_CHARACTERS
+from ..storage import PRIVATE_DIRECTORY_MODE, atomic_write, read_private
+from .conflict import SettingsConflictError
+from ..credentials import read_credential, parse_credential, credential_source
+from ..serialization import Json, parse_json, mapping_value
 from ..state.settings import Settings, ExecutionConfiguration
-from ..storage import atomic_write, read_private, private_directory
+from ..config.security import MAX_CREDENTIAL_CHARACTERS
 from ..config.settings import INTEGER_SETTINGS, MAX_SETTINGS_FILE_BYTES
-from ..config.messages.settings import SETTING_READ_ONLY, SETTINGS_UNREADABLE
-from ..credentials import parse_credential, read_credential, save_credential, credential_source
+from ..config.messages.settings import SETTINGS_CHANGED, SETTING_READ_ONLY, SETTINGS_UNREADABLE
 
 EDITABLE_SETTINGS = frozenset(item.name for item in fields(Settings))
 
@@ -27,91 +27,102 @@ class ConfigurationStore:
     def __init__(self, directory: Path) -> None:
         """Select private storage and own the lock for settings and credential changes."""
         self.directory = directory
-        self.lock = threading.Lock()
-        self._generation = ConfigurationGeneration()
+        # Reentrant, so a change returns the new status while it still holds the lock.
+        self.lock = threading.RLock()
+        # The configuration the last operation read. A removed key or an unreadable file clears it, so no later
+        # operation reuses its cache token.
+        self._previous: ExecutionConfiguration | None = None
 
-    def execution_snapshot(self) -> ExecutionConfiguration:
-        """Read effective values together and invalidate unreadable configuration."""
+    def read_execution_configuration(self) -> ExecutionConfiguration:
+        """Read effective values together; renew the cache token when the settings or the key change."""
         with self.lock:
             try:
                 settings = read_settings(self.directory)
                 credential = read_credential(self.directory)
             except ConnectorError:
-                self._generation.invalidate()
+                self._previous = None
                 raise
             except (OSError, UnicodeError):
-                self._generation.invalidate()
+                self._previous = None
                 raise ConnectorError(
                     ErrorCode.CONFIGURATION,
                     SETTINGS_UNREADABLE,
                 ) from None
-            return self._generation.snapshot(settings, credential)
+            previous = self._previous
+            generation = previous.generation if previous is not None else secrets.token_hex(16)
+            if previous is not None and (previous.credential != credential or previous.settings != settings):
+                generation = secrets.token_hex(16)
+            self._previous = ExecutionConfiguration(settings, credential, generation)
+            return self._previous
 
     def status(self) -> dict[str, Json]:
-        """Return presence and effective settings without returning a credential."""
-        with self.lock:
-            return self._status()
-
-    def _status(self) -> dict[str, Json]:
         """Describe effective settings and key presence without returning secret values."""
-        settings = read_settings(self.directory)
-        source = credential_source(self.directory)
-        return {
-            "settings": settings.to_json(),
-            "integer_settings": {
-                name: {"minimum": definition["minimum"], "maximum": definition["maximum"]}
-                for name, definition in INTEGER_SETTINGS.items()
-            },
-            "credential_limit": MAX_CREDENTIAL_CHARACTERS,
-            "revision": settings_revision(settings),
-            "credential": {"source": source},
-        }
+        with self.lock:
+            settings, revision = read_revised_settings(self.directory)
+            source = credential_source(self.directory)
+            return {
+                'settings': asdict(settings),
+                'integer_settings': {
+                    name: {'minimum': definition['minimum'], 'maximum': definition['maximum']}
+                    for name, definition in INTEGER_SETTINGS.items()
+                },
+                'credential_limit': MAX_CREDENTIAL_CHARACTERS,
+                'revision': revision,
+                'credential': {'source': source},
+            }
 
     def update_settings(self, changes: dict[str, Json], revision: str) -> dict[str, Json]:
         """Apply a validated patch only to the version the editor actually read."""
         if changes.keys() - EDITABLE_SETTINGS:
             raise ConnectorError(ErrorCode.CONFIGURATION, SETTING_READ_ONLY)
         with self.lock:
-            current = read_settings(self.directory)
-            if revision != settings_revision(current):
-                raise SettingsConflictError
-            updated = parse_settings(current.to_json() | changes)
+            current, current_revision = read_revised_settings(self.directory)
+            if revision != current_revision:
+                raise SettingsConflictError(ErrorCode.CONFIGURATION, SETTINGS_CHANGED)
+            updated = parse_settings(asdict(current) | changes)
             atomic_write(
-                self.directory / "settings.json",
-                (json.dumps(updated.to_json(), indent=2) + "\n").encode(),
+                self.directory / 'settings.json',
+                (json.dumps(asdict(updated), indent=2) + '\n').encode(),
             )
-            return self._status()
+            return self.status()
 
     def save_credential(self, value: str) -> dict[str, Json]:
         """Save a validated secret and return only the effective source."""
         credential = parse_credential(value)
         with self.lock:
-            save_credential(self.directory, credential)
-            if credential_source(self.directory) != "environment":
-                self._generation.credential_saved(credential)
-            return self._status()
+            atomic_write(self.directory / 'credential', credential.value.encode('utf-8'))
+            previous = self._previous
+            # Saving the same key again keeps the cache token, so ComfyUI does not run a billed node again.
+            if (
+                credential_source(self.directory) != 'environment'
+                and previous is not None
+                and previous.credential != credential
+            ):
+                self._previous = None
+            return self.status()
 
     def clear_credential(self) -> dict[str, Json]:
         """Remove only the saved key; the server environment takes precedence."""
         with self.lock:
-            path = self.directory / "credential"
+            path = self.directory / 'credential'
             if path.exists():
-                private_directory(self.directory)
+                self.directory.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIRECTORY_MODE)
                 path.unlink()
-            if credential_source(self.directory) != "environment":
-                self._generation.invalidate()
-            return self._status()
+            if credential_source(self.directory) != 'environment':
+                self._previous = None
+            return self.status()
 
 
 def read_settings(directory: Path) -> Settings:
     """Read settings without creating files or directories."""
-    path = directory / "settings.json"
+    path = directory / 'settings.json'
     if not path.exists():
-        return default_settings()
+        return DEFAULT_SETTINGS
     return parse_settings(mapping_value(parse_json(read_private(path, max_bytes=MAX_SETTINGS_FILE_BYTES).decode())))
 
 
-def settings_revision(settings: Settings) -> str:
-    """Identify non-secret settings so stale tabs cannot overwrite newer changes."""
-    encoded = json.dumps(settings.to_json(), sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(encoded).hexdigest()
+def read_revised_settings(directory: Path) -> tuple[Settings, str]:
+    """Read settings and their revision, which keeps a stale tab from overwriting newer changes."""
+    settings = read_settings(directory)
+    encoded = json.dumps(asdict(settings), sort_keys=True, separators=(',', ':')).encode()
+    return settings, hashlib.sha256(encoded).hexdigest()

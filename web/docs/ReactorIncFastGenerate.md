@@ -1,4 +1,4 @@
-# Fast H3: Generate Video (Reactor)
+# Fast H3: Generate Video
 
 Generates one clip with sound from Reactor's Fast H3 model. Optional images set
 the first and last frames.
@@ -15,8 +15,8 @@ the first and last frames.
 | starting image           | Optional first frame.                                                                             |
 | final image              | Optional last frame, with or without a first frame.                                               |
 
-Each image is one RGB frame, at most 8,192 pixels per side and within the upload
-limit in Reactor settings. The model fits images to its canvas, so images in the
+Each image is one red, green, and blue (RGB) frame, at most 8,192 pixels per
+side and within the upload limit in Reactor settings. The model fits images to its canvas, so images in the
 chosen shape crop less. If the length Fast H3 accepts does not fit the session
 limit, the run stops before playback.
 
@@ -29,9 +29,9 @@ limit, the run stops before playback.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
 2. Open **fast-h3-01-text-to-video**, **fast-h3-02-image-to-video**, or
-   **fast-h3-03-first-and-last-frames** in **Browse Templates → reactor-inc**.
+   **fast-h3-03-first-and-last-frames** in **Browse Templates > reactor-inc**.
 3. Describe the scene, motion, and sound, then select **Run**.
 4. Play the result in **Save Video**; **Save Audio** keeps the sound alone.
 

@@ -1,12 +1,14 @@
 """Prepare Helios prompt changes before starting generation."""
 
 import json
+from dataclasses import asdict
+
 from ...errors import ErrorCode, ConnectorError
 from ...serialization import parse_json, mapping_value
-from ...state.generation.helios import ScheduledPrompt
-from ...config.generation.session import MAX_PROMPT_CHARACTERS
-from ...config.generation.prompts import MAX_PROMPTS, MAX_PROMPT_CHUNK, MAX_SEQUENCE_BYTES
 from ...config.messages.inputs import PROMPT_CHUNK, LATER_PROMPT_LENGTH, PROMPT_SEQUENCE_SIZE, PROMPT_SEQUENCE_ORDER
+from ...state.generation.helios import ScheduledPrompt
+from ...config.generation.prompts import MAX_PROMPTS, MAX_PROMPT_CHUNK, MAX_SEQUENCE_BYTES
+from ...config.generation.session import MAX_PROMPT_CHARACTERS
 
 
 def validate_prompt(prompt: ScheduledPrompt) -> None:
@@ -28,9 +30,9 @@ def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
     prompts: list[ScheduledPrompt] = []
     for item in payload:
         fields = mapping_value(item)
-        if set(fields) != {"chunk", "prompt"}:
+        if set(fields) != {'chunk', 'prompt'}:
             raise invalid
-        chunk, prompt = fields["chunk"], fields["prompt"]
+        chunk, prompt = fields['chunk'], fields['prompt']
         if type(chunk) is not int or type(prompt) is not str:
             raise invalid
         scheduled = ScheduledPrompt(chunk, prompt)
@@ -44,6 +46,6 @@ def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
 def append_prompt(previous: str, prompt: ScheduledPrompt) -> str:
     """Append one prompt and validate the complete serialized sequence."""
     validate_prompt(prompt)
-    encoded = json.dumps([item.to_dict() for item in (*parse_sequence(previous), prompt)])
+    encoded = json.dumps([asdict(item) for item in (*parse_sequence(previous), prompt)])
     parse_sequence(encoded)
     return encoded

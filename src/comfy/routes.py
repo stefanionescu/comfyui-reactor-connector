@@ -1,13 +1,15 @@
 """Register local routes with ComfyUI."""
 
-import folder_paths
 from pathlib import Path
-from comfy.cli_args import args
+
 from server import PromptServer
-from ..runtime import get_runtime
+import folder_paths
+from comfy.cli_args import args
+
 from ..paths import EXTENSION_ROOT
-from ..live.routes import LiveRoutes
 from ..errors import ErrorCode, ConnectorError
+from ..runtime import get_runtime
+from ..live.routes import LiveRoutes
 from ..settings.routes import ConfigurationRoutes
 from ..config.messages.settings import PRIVATE_STATE_LOCATION
 

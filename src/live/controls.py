@@ -1,17 +1,19 @@
 """Accept a small set of live actions from the browser that owns a session."""
 
 import time
-from typing import cast
+from typing import cast, override
 from collections import deque
-from .options import LiveOptions
-from ..state.documents import Json
-from ..models import MODELS_BY_CONNECTION
-from .lease import unavailable, BrowserLease
+
+from .lease import BrowserLease
 from ..errors import ErrorCode, ConnectorError
-from ..config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
-from ..config.messages.live import LIVE_ACTION_WAIT, LIVE_ACTION_VALUES
+from ..models import MODELS_BY_CONNECTION
+from .options import LiveOptions
 from ..config.live import MAX_SEQUENCE, MAX_PENDING_INPUTS, STALE_INPUT_SECONDS
 from ..config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION, DEFAULT_POINTER_POSITION
+from ..serialization import Json
+from ..config.media.webcam import CAMERA_READY_SECONDS
+from ..config.messages.live import LIVE_ACTION_WAIT, LIVE_ACTION_VALUES, LIVE_SESSION_UNAVAILABLE
+from ..config.generation.video import MAX_AUDIO_PROMPT_CHARACTERS
 
 
 class ControlLease(BrowserLease):
@@ -31,11 +33,8 @@ class ControlLease(BrowserLease):
         self.actions: deque[tuple[str, dict[str, Json], float]] = deque()
         self.action_sequence = -1
         self.started = started
-
-    def invitation(self) -> dict[str, Json]:
-        """Add supported live controls to the invitation sent to the owning client."""
-        result = super().invitation()
-        result.update(
+        # The invitation also names the live controls that the model supports.
+        self.invitation.update(
             model_title=self.definition.title,
             prompt_kind=self.definition.prompt_kind,
             allow_empty_prompt=self.definition.is_empty_prompt_allowed,
@@ -47,82 +46,90 @@ class ControlLease(BrowserLease):
             audio_prompt=self.options.audio_prompt,
             sound=self.definition.has_audio_prompt and self.options.is_audio_enabled,
         )
-        return result
 
     def action(self, document: dict[str, Json]) -> dict[str, Json]:
         """Authorize, validate, and queue a strictly ordered live action."""
-        self.authorize(document.get("capability"))
-        if document.keys() != {"lease", "capability", "sequence", "action", "fields"}:
-            raise unavailable()
-        name, payload, sequence = document["action"], document["fields"], document["sequence"]
+        self.authorize(document.get('capability'))
+        if document.keys() != {'lease', 'capability', 'sequence', 'action', 'fields'}:
+            raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
+        name, payload, sequence = document['action'], document['fields'], document['sequence']
         if type(sequence) is not int or not 0 <= sequence <= MAX_SEQUENCE or not isinstance(payload, dict):
-            raise unavailable()
+            raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
         self._validate(name, payload)
-        name = cast("str", name)
+        name = cast('str', name)
         with self.lock:
             if sequence <= self.action_sequence or self.closed or self.finishing or self.end:
-                raise unavailable()
-            if name != "start" and not self.controls_ready:
-                raise unavailable()
-            if name == "start":
+                raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
+            if name != 'start' and not self.controls_ready:
+                raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
+            if name == 'start':
                 self.started = True
             else:
                 # Keep release ordered after a press; replace only consecutive motion.
                 if (
-                    name == "pointer"
+                    name == 'pointer'
                     and self.actions
                     and self.actions[-1][0] == name
-                    and payload.get("active") is True
-                    and self.actions[-1][1].get("active") is True
+                    and payload.get('active') is True
+                    and self.actions[-1][1].get('active') is True
                 ):
                     self.actions.pop()
                 if len(self.actions) >= MAX_PENDING_INPUTS:
                     raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_ACTION_WAIT)
                 self.actions.append((name, payload, time.monotonic()))
             self.action_sequence = sequence
-        return {"accepted": True}
+        return {'accepted': True}
 
     def _validate(self, name: Json, payload: dict[str, Json]) -> None:
         """Allow only supported action fields and values for this model."""
         valid = False
-        if name == "start":
+        if name == 'start':
             valid = not payload
-        elif name == "prompt":
-            prompt = payload.get("prompt")
+        elif name == 'prompt':
+            prompt = payload.get('prompt')
             valid = (
-                payload.keys() == {"prompt"}
+                payload.keys() == {'prompt'}
                 and isinstance(prompt, str)
                 and (bool(prompt.strip()) or self.definition.is_empty_prompt_allowed)
                 and len(prompt) <= self.definition.max_prompt_characters
             )
-        elif name == "audio_prompt":
-            prompt = payload.get("prompt")
+        elif name == 'audio_prompt':
+            prompt = payload.get('prompt')
             valid = (
                 self.definition.has_audio_prompt
                 and self.options.is_audio_enabled
-                and payload.keys() == {"prompt"}
+                and payload.keys() == {'prompt'}
                 and isinstance(prompt, str)
                 and len(prompt) <= MAX_AUDIO_PROMPT_CHARACTERS
             )
-        elif name == "pointer" and self.definition.has_pointer:
+        elif name == 'pointer' and self.definition.has_pointer:
             valid = (
-                payload.keys() == {"x", "y", "active"}
-                and type(payload.get("active")) is bool
+                payload.keys() == {'x', 'y', 'active'}
+                and type(payload.get('active')) is bool
                 and all(
                     isinstance(value, (int, float))
                     and not isinstance(value, bool)
                     and MIN_POINTER_POSITION <= value <= MAX_POINTER_POSITION
-                    for value in (payload.get("x"), payload.get("y"))
+                    for value in (payload.get('x'), payload.get('y'))
                 )
             )
         if not valid:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_ACTION_VALUES)
 
     def is_ready(self) -> bool:
-        """Require an active client, a start request, and any required webcam frames."""
-        ready = super().is_ready()
+        """Require a connected client in an open session, a start request, and a recent frame of any webcam."""
+        with self.lock:
+            ready = self.ready and not self.end and not self.closed
         camera = self.options.webcam
-        return ready and self.started and (camera is None or camera.is_ready())
+        if camera is None:
+            return ready and self.started
+        with camera.lock:
+            has_frame = (
+                not camera.closed
+                and camera.pixels is not None
+                and time.monotonic() - camera.received_at < CAMERA_READY_SECONDS
+            )
+        return ready and self.started and has_frame
 
     def take_action(self, name: str) -> dict[str, Json] | None:
         """Take the next action of one type, replacing a stale pointer press with a release."""
@@ -131,21 +138,23 @@ class ControlLease(BrowserLease):
                 kind, payload, received_at = action
                 if kind == name:
                     self.actions.remove(action)
-                    if kind == "pointer" and time.monotonic() - received_at > STALE_INPUT_SECONDS:
+                    if kind == 'pointer' and time.monotonic() - received_at > STALE_INPUT_SECONDS:
                         return {
-                            "x": DEFAULT_POINTER_POSITION,
-                            "y": DEFAULT_POINTER_POSITION,
-                            "active": False,
+                            'x': DEFAULT_POINTER_POSITION,
+                            'y': DEFAULT_POINTER_POSITION,
+                            'active': False,
                         }
                     return payload
             return None
 
+    @override
     def finish(self) -> None:
         """Disable controls and discard actions while the recording finishes."""
         super().finish()
         with self.lock:
             self.actions.clear()
 
+    @override
     def close(self, *, is_termination_confirmed: bool, failed: bool = False) -> None:
         """Record termination, discard actions, and clear retained webcam frames."""
         super().close(is_termination_confirmed=is_termination_confirmed, failed=failed)

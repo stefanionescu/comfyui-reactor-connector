@@ -1,38 +1,27 @@
 """Let a browser observer share one owned session without replacing its lifecycle."""
 
-from typing import Protocol
+from dataclasses import dataclass
+from collections.abc import Callable, Awaitable
+
+from reactor_sdk import Track
+
 from .events import SessionEvents
-from collections.abc import Callable
-from .transport import Track, Transport
+from .transport import SessionTransport
 
 
-class SessionInteraction(Protocol):
-    """Session lifecycle callbacks used by the submitting client's live controls."""
+@dataclass(frozen=True, slots=True)
+class SessionInteraction:
+    """Session lifecycle callbacks of the live controls of the submitting client.
 
-    async def connected(self, transport: Transport, track: Track, events: SessionEvents) -> None:
-        """Attach live controls to the connected transport, output track, and session events."""
-        raise NotImplementedError
+    Attributes:
+        connected: Attaches live controls to the connected transport, output track, and session events.
+        configured: Marks the model ready for live actions.
+        stop: Stops owned control tasks before session cleanup completes.
+        closed: Records whether the session confirmed remote termination, and whether execution failed.
 
-    def configured(self) -> None:
-        """Mark the model ready for live actions."""
-        raise NotImplementedError
+    """
 
-    async def stop(self) -> None:
-        """Stop owned control tasks before session cleanup completes."""
-        raise NotImplementedError
-
-    def closed(self, *, is_termination_confirmed: bool, failed: bool) -> None:
-        """Record whether remote termination was confirmed and whether execution failed."""
-        raise NotImplementedError
-
-
-class FramePublisher(Protocol):
-    """Publish input frames for an operation and release them during cleanup."""
-
-    async def begin(self, track: Track, fail: Callable[[object], None]) -> None:
-        """Start publishing frames and report failures to the session owner."""
-        raise NotImplementedError
-
-    async def close(self) -> None:
-        """Stop publication and release retained frames."""
-        raise NotImplementedError
+    connected: Callable[[SessionTransport, Track, SessionEvents], Awaitable[None]]
+    configured: Callable[[], None]
+    stop: Callable[[], Awaitable[None]]
+    closed: Callable[[bool, bool], None]

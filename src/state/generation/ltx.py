@@ -1,7 +1,8 @@
 """Portrait speech request values."""
 
-from .inputs import VideoInputs
 from dataclasses import dataclass
+
+from .inputs import VideoInputs
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -15,4 +16,4 @@ class LtxSpeakRequest(VideoInputs):
     """
 
     words_per_minute: int
-    script: str = ""
+    script: str = ''

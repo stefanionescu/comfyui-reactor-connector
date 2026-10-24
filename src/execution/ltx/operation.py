@@ -1,15 +1,16 @@
 """Prepare a portrait and speech script for one LTX recording."""
 
-from typing import ClassVar
-from ...models import MODELS
-from ..transport import Transport
+from typing import ClassVar, override
+
 from ..events import SessionEvents
-from ...state.settings import Settings
-from ...state.session import RecordingWindow
-from ...errors import ErrorCode, ConnectorError
-from ...state.generation.ltx import LtxSpeakRequest
-from ...media.units import convert_mebibytes_to_bytes
 from ..inputs import VideoInputOperation, validate_capture_inputs
+from ...errors import ErrorCode, ConnectorError
+from ...models import MODELS
+from ..transport import SessionTransport
+from ...state.session import RecordingWindow
+from ...state.settings import Settings
+from ...config.settings import BYTES_PER_MEBIBYTE
+from ...state.generation.ltx import LtxSpeakRequest
 from ...config.messages.media import PORTRAIT_REQUIRED, PORTRAIT_UPLOAD_LIMIT
 from ...config.messages.inputs import (
     SPEECH_PACE,
@@ -33,9 +34,10 @@ from ...config.generation.speech import (
 class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
     """Prepare speech and a portrait before starting one take."""
 
-    connection_name: ClassVar[str] = MODELS["ltx2"].connection_name
+    connection_name: ClassVar[str] = MODELS['ltx2'].connection_name
     requires_audio: ClassVar[bool] = True
 
+    @override
     def validate(self, settings: Settings) -> None:
         """Check the portrait, script, speech pace, and LTX recording limits."""
         inputs = self.inputs
@@ -51,28 +53,30 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
                 ErrorCode.INVALID_INPUT,
                 SPEECH_PACE.format(minimum=MIN_WORDS_PER_MINUTE, maximum=MAX_WORDS_PER_MINUTE),
             )
-        if not inputs.image or len(inputs.image) > convert_mebibytes_to_bytes(settings.max_upload_megabytes):
+        if not inputs.image or len(inputs.image) > settings.max_upload_megabytes * BYTES_PER_MEBIBYTE:
             raise ConnectorError(ErrorCode.INVALID_INPUT, PORTRAIT_UPLOAD_LIMIT)
 
-    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
+    @override
+    async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
         """Upload the portrait and script, validate the offered speech pace, and start speech."""
         inputs = self.inputs
         audio = [
             track
-            for track in transport.tracks
-            if track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
+            for track in transport.get_client().tracks
+            if track.name == 'main_audio' and track.kind == 'audio' and track.direction == 'recvonly'
         ]
         if len(audio) != 1:
             raise ConnectorError(ErrorCode.UNAVAILABLE, LTX_AUDIO_MISSING)
         if inputs.image is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, PORTRAIT_REQUIRED)
         reference = await events.call(
-            "upload", transport.upload_file(inputs.image, name="input.png", mime_type="image/png")
+            'upload', transport.upload_file(inputs.image, name='input.png', mime_type='image/png')
         )
-        await events.command_reply("set_avatar_image", {"avatar_image": reference})
-        await events.command_reply("set_script", {"script": inputs.script})
-        state = await events.call("speech_state", events.snapshot("state_update"))
-        minimum, maximum = state.get("wpm_min"), state.get("wpm_max")
+        await events.command_reply('set_avatar_image', {'avatar_image': reference})
+        await events.command_reply('set_script', {'script': inputs.script})
+        await events.call('speech_state', events.state_signals['state_update'].wait())
+        state = events.latest_states['state_update']
+        minimum, maximum = state.get('wpm_min'), state.get('wpm_max')
         if (
             not isinstance(minimum, (int, float))
             or isinstance(minimum, bool)
@@ -86,14 +90,14 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
         minimum, maximum = int(minimum), int(maximum)
         if not minimum <= inputs.words_per_minute <= maximum:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SPEECH_PACE_RANGE.format(minimum=minimum, maximum=maximum))
-        await events.command_reply("set_wpm", {"wpm": inputs.words_per_minute})
+        await events.command_reply('set_wpm', {'wpm': inputs.words_per_minute})
         # Recording fragments need later media to close after the requested capture ends.
         await events.command_reply(
-            "set_duration_seconds",
-            {"duration_seconds": inputs.duration_seconds + RECORDING_TAIL_SECONDS},
+            'set_duration_seconds',
+            {'duration_seconds': inputs.duration_seconds + RECORDING_TAIL_SECONDS},
         )
-        await events.command_reply("set_seed", {"seed": inputs.seed})
+        await events.command_reply('set_seed', {'seed': inputs.seed})
         if inputs.prompt.strip():
-            await events.command_reply("set_prompt", {"prompt": inputs.prompt})
-        await events.command_reply("start", {})
+            await events.command_reply('set_prompt', {'prompt': inputs.prompt})
+        await events.command_reply('start', {})
         return RecordingWindow(0, inputs.duration_seconds)

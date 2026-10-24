@@ -1,4 +1,4 @@
-"""Wait for owned tasks that must settle even when the caller is cancelled."""
+"""Wait for owned tasks that must settle even when the caller gets cancelled."""
 
 import asyncio
 
@@ -11,6 +11,6 @@ async def wait_shielded[T](task: asyncio.Task[T]) -> bool:
             await asyncio.shield(task)
         except asyncio.CancelledError:
             cancelled = True
-        except Exception:  # noqa: BLE001 -- reason: The caller reads the settled task's failure after resolving cancellation.
+        except Exception:  # noqa: BLE001 # reason: The caller reads the settled task's failure after resolving cancellation.
             break
     return cancelled

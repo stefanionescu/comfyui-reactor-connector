@@ -3,16 +3,17 @@
 import sys
 import asyncio
 from pathlib import Path
-from ..process import MediaProcess
+
 from ...paths import EXTENSION_ROOT
 from ..output import discard_outputs
-from ...state.media import CaptureResult
 from ...errors import ErrorCode, ConnectorError
-from ...config.media.video import MAX_FRAME_RATE
-from ...config.messages.media import RECORDING_METADATA
-from ...config.media.workers import RECORDING_TIMEOUT_SECONDS
-from ...config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
+from ..process import MediaProcess
+from ...state.media import CaptureResult
 from ...config.media.audio import SAMPLE_RATE, MAX_CHANNELS, MIN_CHANNELS
+from ...config.media.video import MAX_FRAME_RATE
+from ...config.media.capture import MAX_QUEUE_BYTES, MAX_CAPTURE_BYTES
+from ...config.media.workers import RECORDING_TIMEOUT_SECONDS
+from ...config.messages.media import RECORDING_METADATA
 
 
 async def prepare_recording(
@@ -23,13 +24,13 @@ async def prepare_recording(
     start_seconds: float = 0,
 ) -> CaptureResult:
     """Keep decoding terminable and remove both outputs after any failure."""
-    audio = destination.with_suffix(".wav")
+    audio = destination.with_suffix('.wav')
     worker = MediaProcess(
         [
             sys.executable,
-            "-I",
+            '-I',
             str(EXTENSION_ROOT),
-            "recording",
+            'recording',
             str(source),
             str(destination),
             str(audio),
@@ -43,13 +44,13 @@ async def prepare_recording(
     try:
         async with asyncio.timeout(RECORDING_TIMEOUT_SECONDS):
             result = await worker.run(asyncio.Event(), asyncio.Event())
-        frames, mode = result.get("frames"), result.get("timestamp_mode")
-        samples, channels = result.get("audio_samples"), result.get("channels")
+        frames, mode = result.get('frames'), result.get('timestamp_mode')
+        samples, channels = result.get('audio_samples'), result.get('channels')
         if (
             type(frames) is not int
             or not 1 <= frames <= duration_seconds * MAX_FRAME_RATE + 1
-            or mode != "recording_pts"
-            or result.get("sample_rate") != SAMPLE_RATE
+            or mode != 'recording_pts'
+            or result.get('sample_rate') != SAMPLE_RATE
             or type(samples) is not int
             or not 1 <= samples <= duration_seconds * SAMPLE_RATE + 1
             or type(channels) is not int

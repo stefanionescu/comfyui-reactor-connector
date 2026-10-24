@@ -1,7 +1,8 @@
 """LongLive request and storyboard records."""
 
-from .inputs import VideoInputs
 from dataclasses import dataclass
+
+from .inputs import VideoInputs
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,14 +19,6 @@ class Shot:
     at_session_chunk: int
     transition: str
     prompt: str
-
-    def to_dict(self) -> dict[str, object]:
-        """Encode the shot using Reactor storyboard field names."""
-        return {
-            "at_session_chunk": self.at_session_chunk,
-            "transition": self.transition,
-            "prompt": self.prompt,
-        }
 
 
 @dataclass(frozen=True, slots=True)

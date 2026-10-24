@@ -12,6 +12,6 @@ MIN_WORDS_PER_MINUTE = 1
 
 RECORDING_TAIL_SECONDS = 20
 
-DEFAULT_SCRIPT = "Hello. Welcome to this short video."
+DEFAULT_SCRIPT = 'Hello. Welcome to this short video.'
 
 DEFAULT_WORDS_PER_MINUTE = 140

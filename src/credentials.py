@@ -2,10 +2,11 @@
 
 import os
 from pathlib import Path
-from .state.credentials import Credential
+
 from .errors import ErrorCode, ConnectorError
-from .storage import atomic_write, read_private
+from .storage import read_private
 from .config.security import MAX_CREDENTIAL_CHARACTERS
+from .state.credentials import Credential
 from .config.messages.settings import KEY_EMPTY, KEY_REQUIRED, KEY_UNREADABLE, KEY_WHITESPACE
 
 
@@ -20,12 +21,12 @@ def parse_credential(value: str) -> Credential:
 
 def read_credential(directory: Path) -> Credential:
     """Prefer the server environment over private saved credentials."""
-    if "REACTOR_API_KEY" in os.environ:
-        return parse_credential(os.environ["REACTOR_API_KEY"])
-    path = directory / "credential"
+    if 'REACTOR_API_KEY' in os.environ:
+        return parse_credential(os.environ['REACTOR_API_KEY'])
+    path = directory / 'credential'
     if path.exists():
         try:
-            return parse_credential(read_private(path, max_bytes=MAX_CREDENTIAL_CHARACTERS).decode("utf-8"))
+            return parse_credential(read_private(path, max_bytes=MAX_CREDENTIAL_CHARACTERS).decode('utf-8'))
         except (OSError, UnicodeError):
             raise ConnectorError(
                 ErrorCode.CONFIGURATION,
@@ -39,11 +40,6 @@ def read_credential(directory: Path) -> Credential:
 
 def credential_source(directory: Path) -> str:
     """Report presence and source without reading or returning the secret."""
-    if "REACTOR_API_KEY" in os.environ:
-        return "environment"
-    return "saved" if (directory / "credential").is_file() else "missing"
-
-
-def save_credential(directory: Path, credential: Credential) -> None:
-    """Write a credential only to the caller's verified private state directory."""
-    atomic_write(directory / "credential", credential.reveal().encode("utf-8"))
+    if 'REACTOR_API_KEY' in os.environ:
+        return 'environment'
+    return 'saved' if (directory / 'credential').is_file() else 'missing'

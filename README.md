@@ -1,12 +1,12 @@
 # ![comfyui-reactor-connector: a ComfyUI extension that runs Reactor's real-time video models](docs/images/banner.svg)
 
-[![ComfyUI 0.34.6 or later](docs/images/badge-comfyui.svg)](#requirements)
-[![Frontend 1.49.6 or later](docs/images/badge-frontend.svg)](#requirements)
-[![Python 3.12 or later](docs/images/badge-python.svg)](#requirements)
-[![MIT license](docs/images/badge-license.svg)](LICENSE.md)
+[![ComfyUI 0.34.6 or later](docs/images/badges/comfyui.svg)](#requirements)
+[![Frontend 1.49.6 or later](docs/images/badges/frontend.svg)](#requirements)
+[![Python 3.12 or later](docs/images/badges/python.svg)](#requirements)
+[![MIT license](docs/images/badges/license.svg)](LICENSE.md)
 
 Generate videos, edit local clips, and move through scenes with Reactor models
-in ComfyUI. Models run on Reactor; no model weights are downloaded.
+in ComfyUI. Models run on Reactor, so the connector downloads no model weights.
 
 ## Contents
 
@@ -21,7 +21,7 @@ in ComfyUI. Models run on Reactor; no model weights are downloaded.
 ## Requirements
 
 - Python 3.12 or later.
-- ComfyUI 0.34.6 or later, with frontend 1.49.6 or later in the 1.x series.
+- ComfyUI 0.34.6 or later, with frontend 1.49.6 or a later release below 2.0.0.
 - A Reactor account with credits.
 
 ## Install
@@ -45,7 +45,7 @@ development dependencies to use it.
 3. Open **Terminal** in the same Manage panel. Desktop opens the ComfyUI folder
    and activates that installation's Python environment. Run:
 
-```sh
+```sh title="Run in the ComfyUI folder"
 pip install -r custom_nodes/reactor-inc/requirements.txt
 ```
 
@@ -57,13 +57,13 @@ for the folder and terminal controls.
 
 Run from the ComfyUI directory. Replace `.venv` if your environment has another name:
 
-```sh
+```sh title="Run in the ComfyUI folder"
 .venv/bin/python -m pip install -r custom_nodes/reactor-inc/requirements.txt
 ```
 
 For a uv environment without pip, use:
 
-```sh
+```sh title="Run in the ComfyUI folder"
 uv pip install --python .venv/bin/python -r custom_nodes/reactor-inc/requirements.txt
 ```
 
@@ -72,15 +72,15 @@ uv pip install --python .venv/bin/python -r custom_nodes/reactor-inc/requirement
 Run in PowerShell from the ComfyUI directory. Replace `.venv` if your virtual
 environment has another name or location:
 
-```powershell
+```powershell title="Run in the ComfyUI folder"
 .\.venv\Scripts\python.exe -m pip install -r .\custom_nodes\reactor-inc\requirements.txt
 ```
 
 ### Windows portable
 
-Run in PowerShell from the folder containing `ComfyUI` and `python_embeded`:
+Run in PowerShell from the folder containing `ComfyUI` and `python_embedded`:
 
-```powershell
+```powershell title="Run in the folder that holds ComfyUI"
 .\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
 ```
 
@@ -89,9 +89,9 @@ package changes. Install only runtime requirements into ComfyUI's environment.
 
 ## Make your first video
 
-1. Select the Comfy logo, then **Extensions → Reactor → Reactor settings**.
+1. Select the Comfy logo, then **Extensions > Reactor > Reactor settings**.
    Save your Reactor API key there. It stays on the server and out of workflows.
-2. Open native **Browse Templates → reactor-inc** and select
+2. Open native **Browse Templates > reactor-inc** and select
    **helios-01-text-to-video**. You can also drag the
    [Helios text-to-video workflow](example_workflows/helios-01-text-to-video.json)
    onto the canvas.
@@ -106,20 +106,20 @@ it. Change **run number** to request another run with unchanged inputs.
 ## Choose a workflow
 
 The `example_workflows` folder holds 26 editable graphs. Open one from native
-**Browse Templates → reactor-inc**, or drag its JSON file onto ComfyUI. Each graph
+**Browse Templates > reactor-inc**, or drag its JSON file onto ComfyUI. Each graph
 has connected nodes and a **Start Here** note. Examples need only native ComfyUI
 nodes and this connector. Media inputs start empty; select your own image or
 video, or use a [sample input](#sample-inputs).
 
 Use live workflows for scene prompts, Visko sound prompts, X2 dragging, or SANA
-and X2 webcams. LingBot workflows with scene controls let you move with keys or buttons;
-saved video cannot reopen a world. Fast H3 can continue a chosen number of clips
+and X2 webcams. In LingBot workflows with scene controls, you move with keys or
+buttons; saved video cannot reopen a world. Fast H3 can continue a chosen number of clips
 in one run. See [live controls](ADVANCED.md#live-controls).
 
 ![Screenshot of helios-03-prompt-sequence: two Helios: Add a Prompt nodes chain into Helios: Follow a Prompt Sequence, which sends its video to Save Video, under the Start Here and Using This Workflow notes.](docs/images/workflow-prompt-sequence.png)
 
 After updating, open an example in a new tab. Existing graphs keep their saved
-notes, prompts, and layout. Notes and node titles are saved in the graph in
+notes, prompts, and layout. The graph saves notes and node titles in
 English; changing the interface language does not translate them.
 
 | Workflow JSON                                                                                                 | Input                                   | Guide                                                    |
@@ -162,7 +162,7 @@ Download a sample, then select it in the matching image or video input node.
 | [Fictional portrait](example_workflows/assets/fictional-portrait.png)   | Make a portrait speak with LTX.                        |
 | [Forest motion](example_workflows/assets/forest-motion.mp4)             | Edit a five-second clip with SANA or X2.               |
 
-The sample images are generated illustrations. The portrait depicts a fictional
+The sample images are machine-generated illustrations. The portrait depicts a fictional
 adult. The sample video adds a slow zoom to the forest image: 120 frames at
 24 fps, 640 × 360 pixels, standard dynamic range, and no sound. They are inputs,
 not examples of Reactor output.
@@ -208,20 +208,20 @@ locally without contacting Reactor.
 
 ## Fix a setup problem
 
-| Problem                                      | What to check                                                                                  |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Reactor nodes are missing                    | Confirm the running instance has `custom_nodes/reactor-inc/__init__.py`; read its startup log. |
-| `reactor_sdk` cannot be imported             | Install runtime requirements with that instance's Python.                                      |
-| No matching SDK distribution                 | Use Python 3.12 or later and a platform supported by the required SDK version.                 |
-| `comfy_api` or a native node type is missing | Update ComfyUI through its normal update procedure, then restart.                              |
-| Nodes appear but Reactor menus do not        | Refresh the window; confirm the package includes `web/extension.js` and `web/extension.css`.   |
-| Node help is missing                         | Restore the complete package, including the native guides under `web/docs`.                    |
-| Templates are missing                        | Confirm the package includes `example_workflows`; you can also open a JSON file there.         |
-| Duplicate nodes or menus appear              | Keep one connector folder; move backups outside `custom_nodes`.                                |
-| Private settings are disabled                | Use a local, single-user connection. For remote access, set the server environment key.        |
+| Problem                                      | What to check                                                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Reactor nodes are missing                    | Confirm `__init__.py` sits directly in the `reactor-inc` folder under `custom_nodes`; read the startup log. |
+| `reactor_sdk` cannot be imported             | Install runtime requirements with that instance's Python.                                                   |
+| No matching SDK distribution                 | Use Python 3.12 or later and a platform supported by the required SDK version.                              |
+| `comfy_api` or a native node type is missing | Update ComfyUI through its normal update procedure, then restart.                                           |
+| Nodes appear but Reactor menus do not        | Refresh the window; confirm the package includes `web/extension.js` and `web/extension.css`.                |
+| Node help is missing                         | Restore the complete package, including the native guides under `web/docs`.                                 |
+| Templates are missing                        | Confirm the package includes `example_workflows`; you can also open a JSON file there.                      |
+| Duplicate nodes or menus appear              | Keep one connector folder; move backups outside `custom_nodes`.                                             |
+| Private settings are disabled                | Use a local, single-user connection. For remote access, set the server environment key.                     |
 
 For rejected inputs, timeouts, or session errors, read [recovery](ADVANCED.md#recovery)
-and the node's native **Info** before another run. [Advanced settings](ADVANCED.md)
+and the native **Info** of the node before another run. [Advanced settings](ADVANCED.md)
 explains keys, limits, credit calculations, and live controls.
 
 ## License

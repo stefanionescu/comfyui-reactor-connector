@@ -1,257 +1,273 @@
 import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
 import { browserRoutes } from '#web/routes.ts';
-import type { ControlsInvitation } from '#web/live/schema.ts';
+import { message, type MessageKey } from '#web/text.ts';
 import { browserInput, browserLimits } from '#web/browser.ts';
-import { message, setText, type MessageKey } from '#web/text.ts';
+import type { ControlsInvitation } from '#web/live/schema.ts';
 
-export class Webcam {
-  readonly view = element('section');
+/** The message for each camera error that the browser names. */
+const CAMERA_ERRORS = new Map<string, MessageKey>([
+    ['NotAllowedError', 'camera.permissionDenied'],
+    ['SecurityError', 'camera.browserRequirements'],
+    ['NotFoundError', 'camera.notFound'],
+    ['NotReadableError', 'camera.busy'],
+    ['OverconstrainedError', 'camera.unavailableSelection'],
+]);
 
-  readonly video = element('video');
-
-  readonly enable = button(message('camera.enable'));
-
-  readonly select = element('select');
-
-  readonly status = element('p');
-
-  private readonly indicators = element('div');
-
-  private stream: MediaStream | undefined;
-
-  private closed = false;
-
-  private sequence = 0;
-
-  private readonly canvas = element('canvas');
-
-  private upload: Promise<boolean> | undefined;
-
-  private readonly controller = new AbortController();
-
-  /**
-   * Build camera selection and a muted input preview.
-   * @param owner - The validated session invitation.
-   * @param fetcher - ComfyUI's local API client.
-   * @param fail - Request session ending if the camera disconnects.
-   */
-  constructor(
-    private owner: ControlsInvitation,
-    private fetcher: Fetcher,
-    private fail: (message: string) => void,
-  ) {
-    this.view.className = 'reactor-webcam';
-    const heading = element('header');
-    heading.append(element('h3', message('camera.label')));
-    this.status.setAttribute('role', 'status');
-    this.select.setAttribute('aria-label', message('camera.label'));
-    const defaultCamera = element('option', message('camera.default'));
-    defaultCamera.value = '';
-    this.select.append(defaultCamera);
-    this.video.muted = true;
-    this.video.autoplay = true;
-    this.video.playsInline = true;
-    this.video.hidden = true;
-    this.video.setAttribute('aria-label', message('camera.preview'));
-    const controls = element('div');
-    controls.className = 'reactor-camera-controls';
-    const selection = element('div');
-    selection.className = 'reactor-select';
-    selection.append(this.select);
-    const actions = element('div');
-    actions.className = 'reactor-camera-actions';
-    this.indicators.className = 'reactor-camera-state';
-    this.indicators.hidden = true;
-    this.indicators.setAttribute('role', 'status');
-    this.indicators.append(
-      element('span', message('camera.enabled')),
-      element('span', message('camera.microphone')),
-    );
-    actions.append(this.indicators, this.enable);
-    controls.append(selection, actions);
-    this.view.append(heading, controls, this.video, this.status);
-    this.select.addEventListener('change', () => {
-      this.enable.disabled =
-        this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
-    });
-    this.enable.addEventListener('click', () => {
-      this.enable.disabled = true;
-      const selected = this.select.value;
-      void this.start(selected);
-    });
-  }
-
-  private async start(selected: string): Promise<void> {
-    try {
-      if (!(await this.openCamera(selected))) return;
-      await this.listCameras();
-      if (this.closed) return;
-      setText(this.enable, message('camera.select'));
-      setText(this.status, '');
-      this.indicators.hidden = false;
-    } catch (error) {
-      this.stopCamera();
-      setText(this.enable, message('camera.enable'));
-      if (this.closed) return;
-      const errors = new Map<string, MessageKey>([
-        ['NotAllowedError', 'camera.permissionDenied'],
-        ['SecurityError', 'camera.browserRequirements'],
-        ['NotFoundError', 'camera.notFound'],
-        ['NotReadableError', 'camera.busy'],
-        ['OverconstrainedError', 'camera.unavailableSelection'],
-      ]);
-      setText(
-        this.status,
-        message(
-          error instanceof Error
-            ? (errors.get(error.name) ?? 'camera.accessFailed')
-            : 'camera.accessFailed',
-        ),
-      );
-    } finally {
-      if (!this.closed)
-        this.enable.disabled =
-          this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
-    }
-  }
-
-  /**
-   * Open the selected camera and release any previous stream.
-   * @param selected - The selected device ID, or an empty string for the default camera.
-   * @returns Whether the camera is ready and the panel is still open.
-   */
-  private async openCamera(selected: string): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- DOM types omit browsers and insecure contexts where camera access is unavailable.
-    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException('', 'SecurityError');
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
+/**
+ * Ask the browser for the selected camera.
+ *
+ * @param selected - The selected device ID, or an empty string for the default camera.
+ * @returns The camera stream, without sound.
+ */
+async function requestCamera(selected: string): Promise<MediaStream> {
+    // DOM types omit browsers and insecure contexts where camera access is unavailable.
+    if (!('mediaDevices' in navigator) || !('getUserMedia' in navigator.mediaDevices))
+        throw new DOMException('', 'SecurityError');
+    const video: MediaTrackConstraints = {
         width: { ideal: browserInput.cameraWidth },
         height: { ideal: browserInput.cameraHeight },
         frameRate: {
-          ideal: browserInput.cameraIdealFrameRate,
-          max: browserInput.cameraMaxFrameRate,
+            ideal: browserInput.cameraIdealFrameRate,
+            max: browserInput.cameraMaxFrameRate,
         },
-        ...(selected ? { deviceId: { exact: selected } } : {}),
-      },
-    });
-    if (this.closed) {
-      for (const track of stream.getTracks()) track.stop();
-      return false;
-    }
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    this.stream = stream;
-    this.video.srcObject = stream;
-    await this.video.play();
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- The panel can close while video.play() is awaiting playback.
-    if (this.closed) return false;
-    this.video.hidden = false;
-    return true;
-  }
+    };
+    if (selected !== '') video.deviceId = { exact: selected };
+    return await navigator.mediaDevices.getUserMedia({ audio: false, video });
+}
 
-  /**
-   * List cameras after permission reveals their names.
-   * @returns When the available camera choices have been updated.
-   */
-  private async listCameras(): Promise<void> {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    if (this.closed) return;
-    const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
-    const options = document.createDocumentFragment();
-    for (const device of devices) {
-      if (device.kind !== 'videoinput') continue;
-      const option = element(
-        'option',
-        device.label || message('camera.number', { number: options.childElementCount + 1 }),
-      );
-      option.value = device.deviceId;
-      option.selected = device.deviceId === selected;
-      options.appendChild(option);
-    }
-    this.select.replaceChildren();
-    this.select.appendChild(options);
-  }
+export class Webcam {
+    readonly view = element('section');
 
-  /**
-   * Upload a camera frame without overlapping uploads.
-   * @returns Whether a camera frame was uploaded successfully.
-   */
-  async frame(): Promise<boolean> {
-    if (this.closed || !this.stream || this.video.readyState < 2) return false;
-    for (const track of this.stream.getVideoTracks()) {
-      if (track.readyState === 'live') continue;
-      this.fail(message('camera.disconnected'));
-      return false;
-    }
-    if (this.upload) {
-      return await this.upload;
-    }
-    const ratio = Math.min(
-      browserInput.cameraWidth / this.video.videoWidth,
-      browserInput.cameraHeight / this.video.videoHeight,
-      1,
-    );
-    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
-    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-    this.upload = this.send();
-    try {
-      return await this.upload;
-    } finally {
-      this.upload = undefined;
-    }
-  }
+    readonly video = element('video');
 
-  private async send(): Promise<boolean> {
-    const blob = await new Promise<Blob | null>((fulfill) => {
-      const context = this.canvas.getContext('2d');
-      if (!context) throw new Error(message('camera.readFailed'));
-      context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      this.canvas.toBlob(fulfill, 'image/jpeg', browserInput.cameraJpegQuality);
-    });
-    if (this.closed) return false;
-    if (!blob) throw new Error(message('camera.readFailed'));
-    const response = await this.fetcher(browserRoutes.live.camera, {
-      method: 'POST',
-      cache: 'no-store',
-      body: blob,
-      signal: AbortSignal.any([
-        this.controller.signal,
-        AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
-      ]),
-      headers: {
-        'Content-Type': 'image/jpeg',
-        'X-Reactor-Comfy': '1',
-        'X-Reactor-Lease': this.owner.lease,
-        'X-Reactor-Capability': this.owner.capability,
-        'X-Reactor-Sequence': String(this.sequence++),
-      },
-    });
-    if (!response.ok) throw new Error(message('camera.uploadFailed'));
-    return true;
-  }
+    readonly enable = button(message('camera.enable'));
 
-  /**
-   * Stop the camera, cancel uploads, and clear the capture canvas.
-   */
-  close(): void {
-    this.closed = true;
-    this.controller.abort();
-    this.stopCamera();
-    this.select.disabled = this.enable.disabled = true;
-    this.view.hidden = true;
-    this.canvas.width = this.canvas.height = 0;
-  }
+    readonly select = element('select');
 
-  private stopCamera(): void {
-    this.indicators.hidden = true;
-    this.video.hidden = true;
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
+    readonly status = element('p');
+
+    private readonly indicators = element('div');
+
+    private stream: MediaStream | undefined;
+
+    private closed = false;
+
+    private sequence = 0;
+
+    private readonly canvas = element('canvas');
+
+    private upload: Promise<boolean> | undefined;
+
+    private readonly controller = new AbortController();
+
+    /**
+     * Build camera selection and a muted input preview.
+     *
+     * @param owner - The validated session invitation.
+     * @param fetcher - ComfyUI's local API client.
+     * @param fail - Request session ending if the camera disconnects.
+     */
+    constructor(
+        private readonly owner: ControlsInvitation,
+        private readonly fetcher: Fetcher,
+        private readonly fail: (message: string) => void,
+    ) {
+        this.view.className = 'reactor-webcam';
+        const heading = element('header');
+        heading.append(element('h3', message('camera.label')));
+        this.status.setAttribute('role', 'status');
+        this.select.setAttribute('aria-label', message('camera.label'));
+        const defaultCamera = element('option', message('camera.default'));
+        defaultCamera.value = '';
+        this.select.append(defaultCamera);
+        this.video.muted = true;
+        this.video.autoplay = true;
+        this.video.playsInline = true;
+        this.video.hidden = true;
+        this.video.setAttribute('aria-label', message('camera.preview'));
+        const controls = element('div');
+        controls.className = 'reactor-camera-controls';
+        const selection = element('div');
+        selection.className = 'reactor-select';
+        selection.append(this.select);
+        const actions = element('div');
+        actions.className = 'reactor-camera-actions';
+        this.indicators.className = 'reactor-camera-state';
+        this.indicators.hidden = true;
+        this.indicators.setAttribute('role', 'status');
+        this.indicators.append(
+            element('span', message('camera.enabled')),
+            element('span', message('camera.microphone')),
+        );
+        actions.append(this.indicators, this.enable);
+        controls.append(selection, actions);
+        this.view.append(heading, controls, this.video, this.status);
+        this.select.addEventListener('change', () => {
+            this.enable.disabled = this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
+        });
+        this.enable.addEventListener('click', () => {
+            this.enable.disabled = true;
+            const selected = this.select.value;
+            this.start(selected).catch(reportError);
+        });
     }
-    this.stream = undefined;
-    this.video.srcObject = null;
-  }
+
+    private async start(selected: string): Promise<void> {
+        try {
+            if (!(await this.openCamera(selected))) return;
+            await this.listCameras();
+            if (this.closed) return;
+            this.enable.textContent = message('camera.select');
+            this.status.textContent = '';
+            this.indicators.hidden = false;
+        } catch (error) {
+            this.showCameraError(error);
+        } finally {
+            if (!this.closed)
+                this.enable.disabled = this.stream?.getVideoTracks()[0]?.getSettings().deviceId === this.select.value;
+        }
+    }
+
+    /**
+     * Release the camera after it failed to open, and say why.
+     *
+     * @param error - What opening or listing the camera threw.
+     */
+    private showCameraError(error: unknown): void {
+        this.stopCamera();
+        this.enable.textContent = message('camera.enable');
+        if (this.closed) return;
+        const key = error instanceof Error ? CAMERA_ERRORS.get(error.name) : undefined;
+        this.status.textContent = message(key ?? 'camera.accessFailed');
+    }
+
+    /**
+     * Open the selected camera and release any previous stream.
+     *
+     * @param selected - The selected device ID, or an empty string for the default camera.
+     * @returns Whether the camera is ready and the panel is still open.
+     */
+    private async openCamera(selected: string): Promise<boolean> {
+        const stream = await requestCamera(selected);
+        if (this.closed) {
+            for (const track of stream.getTracks()) track.stop();
+            return false;
+        }
+        for (const track of this.stream?.getTracks() ?? []) {
+            track.stop();
+        }
+        this.stream = stream;
+        this.video.srcObject = stream;
+        await this.video.play();
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- The panel can close while video.play() is awaiting playback.
+        if (this.closed) return false;
+        this.video.hidden = false;
+        return true;
+    }
+
+    /**
+     * List cameras after permission reveals their names.
+     *
+     * @returns When the camera choices list the available cameras.
+     */
+    private async listCameras(): Promise<void> {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        if (this.closed) return;
+        const selected = this.stream?.getVideoTracks()[0]?.getSettings().deviceId;
+        const options = document.createDocumentFragment();
+        for (const device of devices) {
+            if (device.kind !== 'videoinput') continue;
+            const option = element(
+                'option',
+                device.label || message('camera.number', { number: options.childElementCount + 1 }),
+            );
+            option.value = device.deviceId;
+            option.selected = device.deviceId === selected;
+            options.append(option);
+        }
+        this.select.replaceChildren();
+        this.select.append(options);
+    }
+
+    /**
+     * Upload a camera frame without overlapping uploads.
+     *
+     * @returns Whether the server accepted a camera frame.
+     */
+    async frame(): Promise<boolean> {
+        if (this.closed || !this.stream || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return false;
+        for (const track of this.stream.getVideoTracks()) {
+            if (track.readyState === 'live') continue;
+            this.fail(message('camera.disconnected'));
+            return false;
+        }
+        if (this.upload) {
+            return await this.upload;
+        }
+        const ratio = Math.min(
+            browserInput.cameraWidth / this.video.videoWidth,
+            browserInput.cameraHeight / this.video.videoHeight,
+            1,
+        );
+        this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
+        this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
+        this.upload = this.send();
+        try {
+            return await this.upload;
+        } finally {
+            this.upload = undefined;
+        }
+    }
+
+    private async send(): Promise<boolean> {
+        const blob = await new Promise<Blob | null>((fulfill) => {
+            const context = this.canvas.getContext('2d');
+            if (!context) throw new Error(message('camera.readFailed'));
+            context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+            this.canvas.toBlob(fulfill, 'image/jpeg', browserInput.cameraJpegQuality);
+        });
+        if (this.closed) return false;
+        if (!blob) throw new Error(message('camera.readFailed'));
+        const response = await this.fetcher(browserRoutes.live.camera, {
+            method: 'POST',
+            cache: 'no-store',
+            body: blob,
+            signal: AbortSignal.any([
+                this.controller.signal,
+                AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds),
+            ]),
+            headers: {
+                'Content-Type': 'image/jpeg',
+                'X-Reactor-Comfy': '1',
+                'X-Reactor-Lease': this.owner.lease,
+                'X-Reactor-Capability': this.owner.capability,
+                'X-Reactor-Sequence': String(this.sequence++),
+            },
+        });
+        if (!response.ok) throw new Error(message('camera.uploadFailed'));
+        return true;
+    }
+
+    /**
+     * Stop the camera, cancel uploads, and clear the capture canvas.
+     */
+    close(): void {
+        this.closed = true;
+        this.controller.abort();
+        this.stopCamera();
+        this.select.disabled = this.enable.disabled = true;
+        this.view.hidden = true;
+        this.canvas.width = this.canvas.height = 0;
+    }
+
+    private stopCamera(): void {
+        this.indicators.hidden = true;
+        this.video.hidden = true;
+        for (const track of this.stream?.getTracks() ?? []) {
+            track.stop();
+        }
+        this.stream = undefined;
+        this.video.srcObject = null;
+    }
 }

@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, ClassVar, cast, override
 import asyncio
-from ...models import MODELS
+
 from ..inputs import VideoInputOperation
 from ...errors import ErrorCode, ConnectorError
-from typing import cast, ClassVar, TYPE_CHECKING
-from ...state.generation.visko import ViskoRequest
-from ...state.session import ControlValues, RecordingWindow
-from ...config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
+from ...models import MODELS
+from ...state.session import RecordingWindow
 from ...config.messages.inputs import (
     FORMAT_NAME,
     FORMAT_UNAVAILABLE,
@@ -19,10 +18,12 @@ from ...config.messages.inputs import (
     VISKO_SOUND_CHANGED,
     VISKO_FORMAT_CHANGED,
 )
+from ...state.generation.visko import ViskoRequest
+from ...config.generation.video import MAX_FORMAT_NAME_CHARACTERS, MAX_AUDIO_PROMPT_CHARACTERS
 
 if TYPE_CHECKING:
-    from ..transport import Transport
     from ..events import SessionEvents
+    from ..transport import SessionTransport
     from ...state.settings import Settings
 
 
@@ -33,35 +34,35 @@ class ViskoStart:
         """Subscribe to generation-start messages until the session closes."""
         self.started = asyncio.Event()
         self.settings: dict[str, object] = {}
-        events.transport.on("message", self.observe)
-        events.handlers.append(("message", self.observe))
+        events.transport.on('message', self.observe)
+        events.handlers.append(('message', self.observe))
 
     def observe(self, message: object) -> None:
         """Capture the model settings reported when generation starts."""
         if not isinstance(message, dict):
             return
-        envelope = cast("dict[str, object]", message)
-        if envelope.get("type") != "generation_started":
+        envelope = cast('dict[str, object]', message)
+        if envelope.get('type') != 'generation_started':
             return
-        payload = envelope.get("data")
+        payload = envelope.get('data')
         if isinstance(payload, dict):
-            self.settings = cast("dict[str, object]", payload)
+            self.settings = cast('dict[str, object]', payload)
         self.started.set()
 
     async def confirm(self, *, has_image: bool, is_sound_enabled: bool, resolution: str) -> None:
         """Wait for generation and require the requested image, sound, and resolution settings."""
         await self.started.wait()
-        if self.settings.get("image_conditioned") is not has_image:
+        if self.settings.get('image_conditioned') is not has_image:
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
                 VISKO_IMAGE_CHANGED,
             )
-        if self.settings.get("audio_enabled") is not is_sound_enabled:
+        if self.settings.get('audio_enabled') is not is_sound_enabled:
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
                 VISKO_SOUND_CHANGED,
             )
-        if resolution and self.settings.get("resolution") != resolution:
+        if resolution and self.settings.get('resolution') != resolution:
             raise ConnectorError(
                 ErrorCode.UNAVAILABLE,
                 VISKO_FORMAT_CHANGED,
@@ -71,9 +72,10 @@ class ViskoStart:
 class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
     """Generate synchronized video and audio using the provider's recording clock."""
 
-    connection_name: ClassVar[str] = MODELS["visko-orbis-stable"].connection_name
+    connection_name: ClassVar[str] = MODELS['visko-orbis-stable'].connection_name
     requires_audio: ClassVar[bool] = True
 
+    @override
     def validate(self, settings: Settings) -> None:
         """Check the image, sound prompt, and resolution name."""
         super().validate(settings)
@@ -83,48 +85,40 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
         if len(inputs.resolution) > MAX_FORMAT_NAME_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, FORMAT_NAME.format(maximum=MAX_FORMAT_NAME_CHARACTERS))
 
-    def build_control_values(self) -> ControlValues:
-        """Return sound and passthrough values selected for live controls."""
-        return ControlValues(
-            self.inputs.prompt,
-            is_passthrough_enabled=self.inputs.prompt_passthrough,
-            audio_prompt=self.inputs.audio_prompt,
-            is_audio_enabled=self.inputs.audio_enabled,
-        )
-
-    async def begin_generation(self, transport: Transport, events: SessionEvents) -> RecordingWindow:
+    @override
+    async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
         """Set image and sound options, start generation, and confirm the accepted settings."""
         inputs = self.inputs
         tracks = [
             track
-            for track in transport.tracks
-            if track.name == "main_audio" and track.kind == "audio" and track.direction == "recvonly"
+            for track in transport.get_client().tracks
+            if track.name == 'main_audio' and track.kind == 'audio' and track.direction == 'recvonly'
         ]
         if len(tracks) != 1:
             raise ConnectorError(ErrorCode.UNAVAILABLE, VISKO_AUDIO_MISSING)
         started = ViskoStart(events)
-        await events.command_reply("set_seed", {"seed": inputs.seed})
+        await events.command_reply('set_seed', {'seed': inputs.seed})
         if inputs.image is not None:
             reference = await events.call(
-                "upload", transport.upload_file(inputs.image, name="input.png", mime_type="image/png")
+                'upload', transport.upload_file(inputs.image, name='input.png', mime_type='image/png')
             )
-            await events.command_reply("set_image", {"image": reference})
-        await events.command_reply("set_audio_enabled", {"audio_enabled": inputs.audio_enabled})
-        await events.command_reply("set_audio_prompt", {"prompt": inputs.audio_prompt})
-        await events.command_reply("set_prompt", {"prompt": inputs.prompt, "passthrough": inputs.prompt_passthrough})
+            await events.command_reply('set_image', {'image': reference})
+        await events.command_reply('set_audio_enabled', {'audio_enabled': inputs.audio_enabled})
+        await events.command_reply('set_audio_prompt', {'prompt': inputs.audio_prompt})
+        await events.command_reply('set_prompt', {'prompt': inputs.prompt, 'passthrough': inputs.prompt_passthrough})
         if inputs.resolution:
             # The generated seed setter may emit nothing. Condition commands emit state.
-            await events.call("resolution_state", events.state_ready.wait())
-            offered = events.state.get("available_resolutions")
+            await events.call('resolution_state', events.state_ready.wait())
+            offered = events.state.get('available_resolutions')
             if not isinstance(offered, list) or inputs.resolution not in offered:
                 raise ConnectorError(
                     ErrorCode.INVALID_INPUT,
                     FORMAT_UNAVAILABLE,
                 )
-            await events.command_reply("set_resolution", {"resolution": inputs.resolution})
-        await events.command_reply("start", {})
+            await events.command_reply('set_resolution', {'resolution': inputs.resolution})
+        await events.command_reply('start', {})
         await events.call(
-            "generation_started",
+            'generation_started',
             started.confirm(
                 has_image=inputs.image is not None,
                 is_sound_enabled=inputs.audio_enabled,
@@ -137,4 +131,4 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
 class ViskoDynamicOperation(ViskoStableOperation):
     """Keep Dynamic's canonical identity separate from Stable's saved workflows."""
 
-    connection_name: ClassVar[str] = MODELS["visko-orbis-dynamic"].connection_name
+    connection_name: ClassVar[str] = MODELS['visko-orbis-dynamic'].connection_name

@@ -8,38 +8,38 @@ MIN_ROTATION_SPEED = 0.0
 
 WORLD_FRAME_RATE = 48
 
-DEFAULT_MOVEMENT = "idle"
+DEFAULT_MOVEMENT = 'idle'
 
-LATERAL_VALUES = ("idle", "strafe_left", "strafe_right")
+LATERAL_VALUES = ('idle', 'strafe_left', 'strafe_right')
 
 OPTIONS_LATERAL = [*LATERAL_VALUES]
 
-DEFAULT_LATERAL = "idle"
+DEFAULT_LATERAL = 'idle'
 
-LOOK_HORIZONTAL_VALUES = ("idle", "left", "right")
+LOOK_HORIZONTAL_VALUES = ('idle', 'left', 'right')
 
 OPTIONS_LOOK_HORIZONTAL = [*LOOK_HORIZONTAL_VALUES]
 
-DEFAULT_LOOK_HORIZONTAL = "idle"
+DEFAULT_LOOK_HORIZONTAL = 'idle'
 
-LOOK_VERTICAL_VALUES = ("idle", "up", "down")
+LOOK_VERTICAL_VALUES = ('idle', 'up', 'down')
 
 OPTIONS_LOOK_VERTICAL = [*LOOK_VERTICAL_VALUES]
 
-DEFAULT_LOOK_VERTICAL = "idle"
+DEFAULT_LOOK_VERTICAL = 'idle'
 
 DEFAULT_ROTATION_DEGREES = 5.0
 
 STEP_ROTATION_DEGREES = 0.1
 
-LINGBOT_CAMERA_AXES = ("movement", "look_horizontal", "look_vertical")
+LINGBOT_CAMERA_AXES = ('movement', 'look_horizontal', 'look_vertical')
 
-LINGBOT_WORLD_CAMERA_AXES = ("move_longitudinal", "move_lateral", "look_horizontal", "look_vertical")
+LINGBOT_WORLD_CAMERA_AXES = ('move_longitudinal', 'move_lateral', 'look_horizontal', 'look_vertical')
 
 CAMERA_AXES = {
-    "movement": ("idle", "forward", "back", "strafe_left", "strafe_right"),
-    "move_longitudinal": ("idle", "forward", "back"),
-    "move_lateral": LATERAL_VALUES,
-    "look_horizontal": LOOK_HORIZONTAL_VALUES,
-    "look_vertical": LOOK_VERTICAL_VALUES,
+    'movement': ('idle', 'forward', 'back', 'strafe_left', 'strafe_right'),
+    'move_longitudinal': ('idle', 'forward', 'back'),
+    'move_lateral': LATERAL_VALUES,
+    'look_horizontal': LOOK_HORIZONTAL_VALUES,
+    'look_vertical': LOOK_VERTICAL_VALUES,
 }

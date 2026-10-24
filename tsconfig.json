@@ -8,6 +8,10 @@
         "noUncheckedIndexedAccess": true,
         "exactOptionalPropertyTypes": true,
         "useUnknownInCatchVariables": true,
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noPropertyAccessFromIndexSignature": true,
         "verbatimModuleSyntax": true,
         "allowImportingTsExtensions": true,
         "noEmit": true,
@@ -18,5 +22,5 @@
         },
         "resolveJsonModule": true
     },
-    "include": ["web/**/*.ts"]
+    "include": ["web/scripts/**/*.ts"]
 }

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #
 # Build the browser bundle.
-# Runtime: Bash 3.2+, macOS and Linux.
+# Runtime: Bash 3.2+ on macOS or Linux.
 #MISE description="Build the browser bundle."
 set -euo pipefail
 
 # main - Build the browser bundle.
 main() {
-  REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
-  cd "${REPO_ROOT}/.." || exit 1
+    REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
+    cd "${REPO_ROOT}/.." || exit 1
 
-  exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.frontend" "$@"
+    exec uv run --project "${REPO_ROOT}" --no-sync python -m "${REPO_ROOT##*/}.scripts.frontend" "$@"
 }
 
 main "$@"

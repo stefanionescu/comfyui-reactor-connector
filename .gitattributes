@@ -3,3 +3,24 @@
 *.jpg binary
 *.mp4 binary
 
+# bun run build writes these bundles from web/scripts.
+/web/extension.js linguist-generated
+/web/extension.css linguist-generated
+# mise run comfy:workflows:build writes the example workflows, and mise run comfy:requirements:build the requirements.
+/example_workflows/*.json linguist-generated
+/requirements.txt linguist-generated
+# The sample images are generated illustrations, as README.md says.
+/example_workflows/assets/*.png linguist-generated
+
+# >>> gspot managed >>>
+.gspot/** linguist-generated
+/.editorconfig linguist-generated
+/.github/workflows/gspot.yml linguist-generated
+/.markdownlint.jsonc linguist-generated
+/.prettierignore linguist-generated
+/.stylelintrc.json linguist-generated
+/eslint.config.mjs linguist-generated
+/prettier.config.mjs linguist-generated
+/pyrightconfig.json linguist-generated
+/ruff.toml linguist-generated
+# <<< gspot managed <<<

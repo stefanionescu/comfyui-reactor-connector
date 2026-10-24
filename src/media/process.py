@@ -3,15 +3,15 @@
 import os
 import asyncio
 from contextlib import suppress
-from ..tasks import wait_shielded
-from ..state.documents import Json
-from ..errors import ErrorCode, ConnectorError
-from ..config.media.capture import ENCODER_ERRORS
-from ..config.messages.session import CAPTURE_STOPPED
-from ..serialization import parse_json, mapping_value
 from collections.abc import Callable, Sequence, Coroutine
+
+from ..tasks import wait_shielded
+from ..errors import ErrorCode, ConnectorError
+from ..serialization import Json, parse_json, mapping_value
+from ..config.media.capture import ENCODER_ERRORS
 from ..config.media.workers import MAX_REPORT_BYTES, SHUTDOWN_TIMEOUT_SECONDS
 from ..config.messages.media import ENCODER_PIPES, ENCODER_RESULT, ENCODER_NOT_READY, ENCODER_STOP_FAILED
+from ..config.messages.session import CAPTURE_STOPPED
 
 
 class MediaProcess:
@@ -24,7 +24,7 @@ class MediaProcess:
         self.process: asyncio.subprocess.Process | None = None
 
     async def _reap(self) -> None:
-        """Terminate the worker, escalate to kill if needed, and wait within the shutdown limits."""
+        """Terminate the worker, kill it when it outlives the terminate limit, and wait within the shutdown limits."""
         process = self.process
         if process is None or process.returncode is not None:
             return
@@ -67,7 +67,7 @@ class MediaProcess:
 
         Without a feed, the worker reads its input from files and stdin closes at once.
         """
-        environment = {key: value for key, value in os.environ.items() if not key.startswith("REACTOR_")}
+        environment = {key: value for key, value in os.environ.items() if not key.startswith('REACTOR_')}
         self.process = await asyncio.create_subprocess_exec(
             *self.command,
             stdin=asyncio.subprocess.PIPE,
@@ -98,7 +98,7 @@ class MediaProcess:
             async with asyncio.timeout(self.shutdown_seconds):
                 returncode = await self.process.wait()
             if returncode != 0:
-                raise ConnectorError(ErrorCode.CAPTURE, ENCODER_ERRORS["encoder_failed"])
+                raise ConnectorError(ErrorCode.CAPTURE, ENCODER_ERRORS['encoder_failed'])
             return result
         finally:
             await self._finish(tasks)
@@ -119,15 +119,15 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
     if not line or len(line) > MAX_REPORT_BYTES:
         raise ConnectorError(ErrorCode.CAPTURE, ENCODER_RESULT)
     try:
-        value = mapping_value(parse_json(line.decode("utf-8"), max_bytes=MAX_REPORT_BYTES))
+        value = mapping_value(parse_json(line.decode('utf-8'), max_bytes=MAX_REPORT_BYTES))
     except (ValueError, UnicodeError, ConnectorError):
         raise ConnectorError(ErrorCode.CAPTURE, ENCODER_RESULT) from None
-    if "error" in value:
-        code = value["error"]
+    if 'error' in value:
+        code = value['error']
         message = (
-            ENCODER_ERRORS.get(code, ENCODER_ERRORS["encoder_failed"])
+            ENCODER_ERRORS.get(code, ENCODER_ERRORS['encoder_failed'])
             if isinstance(code, str)
-            else ENCODER_ERRORS["encoder_failed"]
+            else ENCODER_ERRORS['encoder_failed']
         )
         raise ConnectorError(ErrorCode.CAPTURE, message)
     return value
@@ -136,7 +136,7 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
 async def _read_result(reader: asyncio.StreamReader, ready: asyncio.Event) -> dict[str, Json]:
     """Require the worker readiness message before accepting its final report."""
     initial = await _report(reader)
-    if initial.keys() != {"ready"} or initial["ready"] is not True:
+    if initial.keys() != {'ready'} or initial['ready'] is not True:
         raise ConnectorError(ErrorCode.CAPTURE, ENCODER_NOT_READY)
     ready.set()
     return await _report(reader)

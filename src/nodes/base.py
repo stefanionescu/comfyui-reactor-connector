@@ -1,9 +1,12 @@
 """Share the cache key and the run-number input across the video nodes."""
 
-from typing import ClassVar
-from comfy_api.latest import io
+from typing import ClassVar, override
+import asyncio
 from collections.abc import Callable, Awaitable
-from ..comfy.execution import operation_fingerprint
+
+from comfy_api.latest import io
+
+from ..runtime import get_runtime
 
 
 class VideoNode(io.ComfyNode):
@@ -17,12 +20,15 @@ class VideoNode(io.ComfyNode):
     generate: ClassVar[Callable[..., Awaitable[io.NodeOutput]]]
 
     @classmethod
+    @override
     async def fingerprint_inputs(cls, **_inputs: object) -> str:
         """Add the settings and key token to the cache key, so a new key or limit runs the node again."""
-        return await operation_fingerprint()
+        configuration = await asyncio.to_thread(get_runtime().configuration.read_execution_configuration)
+        return configuration.generation
 
     @classmethod
-    async def execute(cls, **inputs: object) -> io.NodeOutput:  # pyright: ignore[reportIncompatibleMethodOverride] -- reason: ComfyUI awaits an async execute.
+    @override
+    async def execute(cls, **inputs: object) -> io.NodeOutput:  # pyright: ignore[reportIncompatibleMethodOverride] # reason: ComfyUI awaits an async execute.
         """Drop the run number, which ComfyUI uses to invalidate its cache, and generate."""
-        inputs.pop("variation", None)
+        inputs.pop('variation', None)
         return await cls.generate(**inputs)

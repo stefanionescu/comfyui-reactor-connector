@@ -1,7 +1,7 @@
-# LingBot World 2: Explore an Image (Reactor)
+# LingBot World 2: Explore an Image
 
-Moves through a scene from your image with Reactor's LingBot World 2 model and saves
-a video. Choose camera directions before the run, or steer live with keys and
+Moves through a scene from your image with Reactor's LingBot World 2 model and
+saves a video. Choose camera directions before the run, or steer live with keys and
 buttons.
 
 ## Inputs
@@ -20,8 +20,9 @@ buttons.
 | turn per step (degrees)  | How fast the camera turns, from 0 to 30. Default: 5.                                               |
 | live controls            | Steer live instead. Default: off. The camera starts still and the panel replaces the inputs above. |
 
-You can move forward or back and sideways at the same time. Camera changes show up as the model generates new frames, and a
-direction stays on until you change it.
+You can move forward or back and sideways at the same time. Camera changes show
+up as the model generates new frames, and a direction stays on until you change
+it.
 
 ## Outputs
 
@@ -31,9 +32,9 @@ direction stays on until you change it.
 
 ## Use
 
-1. Set your key in **ComfyUI menu → Extensions → Reactor → Reactor settings**.
-2. Open **lingbot-world-2-01-explore-image** or **lingbot-world-2-02-live-camera** in **Browse
-   Templates → reactor-inc**, and upload a picture in **Load Starting Image**.
+1. Set your key in **ComfyUI menu > Extensions > Reactor > Reactor settings**.
+2. Open **lingbot-world-2-01-explore-image** or
+   **lingbot-world-2-02-live-camera** in **Browse Templates > reactor-inc**, and upload a picture in **Load Starting Image**.
 3. Describe the scene, choose the length and directions, and select **Run**.
 4. Play the result in **Save Video**, which also saves the file.
 
@@ -44,11 +45,13 @@ seconds. A saved video cannot reopen the scene.
 ## Live controls
 
 Turn **live controls** on and select **Run**. When the live picture appears,
-click it and use **W, A, S, D** to move and the **arrow keys** to look around, or
-click a direction button briefly or hold it. **Escape**, leaving the window, or
-hiding the tab releases held movement. **Apply Prompt** changes later frames, up
-to 1,000 characters; the starting image and the saved workflow stay as they
-were. Let recording finish to save the video; **End Session** discards it. The
-preview shows up to ten frames per second at up to 640 × 360 pixels.
+click it and use **W, A, S, D** to move and the **arrow keys** to look around.
+You can also click a direction button briefly or hold it. **Escape**, leaving the
+window, or hiding the tab releases held movement.
+
+**Apply Prompt** changes later frames, up to 1,000 characters; the starting image
+and the saved workflow stay as they were. Let recording finish to save the video;
+**End Session** discards it. The preview shows up to ten frames per second at up
+to 640 × 360 pixels.
 
 [Reactor LingBot World 2 schema](https://docs.reactor.inc/model-api-reference/lingbot-world-2/schema)

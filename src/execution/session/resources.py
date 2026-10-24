@@ -7,14 +7,17 @@ from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from asyncio import Task
+
+    from reactor_sdk import Track
+
     from ..events import SessionEvents
-    from ...state.settings import Settings
-    from ..operation import VideoOperation
+    from ..inputs import VideoOperation
+    from ..transport import SessionTransport
+    from ..interaction import SessionInteraction
     from ...state.media import CaptureResult
-    from ..transport import Track, Transport
     from ...media.capture import VideoCapture
     from ...state.session import SessionOutcome
-    from ..interaction import SessionInteraction
+    from ...state.settings import Settings
 
 
 @dataclass(slots=True, repr=False)
@@ -22,12 +25,13 @@ class SessionResources:
     """Resources released together before the owning session finishes.
 
     Attributes:
-        operation: Model operation being executed.
+        operation: Model operation that the session runs.
         transport: Provider connection.
         settings: Effective server limits.
         capture: Incremental media capture owner.
         events: Provider event subscription owner.
         worker: Capture task.
+
         outcome: Shared termination facts.
         interaction: Optional live-control interaction.
         track: Selected provider media track.
@@ -35,7 +39,7 @@ class SessionResources:
     """
 
     operation: VideoOperation
-    transport: Transport
+    transport: SessionTransport
     settings: Settings
     capture: VideoCapture
     events: SessionEvents

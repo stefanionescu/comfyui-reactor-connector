@@ -1,14 +1,14 @@
 """Request a session token for one model; support cancellation and a timeout."""
 
 import re
+from http import HTTPStatus
 import math
 import time
+
 import aiohttp
-from http import HTTPStatus
+
 from ..errors import ErrorCode, ConnectorError
-from ..serialization import parse_json, mapping_value
-from ..state.credentials import Credential, SessionToken
-from ..config.messages.session import MODEL_AUTHORIZATION
+from ..serialization import Json, parse_json, mapping_value
 from ..config.security import (
     JWT_PATTERN_TEXT,
     SESSION_ENDPOINT,
@@ -21,70 +21,76 @@ from ..config.security import (
     SESSION_EXPIRY_BUFFER_SECONDS,
     AUTHENTICATION_TIMEOUT_SECONDS,
 )
-
+from ..state.credentials import Credential, SessionToken
+from ..config.messages.session import MODEL_AUTHORIZATION
 
 MODEL_NAME = re.compile(MODEL_NAME_PATTERN_TEXT)
 TOKEN_TEXT = re.compile(JWT_PATTERN_TEXT)
 
 
-def authentication_error() -> ConnectorError:
-    """Create the public authorization error without including provider credentials."""
-    return ConnectorError(
-        ErrorCode.AUTHENTICATION,
-        MODEL_AUTHORIZATION,
-    )
-
-
 async def mint_session_token(model: str, credential: Credential, session_seconds: int) -> SessionToken:
-    """Authorize one session with a server lifetime cap; never retry a mint."""
+    """Authorize one session with a server lifetime cap; never retry a mint.
+
+    Every failure, from the request, the response, or the token, reports the same public authorization error.
+    """
     if MODEL_NAME.fullmatch(model) is None or not 1 <= session_seconds <= MAX_SESSION_SECONDS:
-        raise authentication_error()
+        raise ConnectorError(ErrorCode.AUTHENTICATION, MODEL_AUTHORIZATION)
+    try:
+        document = await _request_session(model, credential, session_seconds)
+        return _read_session_token(document, session_seconds)
+    except (aiohttp.ClientError, TimeoutError, UnicodeError, ConnectorError):
+        raise ConnectorError(ErrorCode.AUTHENTICATION, MODEL_AUTHORIZATION) from None
+
+
+async def _request_session(model: str, credential: Credential, session_seconds: int) -> dict[str, Json]:
+    """Request one session token for the model and read the size-limited JSON response."""
     request_body = {
-        "expires_after": session_seconds + SESSION_EXPIRY_BUFFER_SECONDS,
-        "authorization_details": [
+        'expires_after': session_seconds + SESSION_EXPIRY_BUFFER_SECONDS,
+        'authorization_details': [
             {
-                "type": "session",
-                "resources": {"models": {"match": [model]}},
-                "constraints": {
-                    "max_sessions": 1,
-                    "max_session_duration_seconds": session_seconds,
+                'type': 'session',
+                'resources': {'models': {'match': [model]}},
+                'constraints': {
+                    'max_sessions': 1,
+                    'max_session_duration_seconds': session_seconds,
                 },
             }
         ],
     }
-    try:
-        async with (
-            aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=AUTHENTICATION_TIMEOUT_SECONDS),
-                trust_env=False,
-                cookie_jar=aiohttp.DummyCookieJar(),
-            ) as session,
-            session.post(
-                SESSION_ENDPOINT,
-                json=request_body,
-                headers={"Reactor-API-Key": credential.reveal()},
-                allow_redirects=False,
-            ) as response,
-        ):
-            if response.status != HTTPStatus.OK:
-                raise authentication_error()
-            response_bytes = bytearray()
-            async for chunk in response.content.iter_chunked(AUTHENTICATION_CHUNK_BYTES):
-                response_bytes.extend(chunk)
-                if len(response_bytes) > MAX_RESPONSE_BYTES:
-                    raise authentication_error()
-        document = mapping_value(parse_json(response_bytes.decode(), max_bytes=MAX_RESPONSE_BYTES))
-        token, expires = document.get("jwt"), document.get("expires_at")
-        if (
-            not isinstance(token, str)
-            or len(token) > MAX_SESSION_TOKEN_CHARACTERS
-            or TOKEN_TEXT.fullmatch(token) is None
-            or not isinstance(expires, (int, float))
-            or isinstance(expires, bool)
-            or not math.isfinite(expires)
-            or expires < time.time() + session_seconds + MIN_EXPIRY_MARGIN_SECONDS
-        ):
-            raise authentication_error()
-        return SessionToken(token)
-    except (aiohttp.ClientError, TimeoutError, UnicodeError, ConnectorError):
-        raise authentication_error() from None
+    async with (
+        aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=AUTHENTICATION_TIMEOUT_SECONDS),
+            trust_env=False,
+            cookie_jar=aiohttp.DummyCookieJar(),
+        ) as session,
+        session.post(
+            SESSION_ENDPOINT,
+            json=request_body,
+            headers={'Reactor-API-Key': credential.value},
+            allow_redirects=False,
+        ) as response,
+    ):
+        if response.status != HTTPStatus.OK:
+            raise ConnectorError(ErrorCode.AUTHENTICATION, MODEL_AUTHORIZATION)
+        response_bytes = bytearray()
+        async for chunk in response.content.iter_chunked(AUTHENTICATION_CHUNK_BYTES):
+            response_bytes.extend(chunk)
+            if len(response_bytes) > MAX_RESPONSE_BYTES:
+                raise ConnectorError(ErrorCode.AUTHENTICATION, MODEL_AUTHORIZATION)
+    return mapping_value(parse_json(response_bytes.decode(), max_bytes=MAX_RESPONSE_BYTES))
+
+
+def _read_session_token(document: dict[str, Json], session_seconds: int) -> SessionToken:
+    """Accept only a well-formed token whose expiry covers the whole session."""
+    token, expires = document.get('jwt'), document.get('expires_at')
+    if (
+        not isinstance(token, str)
+        or len(token) > MAX_SESSION_TOKEN_CHARACTERS
+        or TOKEN_TEXT.fullmatch(token) is None
+        or not isinstance(expires, (int, float))
+        or isinstance(expires, bool)
+        or not math.isfinite(expires)
+        or expires < time.time() + session_seconds + MIN_EXPIRY_MARGIN_SECONDS
+    ):
+        raise ConnectorError(ErrorCode.AUTHENTICATION, MODEL_AUTHORIZATION)
+    return SessionToken(token)

@@ -1,6 +1,12 @@
 """Shared immutable video request values."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from dataclasses import dataclass
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,3 +25,15 @@ class VideoInputs:
     duration_seconds: float
     seed: int
     image: bytes | None = None
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SourceVideoInputs(VideoInputs):
+    """Shared inputs of the models that edit a source video file or a live camera.
+
+    Attributes:
+        video: Optional prepared source video path.
+
+    """
+
+    video: Path | None = None
