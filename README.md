@@ -5,18 +5,8 @@
 [![Python 3.12 or later](docs/images/badges/python.svg)](#requirements)
 [![MIT license](docs/images/badges/license.svg)](LICENSE.md)
 
-Generate videos, edit local clips, and move through scenes with Reactor models
-in ComfyUI. Models run on Reactor, so the connector downloads no model weights.
-
-## Contents
-
-- [Requirements](#requirements)
-- [Install](#install)
-- [Make your first video](#make-your-first-video)
-- [Choose a workflow](#choose-a-workflow)
-- [Nodes](#nodes)
-- [Fix a setup problem](#fix-a-setup-problem)
-- [License](#license)
+Generate videos, edit clips, and explore interactive scenes with Reactor in ComfyUI.
+Models run on Reactor; ComfyUI needs no local model weights.
 
 ## Requirements
 
@@ -24,103 +14,68 @@ in ComfyUI. Models run on Reactor, so the connector downloads no model weights.
 - ComfyUI 0.34.6 or later, with frontend 1.49.6 or a later release below 2.0.0.
 - A Reactor account with credits.
 
+Generation uses your provider account and can incur charges.
+
 ## Install
 
-The connector includes its built browser assets. You do not need Bun, mise, or
-development dependencies to use it.
+Stop ComfyUI. From its `custom_nodes` folder, clone the extension:
 
-1. Stop ComfyUI after active work finishes.
-2. Place the connector at `ComfyUI/custom_nodes/reactor-inc`. Put `__init__.py`
-   and `requirements.txt` directly inside that folder.
-3. Install `requirements.txt` using the Python environment that runs ComfyUI.
-   Choose the command below for your installation.
-4. Start ComfyUI, then refresh its window.
+```sh
+git clone https://github.com/stefanionescu/comfyui-reactor-connector.git reactor-inc
+```
 
-### Comfy Desktop
+In Comfy Desktop, use **Manage > About > Location** to find the installation's
+`ComfyUI` folder. Its **Terminal** opens that instance's Python environment.
 
-1. On the home screen, open the installation's **⋮** menu and select **Manage**.
-2. Open **About** and copy **Location** to find the installation folder. Inside it,
-   find the `ComfyUI` folder containing `main.py` and place the connector at
-   `custom_nodes/reactor-inc`.
-3. Open **Terminal** in the same Manage panel. Desktop opens the ComfyUI folder
-   and activates that installation's Python environment. Run:
+Install runtime dependencies with the Python that runs ComfyUI.
+Choose the command for your installation:
 
-```sh title="Run in the ComfyUI folder"
+**Comfy Desktop**, in its Terminal:
+
+```sh title="Comfy Desktop terminal, in the ComfyUI folder"
 pip install -r custom_nodes/reactor-inc/requirements.txt
 ```
 
-Start the installation after the command finishes. See
-[Comfy Desktop's Manage panel](https://docs.comfy.org/installation/desktop/usage/manage)
-for the folder and terminal controls.
+**macOS or Linux**, from the ComfyUI folder:
 
-### Manual installation: macOS or Linux
-
-Run from the ComfyUI directory. Replace `.venv` if your environment has another name:
-
-```sh title="Run in the ComfyUI folder"
+```sh title="In the ComfyUI folder"
 .venv/bin/python -m pip install -r custom_nodes/reactor-inc/requirements.txt
 ```
 
-For a uv environment without pip, use:
+**Windows**, in PowerShell from the ComfyUI folder:
 
-```sh title="Run in the ComfyUI folder"
-uv pip install --python .venv/bin/python -r custom_nodes/reactor-inc/requirements.txt
-```
-
-### Manual installation: Windows
-
-Run in PowerShell from the ComfyUI directory. Replace `.venv` if your virtual
-environment has another name or location:
-
-```powershell title="Run in the ComfyUI folder"
+```powershell title="In the ComfyUI folder"
 .\.venv\Scripts\python.exe -m pip install -r .\custom_nodes\reactor-inc\requirements.txt
 ```
 
-### Windows portable
+**Windows portable**, in PowerShell from the folder containing ComfyUI:
 
-Run in PowerShell from the folder containing `ComfyUI` and `python_embedded`:
-
-```powershell title="Run in the folder that holds ComfyUI"
+```powershell title="Windows portable parent folder"
 .\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\reactor-inc\requirements.txt
 ```
 
-See [update or remove](ADVANCED.md#update-or-remove) for later
-package changes. Install only runtime requirements into ComfyUI's environment.
+Replace `.venv` if your environment has another name. Restart ComfyUI and
+reload its window.
 
-## Make your first video
+## First run
 
-1. Select the Comfy logo, then **Extensions > Reactor > Reactor settings**.
-   Save your Reactor API key there. It stays on the server and out of workflows.
-2. Open native **Browse Templates > reactor-inc** and select
-   **helios-01-text-to-video**. You can also drag the
-   [Helios text-to-video workflow](example_workflows/helios-01-text-to-video.json)
-   onto the canvas.
+1. Open **Extensions > Reactor > Reactor settings** from the ComfyUI menu
+   and save your Reactor API key.
+2. Open **Browse Templates > reactor-inc > helios-01-text-to-video**.
 3. Read **Start Here**, describe a scene, and choose the video length.
-4. Select **Run**.
-5. Play the result in **Save Video**. It also saves the file under
-   ComfyUI's output folder.
+4. Select **Run**. **Save Video** plays and saves the result in ComfyUI's
+   output folder. Reactor charges for session time, including setup.
 
-Use ComfyUI's cancel control to stop a run. Closing a workflow tab does not cancel
-it. Change **run number** to request another run with unchanged inputs.
+Use ComfyUI's cancel control to stop a run. Closing a workflow tab does not
+cancel a run without live controls. See [recovery](ADVANCED.md#recovery).
 
-## Choose a workflow
+Change **run number** to run again with unchanged inputs. For remote or multi-user
+setups, see the [access instructions](ADVANCED.md#keys-and-access).
 
-The `example_workflows` folder holds 26 editable graphs. Open one from native
-**Browse Templates > reactor-inc**, or drag its JSON file onto ComfyUI. Each graph
-has connected nodes and a **Start Here** note. Examples need only native ComfyUI
-nodes and this connector. Media inputs start empty; select your own image or
-video, or use a [sample input](#sample-inputs).
+## Example workflows
 
-Use live workflows for scene prompts, Visko sound prompts, X2 dragging, or SANA
-and X2 webcams. In LingBot workflows with scene controls, you move with keys or
-buttons; saved video cannot reopen a world. Fast H3 can continue a chosen number of clips
-in one run. See [live controls](ADVANCED.md#live-controls).
-
-![Screenshot of helios-03-prompt-sequence: two Helios: Add a Prompt nodes chain into Helios: Follow a Prompt Sequence, which sends its video to Save Video, under the Start Here and Using This Workflow notes.](docs/images/workflow-prompt-sequence.png)
-
-After updating, open an example in a new tab. Existing graphs keep their saved
-notes, prompts, and layout. The graph saves notes and node titles in
-English; changing the interface language does not translate them.
+Open these from **Browse Templates > reactor-inc**, or load their JSON files.
+Read **Start Here** before running. After an update, open examples in a new tab.
 
 | Workflow JSON                                                                                                 | Input                                   |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
@@ -151,79 +106,59 @@ English; changing the interface language does not translate them.
 | [X2: Edit Webcam Video with Pointer Controls](example_workflows/x2-03-webcam.json)                            | Webcam and live edit prompt             |
 | [X2: Drag and Edit a Video](example_workflows/x2-04-live-prompt.json)                                         | Source video and live controls          |
 
-### Sample inputs
+For interactive prompts, webcams, pointer control, and LingBot movement, see
+[live controls](ADVANCED.md#live-controls).
 
-Download a sample, then select it in the matching image or video input node.
+Sample inputs: [forest path](example_workflows/assets/forest-path.png),
+[forest illustration](example_workflows/assets/forest-illustration.png),
+[fictional portrait](example_workflows/assets/fictional-portrait.png), and a
+[five-second silent clip](example_workflows/assets/forest-motion.mp4).
+Download a sample and select it in the matching input node.
 
-| File                                                                    | Use it for                                             |
-| ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| [Forest path](example_workflows/assets/forest-path.png)                 | Animate an image, explore a scene, or continue a clip. |
-| [Forest illustration](example_workflows/assets/forest-illustration.png) | Animate a landscape or use it as a reference image.    |
-| [Fictional portrait](example_workflows/assets/fictional-portrait.png)   | Make a portrait speak with LTX.                        |
-| [Forest motion](example_workflows/assets/forest-motion.mp4)             | Edit a five-second clip with SANA or X2.               |
-
-The sample images are machine-generated illustrations. The portrait depicts a fictional
-adult. The sample video adds a slow zoom to the forest image: 120 frames at
-24 fps, 640 × 360 pixels, standard dynamic range, and no sound. They are inputs,
-not examples of Reactor output.
-
-### Workflow previews
-
-These images show frames from Reactor output. Your results can differ.
-
-| Preview                                                             | Workflow                                                                               |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [Stream over rocks](example_workflows/fast-h3-01-text-to-video.jpg) | [Fast H3: Generate a Clip with Audio](example_workflows/fast-h3-01-text-to-video.json) |
-| [Animated forest](example_workflows/helios-02-image-to-video.jpg)   | [Helios: Animate an Image](example_workflows/helios-02-image-to-video.json)            |
+Reactor output frames: [Fast H3 stream](example_workflows/fast-h3-01-text-to-video.jpg)
+and [Helios forest](example_workflows/helios-02-image-to-video.jpg).
+The input illustrations and zoom clip are synthetic samples; the output frames
+come from Reactor generations.
 
 ## Nodes
 
-![Node map. Helios: Add a Prompt feeds Helios: Generate Video, and LongLive: Add a Shot feeds LongLive: Generate Video; both builders also chain into themselves. Every other node stands alone and sends its video to Save Video. A gold square marks a node that opens a Reactor session; a hollow square marks one that runs locally.](docs/images/node-map.svg)
+Find the nodes under **Reactor**. Each linked help page explains its inputs,
+outputs, and usage.
 
-| Node                                                                                      | Input                                                     | Output                            |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------- |
-| [Fast H3: Generate Video (Reactor)](web/docs/ReactorIncFastGenerate.md)                   | Scene and sound prompt, optional first and last images    | Video with sound, separate audio  |
-| [Fast H3: Continue a Scene (Reactor)](web/docs/ReactorIncFastContinue.md)                 | Clip count, prompts, and optional starting image          | Video with sound, separate audio  |
-| [Helios: Generate Video (Reactor)](web/docs/ReactorIncHeliosGenerate.md)                  | Prompt, optional image, and optional prompt sequence      | Video without sound               |
-| [Helios: Add a Prompt (Reactor)](web/docs/ReactorIncHeliosAddPrompt.md)                   | Chunk number, prompt, and optional earlier prompts        | A prompt sequence                 |
-| [LingBot: Explore an Image (Reactor)](web/docs/ReactorIncLingBotExplore.md)               | Image, prompt, and camera directions                      | Video without sound               |
-| [LingBot World 2: Explore an Image (Reactor)](web/docs/ReactorIncLingBotWorld2Explore.md) | Image, prompt, and camera directions                      | Video without sound               |
-| [LongLive: Generate Video (Reactor)](web/docs/ReactorIncLongLiveGenerate.md)              | Opening shot prompt and optional scheduled shots          | Video without sound               |
-| [LongLive: Add a Shot (Reactor)](web/docs/ReactorIncLongLiveAddShot.md)                   | Shot prompt, transition, and chunk number                 | A storyboard                      |
-| [LTX: Make a Portrait Speak (Reactor)](web/docs/ReactorIncLtxSpeak.md)                    | Portrait, script, and speech pace                         | Video with speech, separate audio |
-| [SANA: Edit Video (Reactor)](web/docs/ReactorIncSanaEditVideo.md)                         | Local video and edit prompt                               | Video without sound               |
-| [SANA: Edit Webcam Video (Reactor)](web/docs/ReactorIncSanaWebcam.md)                     | Camera and live edit prompt                               | Video without sound               |
-| [Visko: Generate Video (Reactor)](web/docs/ReactorIncViskoGenerate.md)                    | Model, scene prompt, sound controls, and optional image   | Video with sound, separate audio  |
-| [X2: Edit Video (Reactor)](web/docs/ReactorIncX2EditVideo.md)                             | Local video, edit prompt, and optional reference image    | Video without sound               |
-| [X2: Edit Webcam Video (Reactor)](web/docs/ReactorIncX2Webcam.md)                         | Camera, optional subject image, live prompt, and dragging | Video without sound               |
+| Node                                                                            | Input                                                     | Output                            |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------- |
+| [Fast H3: Generate Video](web/docs/ReactorIncFastGenerate.md)                   | Scene and sound prompt, optional first and last images    | Video with sound, separate audio  |
+| [Fast H3: Continue a Scene](web/docs/ReactorIncFastContinue.md)                 | Clip count, prompts, and optional starting image          | Video with sound, separate audio  |
+| [Helios: Generate Video](web/docs/ReactorIncHeliosGenerate.md)                  | Prompt, optional image, and optional prompt sequence      | Video without sound               |
+| [Helios: Add a Prompt](web/docs/ReactorIncHeliosAddPrompt.md)                   | Chunk number, prompt, and optional earlier prompts        | A prompt sequence                 |
+| [LingBot: Explore an Image](web/docs/ReactorIncLingBotExplore.md)               | Image, prompt, and camera directions                      | Video without sound               |
+| [LingBot World 2: Explore an Image](web/docs/ReactorIncLingBotWorld2Explore.md) | Image, prompt, and camera directions                      | Video without sound               |
+| [LongLive: Generate Video](web/docs/ReactorIncLongLiveGenerate.md)              | Opening shot prompt and optional scheduled shots          | Video without sound               |
+| [LongLive: Add a Shot](web/docs/ReactorIncLongLiveAddShot.md)                   | Shot prompt, transition, and chunk number                 | A storyboard                      |
+| [LTX: Make a Portrait Speak](web/docs/ReactorIncLtxSpeak.md)                    | Portrait, script, and speech pace                         | Video with speech, separate audio |
+| [SANA: Edit Video](web/docs/ReactorIncSanaEditVideo.md)                         | Local video and edit prompt                               | Video without sound               |
+| [SANA: Edit Webcam Video](web/docs/ReactorIncSanaWebcam.md)                     | Camera and live edit prompt                               | Video without sound               |
+| [Visko: Generate Video](web/docs/ReactorIncViskoGenerate.md)                    | Model, scene prompt, sound controls, and optional image   | Video with sound, separate audio  |
+| [X2: Edit Video](web/docs/ReactorIncX2EditVideo.md)                             | Local video, edit prompt, and optional reference image    | Video without sound               |
+| [X2: Edit Webcam Video](web/docs/ReactorIncX2Webcam.md)                         | Camera, optional subject image, live prompt, and dragging | Video without sound               |
 
-Select a Reactor node and open its native **Info** for inputs, limits, and
-examples. Nodes with detailed behavior show their bundled guide there.
+Connect the `video` output of a generation node to **Save Video**. Models with
+sound also return separate `audio`. Prompt and shot builders run locally.
+Open the native **Info** of a node for its inputs and limits.
 
-![Fast H3: Generate Video on the canvas: sockets for a starting image and a final image; outputs for video and audio; then the scene and sound prompt, video duration, seed, run number, and aspect ratio.](docs/images/fast-h3-node.png)
+Fast H3 and LTX can use additional paid recording time that is absent from the
+saved clip. Read [recording overhead](ADVANCED.md#recording-overhead) before using them.
 
-In your own graph, connect **video** to **Save Video**. Models with sound also
-return a separate **audio** output. Prompt and shot builders work
-locally without contacting Reactor.
+## Troubleshooting
 
-## Fix a setup problem
+| Problem                          | What to check                                                                            |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| Nodes or templates are missing   | Install the complete connector and its requirements with ComfyUI's Python, then restart. |
+| `reactor_sdk` cannot be imported | Check the installation's Python version and reinstall runtime requirements.              |
+| The key is rejected              | Check the saved key and any `REACTOR_API_KEY` environment value.                         |
+| A session fails or times out     | Read [recovery](ADVANCED.md#recovery) before starting another paid session.              |
+| Settings cannot be changed       | Use a direct local connection, or configure credentials on the ComfyUI server.           |
 
-| Problem                                      | What to check                                                                                               |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Reactor nodes are missing                    | Confirm `__init__.py` sits directly in the `reactor-inc` folder under `custom_nodes`; read the startup log. |
-| `reactor_sdk` cannot be imported             | Install runtime requirements with that instance's Python.                                                   |
-| No matching SDK distribution                 | Use Python 3.12 or later and a platform supported by the required SDK version.                              |
-| `comfy_api` or a native node type is missing | Update ComfyUI through its normal update procedure, then restart.                                           |
-| Nodes appear but Reactor menus do not        | Refresh the window; confirm the package includes `web/extension.js` and `web/extension.css`.                |
-| Node help is missing                         | Restore the complete package, including the native guides under `web/docs`.                                 |
-| Templates are missing                        | Confirm the package includes `example_workflows`; you can also open a JSON file there.                      |
-| Duplicate nodes or menus appear              | Keep one connector folder; move backups outside `custom_nodes`.                                             |
-| Private settings are disabled                | Use a local, single-user connection. For remote access, set the server environment key.                     |
+See the [advanced guide](ADVANCED.md#recovery) for request errors and recovery.
 
-For rejected inputs, timeouts, or session errors, read [recovery](ADVANCED.md#recovery)
-and the native **Info** of the node before another run. [Advanced settings](ADVANCED.md)
-explains keys, limits, credit calculations, and live controls.
-
-## License
-
-[MIT](LICENSE.md).
+[Advanced guide](ADVANCED.md) · [MIT license](LICENSE.md)
