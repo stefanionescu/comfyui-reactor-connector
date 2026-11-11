@@ -25,7 +25,12 @@ class ConfigurationStore:
     """Serialize local changes across server and executor threads."""
 
     def __init__(self, directory: Path) -> None:
-        """Select private storage and own the lock for settings and credential changes."""
+        """Select private storage and own the lock for settings and credential changes.
+
+        Args:
+            directory: The private state directory.
+
+        """
         self.directory = directory
         # Reentrant, so a change returns the new status while it still holds the lock.
         self.lock = threading.RLock()
@@ -34,7 +39,15 @@ class ConfigurationStore:
         self._previous: ExecutionConfiguration | None = None
 
     def read_execution_configuration(self) -> ExecutionConfiguration:
-        """Read effective values together; renew the cache token when the settings or the key change."""
+        """Read effective values together; renew the cache token when the settings or the key change.
+
+        Returns:
+            The settings, the key, and the cache token.
+
+        Raises:
+            ConnectorError: When the settings or the key are missing, unreadable, or not valid.
+
+        """
         with self.lock:
             try:
                 settings = read_settings(self.directory)
@@ -56,7 +69,12 @@ class ConfigurationStore:
             return self._previous
 
     def status(self) -> dict[str, Json]:
-        """Describe effective settings and key presence without returning secret values."""
+        """Describe effective settings and key presence without returning secret values.
+
+        Returns:
+            The settings, their limits, their revision, and the source of the key.
+
+        """
         with self.lock:
             settings, revision = read_revised_settings(self.directory)
             source = credential_source(self.directory)
@@ -72,7 +90,20 @@ class ConfigurationStore:
             }
 
     def update_settings(self, changes: dict[str, Json], revision: str) -> dict[str, Json]:
-        """Apply a validated patch only to the version the editor actually read."""
+        """Apply a validated patch only to the version the editor actually read.
+
+        Args:
+            changes: The new values, by setting name.
+            revision: The revision that the editor read.
+
+        Returns:
+            The status of the store after the change.
+
+        Raises:
+            ConnectorError: When a change names a setting that is not editable.
+            SettingsConflictError: When the revision is out of date.
+
+        """
         if changes.keys() - EDITABLE_SETTINGS:
             raise ConnectorError(ErrorCode.CONFIGURATION, SETTING_READ_ONLY)
         with self.lock:
@@ -87,7 +118,15 @@ class ConfigurationStore:
             return self.status()
 
     def save_credential(self, value: str) -> dict[str, Json]:
-        """Save a validated secret and return only the effective source."""
+        """Save a validated secret and return only the effective source.
+
+        Args:
+            value: The API key to save.
+
+        Returns:
+            The status of the store after the save.
+
+        """
         credential = parse_credential(value)
         with self.lock:
             atomic_write(self.directory / 'credential', credential.value.encode('utf-8'))
@@ -102,7 +141,12 @@ class ConfigurationStore:
             return self.status()
 
     def clear_credential(self) -> dict[str, Json]:
-        """Remove only the saved key; the server environment takes precedence."""
+        """Remove only the saved key; the server environment takes precedence.
+
+        Returns:
+            The status of the store after the removal.
+
+        """
         with self.lock:
             path = self.directory / 'credential'
             if path.exists():
@@ -114,7 +158,15 @@ class ConfigurationStore:
 
 
 def read_settings(directory: Path) -> Settings:
-    """Read settings without creating files or directories."""
+    """Read settings without creating files or directories.
+
+    Args:
+        directory: The private state directory.
+
+    Returns:
+        The saved settings, or the defaults when no file exists.
+
+    """
     path = directory / 'settings.json'
     if not path.exists():
         return DEFAULT_SETTINGS
@@ -122,7 +174,15 @@ def read_settings(directory: Path) -> Settings:
 
 
 def read_revised_settings(directory: Path) -> tuple[Settings, str]:
-    """Read settings and their revision, which keeps a stale tab from overwriting newer changes."""
+    """Read settings and their revision, which keeps a stale tab from overwriting newer changes.
+
+    Args:
+        directory: The private state directory.
+
+    Returns:
+        The settings and the hash that identifies their values.
+
+    """
     settings = read_settings(directory)
     encoded = json.dumps(asdict(settings), sort_keys=True, separators=(',', ':')).encode()
     return settings, hashlib.sha256(encoded).hexdigest()

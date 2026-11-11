@@ -15,7 +15,12 @@ class LongLiveAddShot(io.ComfyNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncLongLiveAddShot',
             display_name='LongLive: Add a Shot (Reactor)',
@@ -63,5 +68,16 @@ class LongLiveAddShot(io.ComfyNode):
     def execute(  # pyright: ignore[reportIncompatibleMethodOverride] # reason: ComfyUI calls by schema.
         cls, *, previous: str, at_session_chunk: int, transition: str, prompt: str
     ) -> io.NodeOutput:
-        """Validate and append one scheduled transition to the serialized storyboard."""
+        """Validate and append one scheduled transition to the serialized storyboard.
+
+        Args:
+            previous: The earlier shots as JSON text.
+            at_session_chunk: The chunk at which the shot starts.
+            transition: The way the shot follows the preceding scene.
+            prompt: The scene prompt of the shot.
+
+        Returns:
+            The storyboard with the new shot.
+
+        """
         return io.NodeOutput(append_shot(previous, Shot(at_session_chunk, transition, prompt)))

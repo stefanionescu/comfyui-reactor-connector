@@ -1,6 +1,8 @@
 import { app } from '../../scripts/app.js';
 
-/** The text the connector's panels show, addressed by dotted key. */
+/**
+The text the connector's panels show, addressed by dotted key.
+*/
 const TEXT = {
     camera: {
         accessFailed: 'Camera access failed. Choose a camera and try again.',
@@ -125,7 +127,9 @@ const TEXT = {
     working: 'Working...',
 } as const;
 
-/** Labels of the server's execution limits, keyed by setting name. */
+/**
+Labels of the server's execution limits, keyed by setting name.
+*/
 export const LIMIT_LABELS = new Map<string, string>([
     ['max_session_seconds', 'maximum session duration (seconds)'],
     ['max_upload_megabytes', 'maximum upload size (MiB)'],
@@ -139,12 +143,12 @@ export type MessageKey = MessagePaths<typeof TEXT>;
 type MessageValues = Record<string, string | number>;
 
 /**
- * Read one message and insert its named values as plain text.
- *
- * @param key - A dotted path into the connector text.
- * @param values - Named values inserted for `{name}` placeholders.
- * @returns The rendered message.
- */
+Read one message and insert its named values as plain text.
+
+@param key - A dotted path into the connector text.
+@param values - Named values inserted for `{name}` placeholders.
+@returns The rendered message.
+*/
 export function message(key: MessageKey, values: MessageValues = {}): string {
     let value: unknown = TEXT;
     for (const part of key.split('.')) {
@@ -161,10 +165,10 @@ export function message(key: MessageKey, values: MessageValues = {}): string {
 }
 
 /**
- * Read the active locale for number and date display.
- *
- * @returns A valid language tag, or English when the setting is invalid.
- */
+Read the active locale for number and date display.
+
+@returns A valid language tag, or English when the setting is invalid.
+*/
 export function selectedLocale(): string {
     const value = app.extensionManager.setting.get('Comfy.Locale');
     try {

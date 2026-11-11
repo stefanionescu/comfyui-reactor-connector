@@ -4,7 +4,15 @@ import asyncio
 
 
 async def wait_shielded[T](task: asyncio.Task[T]) -> bool:
-    """Wait until the task settles despite cancellation, and report whether cancellation arrived."""
+    """Wait until the task settles despite cancellation, and report whether cancellation arrived.
+
+    Args:
+        task: The task to wait for.
+
+    Returns:
+        Whether a cancellation arrived during the wait.
+
+    """
     cancelled = False
     while not task.done():
         try:

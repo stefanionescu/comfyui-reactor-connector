@@ -26,7 +26,12 @@ class LtxSpeak(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncLtxSpeak',
             display_name='LTX: Make a Portrait Speak (Reactor)',
@@ -73,10 +78,28 @@ class LtxSpeak(VideoNode):
         words_per_minute: int,
         image: Input.Image,
     ) -> io.NodeOutput:
-        """Animate the portrait speaking the script and return video and audio."""
+        """Animate the portrait speaking the script and return video and audio.
+
+        Args:
+            prompt: The scene prompt of the video.
+            duration_seconds: The requested video length in seconds.
+            seed: The seed that the model generates from.
+            script: The words that the portrait speaks.
+            words_per_minute: The speed of the speech.
+            image: The portrait to animate.
+
+        Returns:
+            The video and its separate audio.
+
+        """
 
         async def start() -> io.NodeOutput:
-            """Prepare media inside the owned task before starting the Reactor session."""
+            """Prepare media inside the owned task before starting the Reactor session.
+
+            Returns:
+                The output of the session.
+
+            """
             encoded = await owned_io(lambda: encode_png(image))
             request = LtxSpeakRequest(
                 prompt,

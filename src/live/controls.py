@@ -26,7 +26,14 @@ class ControlLease(BrowserLease):
         choices: dict[str, tuple[str, ...]] | None = None,
         started: bool = False,
     ) -> None:
-        """Create an owner-authorized live-action queue with model-specific options."""
+        """Create an owner-authorized live-action queue with model-specific options.
+
+        Args:
+            options: The prompts and media options of the session.
+            choices: The values that each camera axis accepts, or None for no camera axes.
+            started: Whether the session starts without a start action.
+
+        """
         super().__init__(choices or {})
         self.options = options
         self.definition = MODELS_BY_CONNECTION[options.connection_name]
@@ -48,7 +55,18 @@ class ControlLease(BrowserLease):
         )
 
     def action(self, document: dict[str, Json]) -> dict[str, Json]:
-        """Authorize, validate, and queue a strictly ordered live action."""
+        """Authorize, validate, and queue a strictly ordered live action.
+
+        Args:
+            document: The untrusted action document from the browser.
+
+        Returns:
+            The reply that confirms the action.
+
+        Raises:
+            ConnectorError: When the document, its order, or the session state does not allow the action.
+
+        """
         self.authorize(document.get('capability'))
         if document.keys() != {'lease', 'capability', 'sequence', 'action', 'fields'}:
             raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
@@ -81,7 +99,16 @@ class ControlLease(BrowserLease):
         return {'accepted': True}
 
     def _validate(self, name: Json, payload: dict[str, Json]) -> None:
-        """Allow only supported action fields and values for this model."""
+        """Allow only supported action fields and values for this model.
+
+        Args:
+            name: The action name from the browser.
+            payload: The fields sent with the action.
+
+        Raises:
+            ConnectorError: When the action or its fields are not valid for this model.
+
+        """
         valid = False
         if name == 'start':
             valid = not payload
@@ -117,7 +144,12 @@ class ControlLease(BrowserLease):
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_ACTION_VALUES)
 
     def is_ready(self) -> bool:
-        """Require a connected client in an open session, a start request, and a recent frame of any webcam."""
+        """Require a connected client in an open session, a start request, and a recent frame of any webcam.
+
+        Returns:
+            True when every requirement holds.
+
+        """
         with self.lock:
             ready = self.ready and not self.end and not self.closed
         camera = self.options.webcam
@@ -132,7 +164,15 @@ class ControlLease(BrowserLease):
         return ready and self.started and has_frame
 
     def take_action(self, name: str) -> dict[str, Json] | None:
-        """Take the next action of one type, replacing a stale pointer press with a release."""
+        """Take the next action of one type, replacing a stale pointer press with a release.
+
+        Args:
+            name: The action type to take.
+
+        Returns:
+            The fields of the action, or None when no action of that type waits.
+
+        """
         with self.lock:
             for action in tuple(self.actions):
                 kind, payload, received_at = action
@@ -156,7 +196,13 @@ class ControlLease(BrowserLease):
 
     @override
     def close(self, *, is_termination_confirmed: bool, failed: bool = False) -> None:
-        """Record termination, discard actions, and clear retained webcam frames."""
+        """Record termination, discard actions, and clear retained webcam frames.
+
+        Args:
+            is_termination_confirmed: Whether the provider confirmed the end of the session.
+            failed: Whether an error ended the session.
+
+        """
         super().close(is_termination_confirmed=is_termination_confirmed, failed=failed)
         with self.lock:
             self.actions.clear()

@@ -1,0 +1,63 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "strict": true,
+        "allowImportingTsExtensions": true,
+        "maxNodeModuleJsDepth": 0,
+        "jsx": "preserve",
+        "noImplicitAny": true
+    },
+    "include": [
+        "../../../**/*.js",
+        "../../../**/*.mjs",
+        "../../../**/*.cjs",
+        "../../../**/*.jsx"
+    ],
+    "extends": "../../../tsconfig.json",
+    "exclude": [
+        "../../../.gspot/**",
+        "../../../.gspot-copies/**",
+        "../../../.editorconfig",
+        "../../../.github/workflows/gspot.yml",
+        "../../../.markdownlint.jsonc",
+        "../../../.prettierignore",
+        "../../../.stylelintrc.yml",
+        "../../../eslint.config.mjs",
+        "../../../prettier.config.mjs",
+        "../../../pyrightconfig.json",
+        "../../../ruff.toml",
+        "../../../web/extension.js",
+        "../../../web/extension.css",
+        "../../../example_workflows/*.json",
+        "../../../**/requirements.txt",
+        "../../../example_workflows/assets/*.png",
+        "../../../**/node_modules/**",
+        "../../../**/bower_components/**",
+        "../../../**/.venv/**",
+        "../../../**/venv/**",
+        "../../../**/__pycache__/**",
+        "../../../**/.pytest_cache/**",
+        "../../../**/.ruff_cache/**",
+        "../../../**/.mypy_cache/**",
+        "../../../**/coverage/**",
+        "../../../**/.env",
+        "../../../**/.env.*",
+        "../../../**/.dev.vars",
+        "../../../**/.dev.vars.*",
+        "../../../**/bun.lock",
+        "../../../**/uv.lock",
+        "../../../**/*.py[cod]",
+        "../../../dist/**",
+        "../../../**/.artifacts/**",
+        "../../../**/.import_linter_cache/**",
+        "../../../**/.mise.local.toml",
+        "../../../**/*.log",
+        "../../../**/.DS_Store",
+        "../../../**/eslint.config.mjs",
+        "../../../**/eslint.config.js",
+        "../../../**/eslint.config.cjs"
+    ],
+    "files": [
+        "../../../web/scripts/host.d.ts"
+    ]
+}

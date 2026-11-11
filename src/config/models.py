@@ -9,7 +9,22 @@ from .generation.session import MAX_PROMPT_CHARACTERS
 
 
 class ModelIdentity(TypedDict):
-    """One model identity; a field it leaves out takes the default of the model definition record."""
+    """One model identity; a field it leaves out takes the default of the model definition record.
+
+    Attributes:
+        guide_slug: The file name of the model guide, without its extension.
+        connection_name: The name that opens a session with the model.
+        title: The name of the model that the user reads.
+        max_prompt_characters: The longest prompt that the model accepts.
+        prompt_kind: Whether the prompt describes a scene or an edit.
+        is_empty_prompt_allowed: Whether the model accepts an empty prompt.
+        camera_axes: The camera axes that the user can control.
+        prompt_command: The command that sends a new prompt to the model.
+        has_audio_prompt: Whether the model accepts a prompt for sound.
+        has_pointer: Whether the model accepts pointer input.
+        has_prompt_passthrough: Whether the model can use the prompt without a rewrite.
+
+    """
 
     guide_slug: str
     connection_name: str

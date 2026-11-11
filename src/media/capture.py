@@ -49,7 +49,16 @@ class VideoCapture:
         output_bytes: int,
         default_fps: int = DEFAULT_FRAME_RATE,
     ) -> None:
-        """Create frame buffers, cross-thread signals, and an isolated encoder with capture limits."""
+        """Create frame buffers, cross-thread signals, and an isolated encoder with capture limits.
+
+        Args:
+            path: The file that the encoder writes.
+            duration_seconds: The length of video to capture.
+            queue_bytes: The most frame memory that the queue may hold.
+            output_bytes: The largest output file to accept.
+            default_fps: The frame rate to use when frames carry no sender timestamp.
+
+        """
         self.path = path
         self.duration_us = round(duration_seconds * 1_000_000)
         self.queue_bytes = queue_bytes
@@ -81,7 +90,15 @@ class VideoCapture:
         )
 
     def receive(self, pixels: object, _frame_id: int, timestamp_us: int, _user_data: bytes) -> None:
-        """Copy one SDK frame; reject it when the frame queue or memory limit is full."""
+        """Copy one SDK frame; reject it when the frame queue or memory limit is full.
+
+        Args:
+            pixels: The frame that the SDK delivers.
+            _frame_id: The SDK frame number, which is not used.
+            timestamp_us: The sender timestamp of the frame, in microseconds.
+            _user_data: The SDK user data, which is not used.
+
+        """
         if self.stopped.is_set() or self.source_finished.is_set():
             return
         try:
@@ -97,7 +114,19 @@ class VideoCapture:
             self.loop.call_soon_threadsafe(self.first_frame.set)
 
     def _queue_frame(self, array: NDArray[np.uint8], timestamp_us: int) -> bool:
-        """Reserve memory and copy a frame while holding the capture queue lock."""
+        """Reserve memory and copy a frame while holding the capture queue lock.
+
+        Args:
+            array: The validated frame pixels.
+            timestamp_us: The sender timestamp to store with the copy.
+
+        Returns:
+            True when the frame is queued, or False when capture has stopped or finished.
+
+        Raises:
+            ConnectorError: When the queue or its memory limit is full.
+
+        """
         with self.lock:
             if self.stopped.is_set() or self.source_finished.is_set():
                 return False
@@ -113,7 +142,19 @@ class VideoCapture:
         return True
 
     def _result(self, result: dict[str, Json]) -> CaptureResult:
-        """Require valid encoder metadata and preserve any earlier frame-delivery failure."""
+        """Require valid encoder metadata and preserve any earlier frame-delivery failure.
+
+        Args:
+            result: The final report of the encoder.
+
+        Returns:
+            The captured file with its frame count and timestamp mode.
+
+        Raises:
+            ConnectorError: When the report holds invalid metadata.
+            self.failure: When frame delivery failed earlier.
+
+        """
         if self.failure:
             raise self.failure
         frames, mode = result.get('frames'), result.get('timestamp_mode')
@@ -122,7 +163,12 @@ class VideoCapture:
         return CaptureResult(self.path, frames, str(mode))
 
     def fail(self, message: str) -> None:
-        """Stop capture with a safe error that the event-loop owner can observe."""
+        """Stop capture with a safe error that the event-loop owner can observe.
+
+        Args:
+            message: The safe text of the capture error.
+
+        """
         self.failure = ConnectorError(ErrorCode.CAPTURE, message)
         self.stop()
         self.loop.call_soon_threadsafe(self.first_frame.set)
@@ -141,7 +187,16 @@ class VideoCapture:
         self.loop.call_soon_threadsafe(self.frame_available.set)
 
     async def encode(self) -> CaptureResult:
-        """Return only after the encoder has finalized its file and exited."""
+        """Return only after the encoder has finalized its file and exited.
+
+        Returns:
+            The finished file with its frame count and timestamp mode.
+
+        Raises:
+            ConnectorError: When the encoder fails or reports invalid metadata.
+            failure: When frame delivery failed before the encoder did.
+
+        """
         success = False
         try:
             result = await self.encoder.run(self.ready, self.stop_requested, self._feed)
@@ -171,7 +226,12 @@ class VideoCapture:
                 self.complete.set()
 
     async def _feed(self, writer: asyncio.StreamWriter) -> None:
-        """Stream queued frames to the encoder and release their reserved memory after each write."""
+        """Stream queued frames to the encoder and release their reserved memory after each write.
+
+        Args:
+            writer: The standard input stream of the encoder.
+
+        """
         while not self.stopped.is_set():
             self.frame_available.clear()
             try:
@@ -196,7 +256,19 @@ class VideoCapture:
 
 
 def frame_pixels(pixels: object, timestamp_us: int) -> NDArray[np.uint8]:
-    """Require a red, green, and blue (RGB) byte array and a nonnegative sender timestamp before copying a frame."""
+    """Require a red, green, and blue (RGB) byte array and a nonnegative sender timestamp before copying a frame.
+
+    Args:
+        pixels: The object that the SDK delivers as a frame.
+        timestamp_us: The sender timestamp to validate, in microseconds.
+
+    Returns:
+        The same pixels, typed as a byte array.
+
+    Raises:
+        ConnectorError: When the pixels or the timestamp are invalid.
+
+    """
     if not isinstance(pixels, np.ndarray):
         raise ConnectorError(ErrorCode.CAPTURE, VIDEO_FRAME_TYPE)
     array = cast('NDArray[np.uint8]', pixels)

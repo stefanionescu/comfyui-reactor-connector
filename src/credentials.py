@@ -11,7 +11,18 @@ from .config.messages.settings import KEY_EMPTY, KEY_REQUIRED, KEY_UNREADABLE, K
 
 
 def parse_credential(value: str) -> Credential:
-    """Reject empty, oversized, or whitespace-containing API keys."""
+    """Reject empty, oversized, or whitespace-containing API keys.
+
+    Args:
+        value: The API key to check.
+
+    Returns:
+        The credential that holds the key.
+
+    Raises:
+        ConnectorError: When the key is empty, too long, or contains whitespace.
+
+    """
     if not value or value != value.strip() or len(value) > MAX_CREDENTIAL_CHARACTERS:
         raise ConnectorError(ErrorCode.CONFIGURATION, KEY_EMPTY.format(maximum=MAX_CREDENTIAL_CHARACTERS))
     if any(character.isspace() for character in value):
@@ -20,7 +31,18 @@ def parse_credential(value: str) -> Credential:
 
 
 def read_credential(directory: Path) -> Credential:
-    """Prefer the server environment over private saved credentials."""
+    """Prefer the server environment over private saved credentials.
+
+    Args:
+        directory: The private state directory that holds the saved key.
+
+    Returns:
+        The credential from the environment or from the saved file.
+
+    Raises:
+        ConnectorError: When no key is set, or the saved key is unreadable or not valid.
+
+    """
     if 'REACTOR_API_KEY' in os.environ:
         return parse_credential(os.environ['REACTOR_API_KEY'])
     path = directory / 'credential'
@@ -39,7 +61,15 @@ def read_credential(directory: Path) -> Credential:
 
 
 def credential_source(directory: Path) -> str:
-    """Report presence and source without reading or returning the secret."""
+    """Report presence and source without reading or returning the secret.
+
+    Args:
+        directory: The private state directory that holds the saved key.
+
+    Returns:
+        The source of the key, or a word that says the key is missing.
+
+    """
     if 'REACTOR_API_KEY' in os.environ:
         return 'environment'
     return 'saved' if (directory / 'credential').is_file() else 'missing'

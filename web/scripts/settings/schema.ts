@@ -1,6 +1,7 @@
 import * as v from 'valibot';
-import { message } from '#web/text.ts';
+
 import { browserPatterns } from '#web/browser.ts';
+import { message } from '#web/text.ts';
 
 type SettingDefinition = { minimum: number; maximum: number };
 
@@ -36,11 +37,11 @@ const configurationDocumentSchema = v.object({
 const credentialLimitSchema = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
 
 /**
- * Read the settings fields and ranges supplied by the backend.
- *
- * @param value - The untrusted settings definitions.
- * @returns The validated definitions indexed by setting name.
- */
+Read the settings fields and ranges supplied by the backend.
+
+@param value - The untrusted settings definitions.
+@returns The validated definitions indexed by setting name.
+*/
 function parseDefinitions(value: unknown): Configuration['definitions'] {
     const document = v.safeParse(unknownRecordSchema, value);
     if (!document.success) throw new Error(message('settings.invalidResponse'));
@@ -57,11 +58,11 @@ function parseDefinitions(value: unknown): Configuration['definitions'] {
 }
 
 /**
- * Validate and transform settings returned by the local server.
- *
- * @param value - The untrusted JSON response.
- * @returns The browser settings without a saved credential value.
- */
+Validate and transform settings returned by the local server.
+
+@param value - The untrusted JSON response.
+@returns The browser settings without a saved credential value.
+*/
 export function parseConfiguration(value: unknown): Configuration {
     const result = v.safeParse(configurationDocumentSchema, value);
     if (!result.success) throw new Error(message('settings.invalidResponse'));

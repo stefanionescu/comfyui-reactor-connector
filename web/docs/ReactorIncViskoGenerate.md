@@ -1,4 +1,4 @@
-# Visko: Generate Video
+# Visko: generate video
 
 Generates a scene with sound from Reactor's Visko Orbis model. It starts from
 text or from a starting image. You can change the scene and the sound while it records.

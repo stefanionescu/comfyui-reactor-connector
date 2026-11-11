@@ -1,0 +1,47 @@
+{
+    "root": true,
+    "html": {
+        "experimentalFullSupportEnabled": true
+    },
+    "vcs": {
+        "enabled": false
+    },
+    "formatter": {
+        "enabled": false
+    },
+    "assist": {
+        "enabled": false
+    },
+    "linter": {
+        "rules": {
+            "preset": "none",
+            "complexity": {
+                "noExcessiveCognitiveComplexity": {
+                    "level": "error",
+                    "options": {
+                        "maxAllowedComplexity": 15
+                    }
+                }
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": [
+                "**/*.{ts,tsx,mts,cts,astro,vue,svelte}"
+            ],
+            "linter": {
+                "rules": {
+                    "complexity": {
+                        "noExcessiveCognitiveComplexity": {
+                            "level": "error",
+                            "options": {
+                                "maxAllowedComplexity": 15
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

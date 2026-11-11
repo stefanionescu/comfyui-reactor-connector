@@ -3,7 +3,9 @@ import { releaseOnLeave } from '#web/live/input.ts';
 
 export type Pointer = { x: number; y: number; active: boolean };
 
-/** Track one mouse, touch, or keyboard drag on a model preview. */
+/**
+Track one mouse, touch, or keyboard drag on a model preview.
+*/
 export class DragInput {
     private pointer: Pointer = {
         x: browserInput.pointerCenter,
@@ -14,17 +16,88 @@ export class DragInput {
     private captured: number | undefined;
 
     /**
-     * Bind input until the panel's abort signal fires.
-     *
-     * @param image - The output image that receives input.
-     * @param signal - The panel's listener lifetime.
-     * @param send - Receive pointer updates in normalized image coordinates.
-     */
+    Hold the preview and the receiver of its pointer updates.
+
+    @param image - The output image that receives input.
+    @param send - Receive pointer updates in normalized image coordinates.
+    */
     constructor(
         private readonly image: HTMLImageElement,
-        signal: AbortSignal,
         private readonly send: (pointer: Pointer) => void,
-    ) {
+    ) {}
+
+    /**
+    Normalize a drag event to the displayed image bounds.
+
+    @param event - The captured pointer event.
+    */
+    private position(event: PointerEvent): void {
+        const rect = this.image.getBoundingClientRect();
+        this.pointer = {
+            x: Math.max(
+                browserInput.pointerMinimum,
+                Math.min(browserInput.pointerMaximum, (event.clientX - rect.left) / rect.width),
+            ),
+            y: Math.max(
+                browserInput.pointerMinimum,
+                Math.min(browserInput.pointerMaximum, (event.clientY - rect.top) / rect.height),
+            ),
+            active: true,
+        };
+        this.send(this.pointer);
+    }
+
+    /**
+    Move, hold, or release the pointer with the keyboard.
+
+    @param event - A key pressed while the preview has focus.
+    */
+    private keydown(event: KeyboardEvent): void {
+        const offsets = new Map<string, readonly [number, number]>([
+            ['ArrowLeft', [-browserInput.pointerStep, 0]],
+            ['ArrowRight', [browserInput.pointerStep, 0]],
+            ['ArrowUp', [0, -browserInput.pointerStep]],
+            ['ArrowDown', [0, browserInput.pointerStep]],
+            [' ', [0, 0]],
+            ['Escape', [0, 0]],
+        ]);
+        const offset = offsets.get(event.key);
+        if (!offset) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === 'Escape') {
+            this.release();
+            this.image.blur();
+            return;
+        }
+        this.pointer = {
+            x: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.x + offset[0])),
+            y: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.y + offset[1])),
+            active: event.key === ' ' || this.pointer.active,
+        };
+        this.send(this.pointer);
+    }
+
+    /**
+    Stop holding the pointer and release any browser pointer capture.
+    */
+    release(): void {
+        const isHeld = this.pointer.active;
+        this.pointer = { ...this.pointer, active: false };
+        const previousCapture = this.captured;
+        this.captured = undefined;
+        if (isHeld) this.send(this.pointer);
+        if (previousCapture !== undefined && this.image.hasPointerCapture(previousCapture))
+            this.image.releasePointerCapture(previousCapture);
+    }
+
+    /**
+    Bind input until the panel's abort signal fires.
+
+    @param signal - The panel's listener lifetime.
+    */
+    listen(signal: AbortSignal): void {
+        const image = this.image;
         image.tabIndex = 0;
         image.draggable = false;
         image.classList.add('reactor-drag-input');
@@ -52,77 +125,16 @@ export class DragInput {
         image.addEventListener(
             'keyup',
             (event) => {
-                if (event.key === ' ') {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.release();
+                if (event.key !== ' ') {
+                    return;
                 }
+
+                event.preventDefault();
+                event.stopPropagation();
+                this.release();
             },
             { signal },
         );
         releaseOnLeave(this.release.bind(this), signal);
-    }
-
-    /** Stop holding the pointer and release any browser pointer capture. */
-    release(): void {
-        const wasActive = this.pointer.active;
-        this.pointer = { ...this.pointer, active: false };
-        const previousCapture = this.captured;
-        this.captured = undefined;
-        if (wasActive) this.send(this.pointer);
-        if (previousCapture !== undefined && this.image.hasPointerCapture(previousCapture))
-            this.image.releasePointerCapture(previousCapture);
-    }
-
-    /**
-     * Normalize a drag event to the displayed image bounds.
-     *
-     * @param event - The captured pointer event.
-     */
-    private position(event: PointerEvent): void {
-        const rect = this.image.getBoundingClientRect();
-        this.pointer = {
-            x: Math.max(
-                browserInput.pointerMinimum,
-                Math.min(browserInput.pointerMaximum, (event.clientX - rect.left) / rect.width),
-            ),
-            y: Math.max(
-                browserInput.pointerMinimum,
-                Math.min(browserInput.pointerMaximum, (event.clientY - rect.top) / rect.height),
-            ),
-            active: true,
-        };
-        this.send(this.pointer);
-    }
-
-    /**
-     * Move, hold, or release the pointer with the keyboard.
-     *
-     * @param event - A key pressed while the preview has focus.
-     */
-    private keydown(event: KeyboardEvent): void {
-        const offsets = new Map<string, readonly [number, number]>([
-            ['ArrowLeft', [-browserInput.pointerStep, 0]],
-            ['ArrowRight', [browserInput.pointerStep, 0]],
-            ['ArrowUp', [0, -browserInput.pointerStep]],
-            ['ArrowDown', [0, browserInput.pointerStep]],
-            [' ', [0, 0]],
-            ['Escape', [0, 0]],
-        ]);
-        const offset = offsets.get(event.key);
-        if (!offset) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.key === 'Escape') {
-            this.release();
-            this.image.blur();
-            return;
-        }
-        this.pointer = {
-            x: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.x + offset[0])),
-            y: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.y + offset[1])),
-            active: event.key === ' ' || this.pointer.active,
-        };
-        this.send(this.pointer);
     }
 }

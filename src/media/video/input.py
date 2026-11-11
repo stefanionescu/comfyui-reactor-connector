@@ -27,7 +27,17 @@ from ...config.messages.media import LOCAL_SOURCE_REQUIRED
 
 
 async def _copy_source(source: str | io.BytesIO, destination: Path, maximum: int) -> None:
-    """Copy a local file or memory stream within the upload limit without blocking the host loop."""
+    """Copy a local file or memory stream within the upload limit without blocking the host loop.
+
+    Args:
+        source: The path or the memory stream to copy.
+        destination: The file to create.
+        maximum: The largest source to accept, in bytes.
+
+    Raises:
+        ConnectorError: When the memory stream exceeds the limit.
+
+    """
     if isinstance(source, io.BytesIO):
         with source.getbuffer() as buffer:
             if buffer.nbytes > maximum:
@@ -40,7 +50,17 @@ async def _copy_source(source: str | io.BytesIO, destination: Path, maximum: int
 
 
 async def _copy_file(path: Path, destination: Path, maximum: int) -> None:
-    """Copy one local source off the host loop and retain stream ownership through cancellation."""
+    """Copy one local source off the host loop and retain stream ownership through cancellation.
+
+    Args:
+        path: The local source file.
+        destination: The copy to create.
+        maximum: The largest file to accept, in bytes.
+
+    Raises:
+        ConnectorError: When the path is not an absolute file within the limit.
+
+    """
     valid = path.is_absolute() and await owned_io(lambda: path.is_file() and path.stat().st_size <= maximum)
     if not valid:
         raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
@@ -48,7 +68,15 @@ async def _copy_file(path: Path, destination: Path, maximum: int) -> None:
     streams: list[BinaryIO] = []
 
     def read_chunk() -> bytes:
-        """Read one chunk only after the source stream has opened."""
+        """Read one chunk only after the source stream has opened.
+
+        Returns:
+            The next bytes, or empty bytes at the end of the file.
+
+        Raises:
+            ConnectorError: When no stream is open.
+
+        """
         if not streams:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
         return streams[0].read(SOURCE_COPY_CHUNK_BYTES)
@@ -65,7 +93,20 @@ async def _copy_file(path: Path, destination: Path, maximum: int) -> None:
 
 @asynccontextmanager
 async def prepared_video(video: Input.Video, settings: Settings, temporary_root: Path) -> AsyncGenerator[Path]:
-    """Own source and output copies until the model has finished using them."""
+    """Own source and output copies until the model has finished using them.
+
+    Args:
+        video: The ComfyUI video input.
+        settings: The settings that hold the upload size limit.
+        temporary_root: The folder that holds the temporary copies.
+
+    Yields:
+        The prepared MP4 file.
+
+    Raises:
+        ConnectorError: When the input is not a supported local video.
+
+    """
     if not isinstance(video, (InputImpl.VideoFromFile, InputImpl.VideoFromComponents)):
         raise ConnectorError(ErrorCode.INVALID_INPUT, LOCAL_SOURCE_REQUIRED)
     maximum = settings.max_upload_megabytes * BYTES_PER_MEBIBYTE
@@ -89,7 +130,18 @@ async def _prepare_file(
     destination: Path,
     maximum: int,
 ) -> None:
-    """Copy and trim a local source in an isolated worker before checking the required frame count."""
+    """Copy and trim a local source in an isolated worker before checking the required frame count.
+
+    Args:
+        video: The video that a file or a memory stream backs.
+        source: The path for the copy of the original.
+        destination: The MP4 file that the worker writes.
+        maximum: The largest input or output file, in bytes.
+
+    Raises:
+        ConnectorError: When the trim window is invalid or too few frames remain.
+
+    """
     await _copy_source(video.get_stream_source(), source, maximum)
     start, duration = await owned_io(video.get_active_trim_window)
     if not all(math.isfinite(value) and value >= 0 for value in (start, duration)):

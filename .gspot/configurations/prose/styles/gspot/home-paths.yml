@@ -1,0 +1,9 @@
+extends: existence
+message: "Write a path that every reader has, not the home folder '%s'."
+level: error
+scope: raw
+nonword: true
+tokens:
+    - '(?:^|[\s"''(=`])/Users/[A-Za-z0-9._-]+'
+    - '(?:^|[\s"''(=`])/home/[A-Za-z0-9._-]+'
+    - "[A-Za-z]:\\\\Users\\\\[A-Za-z0-9._-]+"

@@ -25,7 +25,13 @@ if TYPE_CHECKING:
 
 
 async def _release(session: SessionResources, *, failed: bool) -> None:
-    """Release controls, disconnect, and reap capture even when an earlier cleanup step fails."""
+    """Release controls, disconnect, and reap capture even when an earlier cleanup step fails.
+
+    Args:
+        session: The resources of the session to release.
+        failed: Whether the session ended with an error.
+
+    """
     try:
         async with AsyncExitStack() as cleanup:
             cleanup.callback(session.transport.close)
@@ -51,6 +57,10 @@ async def _end_remote_session(session: SessionResources) -> None:
     """Release model uploads and tracks, then disconnect even when the release fails.
 
     Each step has its own deadline. Remote termination counts as confirmed only after disconnect finishes in time.
+
+    Args:
+        session: The session whose model controls and connection end.
+
     """
     try:
         async with asyncio.timeout(CLEANUP_TIMEOUT_SECONDS):
@@ -65,7 +75,17 @@ async def _end_remote_session(session: SessionResources) -> None:
 
 
 async def finish_session(session: SessionResources, primary_error: BaseException | None) -> None:
-    """Preserve the original failure and await one cleanup task exactly once."""
+    """Preserve the original failure and await one cleanup task exactly once.
+
+    Args:
+        session: The session to stop and clean up.
+        primary_error: The failure that ended the session, or None after success.
+
+    Raises:
+        ConnectorError: When cleanup fails and no earlier failure exists.
+        asyncio.CancelledError: When the host cancelled the wait for cleanup.
+
+    """
     session.capture.stop()
     cleanup = asyncio.create_task(_release(session, failed=primary_error is not None))
     cancelled = await wait_shielded(cleanup)

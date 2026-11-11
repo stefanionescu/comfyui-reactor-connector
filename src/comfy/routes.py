@@ -15,7 +15,12 @@ from ..config.messages.settings import PRIVATE_STATE_LOCATION
 
 
 def register_configuration() -> None:
-    """Reject public state locations before enabling credential writes."""
+    """Reject public state locations before enabling credential writes.
+
+    Raises:
+        ConnectorError: When the state directory lies inside a public folder.
+
+    """
     store = get_runtime().configuration
     directory = store.directory.resolve()
     public_roots = (

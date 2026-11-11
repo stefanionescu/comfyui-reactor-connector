@@ -24,7 +24,14 @@ class SessionTransport:
     """Keep the token private and own authentication before creating the SDK client."""
 
     def __init__(self, model: str, credential: Credential, session_seconds: int) -> None:
-        """Retain private authentication inputs until the single connection attempt begins."""
+        """Retain private authentication inputs until the single connection attempt begins.
+
+        Args:
+            model: The connection name of the model to open.
+            credential: The API key, kept until the token is minted.
+            session_seconds: The lifetime cap for the session token, in seconds.
+
+        """
         self.model = model
         self.credential: Credential | None = credential
         self.session_seconds = session_seconds
@@ -35,26 +42,51 @@ class SessionTransport:
         self.closed = False
 
     def get_client(self) -> Reactor:
-        """Return the open SDK client, or stop when the session has no connection."""
+        """Return the open SDK client, or stop when the session has no connection.
+
+        Returns:
+            The connected SDK client.
+
+        Raises:
+            ConnectorError: When no client is open.
+
+        """
         if self.client is None or self.closed:
             raise ConnectorError(ErrorCode.TRANSPORT, SESSION_DISCONNECTED)
         return self.client
 
     def on(self, event: str, callback: Callback) -> None:
-        """Retain an event callback and attach it if the client is already present."""
+        """Retain an event callback and attach it if the client is already present.
+
+        Args:
+            event: The SDK event name.
+            callback: The handler to call for the event.
+
+        """
         self.handlers.append((event, callback))
         if self.client:
             cast('EventRegistration', self.client.on)(event, callback)
 
     def off(self, event: str, callback: Callback) -> None:
-        """Remove a retained callback and detach it from the current client."""
+        """Remove a retained callback and detach it from the current client.
+
+        Args:
+            event: The SDK event name of the handler.
+            callback: The handler to remove.
+
+        """
         if (event, callback) in self.handlers:
             self.handlers.remove((event, callback))
         if self.client:
             cast('EventRegistration', self.client.off)(event, callback)
 
     async def connect(self) -> None:
-        """Mint one lifetime-limited token and connect the SDK without retaining the API key."""
+        """Mint one lifetime-limited token and connect the SDK without retaining the API key.
+
+        Raises:
+            ConnectorError: When a connection was already attempted or the transport is closed.
+
+        """
         if self.attempted or self.closed or self.credential is None:
             raise ConnectorError(ErrorCode.TRANSPORT, SESSION_ALREADY_CONNECTED)
         self.attempted = True
@@ -80,7 +112,17 @@ class SessionTransport:
             self.handlers.clear()
 
     async def upload_file(self, file: bytes | Path, *, name: str | None = None, mime_type: str | None = None) -> object:
-        """Upload prepared video by path without forcing the SDK to read it on the event loop."""
+        """Upload prepared video by path without forcing the SDK to read it on the event loop.
+
+        Args:
+            file: The bytes or the path of the file to upload.
+            name: The file name to report to the model.
+            mime_type: The media type to report to the model.
+
+        Returns:
+            The upload reference that the SDK returns.
+
+        """
         if isinstance(file, Path) and file.name == name == 'input.mp4' and mime_type == 'video/mp4':
             # The SDK reads the whole file on the event loop when it gets a name and a MIME type.
             # The prepared file name already gives the native path upload the correct MIME type.
@@ -94,7 +136,17 @@ class SessionTransport:
         maximum_bytes: int,
         timeout_seconds: float,
     ) -> None:
-        """Use the private session token without handing it to a node or workflow."""
+        """Use the private session token without handing it to a node or workflow.
+
+        Args:
+            destination: The path that receives the downloaded recording.
+            maximum_bytes: The largest download to accept, in bytes.
+            timeout_seconds: The time allowed for the download, in seconds.
+
+        Raises:
+            ConnectorError: When the session has no token.
+
+        """
         if self.token is None:
             raise ConnectorError(ErrorCode.TRANSPORT, RECORDING_DISCONNECTED)
         clip = await self.get_client().request_recording()

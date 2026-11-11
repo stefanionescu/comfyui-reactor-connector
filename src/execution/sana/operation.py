@@ -4,15 +4,14 @@ from typing import ClassVar, cast, override
 import asyncio
 
 from ..events import SessionEvents
-from ..inputs import VideoInputOperation, validate_capture_inputs
+from ..inputs import validate_capture_inputs
+from ..source import SourceVideoOperation
 from ...errors import ErrorCode, ConnectorError
 from ...models import MODELS
 from .contract import source_mode
 from ..transport import SessionTransport
-from ...media.webcam import WebcamFrames
 from ...state.session import RecordingWindow
 from ...state.settings import Settings
-from ...media.video.publish import VideoPublication
 from ...config.messages.media import SOURCE_VIDEO_REQUIRED
 from ...state.generation.sana import SanaRequest
 from ...config.messages.inputs import ANCHOR_INTERVAL, SANA_PROMPT_LENGTH, SANA_WEBCAM_UNSUPPORTED
@@ -20,26 +19,27 @@ from ...config.generation.video import MAX_ANCHOR_INTERVAL, MIN_ANCHOR_INTERVAL
 from ...config.generation.session import MAX_PROMPT_CHARACTERS
 
 
-class SanaOperation(VideoInputOperation[SanaRequest]):
+class SanaOperation(SourceVideoOperation[SanaRequest]):
     """Own source publication and model commands for one SANA edit.
 
     Attributes:
-        webcam: Optional browser camera that publishes source frames.
-        publication: Owned source video publisher.
+        connection_name: The provider connection of the SANA model.
 
     """
 
     connection_name: ClassVar[str] = MODELS['sana-streaming'].connection_name
 
-    def __init__(self, inputs: SanaRequest, *, webcam: WebcamFrames | None = None) -> None:
-        """Bind source inputs, the optional webcam, and their publication owner."""
-        super().__init__(inputs)
-        self.webcam = webcam
-        self.publication = VideoPublication()
-
     @override
     def validate(self, settings: Settings) -> None:
-        """Check capture limits, source availability, prompt size, and anchor interval."""
+        """Check capture limits, source availability, prompt size, and anchor interval.
+
+        Args:
+            settings: The user settings with the session time limit.
+
+        Raises:
+            ConnectorError: When the prompt, the source, or the anchor interval is invalid.
+
+        """
         inputs = self.inputs
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
         if len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
@@ -51,7 +51,19 @@ class SanaOperation(VideoInputOperation[SanaRequest]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Prepare the source using the declared model contract and start video editing."""
+        """Prepare the source using the declared model contract and start video editing.
+
+        Args:
+            transport: The connected transport that reads the schema and publishes the source.
+            events: The session events that send commands and receive publication errors.
+
+        Returns:
+            The recording interval for the requested duration.
+
+        Raises:
+            ConnectorError: When the source is missing or the deployment cannot take a webcam.
+
+        """
         inputs = self.inputs
         if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
@@ -78,20 +90,39 @@ class SanaOperation(VideoInputOperation[SanaRequest]):
         return RecordingWindow(0, inputs.duration_seconds)
 
     async def release(self, transport: SessionTransport) -> None:
-        """Stop source publication and close any webcam input."""
+        """Stop source publication and close any webcam input.
+
+        Args:
+            transport: Unused, because the release needs no command.
+
+        """
         del transport
         await self.publication.close()
         if self.webcam is not None:
             await self.webcam.close()
 
     async def _accept_file(self, transport: SessionTransport, events: SessionEvents) -> None:
-        """Upload the source and wait for model acceptance, then remove the temporary listener."""
+        """Upload the source and wait for model acceptance, then remove the temporary listener.
+
+        Args:
+            transport: The connected transport that uploads the video and delivers messages.
+            events: The session events that send the video command.
+
+        Raises:
+            ConnectorError: When the request has no source video.
+
+        """
         if self.inputs.video is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
         accepted = asyncio.Event()
 
         def observe(message: object) -> None:
-            """Signal only a model state that confirms the model accepted the uploaded video."""
+            """Signal only a model state that confirms the model accepted the uploaded video.
+
+            Args:
+                message: The message from the model.
+
+            """
             if not isinstance(message, dict):
                 return
             document = cast('dict[str, object]', message)

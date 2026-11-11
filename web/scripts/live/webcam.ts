@@ -1,11 +1,13 @@
-import type { Fetcher } from '#web/http.ts';
+import { browserInput, browserLimits } from '#web/browser.ts';
 import { button, element } from '#web/dom.ts';
+import type { Fetcher } from '#web/http.ts';
+import type { ControlsInvitation } from '#web/live/schema.ts';
 import { browserRoutes } from '#web/routes.ts';
 import { message, type MessageKey } from '#web/text.ts';
-import { browserInput, browserLimits } from '#web/browser.ts';
-import type { ControlsInvitation } from '#web/live/schema.ts';
 
-/** The message for each camera error that the browser names. */
+/**
+The message for each camera error that the browser names.
+*/
 const CAMERA_ERRORS = new Map<string, MessageKey>([
     ['NotAllowedError', 'camera.permissionDenied'],
     ['SecurityError', 'camera.browserRequirements'],
@@ -15,11 +17,11 @@ const CAMERA_ERRORS = new Map<string, MessageKey>([
 ]);
 
 /**
- * Ask the browser for the selected camera.
- *
- * @param selected - The selected device ID, or an empty string for the default camera.
- * @returns The camera stream, without sound.
- */
+Ask the browser for the selected camera.
+
+@param selected - The selected device ID, or an empty string for the default camera.
+@returns The camera stream, without sound.
+*/
 async function requestCamera(selected: string): Promise<MediaStream> {
     // DOM types omit browsers and insecure contexts where camera access is unavailable.
     if (!('mediaDevices' in navigator) || !('getUserMedia' in navigator.mediaDevices))
@@ -37,16 +39,6 @@ async function requestCamera(selected: string): Promise<MediaStream> {
 }
 
 export class Webcam {
-    readonly view = element('section');
-
-    readonly video = element('video');
-
-    readonly enable = button(message('camera.enable'));
-
-    readonly select = element('select');
-
-    readonly status = element('p');
-
     private readonly indicators = element('div');
 
     private stream: MediaStream | undefined;
@@ -61,13 +53,23 @@ export class Webcam {
 
     private readonly controller = new AbortController();
 
+    readonly view = element('section');
+
+    readonly video = element('video');
+
+    readonly enable = button(message('camera.enable'));
+
+    readonly select = element('select');
+
+    readonly status = element('p');
+
     /**
-     * Build camera selection and a muted input preview.
-     *
-     * @param owner - The validated session invitation.
-     * @param fetcher - ComfyUI's local API client.
-     * @param fail - Request session ending if the camera disconnects.
-     */
+    Build camera selection and a muted input preview.
+
+    @param owner - The validated session invitation.
+    @param fetcher - ComfyUI's local API client.
+    @param fail - Request session ending if the camera disconnects.
+    */
     constructor(
         private readonly owner: ControlsInvitation,
         private readonly fetcher: Fetcher,
@@ -130,10 +132,10 @@ export class Webcam {
     }
 
     /**
-     * Release the camera after it failed to open, and say why.
-     *
-     * @param error - What opening or listing the camera threw.
-     */
+    Release the camera after it failed to open, and say why.
+
+    @param error - What opening or listing the camera threw.
+    */
     private showCameraError(error: unknown): void {
         this.stopCamera();
         this.enable.textContent = message('camera.enable');
@@ -143,18 +145,19 @@ export class Webcam {
     }
 
     /**
-     * Open the selected camera and release any previous stream.
-     *
-     * @param selected - The selected device ID, or an empty string for the default camera.
-     * @returns Whether the camera is ready and the panel is still open.
-     */
+    Open the selected camera and release any previous stream.
+
+    @param selected - The selected device ID, or an empty string for the default camera.
+    @returns Whether the camera is ready and the panel is still open.
+    */
     private async openCamera(selected: string): Promise<boolean> {
         const stream = await requestCamera(selected);
         if (this.closed) {
             for (const track of stream.getTracks()) track.stop();
             return false;
         }
-        for (const track of this.stream?.getTracks() ?? []) {
+        const tracks = this.stream?.getTracks() ?? [];
+        for (const track of tracks) {
             track.stop();
         }
         this.stream = stream;
@@ -167,10 +170,10 @@ export class Webcam {
     }
 
     /**
-     * List cameras after permission reveals their names.
-     *
-     * @returns When the camera choices list the available cameras.
-     */
+    List cameras after permission reveals their names.
+
+    @returns When the camera choices list the available cameras.
+    */
     private async listCameras(): Promise<void> {
         const devices = await navigator.mediaDevices.enumerateDevices();
         if (this.closed) return;
@@ -186,38 +189,7 @@ export class Webcam {
             option.selected = device.deviceId === selected;
             options.append(option);
         }
-        this.select.replaceChildren();
-        this.select.append(options);
-    }
-
-    /**
-     * Upload a camera frame without overlapping uploads.
-     *
-     * @returns Whether the server accepted a camera frame.
-     */
-    async frame(): Promise<boolean> {
-        if (this.closed || !this.stream || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return false;
-        for (const track of this.stream.getVideoTracks()) {
-            if (track.readyState === 'live') continue;
-            this.fail(message('camera.disconnected'));
-            return false;
-        }
-        if (this.upload) {
-            return await this.upload;
-        }
-        const ratio = Math.min(
-            browserInput.cameraWidth / this.video.videoWidth,
-            browserInput.cameraHeight / this.video.videoHeight,
-            1,
-        );
-        this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
-        this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-        this.upload = this.send();
-        try {
-            return await this.upload;
-        } finally {
-            this.upload = undefined;
-        }
+        this.select.replaceChildren(options);
     }
 
     private async send(): Promise<boolean> {
@@ -249,9 +221,50 @@ export class Webcam {
         return true;
     }
 
+    private stopCamera(): void {
+        this.indicators.hidden = true;
+        this.video.hidden = true;
+        const tracks = this.stream?.getTracks() ?? [];
+        for (const track of tracks) {
+            track.stop();
+        }
+        this.stream = undefined;
+        this.video.srcObject = null;
+    }
+
     /**
-     * Stop the camera, cancel uploads, and clear the capture canvas.
-     */
+    Upload a camera frame without overlapping uploads.
+
+    @returns Whether the server accepted a camera frame.
+    */
+    async frame(): Promise<boolean> {
+        if (this.closed || !this.stream || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return false;
+        for (const track of this.stream.getVideoTracks()) {
+            if (track.readyState === 'live') continue;
+            this.fail(message('camera.disconnected'));
+            return false;
+        }
+        if (this.upload) {
+            return await this.upload;
+        }
+        const ratio = Math.min(
+            browserInput.cameraWidth / this.video.videoWidth,
+            browserInput.cameraHeight / this.video.videoHeight,
+            1,
+        );
+        this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
+        this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
+        this.upload = this.send();
+        try {
+            return await this.upload;
+        } finally {
+            this.upload = undefined;
+        }
+    }
+
+    /**
+    Stop the camera, cancel uploads, and clear the capture canvas.
+    */
     close(): void {
         this.closed = true;
         this.controller.abort();
@@ -259,15 +272,5 @@ export class Webcam {
         this.select.disabled = this.enable.disabled = true;
         this.view.hidden = true;
         this.canvas.width = this.canvas.height = 0;
-    }
-
-    private stopCamera(): void {
-        this.indicators.hidden = true;
-        this.video.hidden = true;
-        for (const track of this.stream?.getTracks() ?? []) {
-            track.stop();
-        }
-        this.stream = undefined;
-        this.video.srcObject = null;
     }
 }

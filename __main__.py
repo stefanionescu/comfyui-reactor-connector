@@ -13,7 +13,12 @@ if TYPE_CHECKING:
 
 
 def main() -> int:
-    """Dispatch only the fixed media operations supplied by the connector."""
+    """Dispatch only the fixed media operations supplied by the connector.
+
+    Returns:
+        The exit status of the chosen worker.
+
+    """
     operations: dict[str, Callable[[list[str]], int]] = {
         # The capture worker reports readiness itself, once its output container is open.
         'capture': lambda arguments: report_outcome(

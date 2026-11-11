@@ -8,7 +8,15 @@ from nodes import LoadImage
 
 
 def describe_schemas(schemas: list[io.Schema]) -> dict[str, dict[str, object]]:
-    """Describe the public metadata, inputs, and outputs of each node schema, by node ID."""
+    """Describe the public metadata, inputs, and outputs of each node schema, by node ID.
+
+    Args:
+        schemas: The node schemas to describe.
+
+    Returns:
+        The description of each node, by node ID.
+
+    """
     described: dict[str, dict[str, object]] = {}
     for schema in schemas:
         described[schema.node_id] = {
@@ -32,12 +40,20 @@ def describe_schemas(schemas: list[io.Schema]) -> dict[str, dict[str, object]]:
 
 
 def image_schema() -> dict[str, object]:
-    """Describe LoadImage's public upload contract without exposing local file names."""
+    """Describe LoadImage's public upload contract without exposing local file names.
+
+    Returns:
+        The inputs and outputs of LoadImage.
+
+    Raises:
+        ValueError: When the upload input of LoadImage has changed.
+
+    """
     types = cast('dict[str, dict[str, tuple[object, dict[str, object]]]]', LoadImage.INPUT_TYPES())
     files, attributes = types['required']['image']
     if not isinstance(files, list) or attributes.get('image_upload') is not True:
-        msg = 'Inspect the changed LoadImage upload input.'
-        raise ValueError(msg)
+        message = 'Inspect the changed LoadImage upload input.'
+        raise ValueError(message)
     return {
         'inputs': [{'name': 'image', 'type': 'COMBO', 'widget': True, 'options': [], 'image_upload': True}],
         'outputs': [{'type': kind} for kind in LoadImage.RETURN_TYPES],

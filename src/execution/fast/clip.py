@@ -27,7 +27,18 @@ if TYPE_CHECKING:
 
 
 def read_clip(payload: dict[str, object]) -> FastClip:
-    """Validate the clip identity, readiness, and agreement between duration and frame count."""
+    """Validate the clip identity, readiness, and agreement between duration and frame count.
+
+    Args:
+        payload: The reply data that holds the clip.
+
+    Returns:
+        The validated clip.
+
+    Raises:
+        ConnectorError: When the clip is missing or a field is invalid.
+
+    """
     raw = payload.get('clip')
     if not isinstance(raw, dict):
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_MISSING)
@@ -58,7 +69,13 @@ class FastClipEvents:
     """Limit stored clip updates; let the session remove the event handler."""
 
     def __init__(self, events: SessionEvents, *, limit: int = MAX_QUEUED_CLIPS) -> None:
-        """Subscribe to clip updates with a fixed maximum number of stored clips."""
+        """Subscribe to clip updates with a fixed maximum number of stored clips.
+
+        Args:
+            events: The session events that deliver messages and failures.
+            limit: The largest number of clips to store.
+
+        """
         self.events = events
         self.limit = limit
         self.finished_at: dict[str, float] = {}
@@ -72,7 +89,12 @@ class FastClipEvents:
         events.handlers.append(('message', self.observe))
 
     def observe(self, message: object) -> None:
-        """Record relevant clip updates and forward invalid replies to the session failure signal."""
+        """Record relevant clip updates and forward invalid replies to the session failure signal.
+
+        Args:
+            message: The SDK message to inspect.
+
+        """
         if not isinstance(message, dict):
             return
         envelope = cast('dict[str, object]', message)
@@ -85,7 +107,16 @@ class FastClipEvents:
             self.events.on_error(error)
 
     def _record_clip(self, envelope: dict[str, object], kind: str) -> None:
-        """Validate a clip update and advance generation or playback signals."""
+        """Validate a clip update and advance generation or playback signals.
+
+        Args:
+            envelope: The message that holds the clip update.
+            kind: The type of the clip update.
+
+        Raises:
+            ConnectorError: When the clip failed, stopped, or exceeds the stored limit.
+
+        """
         if kind in ('clip_failed', 'clip_stopped'):
             raise ConnectorError(ErrorCode.CAPTURE, CLIP_UNFINISHED)
         clip = read_clip(message_payload(envelope, str(kind)))
@@ -102,7 +133,15 @@ class FastClipEvents:
             self.finished.set()
 
     async def wait_ready(self, clip: FastClip) -> None:
-        """Wait for generation without accepting changes to the queued clip length."""
+        """Wait for generation without accepting changes to the queued clip length.
+
+        Args:
+            clip: The queued clip to wait for.
+
+        Raises:
+            ConnectorError: When the model changes the length of the clip.
+
+        """
         self.clip_id = clip.clip_id
         self.finished.clear()
         self.end_seconds = None
@@ -118,7 +157,18 @@ class FastClipEvents:
                 )
 
     async def wait_finished(self, clip: FastClip) -> float:
-        """Wait for playback and return its reported end time after checking the clip length."""
+        """Wait for playback and return its reported end time after checking the clip length.
+
+        Args:
+            clip: The accepted clip whose playback to wait for.
+
+        Returns:
+            The media time at which playback finished, in seconds.
+
+        Raises:
+            ConnectorError: When the reported clip differs from the accepted one.
+
+        """
         while clip.clip_id not in self.finished_at:
             self.playback_changed.clear()
             await self.playback_changed.wait()
@@ -129,7 +179,19 @@ class FastClipEvents:
 
 
 def message_payload(message: object, kind: str) -> dict[str, object]:
-    """Require a matching message type and an object payload."""
+    """Require a matching message type and an object payload.
+
+    Args:
+        message: The reply or event to read.
+        kind: The message type to require.
+
+    Returns:
+        The data object of the message.
+
+    Raises:
+        ConnectorError: When the type differs or the data is not an object.
+
+    """
     if isinstance(message, dict):
         envelope = cast('dict[str, object]', message)
         payload = envelope.get('data')
@@ -139,7 +201,18 @@ def message_payload(message: object, kind: str) -> dict[str, object]:
 
 
 def seconds(value: object) -> float:
-    """Validate a provider media time before using it to select a recording interval."""
+    """Validate a provider media time before using it to select a recording interval.
+
+    Args:
+        value: The media time that the provider reported.
+
+    Returns:
+        The media time as a float, in seconds.
+
+    Raises:
+        ConnectorError: When the value is not a number in the accepted range.
+
+    """
     if type(value) not in (int, float) or not 0 <= cast('float', value) <= MAX_MEDIA_SECONDS:
         raise ConnectorError(ErrorCode.UNAVAILABLE, CLIP_MEDIA_TIME)
     return float(cast('float', value))

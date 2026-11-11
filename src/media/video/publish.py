@@ -25,7 +25,14 @@ class VideoPublication:
     started: asyncio.Event = field(default_factory=asyncio.Event)
 
     async def begin(self, path: Path, track: Track, fail: Callable[[object], None]) -> None:
-        """Start the publisher and wait until it sends the first frame or setup fails."""
+        """Start the publisher and wait until it sends the first frame or setup fails.
+
+        Args:
+            path: The prepared clip to publish.
+            track: The track that receives the frames.
+            fail: The callback that receives a publisher failure.
+
+        """
         ready = asyncio.Event()
         self.started = asyncio.Event()
         self.task = asyncio.create_task(self._run(path, track, fail, ready, self.started))
@@ -41,7 +48,19 @@ class VideoPublication:
         ready: asyncio.Event,
         started: asyncio.Event,
     ) -> None:
-        """Publish frames at their timestamps, repeat the final frame, and always close the reader."""
+        """Publish frames at their timestamps, repeat the final frame, and always close the reader.
+
+        Args:
+            path: The prepared clip to read.
+            track: The track to push frames to.
+            fail: The callback to call with any failure.
+            ready: The event to set after the first frame or a failure.
+            started: The event that allows timed playback.
+
+        Raises:
+            Exception: When reading or publishing fails.
+
+        """
         reader = PreparedFrames(path)
         try:
             pixels, first_time = await owned_io(reader.open)

@@ -24,13 +24,24 @@ from ...state.generation.lingbot import LingBotRequest, LingBotWorldRequest
 
 
 class LingBotOperation[Request: LingBotRequest](VideoInputOperation[Request]):
-    """Hold the requested camera controls while generating from an image."""
+    """Hold the requested camera controls while generating from an image.
+
+    Attributes:
+        connection_name: The provider connection of the LingBot model.
+        movement_values: The movement directions that this version accepts.
+
+    """
 
     connection_name: ClassVar[str] = MODELS['lingbot'].connection_name
     movement_values: ClassVar[tuple[str, ...]] = CAMERA_AXES['movement']
 
     def axes(self) -> tuple[tuple[str, str], ...]:
-        """Map camera directions to the command names of the selected LingBot version."""
+        """Map camera directions to the command names of the selected LingBot version.
+
+        Returns:
+            Pairs of a command axis name and its requested direction.
+
+        """
         inputs = self.inputs
         if isinstance(inputs, LingBotWorldRequest):
             return (
@@ -47,7 +58,15 @@ class LingBotOperation[Request: LingBotRequest](VideoInputOperation[Request]):
 
     @override
     def validate(self, settings: Settings) -> None:
-        """Require an image, supported directions, and a finite camera rotation speed."""
+        """Require an image, supported directions, and a finite camera rotation speed.
+
+        Args:
+            settings: The user settings with the image upload limit.
+
+        Raises:
+            ConnectorError: When the image is missing or the prompt, a direction, or the speed is invalid.
+
+        """
         super().validate(settings)
         inputs = self.inputs
         if inputs.image is None:
@@ -67,7 +86,19 @@ class LingBotOperation[Request: LingBotRequest](VideoInputOperation[Request]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Upload the starting image, set camera controls, and start the scene."""
+        """Upload the starting image, set camera controls, and start the scene.
+
+        Args:
+            transport: The connected transport that uploads the starting image.
+            events: The session events that send the camera commands.
+
+        Returns:
+            The recording interval for the requested duration.
+
+        Raises:
+            ConnectorError: When the request has no starting image.
+
+        """
         inputs = self.inputs
         if inputs.image is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, STARTING_IMAGE_REQUIRED)
@@ -82,7 +113,12 @@ class LingBotOperation[Request: LingBotRequest](VideoInputOperation[Request]):
         return RecordingWindow(0, inputs.duration_seconds)
 
     async def release(self, transport: SessionTransport) -> None:
-        """Release held axes before disconnect; disconnect still runs if release fails."""
+        """Release held axes before disconnect; disconnect still runs if release fails.
+
+        Args:
+            transport: The transport whose client receives the idle commands.
+
+        """
         client = transport.client
         if client is not None and client.status == 'ready':
             for axis, _ in self.axes():
@@ -90,7 +126,14 @@ class LingBotOperation[Request: LingBotRequest](VideoInputOperation[Request]):
 
 
 class LingBotWorldOperation(LingBotOperation[LingBotWorldRequest]):
-    """Hold longitudinal and lateral camera controls independently for World 2."""
+    """Hold longitudinal and lateral camera controls independently for World 2.
+
+    Attributes:
+        connection_name: The provider connection of LingBot World 2.
+        default_fps: The frame rate for frames that carry no timestamp.
+        movement_values: The longitudinal directions that World 2 accepts.
+
+    """
 
     connection_name: ClassVar[str] = MODELS['lingbot-world-2'].connection_name
     default_fps: ClassVar[int] = WORLD_FRAME_RATE
@@ -98,7 +141,15 @@ class LingBotWorldOperation(LingBotOperation[LingBotWorldRequest]):
 
     @override
     def validate(self, settings: Settings) -> None:
-        """Check the shared camera settings and World 2 lateral direction."""
+        """Check the shared camera settings and World 2 lateral direction.
+
+        Args:
+            settings: The user settings passed to the shared checks.
+
+        Raises:
+            ConnectorError: When the lateral direction is not supported.
+
+        """
         super().validate(settings)
         if self.inputs.lateral not in CAMERA_AXES['move_lateral']:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LATERAL_DIRECTION)

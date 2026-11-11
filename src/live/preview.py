@@ -34,7 +34,15 @@ class PreviewFrames:
         self.closed = False
 
     def receive(self, pixels: object, _frame_id: int, _timestamp_us: int, _user_data: bytes) -> None:
-        """Keep a reduced copy of a valid red, green, and blue (RGB) frame at the preview rate limit."""
+        """Keep a reduced copy of a valid red, green, and blue (RGB) frame at the preview rate limit.
+
+        Args:
+            pixels: The frame from the video track.
+            _frame_id: Unused frame number from the track.
+            _timestamp_us: Unused frame time from the track.
+            _user_data: Unused data attached to the frame.
+
+        """
         if not isinstance(pixels, np.ndarray):
             return
         array = cast('NDArray[np.uint8]', pixels)
@@ -52,7 +60,12 @@ class PreviewFrames:
             self.pending = array[::stride, ::stride].copy()
 
     def encode(self) -> str:
-        """Run image compression off the execution loop; retain no source metadata."""
+        """Run image compression off the execution loop; retain no source metadata.
+
+        Returns:
+            The preview as base64 JPEG text, or an empty string when no frame waits.
+
+        """
         with self.lock:
             array, self.pending = self.pending, None
         if array is None:

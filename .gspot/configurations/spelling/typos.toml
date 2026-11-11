@@ -1,0 +1,78 @@
+[default]
+locale = "en"
+extend-ignore-re = ["\\b[0-9a-f]{7,40}\\b", "\\b[A-Za-z0-9+/]{40,}={0,2}\\b"]
+
+[default.extend-words]
+AVI = "AVI"
+H3 = "H3"
+Helios = "Helios"
+JPEG = "JPEG"
+LTX = "LTX"
+LingBot = "LingBot"
+LongLive = "LongLive"
+MOV = "MOV"
+MP4 = "MP4"
+PNG = "PNG"
+SANA = "SANA"
+Visko = "Visko"
+WAV = "WAV"
+X2 = "X2"
+
+[files]
+extend-exclude = [
+  # Build output
+  "**/build/**",
+  # Files that gspot generates
+  ".gspot/**",
+  ".gspot-copies/**",
+  ".editorconfig",
+  ".github/workflows/gspot.yml",
+  ".markdownlint.jsonc",
+  ".prettierignore",
+  ".stylelintrc.yml",
+  "eslint.config.mjs",
+  "prettier.config.mjs",
+  "pyrightconfig.json",
+  "ruff.toml",
+  # Generator outputs
+  "web/extension.js",
+  "web/extension.css",
+  "example_workflows/*.json",
+  "**/requirements.txt",
+  "example_workflows/assets/*.png",
+  "**/*.pbxproj",
+  "**/*.xcstrings",
+  "**/*.svg",
+  "**/*.min.js",
+  "**/*.min.css",
+  # Paths that configurations leave out
+  "**/node_modules/**",
+  "**/bower_components/**",
+  "**/.venv/**",
+  "**/venv/**",
+  "**/__pycache__/**",
+  "**/.pytest_cache/**",
+  "**/.ruff_cache/**",
+  "**/.mypy_cache/**",
+  "**/coverage/**",
+  "**/.env",
+  "**/.env.*",
+  "**/.dev.vars",
+  "**/.dev.vars.*",
+  # Lockfiles
+  "**/*.lock",
+  "**/bun.lockb",
+  "**/pnpm-lock.yaml",
+  "**/package-lock.json",
+  "**/npm-shrinkwrap.json",
+  "**/go.sum",
+  "**/Package.resolved",
+  # Paths that the tracked .gitignore files leave out
+  "**/*.py[cod]",
+  "dist/**",
+  "**/.artifacts/**",
+  "**/.import_linter_cache/**",
+  "**/.mise.local.toml",
+  "**/*.log",
+  "**/.DS_Store",
+]

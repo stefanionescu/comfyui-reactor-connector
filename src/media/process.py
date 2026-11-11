@@ -18,13 +18,24 @@ class MediaProcess:
     """Run one isolated worker and reap it on success, failure, or cancellation."""
 
     def __init__(self, command: Sequence[str], shutdown_seconds: float = SHUTDOWN_TIMEOUT_SECONDS) -> None:
-        """Record the fixed worker command and its shutdown deadline."""
+        """Record the fixed worker command and its shutdown deadline.
+
+        Args:
+            command: The program and arguments of the worker.
+            shutdown_seconds: The time to wait for the worker to exit.
+
+        """
         self.command = command
         self.shutdown_seconds = shutdown_seconds
         self.process: asyncio.subprocess.Process | None = None
 
     async def _reap(self) -> None:
-        """Terminate the worker, kill it when it outlives the terminate limit, and wait within the shutdown limits."""
+        """Terminate the worker, kill it when it outlives the terminate limit, and wait within the shutdown limits.
+
+        Raises:
+            ConnectorError: When the worker survives the kill.
+
+        """
         process = self.process
         if process is None or process.returncode is not None:
             return
@@ -46,7 +57,12 @@ class MediaProcess:
                 ) from None
 
     async def _dispose(self, tasks: Sequence[asyncio.Task[object]]) -> None:
-        """Cancel pipe tasks, reap the worker, close stdin, and await every owned task."""
+        """Cancel pipe tasks, reap the worker, close stdin, and await every owned task.
+
+        Args:
+            tasks: The pipe tasks that this run owns.
+
+        """
         for task in tasks:
             if not task.done():
                 task.cancel()
@@ -66,6 +82,18 @@ class MediaProcess:
         """Observe input, result, and stop signals without blocking the host loop.
 
         Without a feed, the worker reads its input from files and stdin closes at once.
+
+        Args:
+            ready: The event to set when the worker reports readiness.
+            stopped: The event that interrupts the run when set.
+            feed: The coroutine that writes input to the worker, or None.
+
+        Returns:
+            The final report of the worker.
+
+        Raises:
+            ConnectorError: When the pipes are missing, the run is stopped, or the worker fails.
+
         """
         environment = {key: value for key, value in os.environ.items() if not key.startswith('REACTOR_')}
         self.process = await asyncio.create_subprocess_exec(
@@ -104,7 +132,15 @@ class MediaProcess:
             await self._finish(tasks)
 
     async def _finish(self, tasks: Sequence[asyncio.Task[object]]) -> None:
-        """Await process disposal despite cancellation, then propagate cancellation or cleanup failure."""
+        """Await process disposal despite cancellation, then propagate cancellation or cleanup failure.
+
+        Args:
+            tasks: The tasks to cancel and await during disposal.
+
+        Raises:
+            asyncio.CancelledError: When the caller is cancelled during disposal.
+
+        """
         cleanup = asyncio.create_task(self._dispose(tasks))
         if await wait_shielded(cleanup):
             if not cleanup.cancelled():
@@ -114,7 +150,18 @@ class MediaProcess:
 
 
 async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
-    """Validate a size-limited worker report and translate fixed error codes into public errors."""
+    """Validate a size-limited worker report and translate fixed error codes into public errors.
+
+    Args:
+        reader: The standard output stream of the worker.
+
+    Returns:
+        The parsed report.
+
+    Raises:
+        ConnectorError: When the report is invalid or carries an error code.
+
+    """
     line = await reader.readline()
     if not line or len(line) > MAX_REPORT_BYTES:
         raise ConnectorError(ErrorCode.CAPTURE, ENCODER_RESULT)
@@ -134,7 +181,19 @@ async def _report(reader: asyncio.StreamReader) -> dict[str, Json]:
 
 
 async def _read_result(reader: asyncio.StreamReader, ready: asyncio.Event) -> dict[str, Json]:
-    """Require the worker readiness message before accepting its final report."""
+    """Require the worker readiness message before accepting its final report.
+
+    Args:
+        reader: The stream that carries both worker reports.
+        ready: The event to set after the readiness message.
+
+    Returns:
+        The final report.
+
+    Raises:
+        ConnectorError: When the first message is not the readiness message.
+
+    """
     initial = await _report(reader)
     if initial.keys() != {'ready'} or initial['ready'] is not True:
         raise ConnectorError(ErrorCode.CAPTURE, ENCODER_NOT_READY)

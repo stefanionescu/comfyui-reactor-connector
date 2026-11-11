@@ -32,6 +32,18 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
     """Authorize one session with a server lifetime cap; never retry a mint.
 
     Every failure, from the request, the response, or the token, reports the same public authorization error.
+
+    Args:
+        model: The model that the token authorizes.
+        credential: The API key that authorizes the request.
+        session_seconds: The longest session that the token allows, in seconds.
+
+    Returns:
+        The session token for the model.
+
+    Raises:
+        ConnectorError: When the inputs are out of range or any step of the mint fails.
+
     """
     if MODEL_NAME.fullmatch(model) is None or not 1 <= session_seconds <= MAX_SESSION_SECONDS:
         raise ConnectorError(ErrorCode.AUTHENTICATION, MODEL_AUTHORIZATION)
@@ -43,7 +55,20 @@ async def mint_session_token(model: str, credential: Credential, session_seconds
 
 
 async def _request_session(model: str, credential: Credential, session_seconds: int) -> dict[str, Json]:
-    """Request one session token for the model and read the size-limited JSON response."""
+    """Request one session token for the model and read the size-limited JSON response.
+
+    Args:
+        model: The only model that the token may open.
+        credential: The API key sent in the request header.
+        session_seconds: The session lifetime cap sent to the server, in seconds.
+
+    Returns:
+        The parsed JSON object of the response.
+
+    Raises:
+        ConnectorError: When the server refuses the request or the response is too large.
+
+    """
     request_body = {
         'expires_after': session_seconds + SESSION_EXPIRY_BUFFER_SECONDS,
         'authorization_details': [
@@ -81,7 +106,19 @@ async def _request_session(model: str, credential: Credential, session_seconds: 
 
 
 def _read_session_token(document: dict[str, Json], session_seconds: int) -> SessionToken:
-    """Accept only a well-formed token whose expiry covers the whole session."""
+    """Accept only a well-formed token whose expiry covers the whole session.
+
+    Args:
+        document: The parsed response of the session endpoint.
+        session_seconds: The session length that the token expiry has to cover, in seconds.
+
+    Returns:
+        The validated session token.
+
+    Raises:
+        ConnectorError: When the token is malformed or expires too early.
+
+    """
     token, expires = document.get('jwt'), document.get('expires_at')
     if (
         not isinstance(token, str)

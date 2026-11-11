@@ -38,7 +38,15 @@ class FastContinueOperation(FastGenerateOperation[FastContinueRequest]):
 
     @override
     def validate(self, settings: Settings) -> None:
-        """Check the shared capture limits, then clip count, clip length, aspect ratio, and prompts for the chain."""
+        """Check the shared capture limits, then clip count, clip length, aspect ratio, and prompts for the chain.
+
+        Args:
+            settings: The user settings with the limits for capture and uploads.
+
+        Raises:
+            ConnectorError: When the clip count, clip length, aspect ratio, or a prompt is invalid.
+
+        """
         VideoInputOperation[FastContinueRequest].validate(self, settings)
         if not MIN_CLIP_COUNT <= self.inputs.clip_count <= MAX_CLIP_COUNT:
             raise ConnectorError(ErrorCode.INVALID_INPUT, CLIP_COUNT)
@@ -57,7 +65,19 @@ class FastContinueOperation(FastGenerateOperation[FastContinueRequest]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Play linked clips and enough trailing media to finish the saved recording."""
+        """Play linked clips and enough trailing media to finish the saved recording.
+
+        Args:
+            transport: The connected transport that lists tracks and reads model state.
+            events: The session events that send commands and report clip updates.
+
+        Returns:
+            The recording interval that covers the chained clips.
+
+        Raises:
+            ConnectorError: When audio is missing or the chain breaks a length or order limit.
+
+        """
         if not any(
             track.name == 'main_audio' and track.kind == 'audio' and track.direction == 'recvonly'
             for track in transport.get_client().tracks
@@ -98,7 +118,19 @@ class FastContinueOperation(FastGenerateOperation[FastContinueRequest]):
         return RecordingWindow(start_seconds, duration)
 
     async def _read_playback_start(self, transport: SessionTransport, events: SessionEvents) -> float:
-        """Read the recording position only while automatic playback stays stopped."""
+        """Read the recording position only while automatic playback stays stopped.
+
+        Args:
+            transport: The connected transport that fetches the state.
+            events: The session events that check the state reply.
+
+        Returns:
+            The media time already sent, in seconds.
+
+        Raises:
+            ConnectorError: When playback is already running.
+
+        """
         state = await self._state(transport, events)
         if state.get('playing') is not False:
             raise ConnectorError(ErrorCode.UNAVAILABLE, SEQUENCE_PLAYBACK_ORDER)
@@ -112,7 +144,18 @@ class FastContinueOperation(FastGenerateOperation[FastContinueRequest]):
         *,
         duration: float | None = None,
     ) -> FastClip:
-        """Queue a clip from the starting image or the previous clip and validate its length."""
+        """Queue a clip from the starting image or the previous clip and validate its length.
+
+        Args:
+            events: The session events that upload the image and send the command.
+            previous: The clip to continue from, or None for the first clip.
+            index: The position of the clip in the chain.
+            duration: The clip length to request, or None for the requested length.
+
+        Returns:
+            The clip that the model queued.
+
+        """
         prompt = (
             self.inputs.later_prompts[index - 1] if 0 < index <= len(self.inputs.later_prompts) else self.inputs.prompt
         )

@@ -1,4 +1,4 @@
-# Helios: Generate Video
+# Helios: generate video
 
 Generates a video from a prompt with Reactor's Helios model. You can start from
 an image, schedule later prompts, or change the prompt while it records.

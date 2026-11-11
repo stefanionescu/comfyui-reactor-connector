@@ -7,7 +7,19 @@ from ...config.messages.inputs import SANA_UNSUPPORTED
 
 
 def source_mode(schema: object, transport: SessionTransport) -> str:
-    """Support the documented file API and the observed camera-only deployment."""
+    """Support the documented file API and the observed camera-only deployment.
+
+    Args:
+        schema: The command schema that the deployment declares.
+        transport: The connected transport that lists the deployment tracks.
+
+    Returns:
+        The name of the input path, either file or camera.
+
+    Raises:
+        ConnectorError: When the deployment supports neither input path.
+
+    """
     document = mapping_value(validate_json(schema))
     paths = mapping_value(document.get('paths'))
     commands = set[str]()

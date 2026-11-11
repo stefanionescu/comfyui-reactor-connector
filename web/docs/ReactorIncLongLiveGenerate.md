@@ -1,4 +1,4 @@
-# LongLive: Generate Video
+# LongLive: generate video
 
 Generates a video from an opening shot prompt with Reactor's LongLive model. You
 can schedule later shots and cuts, or change the prompt while it records.

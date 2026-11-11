@@ -13,12 +13,13 @@
 /example_workflows/assets/*.png linguist-generated
 
 # >>> gspot managed >>>
+* text=auto eol=lf
 .gspot/** linguist-generated
+.gspot/hooks/** linguist-generated=false
 /.editorconfig linguist-generated
-/.github/workflows/gspot.yml linguist-generated
 /.markdownlint.jsonc linguist-generated
 /.prettierignore linguist-generated
-/.stylelintrc.json linguist-generated
+/.stylelintrc.yml linguist-generated
 /eslint.config.mjs linguist-generated
 /prettier.config.mjs linguist-generated
 /pyrightconfig.json linguist-generated

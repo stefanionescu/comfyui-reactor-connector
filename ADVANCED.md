@@ -1,4 +1,4 @@
-# Reactor Advanced Guide
+# Advanced guide
 
 Use this guide for session limits, live controls, recording costs, and recovery.
 For installation, see the [README](README.md). Native node **Info** covers

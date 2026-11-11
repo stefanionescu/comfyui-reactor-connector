@@ -1,23 +1,23 @@
-import { message } from '#web/text.ts';
 import { button, element } from '#web/dom.ts';
+import { message } from '#web/text.ts';
 
 export class SoundControls {
-    readonly view = element('section');
-
-    readonly status = element('p');
-
     private readonly prompt = element('textarea');
 
     private readonly apply = button(message('sound.applyPrompt'), 'submit');
 
     private pending: string | undefined;
 
+    readonly view = element('section');
+
+    readonly status = element('p');
+
     /**
-     * Build the sound prompt controls in their disabled state.
-     *
-     * @param initialPrompt - The workflow's starting sound prompt.
-     * @param promptCharacterLimit - The model's maximum sound prompt length.
-     */
+    Build the sound prompt controls in their disabled state.
+
+    @param initialPrompt - The workflow's starting sound prompt.
+    @param promptCharacterLimit - The model's maximum sound prompt length.
+    */
     constructor(initialPrompt: string, promptCharacterLimit: number) {
         this.prompt.value = initialPrompt;
         this.prompt.maxLength = promptCharacterLimit;
@@ -42,13 +42,13 @@ export class SoundControls {
     }
 
     /**
-     * Enable sound input only when the session accepts changes.
-     *
-     * @param ready - Whether the model accepts live controls.
-     */
-    setReady(ready: boolean): void {
-        this.prompt.disabled = !ready;
-        if (!ready) {
+    Enable sound input only when the session accepts changes.
+
+    @param isReady - Whether the model accepts live controls.
+    */
+    setReady(isReady: boolean): void {
+        this.prompt.disabled = !isReady;
+        if (!isReady) {
             this.apply.disabled = true;
             return;
         }
@@ -56,10 +56,10 @@ export class SoundControls {
     }
 
     /**
-     * Consume the next sound prompt queued by the user.
-     *
-     * @returns The queued prompt, or undefined when none is waiting.
-     */
+    Consume the next sound prompt queued by the user.
+
+    @returns The queued prompt, or undefined when none is waiting.
+    */
     takePrompt(): string | undefined {
         const value = this.pending;
         this.pending = undefined;

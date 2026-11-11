@@ -11,7 +11,15 @@ STYLES = 'extension.css'
 
 
 async def bundle(destination: Path) -> None:
-    """Run the package build script into the given folder."""
+    """Run the package build script into the given folder.
+
+    Args:
+        destination: The folder that receives the bundle.
+
+    Raises:
+        RuntimeError: When the build script fails.
+
+    """
     process = await asyncio.create_subprocess_exec(
         'bun',
         'run',
@@ -25,7 +33,12 @@ async def bundle(destination: Path) -> None:
 
 
 def main() -> int:
-    """Build the bundle into web/, or report when the shipped bundle differs."""
+    """Build the bundle into web/, or report when the shipped bundle differs.
+
+    Returns:
+        The exit status, which is 1 when a shipped file differs.
+
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     arguments = parser.parse_args()

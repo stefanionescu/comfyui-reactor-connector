@@ -67,7 +67,19 @@ class LingBotWorldInputs(LingBotInputs):
 
 
 class _RequestFields(TypedDict):
-    """The request values that both LingBot versions take."""
+    """The request values that both LingBot versions take.
+
+    Attributes:
+        prompt: Scene prompt.
+        duration_seconds: Requested recording length in seconds.
+        seed: Random seed sent to the model.
+        image: Starting image as PNG bytes.
+        movement: Direction the camera keeps moving in.
+        look_horizontal: Direction the camera keeps turning.
+        look_vertical: Direction the camera keeps looking.
+        rotation_speed_deg: Camera turn in degrees per latent frame.
+
+    """
 
     prompt: str
     duration_seconds: float
@@ -80,7 +92,15 @@ class _RequestFields(TypedDict):
 
 
 def lingbot_inputs(*, is_world_two: bool) -> list[io.Input]:
-    """List the starting image, the shared controls, and the camera controls of the selected LingBot version."""
+    """List the starting image, the shared controls, and the camera controls of the selected LingBot version.
+
+    Args:
+        is_world_two: Whether to list the controls of LingBot World 2.
+
+    Returns:
+        The inputs of the node.
+
+    """
     directions: list[io.Input] = [
         io.Combo.Input(
             'movement',
@@ -145,6 +165,15 @@ async def build_operation(
 
     Live controls start with the camera still, so they replace each held direction with idle. A sideways direction
     selects World 2.
+
+    Args:
+        inputs: The saved inputs of the node.
+        interactive: Whether live controls replace the held directions.
+        lateral: The sideways direction, or None for the first LingBot version.
+
+    Returns:
+        The operation that records the scene.
+
     """
     fields = _RequestFields(
         prompt=inputs['prompt'],

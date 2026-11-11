@@ -20,7 +20,12 @@ class LongLiveGenerate(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncLongLiveGenerate',
             display_name='LongLive: Generate Video (Reactor)',
@@ -54,7 +59,22 @@ class LongLiveGenerate(VideoNode):
         storyboard: str,
         interactive: bool = False,
     ) -> io.NodeOutput:
-        """Generate a LongLive video from the opening shot, scheduled shots, or live changes."""
+        """Generate a LongLive video from the opening shot, scheduled shots, or live changes.
+
+        Args:
+            prompt: The prompt of the opening shot.
+            duration_seconds: The requested video length in seconds.
+            seed: The seed that the model generates from.
+            storyboard: The scheduled shots as JSON text.
+            interactive: Whether to open the live controls.
+
+        Returns:
+            The generated video.
+
+        Raises:
+            ConnectorError: When the node has both scheduled shots and live controls.
+
+        """
         shots = parse_storyboard(storyboard)
         if shots and interactive:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_CONTROLS_STORYBOARD)

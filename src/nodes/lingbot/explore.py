@@ -16,7 +16,12 @@ class LingBotExplore(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncLingBotExplore',
             display_name='LingBot: Explore an Image (Reactor)',
@@ -30,7 +35,15 @@ class LingBotExplore(VideoNode):
     @classmethod
     @override
     async def generate(cls, **inputs: Unpack[LingBotInputs]) -> io.NodeOutput:
-        """Explore the starting image with the selected LingBot camera controls."""
+        """Explore the starting image with the selected LingBot camera controls.
+
+        Args:
+            **inputs: The saved inputs of the LingBot node.
+
+        Returns:
+            The recorded video.
+
+        """
         interactive = inputs.get('interactive', False)
         operation = await build_operation(inputs, interactive=interactive, lateral=None)
         return await generate_video(operation, interactive=interactive)
@@ -42,7 +55,12 @@ class LingBotWorldExplore(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncLingBotWorld2Explore',
             display_name='LingBot World 2: Explore an Image (Reactor)',
@@ -56,7 +74,15 @@ class LingBotWorldExplore(VideoNode):
     @classmethod
     @override
     async def generate(cls, **inputs: Unpack[LingBotWorldInputs]) -> io.NodeOutput:
-        """Explore the starting image with LingBot World 2 movement and camera controls."""
+        """Explore the starting image with LingBot World 2 movement and camera controls.
+
+        Args:
+            **inputs: The saved inputs of the LingBot World 2 node.
+
+        Returns:
+            The recorded video.
+
+        """
         interactive = inputs.get('interactive', False)
         operation = await build_operation(inputs, interactive=interactive, lateral=inputs['lateral'])
         return await generate_video(operation, interactive=interactive)

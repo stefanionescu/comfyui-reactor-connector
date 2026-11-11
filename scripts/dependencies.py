@@ -8,17 +8,29 @@ import argparse
 
 
 def requirements(root: Path) -> str:
-    """Validate runtime dependency strings and render the ComfyUI installation requirements."""
+    """Validate runtime dependency strings and render the ComfyUI installation requirements.
+
+    Args:
+        root: The repository folder that holds pyproject.toml.
+
+    Returns:
+        The text of the requirements file.
+
+    Raises:
+        TypeError: When the dependencies are not a list.
+        ValueError: When a dependency is not one nonempty line of text.
+
+    """
     document = tomllib.loads((root / 'pyproject.toml').read_text(encoding='utf-8'))
     raw: object = document['project']['dependencies']
     if not isinstance(raw, list):
-        msg = 'List runtime dependencies in pyproject.toml.'
-        raise TypeError(msg)
+        message = 'List runtime dependencies in pyproject.toml.'
+        raise TypeError(message)
     dependencies: list[str] = []
     for item in cast('list[object]', raw):
         if not isinstance(item, str) or not item.strip() or any(character in item for character in '\r\n\0'):
-            msg = 'List each runtime dependency as one nonempty string.'
-            raise ValueError(msg)
+            message = 'List each runtime dependency as one nonempty string.'
+            raise ValueError(message)
         dependencies.append(item)
     return '# Generated from pyproject.toml by mise run comfy:requirements:build.\n' + ''.join(
         f'{item}\n' for item in dependencies
@@ -26,7 +38,12 @@ def requirements(root: Path) -> str:
 
 
 def main() -> int:
-    """Export runtime requirements or report whether the generated file is current."""
+    """Export runtime requirements or report whether the generated file is current.
+
+    Returns:
+        The exit status, which is 1 when the generated file is out of date.
+
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()

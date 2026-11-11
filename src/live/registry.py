@@ -24,7 +24,15 @@ class BrowserRegistry:
     leases: dict[str, BrowserLease] = field(default_factory=dict[str, BrowserLease])
 
     def add(self, lease: BrowserLease) -> None:
-        """Remove expired closed sessions before enforcing the stored-session limit."""
+        """Remove expired closed sessions before enforcing the stored-session limit.
+
+        Args:
+            lease: The lease to store.
+
+        Raises:
+            ConnectorError: When the registry already holds its limit of sessions.
+
+        """
         with self.lock:
             self.leases = {
                 key: value

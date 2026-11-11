@@ -26,7 +26,12 @@ class ViskoGenerate(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncViskoGenerate',
             display_name='Visko: Generate Video (Reactor)',
@@ -99,10 +104,32 @@ class ViskoGenerate(VideoNode):
         image: Input.Image | None = None,
         interactive: bool = False,
     ) -> io.NodeOutput:
-        """Generate Visko video and audio from the selected text, image, and sound controls."""
+        """Generate Visko video and audio from the selected text, image, and sound controls.
+
+        Args:
+            model: The name of the Visko version to run.
+            prompt: The scene prompt of the video.
+            duration_seconds: The requested video length in seconds.
+            seed: The seed that the model generates from.
+            audio_prompt: The description of the sound.
+            resolution: The name of the resolution, or an empty string for the default.
+            audio_enabled: Whether the model generates sound.
+            prompt_passthrough: Whether Reactor uses the prompt unchanged.
+            image: The optional starting image.
+            interactive: Whether to open the live controls.
+
+        Returns:
+            The video and its sound.
+
+        """
 
         async def start() -> io.NodeOutput:
-            """Prepare media inside the owned task before starting the Reactor session."""
+            """Prepare media inside the owned task before starting the Reactor session.
+
+            Returns:
+                The output of the session.
+
+            """
             source_image = image
             encoded = None if source_image is None else await owned_io(lambda: encode_png(source_image))
             request = ViskoRequest(

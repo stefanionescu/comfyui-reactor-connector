@@ -28,7 +28,12 @@ class LiveInteraction:
     """Own previews, camera commands, editing actions, and disconnect handling for one session."""
 
     def __init__(self, lease: ControlLease) -> None:
-        """Prepare preview, command, action, and session timing ownership."""
+        """Prepare preview, command, action, and session timing ownership.
+
+        Args:
+            lease: The lease of the browser that controls the session.
+
+        """
         self.lease = lease
         self.preview = PreviewFrames()
         self.track: Track | None = None
@@ -39,7 +44,14 @@ class LiveInteraction:
         self.pointer_active = False
 
     async def connected(self, transport: SessionTransport, track: Track, events: SessionEvents) -> None:
-        """Subscribe to preview frames, watch the owning client, and start the action workers."""
+        """Subscribe to preview frames, watch the owning client, and start the action workers.
+
+        Args:
+            transport: The transport that holds the provider client.
+            track: The video track that delivers preview frames.
+            events: The session events that send commands and report errors.
+
+        """
         self.transport = transport
         self.track = track
         cast('FrameRegistration', track.on_frame)(self.preview.receive)
@@ -50,7 +62,15 @@ class LiveInteraction:
         ]
 
     async def _observe(self, events: SessionEvents) -> None:
-        """Apply client input, send previews, and stop the session when the client ends."""
+        """Apply client input, send previews, and stop the session when the client ends.
+
+        Args:
+            events: The session events that receive an error.
+
+        Raises:
+            asyncio.CancelledError: When the session cancels the worker.
+
+        """
         try:
             await self._watch()
         except asyncio.CancelledError:
@@ -61,7 +81,12 @@ class LiveInteraction:
             events.on_error(ConnectorError(ErrorCode.CAPTURE, LIVE_PREVIEW_ENCODING))
 
     async def _watch(self) -> None:
-        """Watch the client, apply camera input, and update previews until cancellation or disconnection."""
+        """Watch the client, apply camera input, and update previews until cancellation or disconnection.
+
+        Raises:
+            ConnectorError: When the user or the client ends the session.
+
+        """
         while True:
             state = self.lease.read()
             if state.end:
@@ -81,7 +106,16 @@ class LiveInteraction:
             await asyncio.sleep(INPUT_POLL_SECONDS)
 
     async def _actions(self, events: SessionEvents, name: str) -> None:
-        """Apply one action type in order and release a stale pointer press."""
+        """Apply one action type in order and release a stale pointer press.
+
+        Args:
+            events: The session events that send each action and report errors.
+            name: The action type that this worker applies.
+
+        Raises:
+            asyncio.CancelledError: When the session cancels the worker.
+
+        """
         try:
             while True:
                 with self.lease.lock:
@@ -106,7 +140,14 @@ class LiveInteraction:
             )
 
     async def _send_action(self, events: SessionEvents, name: str, payload: dict[str, Json]) -> None:
-        """Translate a validated live action into this model's command and enforce its reply deadline."""
+        """Translate a validated live action into this model's command and enforce its reply deadline.
+
+        Args:
+            events: The session events that send the command.
+            name: The action type to translate.
+            payload: The validated fields of the action.
+
+        """
         if name == 'pointer':
             await self._pointer(events, payload)
         elif name == 'audio_prompt':
@@ -120,7 +161,13 @@ class LiveInteraction:
                 await events.command_reply(definition.prompt_command, dict(payload))
 
     async def _pointer(self, events: SessionEvents, payload: dict[str, Json]) -> None:
-        """Track a possible press before sending it so cleanup covers a missing reply."""
+        """Track a possible press before sending it so cleanup covers a missing reply.
+
+        Args:
+            events: The session events that send the pointer command.
+            payload: The pointer position and press state.
+
+        """
         self.pointer_active = self.pointer_active or payload.get('active') is True
         async with asyncio.timeout(COMMAND_TIMEOUT_SECONDS):
             await events.command_reply('set_pointer', dict(payload))

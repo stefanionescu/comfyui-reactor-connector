@@ -17,13 +17,26 @@ from ...state.generation.longlive import LongLiveRequest
 
 
 class LongLiveOperation(VideoInputOperation[LongLiveRequest]):
-    """Stage an opening shot and later transitions before generation."""
+    """Stage an opening shot and later transitions before generation.
+
+    Attributes:
+        connection_name: The provider connection of the LongLive model.
+
+    """
 
     connection_name: ClassVar[str] = MODELS['longlive-v2'].connection_name
 
     @override
     def validate(self, settings: Settings) -> None:
-        """Check capture inputs and shot order; reject unsupported image input."""
+        """Check capture inputs and shot order; reject unsupported image input.
+
+        Args:
+            settings: The user settings that hold the session limits.
+
+        Raises:
+            ConnectorError: When the request carries an image.
+
+        """
         super().validate(settings)
         if self.inputs.image is not None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LONGLIVE_IMAGES_UNSUPPORTED)
@@ -31,7 +44,16 @@ class LongLiveOperation(VideoInputOperation[LongLiveRequest]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Schedule the opening shot and later transitions, then start generation."""
+        """Schedule the opening shot and later transitions, then start generation.
+
+        Args:
+            transport: Unused, because LongLive takes no upload.
+            events: The session events that send the shot commands.
+
+        Returns:
+            The recording interval for the requested duration.
+
+        """
         del transport
         inputs = self.inputs
         await events.command_reply('set_seed', {'seed': inputs.seed})

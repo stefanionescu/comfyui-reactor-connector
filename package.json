@@ -12,7 +12,6 @@
     },
     "devDependencies": {
         "@comfyorg/comfyui-frontend-types": "1.45.21",
-        "@gspothq/cli": "0.3.7",
         "esbuild": "0.28.2",
         "typescript": "6.0.3"
     },
@@ -20,8 +19,6 @@
         "#web/*": "./web/scripts/*"
     },
     "overrides": {
-        "glob": "14.0.3",
-        "minimatch": "11.0.4",
         "zod": "4.6.7"
     }
 }

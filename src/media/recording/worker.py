@@ -2,29 +2,19 @@
 
 from __future__ import annotations
 
-import sys
-import json
 import math
-import wave
 from typing import TYPE_CHECKING
 from pathlib import Path
 from fractions import Fraction
-from itertools import chain
-from dataclasses import dataclass
 
 import av
-import numpy as np
 
 from src.state.recording import RecordingVideo, RecordingSettings
 
-from ..protocol import report_outcome
+from .audio import AudioEncoder, RecordingAudio, write_wav, read_audio
+from ..protocol import report_ready_outcome
 from ...config.media.audio import (
     SAMPLE_RATE,
-    MAX_CHANNELS,
-    MIN_CHANNELS,
-    PCM_SAMPLE_BYTES,
-    AUDIO_WRITE_BLOCK_SAMPLES,
-    AUDIO_ENCODE_BLOCK_SAMPLES,
 )
 from ...config.media.video import (
     ENCODER_CRF,
@@ -43,144 +33,50 @@ from ...config.media.images import RGB_CHANNELS
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from numpy.typing import NDArray
     from av.container.input import InputContainer
-    from av.container.output import OutputContainer
 
 
 WORKER_ARGUMENT_COUNT = 8
 
 
-@dataclass(frozen=True, slots=True)
-class RecordingAudio:
-    """Normalized audio samples and their channel layout.
+def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> RecordingVideo:
+    """Find the first selected frame and validate recording rate, color, dimensions, and memory.
 
-    Attributes:
-        samples: Planar float32 audio samples.
-        layout: Mono or stereo channel layout.
+    Args:
+        source: The recording file to inspect.
+        memory_limit: The largest decoded frame to accept, in bytes.
+        start_seconds: The offset of the interval from the first frame.
+
+    Returns:
+        The origin, rate, width, and height of the selected video.
+
+    Raises:
+        ValueError: When the video is missing, unsupported, or too large.
 
     """
-
-    samples: NDArray[np.float32]
-    layout: str
-
-
-class AudioEncoder:
-    """Interleave timestamped audio while video advances, then finish its exact interval."""
-
-    def __init__(self, writer: OutputContainer, audio: RecordingAudio) -> None:
-        """Configure an Advanced Audio Coding (AAC) stream on the shared recording sample clock."""
-        self.writer = writer
-        self.audio = audio
-        self.position = 0
-        self.stream = writer.add_stream('aac', rate=SAMPLE_RATE)  # pyright: ignore[reportUnknownMemberType] # reason: PyAV's stubs leave Packet without its stream type.
-        self.stream.layout = audio.layout
-        self.stream.time_base = Fraction(1, SAMPLE_RATE)
-
-    def encode_until(self, end_sample: int) -> None:
-        """Encode audio up to the requested sample position in small consecutive blocks."""
-        end = min(end_sample, self.audio.samples.shape[1])
-        while self.position < end:
-            stop = min(end, self.position + AUDIO_ENCODE_BLOCK_SAMPLES)
-            values = np.ascontiguousarray(self.audio.samples[:, self.position : stop])
-            frame = av.AudioFrame.from_ndarray(values, format='fltp', layout=self.audio.layout)
-            frame.rate = SAMPLE_RATE
-            frame.time_base = Fraction(1, SAMPLE_RATE)
-            frame.pts = self.position
-            self.writer.mux(self.stream.encode(frame))  # pyright: ignore[reportUnknownMemberType] # reason: PyAV's stubs leave Packet without its stream type.
-            self.position = stop
-
-
-def copy_audio_frame(
-    frame: av.AudioFrame,
-    samples: NDArray[np.float32],
-    origin: Fraction,
-    previous_end: int | None,
-) -> tuple[int, int, bool]:
-    """Copy nonoverlapping audio and return its end, copied sample count, and interval completion."""
-    if frame.pts is None or frame.time_base is None:
-        msg = 'recording_audio'
-        raise ValueError(msg)
-    start = round((frame.pts * frame.time_base - origin) * SAMPLE_RATE)
-    end = start + frame.samples
-    if previous_end is not None and start < previous_end:
-        msg = 'recording_audio'
-        raise ValueError(msg)
-    count = samples.shape[1]
-    left, right = max(0, start), min(count, end)
-    copied = 0
-    if left < right:
-        values = frame.to_ndarray()
-        if not np.isfinite(values).all():
-            msg = 'recording_audio'
-            raise ValueError(msg)
-        samples[:, left:right] = values[:, left - start : right - start]
-        copied = right - left
-    return end, copied, start >= count
-
-
-def read_audio(source: Path, origin: Fraction, duration_seconds: float, maximum_memory: int) -> RecordingAudio:
-    """Use media timestamps, preserve gaps, and reject overlapping audio frames."""
-    with (
-        source.open('rb') as file,
-        av.open(file, mode='r', format='mp4', options={'protocol_whitelist': 'pipe'}) as reader,
-    ):
-        if len(reader.streams.audio) != 1:
-            msg = 'recording_audio'
-            raise ValueError(msg)
-        stream = reader.streams.audio[0]
-        channels = len(stream.codec_context.layout.channels)
-        if not MIN_CHANNELS <= channels <= MAX_CHANNELS:
-            msg = 'recording_audio'
-            raise ValueError(msg)
-        layout = 'mono' if channels == 1 else 'stereo'
-        count = math.ceil(duration_seconds * SAMPLE_RATE)
-        # Reserve half the sample budget for conversion buffers; this is not a process memory cap.
-        if count * channels * 4 > maximum_memory // 2:
-            msg = 'recording_memory'
-            raise ValueError(msg)
-        samples = np.zeros((channels, count), dtype=np.float32)
-        resampler = av.AudioResampler(format='fltp', layout=layout, rate=SAMPLE_RATE)
-        previous_end: int | None = None
-        copied = 0
-
-        converted = chain.from_iterable(resampler.resample(frame) for frame in chain(reader.decode(stream), (None,)))
-        for frame in converted:
-            previous_end, accepted, finished = copy_audio_frame(frame, samples, origin, previous_end)
-            copied += accepted
-            if finished:
-                break
-        if copied == 0:
-            msg = 'recording_audio'
-            raise ValueError(msg)
-        return RecordingAudio(samples, layout)
-
-
-def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> RecordingVideo:
-    """Find the first selected frame and validate recording rate, color, dimensions, and memory."""
     with (
         source.open('rb') as file,
         av.open(file, mode='r', format='mp4', options={'protocol_whitelist': 'pipe'}) as reader,
     ):
         if len(reader.streams.video) != 1:
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         stream = reader.streams.video[0]
         rate = stream.average_rate
         if rate is None or not 1 <= rate <= MAX_FRAME_RATE or stream.codec_context.color_trc in HDR_TRANSFER_CODES:
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         frames = reader.decode(stream)
         frame = next(frames, None)
         if frame is None or frame.pts is None or frame.time_base is None:
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         target = frame.pts * frame.time_base + Fraction(str(start_seconds))
         while frame.pts * frame.time_base < target:
             frame = next(frames, None)
             if frame is None or frame.pts is None or frame.time_base is None:
-                msg = 'recording_video'
-                raise ValueError(msg)
+                message = 'recording_video'
+                raise ValueError(message)
         if (
             not MIN_FRAME_DIMENSION <= frame.width <= MAX_FRAME_DIMENSION
             or not MIN_FRAME_DIMENSION <= frame.height <= MAX_FRAME_DIMENSION
@@ -188,42 +84,68 @@ def video_timing(source: Path, memory_limit: int, start_seconds: float = 0) -> R
             or frame.height % 2
             or frame.width * frame.height * RGB_CHANNELS > memory_limit
         ):
-            msg = 'recording_memory'
-            raise ValueError(msg)
+            message = 'recording_memory'
+            raise ValueError(message)
         return RecordingVideo(frame.pts * frame.time_base, rate, frame.width, frame.height)
 
 
 def recording_frames(
     reader: InputContainer, timing: RecordingVideo, duration_seconds: float
 ) -> Iterator[tuple[av.VideoFrame, Fraction]]:
-    """Yield selected standard dynamic range (SDR) frames, with timestamps that increase from the recording origin."""
+    """Yield selected standard dynamic range (SDR) frames, with timestamps that increase from the recording origin.
+
+    Args:
+        reader: The open recording.
+        timing: The origin and dimensions of the selected video.
+        duration_seconds: The length of the interval to yield.
+
+    Yields:
+        Each frame with its time from the origin.
+
+    Raises:
+        ValueError: When a frame has no timestamp, repeats a time, changes size, or has too many bits.
+
+    """
     previous: Fraction | None = None
     for frame in reader.decode(video=0):
         if frame.pts is None or frame.time_base is None:
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         current = frame.pts * frame.time_base - timing.origin
         if current < 0:
             continue
         if previous is not None and current <= previous:
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         current_us = round(current * 1_000_000)
         if current_us >= round(duration_seconds * 1_000_000):
             break
         if (frame.width, frame.height) != (timing.width, timing.height):
-            msg = 'dimensions'
-            raise ValueError(msg)
+            message = 'dimensions'
+            raise ValueError(message)
         if any(component.bits > MAX_COMPONENT_BITS for component in frame.format.components):
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         frame.pts, frame.time_base = current_us, Fraction(1, 1_000_000)
         previous = current
         yield frame, current
 
 
 def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: RecordingVideo) -> tuple[int, int]:
-    """Encode the selected video interval and matching audio within the output size limit."""
+    """Encode the selected video interval and matching audio within the output size limit.
+
+    Args:
+        settings: The paths, duration, and limits of the worker.
+        audio: The samples to encode beside the video.
+        timing: The origin, rate, and dimensions of the video.
+
+    Returns:
+        The frame count and the audio sample count.
+
+    Raises:
+        ValueError: When no frame is selected, or a frame or size limit is passed.
+
+    """
     frames = 0
     previous: Fraction | None = None
     with (
@@ -243,45 +165,41 @@ def encode_video(settings: RecordingSettings, audio: RecordingAudio, timing: Rec
             previous = current
             frames += 1
             if frames > MAX_FRAME_RATE * settings.duration_seconds + 1:
-                msg = 'recording_video'
-                raise ValueError(msg)
+                message = 'recording_video'
+                raise ValueError(message)
             if settings.destination.exists() and settings.destination.stat().st_size > settings.max_output_bytes:
-                msg = 'file_limit'
-                raise ValueError(msg)
+                message = 'file_limit'
+                raise ValueError(message)
         if previous is None:
-            msg = 'recording_video'
-            raise ValueError(msg)
+            message = 'recording_video'
+            raise ValueError(message)
         count = round(min(settings.duration_seconds, float(previous + 1 / timing.rate)) * SAMPLE_RATE)
         # Encode the remaining selected samples, then flush all audio packets into the recording.
         sound.encode_until(count)
         writer.mux(sound.stream.encode(None))  # pyright: ignore[reportUnknownMemberType] # reason: PyAV's stubs leave Packet without its stream type.
         writer.mux(video.encode(None))  # pyright: ignore[reportUnknownMemberType] # reason: PyAV's stubs leave Packet without its stream type.
     if settings.destination.stat().st_size > settings.max_output_bytes:
-        msg = 'file_limit'
-        raise ValueError(msg)
+        message = 'file_limit'
+        raise ValueError(message)
     return frames, count
 
 
-def write_wav(path: Path, audio: RecordingAudio, count: int, maximum_bytes: int) -> None:
-    """Write the selected samples as size-limited signed 16-bit pulse-code modulation (PCM) audio."""
-    if count * audio.samples.shape[0] * PCM_SAMPLE_BYTES + 44 > maximum_bytes:
-        msg = 'file_limit'
-        raise ValueError(msg)
-    with wave.open(str(path), 'wb') as output:
-        output.setnchannels(audio.samples.shape[0])
-        output.setsampwidth(PCM_SAMPLE_BYTES)
-        output.setframerate(SAMPLE_RATE)
-        for start in range(0, count, AUDIO_WRITE_BLOCK_SAMPLES):
-            chunk = audio.samples[:, start : min(count, start + AUDIO_WRITE_BLOCK_SAMPLES)]
-            pcm = np.rint(np.clip(chunk, -1, 1) * 32767).astype('<i2')
-            output.writeframes(pcm.T.tobytes())
-
-
 def prepare(settings: RecordingSettings) -> dict[str, str | int]:
-    """Select the recording interval and produce synchronized MP4 and WAV outputs."""
+    """Select the recording interval and produce synchronized MP4 and WAV outputs.
+
+    Args:
+        settings: The paths, interval, and limits of the worker.
+
+    Returns:
+        The frame count, timestamp mode, and audio facts of the outputs.
+
+    Raises:
+        ValueError: When the start offset is out of range.
+
+    """
     if not math.isfinite(settings.start_seconds) or not 0 <= settings.start_seconds <= MAX_START_SECONDS:
-        msg = 'recording_video'
-        raise ValueError(msg)
+        message = 'recording_video'
+        raise ValueError(message)
     timing = video_timing(settings.source, settings.max_memory_bytes, settings.start_seconds)
     audio = read_audio(
         settings.source,
@@ -301,10 +219,21 @@ def prepare(settings: RecordingSettings) -> dict[str, str | int]:
 
 
 def read_settings(arguments: list[str]) -> RecordingSettings:
-    """Parse the fixed recording worker command without exposing its local paths."""
+    """Parse the fixed recording worker command without exposing its local paths.
+
+    Args:
+        arguments: The command line of the recording worker, with the program name first.
+
+    Returns:
+        The parsed recording settings.
+
+    Raises:
+        ValueError: When the argument count is wrong.
+
+    """
     if len(arguments) != WORKER_ARGUMENT_COUNT:
-        msg = 'recording_video'
-        raise ValueError(msg)
+        message = 'recording_video'
+        raise ValueError(message)
     return RecordingSettings(
         source=Path(arguments[1]),
         destination=Path(arguments[2]),
@@ -317,10 +246,16 @@ def read_settings(arguments: list[str]) -> RecordingSettings:
 
 
 def main(arguments: list[str]) -> int:
-    """Report readiness and return recording facts or fixed error codes without native error text."""
-    sys.stdout.write(json.dumps({'ready': True}) + '\n')
-    sys.stdout.flush()
-    return report_outcome(
+    """Report readiness and return recording facts or fixed error codes without native error text.
+
+    Args:
+        arguments: The command line of the recording worker.
+
+    Returns:
+        The exit status of the worker.
+
+    """
+    return report_ready_outcome(
         lambda: prepare(read_settings(arguments)),
         unknown_error_code='recording_video',
         known=ValueError,

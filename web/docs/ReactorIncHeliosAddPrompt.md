@@ -1,4 +1,4 @@
-# Helios: Add a Prompt
+# Helios: add a prompt
 
 Adds a later prompt to a Helios prompt sequence. It runs locally and opens no
 Reactor session.

@@ -1,4 +1,4 @@
-# SANA: Edit Video
+# SANA: edit video
 
 Applies an edit prompt to a local video clip with Reactor's SANA model. You can
 change the prompt while it records.

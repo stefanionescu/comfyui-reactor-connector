@@ -34,7 +34,15 @@ def initialize_runtime() -> None:
 
 
 def get_runtime() -> Runtime:
-    """Reject execution before the host has loaded the connector."""
+    """Reject execution before the host has loaded the connector.
+
+    Returns:
+        The shared runtime.
+
+    Raises:
+        ConnectorError: When the runtime is not initialized.
+
+    """
     if _runtime is None:
         raise ConnectorError(ErrorCode.CONFIGURATION, RUNTIME_NOT_READY)
     return _runtime

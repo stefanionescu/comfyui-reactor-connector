@@ -1,10 +1,10 @@
 /**
- * Pause between status requests and wake when the panel closes.
- *
- * @param milliseconds - Time before the next request.
- * @param signal - The panel lifetime, if it is still open.
- * @returns When the delay ends or the panel closes.
- */
+Pause between status requests and wake when the panel closes.
+
+@param milliseconds - Time before the next request.
+@param signal - The panel lifetime, if it is still open.
+@returns When the delay ends or the panel closes.
+*/
 export async function pause(milliseconds: number, signal?: AbortSignal): Promise<void> {
     if (signal?.aborted === true) return;
     await new Promise<void>((fulfill) => {

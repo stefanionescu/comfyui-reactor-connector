@@ -1,4 +1,4 @@
-# LongLive: Add a Shot
+# LongLive: add a shot
 
 Adds a later shot to a LongLive storyboard. It runs locally and opens no Reactor
 session.

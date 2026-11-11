@@ -1,4 +1,4 @@
-# X2: Edit Video
+# X2: edit video
 
 Edits a local video clip with Reactor's X2 model. A reference image can replace
 or insert a subject, and you can drag on the output to steer it.

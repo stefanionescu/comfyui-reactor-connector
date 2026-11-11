@@ -29,7 +29,12 @@ class FastGenerate(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         duration = io.Float.Input(
             'duration_seconds',
             display_name='video duration (seconds)',
@@ -81,10 +86,28 @@ class FastGenerate(VideoNode):
         image: Input.Image | None = None,
         ending_image: Input.Image | None = None,
     ) -> io.NodeOutput:
-        """Generate a Fast H3 video with optional starting and ending images."""
+        """Generate a Fast H3 video with optional starting and ending images.
+
+        Args:
+            prompt: The scene prompt of the clip.
+            duration_seconds: The requested clip length in seconds.
+            seed: The seed that the model generates from.
+            aspect: The aspect ratio of the video.
+            image: The optional first frame.
+            ending_image: The optional last frame.
+
+        Returns:
+            The video and its sound.
+
+        """
 
         async def start() -> io.NodeOutput:
-            """Prepare media inside the owned task before starting the Reactor session."""
+            """Prepare media inside the owned task before starting the Reactor session.
+
+            Returns:
+                The output of the session.
+
+            """
             first = await owned_io(partial(encode_png, image)) if image is not None else None
             last = await owned_io(partial(encode_png, ending_image)) if ending_image is not None else None
             request = FastGenerateRequest(prompt, duration_seconds, seed, image=first, aspect=aspect, ending_image=last)

@@ -1,0 +1,7 @@
+[schema]
+enabled = false
+
+[formatting]
+indent_string = "    "
+array_auto_expand = false
+array_auto_collapse = false

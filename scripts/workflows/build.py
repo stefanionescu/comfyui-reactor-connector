@@ -10,15 +10,10 @@ from .notes import sections
 from .texts import NODES, NOTES, TITLES
 from .layout import arrange
 from .example import (
-    FIRST_STEP_ID,
     GENERATION_ID,
-    SAVE_AUDIO_ID,
     SAVE_VIDEO_ID,
     SETUP_NOTE_ID,
     USAGE_NOTE_ID,
-    EXTRA_INPUT_ID,
-    SECOND_STEP_ID,
-    SOURCE_INPUT_ID,
     Example,
 )
 from .serialize import (
@@ -31,15 +26,31 @@ from .serialize import (
     native_widget_values,
     validate_node_sockets,
 )
+from .connections import (
+    append_storyboard,
+    append_ending_image,
+    append_sound_output,
+    append_source_video,
+    append_starting_image,
+    append_prompt_sequence,
+)
 from .definitions import EXAMPLES
-from .models.helios import SEQUENCE_PROMPTS
 from ..nodes.metadata import read_schemas, validate_metadata
-from .models.longlive import SHOT_PROMPTS
 from ...src.serialization import Json, mapping_value
 
 
 def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str, Json]) -> dict[str, Json]:
-    """Assemble one example with its notes, connected inputs, outputs, and arranged layout."""
+    """Assemble one example with its notes, connected inputs, outputs, and arranged layout.
+
+    Args:
+        example: The example to build.
+        schemas: The schemas of the Reactor nodes, by node ID.
+        native: The schemas of the host nodes, by node ID.
+
+    Returns:
+        The workflow document that ComfyUI loads.
+
+    """
     model = example.model
     notes: list[Json] = [
         build_node(number, 'MarkdownNote', [text], title=title)
@@ -91,181 +102,13 @@ def build_workflow(example: Example, schemas: dict[str, Json], native: dict[str,
     }
 
 
-def append_starting_image(
-    nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
-) -> None:
-    """Add the example's starting image and its connections."""
-    input_node = build_node(
-        SOURCE_INPUT_ID,
-        'LoadImage',
-        native_widget_values('LoadImage', native['LoadImage']),
-        title=NODES['portraitImage' if generation['type'] == 'ReactorIncLtxSpeak' else 'startingImage'],
-    )
-    input_node['outputs'] = [
-        {'name': 'IMAGE', 'type': 'IMAGE', 'links': [2]},
-        {'name': 'MASK', 'type': 'MASK', 'links': []},
-    ]
-    generation['inputs'] = [build_input('image', 'IMAGE', 2)]
-    links.append([2, SOURCE_INPUT_ID, 0, GENERATION_ID, 0, 'IMAGE'])
-    nodes.insert(1, input_node)
-
-
-def append_ending_image(
-    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
-) -> None:
-    """Add the example's ending image and its connections."""
-    link_id = len(links) + 1
-    ending_image = build_node(
-        EXTRA_INPUT_ID,
-        'LoadImage',
-        native_widget_values('LoadImage', native['LoadImage']),
-        title=NODES['endingImage'],
-    )
-    ending_image['outputs'] = [
-        {'name': 'IMAGE', 'type': 'IMAGE', 'links': [link_id]},
-        {'name': 'MASK', 'type': 'MASK', 'links': []},
-    ]
-    incoming: list[Json] = [build_input('image', 'IMAGE', 2)] if ('image' in example.sources) else []
-    incoming.append(build_input('ending_image', 'IMAGE', link_id))
-    generation['inputs'] = incoming
-    links.append([link_id, EXTRA_INPUT_ID, 0, GENERATION_ID, len(incoming) - 1, 'IMAGE'])
-    nodes.append(ending_image)
-
-
-def append_source_video(
-    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
-) -> None:
-    """Add the example's source video and its connections."""
-    input_node = build_node(
-        SOURCE_INPUT_ID,
-        'LoadVideo',
-        native_widget_values('LoadVideo', native['LoadVideo']),
-        title=NODES['sourceVideo'],
-    )
-    input_node['outputs'] = [{'name': 'VIDEO', 'type': 'VIDEO', 'links': [2]}]
-    generation['inputs'] = [build_input('source', 'VIDEO', 2)]
-    links.append([2, SOURCE_INPUT_ID, 0, GENERATION_ID, 0, 'VIDEO'])
-    nodes.insert(1, input_node)
-    if 'reference_image' in example.sources:
-        reference = build_node(
-            EXTRA_INPUT_ID,
-            'LoadImage',
-            native_widget_values('LoadImage', native['LoadImage']),
-            title=NODES['referenceImage'],
-        )
-        reference['outputs'] = [
-            {'name': 'IMAGE', 'type': 'IMAGE', 'links': [3]},
-            {'name': 'MASK', 'type': 'MASK', 'links': []},
-        ]
-        generation['inputs'] = [build_input('source', 'VIDEO', 2), build_input('reference_image', 'IMAGE', 3)]
-        links.append([3, EXTRA_INPUT_ID, 0, GENERATION_ID, 1, 'IMAGE'])
-        nodes.append(reference)
-
-
-def append_storyboard(
-    nodes: list[Json], links: list[Json], generation: dict[str, Json], schemas: dict[str, Json]
-) -> None:
-    """Add the example's storyboard and its connections."""
-    first = build_node(
-        FIRST_STEP_ID,
-        'ReactorIncLongLiveAddShot',
-        widget_values(
-            schemas['ReactorIncLongLiveAddShot'],
-            {
-                'previous': '[]',
-                'at_session_chunk': 1,
-                'transition': 'soft',
-                'prompt': SHOT_PROMPTS['soft_transition'],
-            },
-        ),
-        title=NODES['softTransition'],
-    )
-    first['outputs'] = [{'name': 'storyboard', 'type': 'STRING', 'links': [2]}]
-    second = build_node(
-        SECOND_STEP_ID,
-        'ReactorIncLongLiveAddShot',
-        widget_values(
-            schemas['ReactorIncLongLiveAddShot'],
-            {
-                'previous': '[]',
-                'at_session_chunk': 2,
-                'transition': 'cut',
-                'prompt': SHOT_PROMPTS['hard_cut'],
-            },
-        ),
-        title=NODES['hardCut'],
-    )
-    second['inputs'] = [build_input('previous', 'STRING', 2, has_widget=True)]
-    second['outputs'] = [{'name': 'storyboard', 'type': 'STRING', 'links': [3]}]
-    generation['inputs'] = [build_input('storyboard', 'STRING', 3, has_widget=True)]
-    links.extend(
-        [[2, FIRST_STEP_ID, 0, SECOND_STEP_ID, 0, 'STRING'], [3, SECOND_STEP_ID, 0, GENERATION_ID, 0, 'STRING']]
-    )
-    nodes.extend([first, second])
-
-
-def append_sound_output(
-    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], native: dict[str, Json]
-) -> None:
-    """Add the example's sound output and its connections."""
-    link_id = len(links) + 1
-    generation['outputs'] = [
-        {'name': 'video', 'type': 'VIDEO', 'links': [1]},
-        {'name': 'audio', 'type': 'AUDIO', 'links': [link_id]},
-    ]
-    sound = build_node(
-        SAVE_AUDIO_ID,
-        'SaveAudioAdvanced',
-        native_widget_values('SaveAudioAdvanced', native['SaveAudioAdvanced'], f'audio/reactor/{example.slug}'),
-        title=NODES['saveAudio'],
-    )
-    sound['inputs'] = [build_input('audio', 'AUDIO', link_id)]
-    sound['outputs'] = [{'name': 'audio', 'type': 'AUDIO', 'links': []}]
-    links.append([link_id, GENERATION_ID, 1, SAVE_AUDIO_ID, 0, 'AUDIO'])
-    nodes.append(sound)
-
-
-def append_prompt_sequence(
-    example: Example, nodes: list[Json], links: list[Json], generation: dict[str, Json], schemas: dict[str, Json]
-) -> None:
-    """Add the example's prompt sequence and its connections."""
-    first_link = len(links) + 1
-    second_link = first_link + 1
-    first = build_node(
-        FIRST_STEP_ID,
-        'ReactorIncHeliosAddPrompt',
-        widget_values(
-            schemas['ReactorIncHeliosAddPrompt'],
-            {'previous': '[]', 'chunk': 1, 'prompt': SEQUENCE_PROMPTS['sunlight']},
-        ),
-        title=NODES['sunlight'],
-    )
-    first['outputs'] = [{'name': 'sequence', 'type': 'STRING', 'links': [first_link]}]
-    second = build_node(
-        SECOND_STEP_ID,
-        'ReactorIncHeliosAddPrompt',
-        widget_values(
-            schemas['ReactorIncHeliosAddPrompt'],
-            {'previous': '[]', 'chunk': 3, 'prompt': SEQUENCE_PROMPTS['clearing']},
-        ),
-        title=NODES['clearing'],
-    )
-    second['inputs'] = [build_input('previous', 'STRING', first_link, has_widget=True)]
-    second['outputs'] = [{'name': 'sequence', 'type': 'STRING', 'links': [second_link]}]
-    incoming: list[Json] = [build_input('image', 'IMAGE', 2)] if ('image' in example.sources) else []
-    incoming.append(build_input('sequence', 'STRING', second_link, has_widget=True))
-    generation['inputs'] = incoming
-    links.extend(
-        [
-            [first_link, FIRST_STEP_ID, 0, SECOND_STEP_ID, 0, 'STRING'],
-            [second_link, SECOND_STEP_ID, 0, GENERATION_ID, len(incoming) - 1, 'STRING'],
-        ]
-    )
-    nodes.extend([first, second])
-
-
 def arguments() -> argparse.Namespace:
-    """Read build options without changing files or importing the host."""
+    """Read build options without changing files or importing the host.
+
+    Returns:
+        The parsed options.
+
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--output-directory', type=Path, help='Output folder; defaults to the shipped examples.')
@@ -273,7 +116,12 @@ def arguments() -> argparse.Namespace:
 
 
 def main() -> int:
-    """Build or check every registered example and its index; report uncovered nodes and extra files."""
+    """Build or check every registered example and its index; report uncovered nodes and extra files.
+
+    Returns:
+        The exit status, which is 1 when a check reports an issue.
+
+    """
     args = arguments()
     root = Path(__file__).resolve().parents[2]
     canonical = root / EXAMPLE_DIRECTORY

@@ -1,0 +1,7 @@
+extends: existence
+message: "Alt text that starts with '%s' repeats what a screen reader says. Say what the image shows."
+level: error
+scope: raw
+nonword: true
+tokens:
+    - '!\[(?:Image|Graphic|Picture) of'

@@ -31,17 +31,17 @@ from ...config.media.recording import (
 )
 
 
-def retry_delay(value: str | None) -> float:
-    """Limit a provider retry delay to the allowed polling interval."""
-    try:
-        seconds = float(value) if value else DEFAULT_RETRY_SECONDS
-    except ValueError:
-        seconds = DEFAULT_RETRY_SECONDS
-    return min(MAX_RETRY_SECONDS, max(MIN_RETRY_SECONDS, seconds)) if math.isfinite(seconds) else DEFAULT_RETRY_SECONDS
-
-
 def _request(url: str, token: SessionToken) -> tuple[URL, dict[str, str]]:
-    """Keep the exact escaping that the storage URL signs, and send the session token only to the coordinator."""
+    """Keep the exact escaping that the storage URL signs, and send the session token only to the coordinator.
+
+    Args:
+        url: The manifest or fragment address.
+        token: The session token for the coordinator.
+
+    Returns:
+        The address and the request headers.
+
+    """
     parts = urlsplit(recording_url(url))
     is_coordinator = f'{parts.scheme}://{parts.netloc}' == COORDINATOR
     headers = {'Authorization': f'Bearer {token.value}'} if is_coordinator else {}
@@ -49,7 +49,16 @@ def _request(url: str, token: SessionToken) -> tuple[URL, dict[str, str]]:
 
 
 async def _fragment_error(response: aiohttp.ClientResponse, index: int) -> ConnectorError:
-    """Keep known storage error codes without saving signed URLs or response bodies."""
+    """Keep known storage error codes without saving signed URLs or response bodies.
+
+    Args:
+        response: The failed fragment response.
+        index: The position of the fragment in the recording.
+
+    Returns:
+        The error to raise for the fragment.
+
+    """
     body = await response.content.read(ERROR_RESPONSE_BYTES)
     match = re.search(STORAGE_ERROR_PATTERN, body)
     code = match.group(1).decode('ascii') if match else ''
@@ -73,7 +82,20 @@ async def _fragment_error(response: aiohttp.ClientResponse, index: int) -> Conne
 
 
 async def _manifest(session: aiohttp.ClientSession, url: str, token: SessionToken) -> RecordingManifest:
-    """Poll for a completed size-limited manifest without following redirects."""
+    """Poll for a completed size-limited manifest without following redirects.
+
+    Args:
+        session: The HTTP session to use.
+        url: The validated manifest address.
+        token: The token to send with each poll.
+
+    Returns:
+        The parsed manifest.
+
+    Raises:
+        ConnectorError: When the manifest is too large or the request fails.
+
+    """
     while True:
         target, headers = _request(url, token)
         async with session.get(target, headers=headers, allow_redirects=False) as response:
@@ -87,9 +109,26 @@ async def _manifest(session: aiohttp.ClientSession, url: str, token: SessionToke
                         raise ConnectorError(ErrorCode.CAPTURE, RECORDING_UNSUPPORTED)
                 return parse_recording_manifest(content.decode(), url)
             else:
-                msg = f'Recording manifest request returned HTTP {response.status}.'
-                raise ConnectorError(ErrorCode.CAPTURE, f'{RECORDING_UNSUPPORTED} {msg}')
+                message = f'Recording manifest request returned HTTP {response.status}.'
+                raise ConnectorError(ErrorCode.CAPTURE, f'{RECORDING_UNSUPPORTED} {message}')
         await asyncio.sleep(delay)
+
+
+def retry_delay(value: str | None) -> float:
+    """Limit a provider retry delay to the allowed polling interval.
+
+    Args:
+        value: The retry header of the response, or None when it is absent.
+
+    Returns:
+        The delay in seconds.
+
+    """
+    try:
+        seconds = float(value) if value else DEFAULT_RETRY_SECONDS
+    except ValueError:
+        seconds = DEFAULT_RETRY_SECONDS
+    return min(MAX_RETRY_SECONDS, max(MIN_RETRY_SECONDS, seconds)) if math.isfinite(seconds) else DEFAULT_RETRY_SECONDS
 
 
 async def download_recording(
@@ -100,7 +139,23 @@ async def download_recording(
     maximum_bytes: int,
     timeout_seconds: float,
 ) -> int:
-    """Download recording headers and media in order; discard incomplete files."""
+    """Download recording headers and media in order; discard incomplete files.
+
+    Args:
+        playlist_url: The address of the recording manifest.
+        token: The session token of the recording.
+        destination: The file to create.
+        maximum_bytes: The largest file to accept.
+        timeout_seconds: The time allowed for the whole download.
+
+    Returns:
+        The number of bytes written.
+
+    Raises:
+        ConnectorError: When a limit is invalid, the download times out, or the recording is unsupported.
+        _fragment_error: When a fragment request fails.
+
+    """
     url = recording_url(playlist_url)
     if maximum_bytes < 1 or not 0 < timeout_seconds <= MAX_DOWNLOAD_SECONDS:
         raise ConnectorError(ErrorCode.CAPTURE, RECORDING_UNSUPPORTED)

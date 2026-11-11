@@ -38,7 +38,18 @@ class LiveRoutes:
     is_multi_user: bool = field(default=False, kw_only=True)
 
     async def exchange(self, request: web.Request) -> dict[str, Json]:
-        """Read a size-limited request and exchange state with its owning session, which checks the capability."""
+        """Read a size-limited request and exchange state with its owning session, which checks the capability.
+
+        Args:
+            request: The request that carries the exchange document.
+
+        Returns:
+            The status of the session.
+
+        Raises:
+            ConnectorError: When no session has the lease identifier.
+
+        """
         document = await read_document(request)
         identifier = document.get('lease')
         with self.registry.lock:
@@ -48,7 +59,19 @@ class LiveRoutes:
         return lease.exchange(document)
 
     def controls(self, identifier: str, capability: str) -> ControlLease:
-        """Find a live editing session and verify its private capability."""
+        """Find a live editing session and verify its private capability.
+
+        Args:
+            identifier: The lease identifier of the session.
+            capability: The capability value that the browser sent.
+
+        Returns:
+            The lease of the live editing session.
+
+        Raises:
+            ConnectorError: When no live editing session has the identifier.
+
+        """
         with self.registry.lock:
             lease = self.registry.leases.get(identifier)
         if not isinstance(lease, ControlLease):
@@ -57,7 +80,18 @@ class LiveRoutes:
         return lease
 
     async def action(self, request: web.Request) -> dict[str, Json]:
-        """Read and authorize a live editing action before queuing it."""
+        """Read and authorize a live editing action before queuing it.
+
+        Args:
+            request: The request that carries the action document.
+
+        Returns:
+            The reply that confirms the action.
+
+        Raises:
+            ConnectorError: When the lease identifier or the capability is not text.
+
+        """
         document = await read_document(request, max_bytes=MAX_ACTION_BYTES)
         identifier, capability = document.get('lease'), document.get('capability')
         if not isinstance(identifier, str) or not isinstance(capability, str):
@@ -65,7 +99,21 @@ class LiveRoutes:
         return self.controls(identifier, capability).action(document)
 
     async def camera(self, request: web.Request) -> dict[str, Json]:
-        """Authorize a single size-limited JPEG upload and decode it off the event loop."""
+        """Authorize a single size-limited JPEG upload and decode it off the event loop.
+
+        Args:
+            request: The request that carries the JPEG frame and the lease headers.
+
+        Returns:
+            The reply that confirms the frame.
+
+        Raises:
+            ConnectorError: When the session has no webcam or the sequence header is not valid.
+            web.HTTPRequestEntityTooLarge: When the upload passes the size limit.
+            web.HTTPTooManyRequests: When another upload is still in progress.
+            web.HTTPUnsupportedMediaType: When the content type is not JPEG.
+
+        """
         lease = self.controls(
             request.headers.get('X-Reactor-Lease', ''),
             request.headers.get('X-Reactor-Capability', ''),
@@ -92,7 +140,12 @@ class LiveRoutes:
         return {'accepted': True}
 
     def register(self, routes: web.RouteTableDef) -> None:
-        """Register live routes with the local mutation and host access guards."""
+        """Register live routes with the local mutation and host access guards.
+
+        Args:
+            routes: The route table that receives the live routes.
+
+        """
         routes.post(SETTINGS_PREFIX + '/live/exchange')(
             local_route(self.exchange, is_mutation=True, is_multi_user=self.is_multi_user)
         )

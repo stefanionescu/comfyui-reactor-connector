@@ -20,14 +20,30 @@ from ..config.messages.session import (
 
 
 def provider_text(text: str) -> str:
-    """Remove keys, tokens, and URLs from Reactor's text and keep it short."""
+    """Remove keys, tokens, and URLs from Reactor's text and keep it short.
+
+    Args:
+        text: The message text that Reactor sent.
+
+    Returns:
+        The redacted and shortened text.
+
+    """
     for pattern, replacement in REDACTIONS:
         text = re.sub(pattern, replacement, text)
     return text.strip()[:MAX_MESSAGE_CHARACTERS]
 
 
 def error_code(error: object) -> str:
-    """Return Reactor's own code, or a code naming the local failure."""
+    """Return Reactor's own code, or a code naming the local failure.
+
+    Args:
+        error: The failure to name.
+
+    Returns:
+        The code string for the failure.
+
+    """
     if isinstance(error, ReactorError):
         return error.code
     for kind, code in (
@@ -41,7 +57,16 @@ def error_code(error: object) -> str:
 
 
 def phase_error(error: object, phase: str) -> ConnectorError:
-    """Name the failed operation and add Reactor's own message when it sent one."""
+    """Name the failed operation and add Reactor's own message when it sent one.
+
+    Args:
+        error: The failure to translate.
+        phase: The name of the operation that failed.
+
+    Returns:
+        The connector error to show.
+
+    """
     if isinstance(error, ConnectorError):
         return error
     safe = safe_error(error)
@@ -62,7 +87,15 @@ PROVIDER_ERRORS = {
 
 
 def safe_error(error: object) -> ConnectorError:
-    """Map an SDK failure to a connector error category and its message."""
+    """Map an SDK failure to a connector error category and its message.
+
+    Args:
+        error: The failure to classify.
+
+    Returns:
+        The connector error with a public code and message.
+
+    """
     if isinstance(error, ConnectorError):
         return error
     if isinstance(error, AuthError):

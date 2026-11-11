@@ -1,22 +1,36 @@
 import { browserLimits } from '#web/browser.ts';
 
 /**
- * Convert held keys to the model's supported movement axes.
- *
- * @param keys - The keys currently held or briefly pressed.
- * @param hasIndependentAxes - Whether the model accepts independent movement axes.
- * @returns Movement and look directions for the model.
- */
+Find the camera direction button that an event reached.
+
+@param event - A pointer, click, or key event on the button container.
+@returns The button and its direction key, or undefined when the event reached no direction button.
+*/
+function findDirectionButton(event: Event): { button: HTMLButtonElement; key: string } | undefined {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement)) return undefined;
+    const key = target.dataset['key'];
+    if (key === undefined || key === '') return undefined;
+    return { button: target, key };
+}
+
+/**
+Convert held keys to the model's supported movement axes.
+
+@param keys - The keys currently held or briefly pressed.
+@param hasIndependentAxes - Whether the model accepts independent movement axes.
+@returns Movement and look directions for the model.
+*/
 export function cameraAxes(keys: ReadonlySet<string>, hasIndependentAxes: boolean): Record<string, string> {
     /**
-     * Resolve an opposing pair of keys.
-     *
-     * @param firstKey - The key for the first direction.
-     * @param secondKey - The key for the opposite direction.
-     * @param firstDirection - The model's first direction value.
-     * @param secondDirection - The model's opposite direction value.
-     * @returns The chosen direction, or idle when the user holds neither key or both.
-     */
+    Resolve an opposing pair of keys.
+
+    @param firstKey - The key for the first direction.
+    @param secondKey - The key for the opposite direction.
+    @param firstDirection - The model's first direction value.
+    @param secondDirection - The model's opposite direction value.
+    @returns The chosen direction, or idle when the user holds neither key or both.
+    */
     function direction(firstKey: string, secondKey: string, firstDirection: string, secondDirection: string): string {
         if (keys.has(firstKey) === keys.has(secondKey)) return 'idle';
         return keys.has(firstKey) ? firstDirection : secondDirection;
@@ -35,11 +49,11 @@ export function cameraAxes(keys: ReadonlySet<string>, hasIndependentAxes: boolea
 const cameraKeys = new Set(['w', 's', 'a', 'd', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
 /**
- * Release held input when the window loses focus, the page hides, or the panel closes.
- *
- * @param release - Clear every held input.
- * @param signal - The panel's listener lifetime.
- */
+Release held input when the window loses focus, the page hides, or the panel closes.
+
+@param release - Clear every held input.
+@param signal - The panel's listener lifetime.
+*/
 export function releaseOnLeave(release: () => void, signal: AbortSignal): void {
     window.addEventListener('blur', release, { signal });
     document.addEventListener(
@@ -53,20 +67,8 @@ export function releaseOnLeave(release: () => void, signal: AbortSignal): void {
 }
 
 /**
- * Find the camera direction button that an event reached.
- *
- * @param event - A pointer, click, or key event on the button container.
- * @returns The button and its direction key, or undefined when the event reached no direction button.
- */
-function findDirectionButton(event: Event): { button: HTMLButtonElement; key: string } | undefined {
-    const target = event.target;
-    if (!(target instanceof HTMLButtonElement)) return undefined;
-    const key = target.dataset['key'];
-    if (key === undefined || key === '') return undefined;
-    return { button: target, key };
-}
-
-/** Combine keyboard, held buttons, and short presses into camera input. */
+Combine keyboard, held buttons, and short presses into camera input.
+*/
 export class CameraInput {
     private readonly keyboard = new Set<string>();
 
@@ -79,18 +81,18 @@ export class CameraInput {
     private lastHold: { key: string; milliseconds: number } | undefined;
 
     /**
-     * Bind camera input for the lifetime of the panel.
-     *
-     * @param surface - The keyboard camera surface.
-     * @param controls - The camera direction buttons.
-     * @param signal - The panel's listener lifetime.
-     * @param update - Receive the combined keys and explicit release requests.
-     */
+    Bind camera input for the lifetime of the panel.
+
+    @param surface - The keyboard camera surface.
+    @param controls - The camera direction buttons.
+    @param signal - The panel's listener lifetime.
+    @param update - Receive the combined keys and explicit release requests.
+    */
     constructor(
         surface: HTMLElement,
         controls: HTMLElement,
         signal: AbortSignal,
-        private readonly update: (keys: ReadonlySet<string>, release?: boolean) => void,
+        private readonly update: (keys: ReadonlySet<string>, isRelease?: boolean) => void,
     ) {
         surface.addEventListener(
             'keydown',
@@ -114,12 +116,14 @@ export class CameraInput {
             'keyup',
             (event) => {
                 const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-                if (cameraKeys.has(key)) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.keyboard.delete(key);
-                    this.publish();
+                if (!cameraKeys.has(key)) {
+                    return;
                 }
+
+                event.preventDefault();
+                event.stopPropagation();
+                this.keyboard.delete(key);
+                this.publish();
             },
             { signal },
         );
@@ -129,24 +133,23 @@ export class CameraInput {
     }
 
     /**
-     * Send combined input after a key, pointer, or timer changes.
-     *
-     * @param release - Whether the user explicitly released all input.
-     */
+    Send combined input after a key, pointer, or timer changes.
 
-    private publish(release = false): void {
+    @param isRelease - Whether the user explicitly released all input.
+    */
+    private publish(isRelease = false): void {
         const keys = new Set(this.keyboard);
         for (const key of this.pointers.values()) keys.add(key);
         for (const key of this.nudges.keys()) keys.add(key);
-        this.update(keys, release);
+        this.update(keys, isRelease);
     }
 
     /**
-     * Keep a short press visible for the next server update.
-     *
-     * @param key - The direction key to hold briefly.
-     * @param milliseconds - Remaining duration of the short press.
-     */
+    Keep a short press visible for the next server update.
+
+    @param key - The direction key to hold briefly.
+    @param milliseconds - Remaining duration of the short press.
+    */
     private nudge(key: string, milliseconds: number): void {
         const previous = this.nudges.get(key);
         if (previous !== undefined) clearTimeout(previous);
@@ -160,23 +163,12 @@ export class CameraInput {
         );
     }
 
-    /** Clear every held input and timer, then send an explicit release. */
-    release(): void {
-        this.keyboard.clear();
-        this.pointers.clear();
-        this.pointerStarted.clear();
-        this.lastHold = undefined;
-        for (const timer of this.nudges.values()) clearTimeout(timer);
-        this.nudges.clear();
-        this.publish(true);
-    }
-
     /**
-     * Bind mouse, touch, keyboard, and assistive button activation.
-     *
-     * @param controls - The container for direction buttons.
-     * @param signal - The panel's listener lifetime.
-     */
+    Bind mouse, touch, keyboard, and assistive button activation.
+
+    @param controls - The container for direction buttons.
+    @param signal - The panel's listener lifetime.
+    */
     private bindButtons(controls: HTMLElement, signal: AbortSignal): void {
         controls.addEventListener(
             'pointerdown',
@@ -211,10 +203,10 @@ export class CameraInput {
     }
 
     /**
-     * Finish a held button and keep a press shorter than a nudge.
-     *
-     * @param event - The pointer release or cancellation.
-     */
+    Finish a held button and keep a press shorter than a nudge.
+
+    @param event - The pointer release or cancellation.
+    */
     private releasePointer(event: PointerEvent): void {
         const key = this.pointers.get(event.pointerId);
         const started = this.pointerStarted.get(event.pointerId);
@@ -229,10 +221,10 @@ export class CameraInput {
     }
 
     /**
-     * Treat Space and Enter as a held direction on a focused button.
-     *
-     * @param event - A key press or release on the button container.
-     */
+    Treat Space and Enter as a held direction on a focused button.
+
+    @param event - A key press or release on the button container.
+    */
     private buttonKey(event: KeyboardEvent): void {
         const direction = findDirectionButton(event);
         if (direction === undefined || ![' ', 'Enter'].includes(event.key)) return;
@@ -241,5 +233,18 @@ export class CameraInput {
         if (event.type === 'keydown') this.keyboard.add(direction.key);
         else this.keyboard.delete(direction.key);
         this.publish();
+    }
+
+    /**
+    Clear every held input and timer, then send an explicit release.
+    */
+    release(): void {
+        this.keyboard.clear();
+        this.pointers.clear();
+        this.pointerStarted.clear();
+        this.lastHold = undefined;
+        for (const timer of this.nudges.values()) clearTimeout(timer);
+        this.nudges.clear();
+        this.publish(true);
     }
 }

@@ -1,0 +1,58 @@
+extends: conditional
+message: Spell out '%s' on first use.
+level: error
+ignorecase: false
+first: \b([A-Z]{3,6})\b
+second: (?:\b[A-Za-z]+(?:-[A-Za-z]+)* ){2,5}\(([A-Z]{3,6})\)
+exceptions:
+  - API
+  - ASCII
+  - ASD
+  - AVI
+  - BSD
+  - CLI
+  - CPU
+  - CRLF
+  - CSRF
+  - CSS
+  - CSV
+  - DOM
+  - DTO
+  - ESM
+  - EUR
+  - GBP
+  - GNU
+  - HTML
+  - HTTP
+  - HTTPS
+  - INI
+  - JPEG
+  - JSON
+  - JSX
+  - LTX
+  - MIME
+  - MIT
+  - MOV
+  - PNG
+  - POSIX
+  - README
+  - RPC
+  - SANA
+  - SCSS
+  - SDK
+  - SHA
+  - SQL
+  - SSH
+  - SVG
+  - TLS
+  - TODO
+  - TOML
+  - TSX
+  - URL
+  - USD
+  - UTC
+  - UTF
+  - WASM
+  - WAV
+  - XML
+  - YAML

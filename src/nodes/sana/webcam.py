@@ -20,7 +20,12 @@ class SanaWebcam(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncSanaWebcam',
             display_name='SANA: Edit Webcam Video (Reactor)',
@@ -46,7 +51,18 @@ class SanaWebcam(VideoNode):
     @classmethod
     @override
     async def generate(cls, *, prompt: str, duration_seconds: float, seed: int, anchor_interval: int) -> io.NodeOutput:
-        """Open the webcam controls and record the SANA video edit."""
+        """Open the webcam controls and record the SANA video edit.
+
+        Args:
+            prompt: The edit prompt.
+            duration_seconds: The requested recording length in seconds.
+            seed: The seed that the model generates from.
+            anchor_interval: The number of model chunks between returns to the camera source.
+
+        Returns:
+            The edited video.
+
+        """
         camera = WebcamFrames()
         try:
             request = SanaOperation(

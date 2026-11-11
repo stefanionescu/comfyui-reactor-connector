@@ -1,4 +1,4 @@
-# Fast H3: Continue a Scene
+# Fast H3: continue a scene
 
 Makes several connected clips in one Reactor session and saves them as one video
 with sound. Each clip starts from the previous clip's last frame.

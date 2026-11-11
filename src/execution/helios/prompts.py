@@ -12,7 +12,15 @@ from ...config.generation.session import MAX_PROMPT_CHARACTERS
 
 
 def validate_prompt(prompt: ScheduledPrompt) -> None:
-    """Require a nonempty prompt and a supported later chunk number."""
+    """Require a nonempty prompt and a supported later chunk number.
+
+    Args:
+        prompt: The scheduled prompt to check.
+
+    Raises:
+        ConnectorError: When the chunk number or the prompt text is invalid.
+
+    """
     if type(prompt.chunk) is not int or not 1 <= prompt.chunk <= MAX_PROMPT_CHUNK:
         raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_CHUNK)
     if type(prompt.prompt) is not str or not prompt.prompt.strip() or len(prompt.prompt) > MAX_PROMPT_CHARACTERS:
@@ -20,7 +28,19 @@ def validate_prompt(prompt: ScheduledPrompt) -> None:
 
 
 def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
-    """Reject ambiguous schedules and fields that are not prompt inputs."""
+    """Reject ambiguous schedules and fields that are not prompt inputs.
+
+    Args:
+        value: The JSON text of the prompt schedule.
+
+    Returns:
+        The scheduled prompts in chunk order.
+
+    Raises:
+        ConnectorError: When the schedule text is too large.
+        invalid: When the schedule has a wrong shape, field, or order.
+
+    """
     if type(value) is not str or len(value.encode()) > MAX_SEQUENCE_BYTES:
         raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_SEQUENCE_SIZE)
     invalid = ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_SEQUENCE_ORDER)
@@ -44,7 +64,16 @@ def parse_sequence(value: str) -> tuple[ScheduledPrompt, ...]:
 
 
 def append_prompt(previous: str, prompt: ScheduledPrompt) -> str:
-    """Append one prompt and validate the complete serialized sequence."""
+    """Append one prompt and validate the complete serialized sequence.
+
+    Args:
+        previous: The JSON text of the schedule so far.
+        prompt: The prompt to add at the end.
+
+    Returns:
+        The JSON text of the extended schedule.
+
+    """
     validate_prompt(prompt)
     encoded = json.dumps([asdict(item) for item in (*parse_sequence(previous), prompt)])
     parse_sequence(encoded)

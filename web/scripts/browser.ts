@@ -1,4 +1,6 @@
-/** Request deadlines, local input buffering, and response size limits for the interface. */
+/**
+Request deadlines, local input buffering, and response size limits for the interface.
+*/
 export const browserLimits = {
     requestTimeoutMilliseconds: 10_000,
     pollIntervalMilliseconds: 100,
@@ -10,7 +12,9 @@ export const browserLimits = {
     maxErrorCharacters: 1024,
 } as const;
 
-/** Camera capture and pointer input values used by the live interface. */
+/**
+Camera capture and pointer input values used by the live interface.
+*/
 export const browserInput = {
     pointerCenter: 0.5,
     pointerMinimum: 0,
@@ -23,11 +27,13 @@ export const browserInput = {
     cameraJpegQuality: 0.8,
 } as const;
 
-/** Formats accepted from the local ComfyUI API. */
+/**
+Formats accepted from the local ComfyUI API.
+*/
 export const browserPatterns = {
     lease: /^[a-f0-9]{32}$/,
     revision: /^[a-f0-9]{64}$/,
     preview: /^[A-Za-z0-9+/]*={0,2}$/,
-    capability: /^[A-Za-z0-9_-]{43}$/,
+    capability: /^[\w-]{43}$/,
     settingName: /^[a-z][a-z_]+$/,
 } as const;

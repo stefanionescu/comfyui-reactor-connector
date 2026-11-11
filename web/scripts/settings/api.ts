@@ -1,22 +1,24 @@
+import { browserLimits } from '#web/browser.ts';
 import type { Fetcher } from '#web/http.ts';
 import { browserRoutes } from '#web/routes.ts';
-import { browserLimits } from '#web/browser.ts';
 import { parsePublicError } from '#web/schema.ts';
+import { type Configuration, parseConfiguration } from '#web/settings/schema.ts';
 import { message, type MessageKey } from '#web/text.ts';
-import { parseConfiguration, type Configuration } from '#web/settings/schema.ts';
 
-/** The message for a failed settings request, by its HTTP method; every other method saves. */
+/**
+The message for a failed settings request, by its HTTP method; every other method saves.
+*/
 const FAILURES = new Map<string, MessageKey>([
     ['GET', 'settings.readFailed'],
     ['DELETE', 'settings.removeFailed'],
 ]);
 
 /**
- * Read the JSON body of a settings response.
- *
- * @param response - The local settings response.
- * @returns The untrusted response document.
- */
+Read the JSON body of a settings response.
+
+@param response - The local settings response.
+@returns The untrusted response document.
+*/
 async function readDocument(response: Response): Promise<unknown> {
     try {
         return await response.json();
@@ -26,15 +28,15 @@ async function readDocument(response: Response): Promise<unknown> {
 }
 
 /**
- * Read or change settings through the local ComfyUI server.
- *
- * @param fetcher - ComfyUI's local API client.
- * @param signal - The settings dialog's request lifetime.
- * @param route - The local settings route.
- * @param method - The HTTP method.
- * @param body - The settings change, if any.
- * @returns The validated settings after the request.
- */
+Read or change settings through the local ComfyUI server.
+
+@param fetcher - ComfyUI's local API client.
+@param signal - The settings dialog's request lifetime.
+@param route - The local settings route.
+@param method - The HTTP method.
+@param body - The settings change, if any.
+@returns The validated settings after the request.
+*/
 export async function requestConfiguration(
     fetcher: Fetcher,
     signal: AbortSignal,

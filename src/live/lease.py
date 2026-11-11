@@ -26,7 +26,12 @@ class BrowserLease:
     """Keep one controlling browser alive without sharing asyncio objects across loops."""
 
     def __init__(self, choices: dict[str, tuple[str, ...]]) -> None:
-        """Create a private client capability and thread-safe input and preview state."""
+        """Create a private client capability and thread-safe input and preview state.
+
+        Args:
+            choices: The values that each camera axis accepts.
+
+        """
         self.identifier = secrets.token_hex(LEASE_BYTES)
         self._capability = secrets.token_urlsafe(CAPABILITY_BYTES)
         self.choices = choices.copy()
@@ -56,7 +61,15 @@ class BrowserLease:
         }
 
     def authorize(self, capability: Json) -> None:
-        """Require the exact private capability and a live, recently connected client."""
+        """Require the exact private capability and a live, recently connected client.
+
+        Args:
+            capability: The untrusted capability value from the browser.
+
+        Raises:
+            ConnectorError: When the capability is wrong or the session has ended.
+
+        """
         if (
             not isinstance(capability, str)
             or not capability.isascii()
@@ -73,6 +86,16 @@ class BrowserLease:
 
         A closed session still answers with its final status, so this checks the capability without the liveness
         checks of authorize.
+
+        Args:
+            document: The untrusted exchange document from the browser.
+
+        Returns:
+            The validated exchange.
+
+        Raises:
+            ConnectorError: When the capability, the keys, or a value is not valid.
+
         """
         expected = {'lease', 'capability', 'sequence', 'axes', 'end', 'release', 'preview_sequence'}
         capability = document.get('capability')
@@ -103,7 +126,16 @@ class BrowserLease:
         return BrowserExchange(sequence, axes, end, release, preview_sequence)
 
     def _accept_exchange(self, exchange: BrowserExchange, now: float) -> None:
-        """Apply ordered browser state while the caller holds the session lock."""
+        """Apply ordered browser state while the caller holds the session lock.
+
+        Args:
+            exchange: The validated browser state.
+            now: The monotonic time of the exchange.
+
+        Raises:
+            ConnectorError: When the client timed out or the exchange is out of order.
+
+        """
         if not self.closed and now - self.last_seen > CLIENT_TIMEOUT_SECONDS:
             self.end = True
             raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_SESSION_UNAVAILABLE)
@@ -119,7 +151,15 @@ class BrowserLease:
                 self._accept_axes(exchange.sequence, exchange.axes, now, release=exchange.release)
 
     def exchange(self, document: dict[str, Json]) -> dict[str, Json]:
-        """Validate client state, accept ordered input, and return the latest session status."""
+        """Validate client state, accept ordered input, and return the latest session status.
+
+        Args:
+            document: The exchange document that the browser sent.
+
+        Returns:
+            The session status, with the preview when the browser lacks the latest one.
+
+        """
         exchange = self._parse_exchange(document)
         with self.lock:
             now = time.monotonic()
@@ -136,7 +176,12 @@ class BrowserLease:
             }
 
     def read(self) -> BrowserInput:
-        """Read queued movement or release controls when input becomes stale."""
+        """Read queued movement or release controls when input becomes stale.
+
+        Returns:
+            The next camera input for the session to apply.
+
+        """
         with self.lock:
             age = time.monotonic() - self.last_seen
             stale_queue = self.pending and time.monotonic() - self.pending[0].received_at > STALE_INPUT_SECONDS
@@ -161,7 +206,15 @@ class BrowserLease:
             )
 
     def _accept_axes(self, sequence: int, values: Mapping[str, object], now: float, *, release: bool) -> None:
-        """Keep brief key presses; discard stale input to avoid delayed movement."""
+        """Keep brief key presses; discard stale input to avoid delayed movement.
+
+        Args:
+            sequence: The sequence number of the exchange.
+            values: The value that the browser sent for each axis.
+            now: The monotonic time at which the input arrived.
+            release: Whether the browser released every control.
+
+        """
         axes = tuple(
             (axis, value if isinstance(value, str) and not self.end else 'idle')
             for axis in self.choices
@@ -196,7 +249,12 @@ class BrowserLease:
             self.pending.clear()
 
     def frame(self, encoded: str) -> None:
-        """Keep the latest preview within the encoded size limit."""
+        """Keep the latest preview within the encoded size limit.
+
+        Args:
+            encoded: The encoded preview image.
+
+        """
         if len(encoded) > MAX_PREVIEW_CHARACTERS:
             return
         with self.lock:
@@ -205,7 +263,13 @@ class BrowserLease:
                 self.preview_sequence += 1
 
     def close(self, *, is_termination_confirmed: bool, failed: bool = False) -> None:
-        """Clear private media and input, then publish the final termination status."""
+        """Clear private media and input, then publish the final termination status.
+
+        Args:
+            is_termination_confirmed: Whether the provider confirmed that the session ended.
+            failed: Whether the session ended with an error.
+
+        """
         with self.lock:
             self.closed = True
             self.end = True

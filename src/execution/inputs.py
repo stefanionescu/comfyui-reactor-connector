@@ -38,7 +38,15 @@ class VideoInputOperation[Request: VideoInputs]:
     requires_audio: ClassVar[bool] = False
 
     def validate(self, settings: Settings) -> None:
-        """Check prompt, capture, and image limits before a connection."""
+        """Check prompt, capture, and image limits before a connection.
+
+        Args:
+            settings: The user settings that hold the session and upload limits.
+
+        Raises:
+            ConnectorError: When the prompt, the capture inputs, or the image breaks a limit.
+
+        """
         inputs = self.inputs
         if not inputs.prompt.strip() or len(inputs.prompt) > MAX_PROMPT_CHARACTERS:
             raise ConnectorError(ErrorCode.INVALID_INPUT, PROMPT_LENGTH)
@@ -50,7 +58,17 @@ class VideoInputOperation[Request: VideoInputs]:
 
 
 def validate_capture_inputs(duration_seconds: float, seed: int, settings: Settings) -> None:
-    """Validate capture length and seed without imposing a model's prompt policy."""
+    """Validate capture length and seed without imposing a model's prompt policy.
+
+    Args:
+        duration_seconds: The requested capture length, in seconds.
+        seed: The requested random seed.
+        settings: The user settings that hold the session time limit.
+
+    Raises:
+        ConnectorError: When the duration or the seed is out of range.
+
+    """
     if not MIN_CAPTURE_SECONDS <= duration_seconds <= MAX_DURATION_SECONDS:
         raise ConnectorError(ErrorCode.INVALID_INPUT, CAPTURE_LIMIT)
     if duration_seconds >= settings.max_session_seconds:

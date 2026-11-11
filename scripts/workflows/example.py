@@ -25,7 +25,18 @@ FIRST_STEP_ID = 5
 
 @dataclass(frozen=True, slots=True)
 class Example:
-    """One editable workflow with named widget values and explicit media sources."""
+    """One editable workflow with named widget values and explicit media sources.
+
+    Attributes:
+        slug: The file name of the workflow, without its extension.
+        node_id: The ID of the generation node.
+        model: The name of the model that the workflow runs.
+        inputs: The widget values of the generation node, by input name.
+        sources: The names of the media inputs to connect.
+        plan: The kind of plan steps to add.
+        mode: The way the workflow runs the model.
+
+    """
 
     slug: str
     node_id: str

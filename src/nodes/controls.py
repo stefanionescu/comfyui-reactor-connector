@@ -21,7 +21,18 @@ from ..config.generation.prompts import DEFAULT_PROMPTS
 def _shared_controls(
     prompt_key: str, *, duration: io.Input | None, prompt_tooltip: str | None, has_seed: bool
 ) -> list[io.Input]:
-    """List the prompt, duration, seed, and run-number controls that the video nodes share."""
+    """List the prompt, duration, seed, and run-number controls that the video nodes share.
+
+    Args:
+        prompt_key: The name that selects the prompt label and the default prompt.
+        duration: The duration input that replaces the shared one, or None.
+        prompt_tooltip: The tooltip of the prompt input, or None.
+        has_seed: Whether the node takes a seed.
+
+    Returns:
+        The shared controls in schema order.
+
+    """
     prompt_label = 'edit prompt' if prompt_key in {'edit', 'webcam'} else 'scene prompt'
     run_tooltip = 'Change this number to run again with unchanged inputs.'
     controls: list[io.Input] = [
@@ -85,6 +96,19 @@ def build_inputs(
 
     The leading inputs of the node come first. The shared controls follow, then the trailing inputs of the node, and
     last the switch for live controls when the node offers them.
+
+    Args:
+        prompt_key: The name that selects the prompt label and the default prompt.
+        leading: The inputs that come before the shared controls.
+        duration: The duration input that replaces the shared one, or None.
+        trailing: The inputs that come after the shared controls.
+        prompt_tooltip: The tooltip of the prompt input, or None.
+        has_seed: Whether the node takes a seed.
+        is_live: Whether the node offers the switch for live controls.
+
+    Returns:
+        The inputs of the node.
+
     """
     inputs = [
         *leading,
@@ -104,7 +128,15 @@ def build_inputs(
 
 
 def build_outputs(*, has_audio: bool) -> list[io.Output]:
-    """Declare the native video output, and the audio output when the model also returns sound."""
+    """Declare the native video output, and the audio output when the model also returns sound.
+
+    Args:
+        has_audio: Whether the model also returns sound.
+
+    Returns:
+        The outputs of the node.
+
+    """
     outputs: list[io.Output] = [io.Video.Output(display_name='video')]
     if has_audio:
         outputs.append(io.Audio.Output(display_name='audio'))

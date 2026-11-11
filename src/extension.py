@@ -50,5 +50,10 @@ class ReactorExtension(ComfyExtension):
 
     @override
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
-        """Return the node classes registered by this connector."""
+        """Return the node classes registered by this connector.
+
+        Returns:
+            The node classes, in registration order.
+
+        """
         return list(NODE_REGISTRATIONS)

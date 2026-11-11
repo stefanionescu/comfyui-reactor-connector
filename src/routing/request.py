@@ -10,7 +10,22 @@ from ..config.messages.requests import REQUEST_TIMEOUT, REQUEST_ENCODING, REQUES
 
 
 async def read_document(request: web.Request, *, max_bytes: int = MAX_SETTINGS_BYTES) -> dict[str, Json]:
-    """Read a size-limited JSON body, including without Content-Length."""
+    """Read a size-limited JSON body, including without Content-Length.
+
+    Args:
+        request: The request whose body to read.
+        max_bytes: The largest body to accept, in bytes.
+
+    Returns:
+        The JSON object of the body.
+
+    Raises:
+        web.HTTPBadRequest: When the body is not UTF-8 text.
+        web.HTTPRequestEntityTooLarge: When the body is larger than the limit.
+        web.HTTPRequestTimeout: When the body takes too long to arrive.
+        web.HTTPUnsupportedMediaType: When the content type is not JSON.
+
+    """
     if request.content_type != 'application/json':
         raise web.HTTPUnsupportedMediaType(text=REQUEST_JSON_REQUIRED)
     if request.content_length is not None and request.content_length > max_bytes:

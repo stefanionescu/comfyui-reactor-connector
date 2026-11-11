@@ -1,11 +1,12 @@
 import '#web/interface.css';
-import { message } from '#web/text.ts';
-import { api } from '../../scripts/api.js';
-import { app } from '../../scripts/app.js';
 import { requestLocal } from '#web/http.ts';
 import { openControls } from '#web/live/controls.ts';
 import { openSceneControls } from '#web/live/scene.ts';
 import { openSettings } from '#web/settings/dialog.ts';
+import { message } from '#web/text.ts';
+
+import { api } from '../../scripts/api.js';
+import { app } from '../../scripts/app.js';
 
 app.registerExtension({
     name: 'reactor.inc.configuration',

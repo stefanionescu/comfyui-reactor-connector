@@ -28,14 +28,27 @@ class PreparedFrames:
     """Decode only connector-prepared media, keeping one decoded frame in memory."""
 
     def __init__(self, path: Path) -> None:
-        """Prepare a reader for one connector-owned video file."""
+        """Prepare a reader for one connector-owned video file.
+
+        Args:
+            path: The prepared video file.
+
+        """
         self.path = path
         self.container: InputContainer | None = None
         self.frames: Iterator[av.VideoFrame] | None = None
         self.step_seconds = 1 / DEFAULT_FRAME_RATE
 
     def open(self) -> tuple[NDArray[np.uint8], float]:
-        """Open the prepared video and require a supported frame rate and a first timestamped frame."""
+        """Open the prepared video and require a supported frame rate and a first timestamped frame.
+
+        Returns:
+            The first frame and its time in seconds.
+
+        Raises:
+            ConnectorError: When the frame rate is unsupported or the video has no frame.
+
+        """
         self.container = av.open(str(self.path), mode='r')
         rate = self.container.streams.video[0].average_rate
         if rate is None or not 1 <= rate <= MAX_FRAME_RATE:
@@ -48,7 +61,15 @@ class PreparedFrames:
         return first
 
     def next(self) -> tuple[NDArray[np.uint8], float] | None:
-        """Decode the next red, green, and blue (RGB) frame and require its presentation timestamp."""
+        """Decode the next red, green, and blue (RGB) frame and require its presentation timestamp.
+
+        Returns:
+            The frame and its time in seconds, or None at the end of the video.
+
+        Raises:
+            ConnectorError: When the reader is closed or the frame has no timestamp.
+
+        """
         if self.frames is None:
             raise ConnectorError(ErrorCode.CAPTURE, SOURCE_READER_CLOSED)
         frame = next(self.frames, None)

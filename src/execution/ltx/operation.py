@@ -32,14 +32,28 @@ from ...config.generation.speech import (
 
 
 class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
-    """Prepare speech and a portrait before starting one take."""
+    """Prepare speech and a portrait before starting one take.
+
+    Attributes:
+        connection_name: The provider connection of the LTX model.
+        requires_audio: Whether the saved take must contain audio.
+
+    """
 
     connection_name: ClassVar[str] = MODELS['ltx2'].connection_name
     requires_audio: ClassVar[bool] = True
 
     @override
     def validate(self, settings: Settings) -> None:
-        """Check the portrait, script, speech pace, and LTX recording limits."""
+        """Check the portrait, script, speech pace, and LTX recording limits.
+
+        Args:
+            settings: The user settings with the portrait upload limit.
+
+        Raises:
+            ConnectorError: When the duration, scene, script, pace, or portrait is invalid.
+
+        """
         inputs = self.inputs
         validate_capture_inputs(inputs.duration_seconds, inputs.seed, settings)
         if inputs.duration_seconds < MIN_SPEECH_SECONDS:
@@ -58,7 +72,19 @@ class LtxSpeakOperation(VideoInputOperation[LtxSpeakRequest]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Upload the portrait and script, validate the offered speech pace, and start speech."""
+        """Upload the portrait and script, validate the offered speech pace, and start speech.
+
+        Args:
+            transport: The connected transport that lists tracks and uploads the portrait.
+            events: The session events that send commands and hold the speech state.
+
+        Returns:
+            The recording interval for the requested duration.
+
+        Raises:
+            ConnectorError: When audio, the portrait, or a supported speech pace is missing.
+
+        """
         inputs = self.inputs
         audio = [
             track

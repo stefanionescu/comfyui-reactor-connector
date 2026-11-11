@@ -8,4 +8,4 @@ cd "${REPO_ROOT}" || exit 1
 
 mise install
 mise run deps
-bun run gspot install
+mise exec -- gspot install

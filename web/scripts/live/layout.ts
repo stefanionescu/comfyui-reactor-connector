@@ -1,16 +1,16 @@
 import { element } from '#web/dom.ts';
-import { message } from '#web/text.ts';
 import type { Invitation } from '#web/live/schema.ts';
+import { message } from '#web/text.ts';
 
 /**
- * Group a prompt field with its reply and apply action.
- *
- * @param title - The visible field label.
- * @param input - The prompt editor.
- * @param apply - The button that sends the edited prompt.
- * @param status - The reply to the latest prompt change.
- * @returns A section that holds the labeled editor, the reply, and the apply button.
- */
+Group a prompt field with its reply and apply action.
+
+@param title - The visible field label.
+@param input - The prompt editor.
+@param apply - The button that sends the edited prompt.
+@param status - The reply to the latest prompt change.
+@returns A section that holds the labeled editor, the reply, and the apply button.
+*/
 export function promptSection(
     title: string,
     input: HTMLTextAreaElement,
@@ -29,14 +29,14 @@ export function promptSection(
 }
 
 /**
- * Place the session name, requested duration, and current status together.
- *
- * @param title - The model and control panel name.
- * @param owner - The session invitation, which holds the requested duration.
- * @param status - The current session status.
- * @param elapsed - The optional elapsed-time display.
- * @returns A header that holds the title, the duration, and the status.
- */
+Place the session name, requested duration, and current status together.
+
+@param title - The model and control panel name.
+@param owner - The session invitation, which holds the requested duration.
+@param status - The current session status.
+@param elapsed - The optional elapsed-time display.
+@returns A header that holds the title, the duration, and the status.
+*/
 export function sessionHeader(
     title: string,
     owner: Pick<Invitation, 'durationSeconds'>,

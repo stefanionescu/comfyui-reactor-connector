@@ -31,7 +31,18 @@ from ...config.generation.session import (
 
 
 def _video_track(transport: SessionTransport) -> Track:
-    """Require exactly one receive-only main video track."""
+    """Require exactly one receive-only main video track.
+
+    Args:
+        transport: The connected transport that lists the model tracks.
+
+    Returns:
+        The main video track.
+
+    Raises:
+        ConnectorError: When the model does not offer exactly one such track.
+
+    """
     tracks = [
         track
         for track in transport.get_client().tracks
@@ -43,7 +54,18 @@ def _video_track(transport: SessionTransport) -> Track:
 
 
 async def _capture_generation(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
-    """Connect, configure the model, and capture the requested video and recording."""
+    """Connect, configure the model, and capture the requested video and recording.
+
+    Args:
+        session: The resources of the session to run.
+
+    Returns:
+        The capture result and the recording interval to save.
+
+    Raises:
+        session.events.failure.result: When the session failed during connection.
+
+    """
     recording_window = RecordingWindow(0, session.operation.inputs.duration_seconds)
     await session.capture.ready.wait()
     if session.worker.done():
@@ -83,7 +105,13 @@ async def _capture_generation(session: SessionResources) -> tuple[CaptureResult,
 
 
 async def _capture_until_end(capture: VideoCapture, events: SessionEvents) -> None:
-    """Bound the final delivery drain when a finite model reports completion."""
+    """Bound the final delivery drain when a finite model reports completion.
+
+    Args:
+        capture: The capture that receives frames.
+        events: The session events that signal the end of generation.
+
+    """
     captured = asyncio.create_task(capture.complete.wait())
     completed = asyncio.create_task(events.generation_complete.wait())
     try:
@@ -104,7 +132,15 @@ async def _capture_until_end(capture: VideoCapture, events: SessionEvents) -> No
 
 
 async def _capture_session(session: SessionResources) -> tuple[CaptureResult, RecordingWindow]:
-    """Own capture and event listeners through generation, failure, and cleanup."""
+    """Own capture and event listeners through generation, failure, and cleanup.
+
+    Args:
+        session: The session to run and then clean up.
+
+    Returns:
+        The capture result and the recording interval of the session.
+
+    """
     try:
         session.events.attach()
         async with asyncio.timeout(session.settings.max_session_seconds):
@@ -121,7 +157,23 @@ async def capture_video(
     outcome: SessionOutcome,
     interaction: SessionInteraction | None = None,
 ) -> CaptureResult:
-    """Capture an already validated operation and clean up every outcome."""
+    """Capture an already validated operation and clean up every outcome.
+
+    Args:
+        operation: The validated model operation to run.
+        configuration: The credential and settings for the run.
+        destination: The path of the video file to write.
+        outcome: The record of connection and termination that the caller reads.
+        interaction: The live controls for the session, or None without them.
+
+    Returns:
+        The captured video result.
+
+    Raises:
+        asyncio.CancelledError: When the host cancels the run.
+        safe_error: When any other step fails.
+
+    """
     settings = configuration.settings
     capture = VideoCapture(
         destination,

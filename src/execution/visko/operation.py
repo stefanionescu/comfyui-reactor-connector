@@ -31,14 +31,24 @@ class ViskoStart:
     """Check that generation starts with the requested image and sound settings."""
 
     def __init__(self, events: SessionEvents) -> None:
-        """Subscribe to generation-start messages until the session closes."""
+        """Subscribe to generation-start messages until the session closes.
+
+        Args:
+            events: The session events whose transport delivers messages.
+
+        """
         self.started = asyncio.Event()
         self.settings: dict[str, object] = {}
         events.transport.on('message', self.observe)
         events.handlers.append(('message', self.observe))
 
     def observe(self, message: object) -> None:
-        """Capture the model settings reported when generation starts."""
+        """Capture the model settings reported when generation starts.
+
+        Args:
+            message: The message that the model sent.
+
+        """
         if not isinstance(message, dict):
             return
         envelope = cast('dict[str, object]', message)
@@ -50,7 +60,17 @@ class ViskoStart:
         self.started.set()
 
     async def confirm(self, *, has_image: bool, is_sound_enabled: bool, resolution: str) -> None:
-        """Wait for generation and require the requested image, sound, and resolution settings."""
+        """Wait for generation and require the requested image, sound, and resolution settings.
+
+        Args:
+            has_image: Whether the request supplied an image.
+            is_sound_enabled: Whether the request turned sound on.
+            resolution: The requested resolution name, or empty to skip that check.
+
+        Raises:
+            ConnectorError: When the model started with a different setting.
+
+        """
         await self.started.wait()
         if self.settings.get('image_conditioned') is not has_image:
             raise ConnectorError(
@@ -70,14 +90,28 @@ class ViskoStart:
 
 
 class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
-    """Generate synchronized video and audio using the provider's recording clock."""
+    """Generate synchronized video and audio using the provider's recording clock.
+
+    Attributes:
+        connection_name: The provider connection of Visko Orbis Stable.
+        requires_audio: Whether the recording has to hold sound.
+
+    """
 
     connection_name: ClassVar[str] = MODELS['visko-orbis-stable'].connection_name
     requires_audio: ClassVar[bool] = True
 
     @override
     def validate(self, settings: Settings) -> None:
-        """Check the image, sound prompt, and resolution name."""
+        """Check the image, sound prompt, and resolution name.
+
+        Args:
+            settings: The user settings for the shared input checks.
+
+        Raises:
+            ConnectorError: When the sound prompt or the resolution name is too long.
+
+        """
         super().validate(settings)
         inputs = self.inputs
         if len(inputs.audio_prompt) > MAX_AUDIO_PROMPT_CHARACTERS:
@@ -87,7 +121,19 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Set image and sound options, start generation, and confirm the accepted settings."""
+        """Set image and sound options, start generation, and confirm the accepted settings.
+
+        Args:
+            transport: The connected transport that lists tracks and uploads the image.
+            events: The session events that send commands and hold the model state.
+
+        Returns:
+            The recording interval for the requested duration.
+
+        Raises:
+            ConnectorError: When audio is missing or the resolution is not offered.
+
+        """
         inputs = self.inputs
         tracks = [
             track
@@ -129,6 +175,11 @@ class ViskoStableOperation(VideoInputOperation[ViskoRequest]):
 
 
 class ViskoDynamicOperation(ViskoStableOperation):
-    """Keep Dynamic's canonical identity separate from Stable's saved workflows."""
+    """Keep Dynamic's canonical identity separate from Stable's saved workflows.
+
+    Attributes:
+        connection_name: The provider connection of Visko Orbis Dynamic.
+
+    """
 
     connection_name: ClassVar[str] = MODELS['visko-orbis-dynamic'].connection_name

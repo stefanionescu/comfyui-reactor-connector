@@ -15,7 +15,16 @@ OUTPUT_WIDTH = 360
 
 
 def note_height(text: str, width: int) -> int:
-    """Allow for the native note's font, wrapped lines, and paragraph margins."""
+    """Allow for the native note's font, wrapped lines, and paragraph margins.
+
+    Args:
+        text: The Markdown text of the note.
+        width: The width of the note, in pixels.
+
+    Returns:
+        The height of the note, in pixels.
+
+    """
     height = 20
     for paragraph in text.split('\n\n'):
         plain = re.sub(r'[*`#]', '', paragraph)
@@ -25,7 +34,17 @@ def note_height(text: str, width: int) -> int:
 
 
 def arrange(nodes: list[Json], example: Example, model: str) -> dict[str, Json]:
-    """Align columns while keeping each note and node sized for its content."""
+    """Align columns while keeping each note and node sized for its content.
+
+    Args:
+        nodes: The workflow nodes, which receive a position and a size.
+        example: The example that the nodes belong to.
+        model: The name of the model, which sets the height of its node.
+
+    Returns:
+        The extra workflow data that holds the view and the link routes.
+
+    """
     records = [item for item in nodes if isinstance(item, dict)]
     by_id = {item['id']: item for item in records if isinstance(item['id'], int)}
     has_inputs = any(number in by_id for number in (slots.SOURCE_INPUT_ID, slots.EXTRA_INPUT_ID, slots.SECOND_STEP_ID))
@@ -74,7 +93,16 @@ def arrange(nodes: list[Json], example: Example, model: str) -> dict[str, Json]:
 
 
 def link_routes(example: Example, positions: dict[int, tuple[int, int, int, int]]) -> dict[str, Json]:
-    """Route sequence and image links around the node columns without changing their endpoints."""
+    """Route sequence and image links around the node columns without changing their endpoints.
+
+    Args:
+        example: The example whose plan and sources decide the routes.
+        positions: The position and size of each node, by node ID.
+
+    Returns:
+        The extra workflow data that holds the view and the link routes.
+
+    """
     model_x, top = positions[slots.GENERATION_ID][:2]
     output_x = positions[slots.SAVE_VIDEO_ID][0]
     extra: dict[str, Json] = {'ds': {'scale': 0.6, 'offset': [160, 200]}}

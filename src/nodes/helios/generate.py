@@ -22,7 +22,12 @@ class HeliosGenerate(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncHeliosGenerate',
             display_name='Helios: Generate Video (Reactor)',
@@ -63,7 +68,23 @@ class HeliosGenerate(VideoNode):
         image: Input.Image | None = None,
         interactive: bool = False,
     ) -> io.NodeOutput:
-        """Generate a Helios video from the opening prompt, scheduled prompts, or live changes."""
+        """Generate a Helios video from the opening prompt, scheduled prompts, or live changes.
+
+        Args:
+            prompt: The opening scene prompt.
+            duration_seconds: The requested video length in seconds.
+            seed: The seed that the model generates from.
+            sequence: The scheduled prompts as JSON text.
+            image: The optional starting image.
+            interactive: Whether to open the live controls.
+
+        Returns:
+            The generated video.
+
+        Raises:
+            ConnectorError: When the node has both scheduled prompts and live controls.
+
+        """
         prompts = parse_sequence(sequence)
         if prompts and interactive:
             raise ConnectorError(ErrorCode.INVALID_INPUT, LIVE_CONTROLS_SEQUENCE)

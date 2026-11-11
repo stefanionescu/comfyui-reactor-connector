@@ -11,7 +11,15 @@ from ..config.messages.session import COMMAND_REJECTED, PROVIDER_MESSAGE, CAPTUR
 
 
 def rejection_message(payload: object) -> str:
-    """Add the reason Reactor gave for refusing a command, when it sent one."""
+    """Add the reason Reactor gave for refusing a command, when it sent one.
+
+    Args:
+        payload: The data of the rejection message from Reactor.
+
+    Returns:
+        The rejection text, with the redacted reason when one came.
+
+    """
     fields = cast('dict[str, object]', payload) if isinstance(payload, dict) else {}
     reason = fields.get('reason')
     detail = provider_text(reason) if isinstance(reason, str) else ''
@@ -22,7 +30,12 @@ class SessionEvents:
     """Own error callbacks and ignore events after teardown starts."""
 
     def __init__(self, transport: SessionTransport) -> None:
-        """Create session signals and failure storage on the current event loop."""
+        """Create session signals and failure storage on the current event loop.
+
+        Args:
+            transport: The transport that delivers the session callbacks.
+
+        """
         self.transport = transport
         self.failure: asyncio.Future[ConnectorError] = asyncio.get_running_loop().create_future()
         self.active = True
@@ -46,13 +59,23 @@ class SessionEvents:
             self.handlers.append((event, callback))
 
     def on_error(self, error: object) -> None:
-        """Stop without retrying a potentially billable operation."""
+        """Stop without retrying a potentially billable operation.
+
+        Args:
+            error: The failure that the SDK reported.
+
+        """
         if not self.active or self.failure.done():
             return
         self.failure.set_result(phase_error(error, self.phase))
 
     def on_message(self, message: object) -> None:
-        """Track model state separately from command acknowledgements."""
+        """Track model state separately from command acknowledgements.
+
+        Args:
+            message: The message that the SDK delivered.
+
+        """
         if not self.active or not isinstance(message, dict):
             return
         envelope = cast('dict[str, object]', message)
@@ -69,7 +92,12 @@ class SessionEvents:
             self.failure.set_result(ConnectorError(ErrorCode.INVALID_INPUT, rejection_message(envelope.get('data'))))
 
     def on_status(self, status: object) -> None:
-        """Fail if an established connection leaves its ready state."""
+        """Fail if an established connection leaves its ready state.
+
+        Args:
+            status: The new connection status from the SDK.
+
+        """
         if not self.active:
             return
         if status == 'ready':
@@ -78,13 +106,33 @@ class SessionEvents:
             self.failure.set_result(ConnectorError(ErrorCode.TRANSPORT, CAPTURE_DISCONNECTED))
 
     def accept_reply(self, reply: object) -> None:
-        """Read the state that a command reply carries, then stop on a reported failure."""
+        """Read the state that a command reply carries, then stop on a reported failure.
+
+        Args:
+            reply: The reply that a command returned.
+
+        Raises:
+            self.failure.result: When the session has recorded a failure.
+
+        """
         self.on_message(reply)
         if self.failure.done() and not self.failure.cancelled():
             raise self.failure.result()
 
     async def command_reply(self, name: str, payload: dict[str, object]) -> object:
-        """Return a reply only after checking separately reported model rejection."""
+        """Return a reply only after checking separately reported model rejection.
+
+        Args:
+            name: The command to send, also used as the phase name.
+            payload: The arguments of the command.
+
+        Returns:
+            The reply of the model to the command.
+
+        Raises:
+            self.failure.result: When the session already holds a failure.
+
+        """
         if self.failure.done() and not self.failure.cancelled():
             raise self.failure.result()
         reply = await self.call(name, self.transport.get_client().send_command(name, payload))
@@ -92,7 +140,19 @@ class SessionEvents:
         return reply
 
     async def call[T](self, phase: str, operation: Coroutine[object, object, T]) -> T:
-        """Identify the failed operation using its caller's fixed phase name."""
+        """Identify the failed operation using its caller's fixed phase name.
+
+        Args:
+            phase: The name that a failure report gives to this operation.
+            operation: The awaitable to run.
+
+        Returns:
+            The result of the operation.
+
+        Raises:
+            phase_error: When the operation fails.
+
+        """
         self.phase = phase
         try:
             return await operation
@@ -100,7 +160,18 @@ class SessionEvents:
             raise phase_error(error, phase) from None
 
     async def guard[T](self, operation: Coroutine[object, object, T]) -> T:
-        """Race one owned operation against the first reported session failure."""
+        """Race one owned operation against the first reported session failure.
+
+        Args:
+            operation: The coroutine to run as a task and cancel on failure.
+
+        Returns:
+            The value that the operation returned.
+
+        Raises:
+            self.failure.result: When the session reports a failure during the operation.
+
+        """
         task = asyncio.create_task(operation)
         try:
             await asyncio.wait({task, self.failure}, return_when=asyncio.FIRST_COMPLETED)

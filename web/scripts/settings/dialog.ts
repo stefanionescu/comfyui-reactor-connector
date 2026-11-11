@@ -1,16 +1,16 @@
-import type { Fetcher } from '#web/http.ts';
 import { button, element } from '#web/dom.ts';
+import type { Fetcher } from '#web/http.ts';
 import { browserRoutes } from '#web/routes.ts';
-import { message, LIMIT_LABELS } from '#web/text.ts';
 import { requestConfiguration } from '#web/settings/api.ts';
 import type { Configuration } from '#web/settings/schema.ts';
+import { LIMIT_LABELS, message } from '#web/text.ts';
 
-let current: SettingsDialog | undefined;
+const TITLE_ID = 'reactor-settings-title';
 
-/** Edit server settings and cancel pending requests when the dialog closes. */
+/**
+Edit server settings and cancel pending requests when the dialog closes.
+*/
 class SettingsDialog {
-    readonly dialog = element('dialog');
-
     private readonly previousFocus = document.activeElement;
 
     private readonly controller = new AbortController();
@@ -29,16 +29,18 @@ class SettingsDialog {
 
     private configuration: Configuration | undefined;
 
+    readonly dialog = element('dialog');
+
     /**
-     * Build settings forms without contacting Reactor.
-     *
-     * @param fetcher - ComfyUI's local API client.
-     */
+    Build settings forms without contacting Reactor.
+
+    @param fetcher - ComfyUI's local API client.
+    */
     constructor(private readonly fetcher: Fetcher) {
         this.dialog.className = 'reactor-dialog';
-        this.dialog.setAttribute('aria-labelledby', 'reactor-settings-title');
+        this.dialog.setAttribute('aria-labelledby', TITLE_ID);
         const heading = element('h2', message('settings.title'));
-        heading.id = 'reactor-settings-title';
+        heading.id = TITLE_ID;
         const close = button(message('close'));
         close.setAttribute('aria-label', message('settings.close'));
         close.addEventListener('click', this.dialog.close.bind(this.dialog, undefined));
@@ -62,10 +64,10 @@ class SettingsDialog {
     }
 
     /**
-     * Build the private key form.
-     *
-     * @returns The form for saving or clearing the server's key.
-     */
+    Build the private key form.
+
+    @returns The form for saving or clearing the server's key.
+    */
     private credentials(): HTMLFormElement {
         const form = element('form');
         this.keyFields.disabled = true;
@@ -97,10 +99,10 @@ class SettingsDialog {
     }
 
     /**
-     * Build duration, timeout, and media size inputs.
-     *
-     * @returns The form for execution limits.
-     */
+    Build duration, timeout, and media size inputs.
+
+    @returns The form for execution limits.
+    */
     private limits(): HTMLFormElement {
         const form = element('form');
         this.limitFields.disabled = true;
@@ -115,10 +117,10 @@ class SettingsDialog {
     }
 
     /**
-     * Build fields from the backend's setting definitions.
-     *
-     * @param configuration - The validated limits.
-     */
+    Build fields from the backend's setting definitions.
+
+    @param configuration - The validated limits.
+    */
     private populateLimits(configuration: Configuration): void {
         this.limitFields.replaceChildren(element('legend', message('settings.limits')));
         for (const [name, definition] of Object.entries(configuration.definitions)) {
@@ -137,10 +139,10 @@ class SettingsDialog {
     }
 
     /**
-     * Save only the limits that changed after the last successful read.
-     *
-     * @param configuration - The settings and revision currently shown.
-     */
+    Save only the limits that changed after the last successful read.
+
+    @param configuration - The settings and revision currently shown.
+    */
     private saveLimits(configuration: Configuration): void {
         const changes = new Map<string, number>();
         const settings = new Map(Object.entries(configuration.settings));
@@ -158,10 +160,10 @@ class SettingsDialog {
     }
 
     /**
-     * Show validated settings and apply the server's editing policy.
-     *
-     * @param configuration - The last successful server response.
-     */
+    Show validated settings and apply the server's editing policy.
+
+    @param configuration - The last successful server response.
+    */
     private display(configuration: Configuration): void {
         this.configuration = configuration;
         if (this.inputs.size === 0) this.populateLimits(configuration);
@@ -183,13 +185,13 @@ class SettingsDialog {
     }
 
     /**
-     * Keep settings requests serial and show the server's response.
-     *
-     * @param success - The success message.
-     * @param route - The local settings route.
-     * @param method - The HTTP method.
-     * @param body - The settings change, if any.
-     */
+    Keep settings requests serial and show the server's response.
+
+    @param success - The success message.
+    @param route - The local settings route.
+    @param method - The HTTP method.
+    @param body - The settings change, if any.
+    */
     private updateSettings(success: string, route?: string, method?: string, body?: unknown): void {
         if (route === browserRoutes.settings.credential) this.key.value = '';
         this.keyFields.disabled = this.limitFields.disabled = true;
@@ -199,14 +201,14 @@ class SettingsDialog {
     }
 
     /**
-     * Apply the server response and restore editing after a settings request.
-     *
-     * @param success - The success message.
-     * @param route - The local settings route.
-     * @param method - The HTTP method.
-     * @param body - The settings change, if any.
-     * @returns When the dialog shows the response or the error.
-     */
+    Apply the server response and restore editing after a settings request.
+
+    @param success - The success message.
+    @param route - The local settings route.
+    @param method - The HTTP method.
+    @param body - The settings change, if any.
+    @returns When the dialog shows the response or the error.
+    */
     private async requestSettings(success: string, route?: string, method?: string, body?: unknown): Promise<void> {
         try {
             const value = await requestConfiguration(this.fetcher, this.controller.signal, route, method, body);
@@ -224,33 +226,36 @@ class SettingsDialog {
         }
     }
 
-    /** Show the dialog and read local settings. */
+    /**
+    Clear the key input, stop requests, and return focus to the caller.
+    */
+    private dispose(): void {
+        this.key.value = '';
+        this.controller.abort();
+        this.dialog.remove();
+        if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) this.previousFocus.focus();
+    }
+
+    /**
+    Show the dialog and read local settings.
+    */
     show(): void {
         document.body.append(this.dialog);
         this.dialog.showModal();
         this.updateSettings(message('settings.reread'));
     }
-
-    /** Clear the key input, stop requests, and return focus to the caller. */
-    private dispose(): void {
-        this.key.value = '';
-        this.controller.abort();
-        this.dialog.remove();
-        if (current === this) current = undefined;
-        if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) this.previousFocus.focus();
-    }
 }
 
 /**
- * Open one settings dialog at a time.
- *
- * @param fetcher - ComfyUI's local API client.
- */
+Open one settings dialog at a time.
+
+@param fetcher - ComfyUI's local API client.
+*/
 export function openSettings(fetcher: Fetcher): void {
-    if (current?.dialog.open === true) {
-        current.dialog.focus();
+    const open = document.querySelector<HTMLDialogElement>(`dialog[aria-labelledby="${CSS.escape(TITLE_ID)}"][open]`);
+    if (open) {
+        open.focus();
         return;
     }
-    current = new SettingsDialog(fetcher);
-    current.show();
+    new SettingsDialog(fetcher).show();
 }

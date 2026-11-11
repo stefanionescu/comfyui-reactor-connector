@@ -32,7 +32,12 @@ class FastContinue(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         duration = io.Float.Input(
             'clip_seconds',
             display_name='clip duration (seconds)',
@@ -98,10 +103,29 @@ class FastContinue(VideoNode):
         later_prompts: str,
         image: Input.Image | None = None,
     ) -> io.NodeOutput:
-        """Join a sequence of Fast H3 clips that continue from each previous final frame."""
+        """Join a sequence of Fast H3 clips that continue from each previous final frame.
+
+        Args:
+            prompt: The prompt of the first clip.
+            clip_seconds: The length of each clip in seconds.
+            seed: The seed that the model generates from.
+            aspect: The aspect ratio of the video.
+            clip_count: The number of clips to join.
+            later_prompts: The prompts of the later clips, one per line.
+            image: The optional first frame of the first clip.
+
+        Returns:
+            The joined video and its sound.
+
+        """
 
         async def start() -> io.NodeOutput:
-            """Prepare media inside the owned task before starting the Reactor session."""
+            """Prepare media inside the owned task before starting the Reactor session.
+
+            Returns:
+                The output of the session.
+
+            """
             encoded = None if image is None else await owned_io(partial(encode_png, image))
             request = FastContinueRequest(
                 prompt,

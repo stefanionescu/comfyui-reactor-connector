@@ -1,21 +1,21 @@
-import { message } from '#web/text.ts';
-import type { Fetcher } from '#web/http.ts';
-import { browserRoutes } from '#web/routes.ts';
 import { browserLimits } from '#web/browser.ts';
-import { parsePublicError } from '#web/schema.ts';
+import type { Fetcher } from '#web/http.ts';
 import type { Invitation } from '#web/live/schema.ts';
+import { browserRoutes } from '#web/routes.ts';
+import { parsePublicError } from '#web/schema.ts';
+import { message } from '#web/text.ts';
 
 /**
- * Send one ordered live action through the local ComfyUI server.
- *
- * @param fetcher - ComfyUI's local API client.
- * @param owner - The session lease and private control capability.
- * @param sequence - The increasing action sequence for this panel.
- * @param name - The supported action name.
- * @param fields - The fields required by that action.
- * @param signal - The panel lifetime; disposal cancels pending input.
- * @returns When the server accepts the action; failures throw an error.
- */
+Send one ordered live action through the local ComfyUI server.
+
+@param fetcher - ComfyUI's local API client.
+@param owner - The session lease and private control capability.
+@param sequence - The increasing action sequence for this panel.
+@param name - The supported action name.
+@param fields - The fields required by that action.
+@param signal - The panel lifetime; disposal cancels pending input.
+@returns When the server accepts the action; failures throw an error.
+*/
 export async function sendAction(
     fetcher: Fetcher,
     owner: Pick<Invitation, 'lease' | 'capability'>,
@@ -38,13 +38,12 @@ export async function sendAction(
         }),
     });
     signal.throwIfAborted();
-    if (!response.ok) {
-        let document: unknown;
-        try {
-            document = await response.json();
-        } catch {
-            throw new Error(message('live.actionRejected'));
-        }
-        throw new Error(parsePublicError(document) ?? message('live.actionRejected'));
+    if (response.ok) return;
+    let document: unknown;
+    try {
+        document = await response.json();
+    } catch {
+        throw new Error(message('live.actionRejected'));
     }
+    throw new Error(parsePublicError(document) ?? message('live.actionRejected'));
 }

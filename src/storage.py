@@ -13,7 +13,15 @@ PRIVATE_DIRECTORY_MODE = 0o700
 
 
 def state_directory() -> Path:
-    """Choose the platform's private connector state location without creating it."""
+    """Choose the platform's private connector state location without creating it.
+
+    Returns:
+        The path of the state directory.
+
+    Raises:
+        ConnectorError: When the override path is not absolute.
+
+    """
     override = os.environ.get('REACTOR_COMFY_STATE_DIRECTORY')
     if override:
         path = Path(override).expanduser()
@@ -28,7 +36,13 @@ def state_directory() -> Path:
 
 
 def atomic_write(path: Path, content: bytes) -> None:
-    """Replace one state file only after its complete private write succeeds."""
+    """Replace one state file only after its complete private write succeeds.
+
+    Args:
+        path: The state file to replace.
+        content: The new bytes of the file.
+
+    """
     path.parent.mkdir(parents=True, exist_ok=True, mode=PRIVATE_DIRECTORY_MODE)
     descriptor, temporary = tempfile.mkstemp(prefix='.reactor-', dir=path.parent)
     temporary_path = Path(temporary)
@@ -43,7 +57,19 @@ def atomic_write(path: Path, content: bytes) -> None:
 
 
 def read_private(path: Path, *, max_bytes: int) -> bytes:
-    """Read a state file within its size limit."""
+    """Read a state file within its size limit.
+
+    Args:
+        path: The state file to read.
+        max_bytes: The largest file to accept, in bytes.
+
+    Returns:
+        The bytes of the file.
+
+    Raises:
+        ConnectorError: When the file is larger than the limit.
+
+    """
     with path.open('rb') as stream:
         content = stream.read(max_bytes + 1)
     if len(content) > max_bytes:

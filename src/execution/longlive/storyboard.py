@@ -12,7 +12,15 @@ from ...state.generation.longlive import Shot
 
 
 def validate_shot(shot: Shot) -> None:
-    """Check the later chunk, transition choice, and shot prompt."""
+    """Check the later chunk, transition choice, and shot prompt.
+
+    Args:
+        shot: The shot to check.
+
+    Raises:
+        ConnectorError: When the chunk, the transition, or the prompt is invalid.
+
+    """
     if type(shot.at_session_chunk) is not int or not 1 <= shot.at_session_chunk <= MAX_SHOT_CHUNK:
         raise ConnectorError(ErrorCode.INVALID_INPUT, SHOT_CHUNK.format(maximum=MAX_SHOT_CHUNK))
     if shot.transition not in OPTIONS_TRANSITION:
@@ -22,7 +30,19 @@ def validate_shot(shot: Shot) -> None:
 
 
 def parse_storyboard(value: str) -> tuple[Shot, ...]:
-    """Reject ambiguous ordering and unknown fields rather than execute raw commands."""
+    """Reject ambiguous ordering and unknown fields rather than execute raw commands.
+
+    Args:
+        value: The JSON text of the storyboard.
+
+    Returns:
+        The shots in chunk order.
+
+    Raises:
+        ConnectorError: When the storyboard text is too large.
+        invalid: When the storyboard has a wrong shape, field, or order.
+
+    """
     if type(value) is not str or len(value.encode()) > MAX_STORYBOARD_BYTES:
         raise ConnectorError(ErrorCode.INVALID_INPUT, STORYBOARD_SIZE)
     invalid = ConnectorError(ErrorCode.INVALID_INPUT, STORYBOARD_ORDER)
@@ -50,7 +70,16 @@ def parse_storyboard(value: str) -> tuple[Shot, ...]:
 
 
 def append_shot(previous: str, shot: Shot) -> str:
-    """Append a shot and validate the complete serialized storyboard."""
+    """Append a shot and validate the complete serialized storyboard.
+
+    Args:
+        previous: The JSON text of the storyboard so far.
+        shot: The shot to add at the end.
+
+    Returns:
+        The JSON text of the extended storyboard.
+
+    """
     validate_shot(shot)
     encoded = json.dumps([asdict(item) for item in (*parse_storyboard(previous), shot)])
     parse_storyboard(encoded)

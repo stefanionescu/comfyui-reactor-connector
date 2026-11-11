@@ -143,10 +143,6 @@ function selectedLocale() {
   }
 }
 
-// web/scripts/extension.ts
-import { api as api2 } from "../../scripts/api.js";
-import { app as app2 } from "../../scripts/app.js";
-
 // web/scripts/http.ts
 import { api } from "../../scripts/api.js";
 function requestLocal(route, options) {
@@ -154,20 +150,6 @@ function requestLocal(route, options) {
   headers.set("Accept-Language", selectedLocale());
   return api.fetchApi(route, { ...options, headers });
 }
-
-// web/scripts/routes.ts
-var browserRoutes = {
-  settings: {
-    status: "/reactor-inc/v1/status",
-    values: "/reactor-inc/v1/settings",
-    credential: "/reactor-inc/v1/credential"
-  },
-  live: {
-    exchange: "/reactor-inc/v1/live/exchange",
-    action: "/reactor-inc/v1/live/action",
-    camera: "/reactor-inc/v1/live/camera"
-  }
-};
 
 // web/scripts/browser.ts
 var browserLimits = {
@@ -195,9 +177,21 @@ var browserPatterns = {
   lease: /^[a-f0-9]{32}$/,
   revision: /^[a-f0-9]{64}$/,
   preview: /^[A-Za-z0-9+/]*={0,2}$/,
-  capability: /^[A-Za-z0-9_-]{43}$/,
+  capability: /^[\w-]{43}$/,
   settingName: /^[a-z][a-z_]+$/
 };
+
+// web/scripts/dom.ts
+function element(tag, text) {
+  const node = document.createElement(tag);
+  if (text !== void 0) node.append(document.createTextNode(text));
+  return node;
+}
+function button(text, type = "button") {
+  const node = element("button", text);
+  node.type = type;
+  return node;
+}
 
 // node_modules/valibot/dist/index.mjs
 var store$4;
@@ -767,17 +761,14 @@ function safeParse(schema, input, config$1) {
   };
 }
 
-// web/scripts/schema.ts
-var publicErrorSchema = object({
-  error: optional(pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters)))
-});
-function parsePublicError(value) {
-  const result = safeParse(publicErrorSchema, value);
-  if (!result.success) return void 0;
-  return result.output.error;
-}
-
 // web/scripts/live/input.ts
+function findDirectionButton(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLButtonElement)) return void 0;
+  const key = target.dataset["key"];
+  if (key === void 0 || key === "") return void 0;
+  return { button: target, key };
+}
 function cameraAxes(keys, hasIndependentAxes) {
   function direction(firstKey, secondKey, firstDirection, secondDirection) {
     if (keys.has(firstKey) === keys.has(secondKey)) return "idle";
@@ -803,22 +794,15 @@ function releaseOnLeave(release, signal) {
   );
   signal.addEventListener("abort", release, { once: true });
 }
-function findDirectionButton(event) {
-  const target = event.target;
-  if (!(target instanceof HTMLButtonElement)) return void 0;
-  const key = target.dataset["key"];
-  if (key === void 0 || key === "") return void 0;
-  return { button: target, key };
-}
 var CameraInput = class {
   /**
-   * Bind camera input for the lifetime of the panel.
-   *
-   * @param surface - The keyboard camera surface.
-   * @param controls - The camera direction buttons.
-   * @param signal - The panel's listener lifetime.
-   * @param update - Receive the combined keys and explicit release requests.
-   */
+      Bind camera input for the lifetime of the panel.
+  
+      @param surface - The keyboard camera surface.
+      @param controls - The camera direction buttons.
+      @param signal - The panel's listener lifetime.
+      @param update - Receive the combined keys and explicit release requests.
+      */
   constructor(surface, controls, signal, update) {
     this.update = update;
     surface.addEventListener(
@@ -843,12 +827,13 @@ var CameraInput = class {
       "keyup",
       (event) => {
         const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-        if (cameraKeys.has(key)) {
-          event.preventDefault();
-          event.stopPropagation();
-          this.keyboard.delete(key);
-          this.publish();
+        if (!cameraKeys.has(key)) {
+          return;
         }
+        event.preventDefault();
+        event.stopPropagation();
+        this.keyboard.delete(key);
+        this.publish();
       },
       { signal }
     );
@@ -863,22 +848,22 @@ var CameraInput = class {
   nudges = /* @__PURE__ */ new Map();
   lastHold;
   /**
-   * Send combined input after a key, pointer, or timer changes.
-   *
-   * @param release - Whether the user explicitly released all input.
-   */
-  publish(release = false) {
+      Send combined input after a key, pointer, or timer changes.
+  
+      @param isRelease - Whether the user explicitly released all input.
+      */
+  publish(isRelease = false) {
     const keys = new Set(this.keyboard);
     for (const key of this.pointers.values()) keys.add(key);
     for (const key of this.nudges.keys()) keys.add(key);
-    this.update(keys, release);
+    this.update(keys, isRelease);
   }
   /**
-   * Keep a short press visible for the next server update.
-   *
-   * @param key - The direction key to hold briefly.
-   * @param milliseconds - Remaining duration of the short press.
-   */
+      Keep a short press visible for the next server update.
+  
+      @param key - The direction key to hold briefly.
+      @param milliseconds - Remaining duration of the short press.
+      */
   nudge(key, milliseconds) {
     const previous = this.nudges.get(key);
     if (previous !== void 0) clearTimeout(previous);
@@ -890,22 +875,12 @@ var CameraInput = class {
       }, milliseconds)
     );
   }
-  /** Clear every held input and timer, then send an explicit release. */
-  release() {
-    this.keyboard.clear();
-    this.pointers.clear();
-    this.pointerStarted.clear();
-    this.lastHold = void 0;
-    for (const timer of this.nudges.values()) clearTimeout(timer);
-    this.nudges.clear();
-    this.publish(true);
-  }
   /**
-   * Bind mouse, touch, keyboard, and assistive button activation.
-   *
-   * @param controls - The container for direction buttons.
-   * @param signal - The panel's listener lifetime.
-   */
+      Bind mouse, touch, keyboard, and assistive button activation.
+  
+      @param controls - The container for direction buttons.
+      @param signal - The panel's listener lifetime.
+      */
   bindButtons(controls, signal) {
     controls.addEventListener(
       "pointerdown",
@@ -939,10 +914,10 @@ var CameraInput = class {
     );
   }
   /**
-   * Finish a held button and keep a press shorter than a nudge.
-   *
-   * @param event - The pointer release or cancellation.
-   */
+      Finish a held button and keep a press shorter than a nudge.
+  
+      @param event - The pointer release or cancellation.
+      */
   releasePointer(event) {
     const key = this.pointers.get(event.pointerId);
     const started = this.pointerStarted.get(event.pointerId);
@@ -956,10 +931,10 @@ var CameraInput = class {
     this.publish();
   }
   /**
-   * Treat Space and Enter as a held direction on a focused button.
-   *
-   * @param event - A key press or release on the button container.
-   */
+      Treat Space and Enter as a held direction on a focused button.
+  
+      @param event - A key press or release on the button container.
+      */
   buttonKey(event) {
     const direction = findDirectionButton(event);
     if (direction === void 0 || ![" ", "Enter"].includes(event.key)) return;
@@ -968,6 +943,18 @@ var CameraInput = class {
     if (event.type === "keydown") this.keyboard.add(direction.key);
     else this.keyboard.delete(direction.key);
     this.publish();
+  }
+  /**
+  Clear every held input and timer, then send an explicit release.
+  */
+  release() {
+    this.keyboard.clear();
+    this.pointers.clear();
+    this.pointerStarted.clear();
+    this.lastHold = void 0;
+    for (const timer of this.nudges.values()) clearTimeout(timer);
+    this.nudges.clear();
+    this.publish(true);
   }
 };
 
@@ -981,9 +968,10 @@ var invitationEntries = {
   allow_empty_prompt: boolean()
 };
 var invitationSchema = object(invitationEntries);
+var characterLimitSchema = pipe(number(), safeInteger(), minValue(1));
 var promptEntries = {
   prompt: string(),
-  prompt_limit: pipe(number(), safeInteger(), minValue(1))
+  prompt_limit: characterLimitSchema
 };
 var axisChoicesSchema = pipe(array(string()), includes("idle"));
 var axesSchema = record(string(), axisChoicesSchema);
@@ -1029,7 +1017,7 @@ var controlsInvitationSchema = pipe(
     pointer: boolean(),
     sound: boolean(),
     audio_prompt: string(),
-    audio_prompt_limit: pipe(number(), safeInteger(), minValue(1))
+    audio_prompt_limit: characterLimitSchema
   }),
   check((document2) => {
     if (document2.prompt.length > document2.prompt_limit) return false;
@@ -1055,6 +1043,13 @@ var controlsInvitationSchema = pipe(
     };
   })
 );
+var elapsedSecondsSchema = pipe(number(), finite());
+var previewSequenceSchema = pipe(number(), safeInteger());
+var previewSchema = pipe(
+  string(),
+  maxLength(browserLimits.maxPreviewCharacters),
+  regex(browserPatterns.preview)
+);
 var liveStatusSchema = pipe(
   object({
     closed: boolean(),
@@ -1062,9 +1057,9 @@ var liveStatusSchema = pipe(
     failed: boolean(),
     controls_ready: boolean(),
     finishing: boolean(),
-    elapsed_seconds: pipe(number(), finite()),
-    preview_sequence: pipe(number(), safeInteger()),
-    preview: pipe(string(), maxLength(browserLimits.maxPreviewCharacters), regex(browserPatterns.preview))
+    elapsed_seconds: elapsedSecondsSchema,
+    preview_sequence: previewSequenceSchema,
+    preview: previewSchema
   }),
   transform((status) => {
     return {
@@ -1093,6 +1088,29 @@ function parseLiveStatus(value) {
   const result = safeParse(liveStatusSchema, value);
   if (!result.success) return;
   return result.output;
+}
+
+// web/scripts/routes.ts
+var browserRoutes = {
+  settings: {
+    status: "/reactor-inc/v1/status",
+    values: "/reactor-inc/v1/settings",
+    credential: "/reactor-inc/v1/credential"
+  },
+  live: {
+    exchange: "/reactor-inc/v1/live/exchange",
+    action: "/reactor-inc/v1/live/action",
+    camera: "/reactor-inc/v1/live/camera"
+  }
+};
+
+// web/scripts/schema.ts
+var errorTextSchema = pipe(string(), minLength(1), maxLength(browserLimits.maxErrorCharacters));
+var publicErrorSchema = object({ error: optional(errorTextSchema) });
+function parsePublicError(value) {
+  const result = safeParse(publicErrorSchema, value);
+  if (!result.success) return void 0;
+  return result.output.error;
 }
 
 // web/scripts/live/api.ts
@@ -1140,6 +1158,302 @@ function endSession(fetcher, owner, sequence, previewSequence) {
   });
 }
 
+// web/scripts/live/commands.ts
+async function sendAction(fetcher, owner, sequence, name, fields, signal) {
+  const response = await fetcher(browserRoutes.live.action, {
+    method: "POST",
+    cache: "no-store",
+    signal: AbortSignal.any([signal, AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)]),
+    headers: { "Content-Type": "application/json", "X-Reactor-Comfy": "1" },
+    body: JSON.stringify({
+      lease: owner.lease,
+      capability: owner.capability,
+      sequence,
+      action: name,
+      fields
+    })
+  });
+  signal.throwIfAborted();
+  if (response.ok) return;
+  let document2;
+  try {
+    document2 = await response.json();
+  } catch {
+    throw new Error(message("live.actionRejected"));
+  }
+  throw new Error(parsePublicError(document2) ?? message("live.actionRejected"));
+}
+
+// web/scripts/live/drag.ts
+var DragInput = class {
+  /**
+      Hold the preview and the receiver of its pointer updates.
+  
+      @param image - The output image that receives input.
+      @param send - Receive pointer updates in normalized image coordinates.
+      */
+  constructor(image, send) {
+    this.image = image;
+    this.send = send;
+  }
+  image;
+  send;
+  pointer = {
+    x: browserInput.pointerCenter,
+    y: browserInput.pointerCenter,
+    active: false
+  };
+  captured;
+  /**
+      Normalize a drag event to the displayed image bounds.
+  
+      @param event - The captured pointer event.
+      */
+  position(event) {
+    const rect = this.image.getBoundingClientRect();
+    this.pointer = {
+      x: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, (event.clientX - rect.left) / rect.width)
+      ),
+      y: Math.max(
+        browserInput.pointerMinimum,
+        Math.min(browserInput.pointerMaximum, (event.clientY - rect.top) / rect.height)
+      ),
+      active: true
+    };
+    this.send(this.pointer);
+  }
+  /**
+      Move, hold, or release the pointer with the keyboard.
+  
+      @param event - A key pressed while the preview has focus.
+      */
+  keydown(event) {
+    const offsets = /* @__PURE__ */ new Map([
+      ["ArrowLeft", [-browserInput.pointerStep, 0]],
+      ["ArrowRight", [browserInput.pointerStep, 0]],
+      ["ArrowUp", [0, -browserInput.pointerStep]],
+      ["ArrowDown", [0, browserInput.pointerStep]],
+      [" ", [0, 0]],
+      ["Escape", [0, 0]]
+    ]);
+    const offset = offsets.get(event.key);
+    if (!offset) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === "Escape") {
+      this.release();
+      this.image.blur();
+      return;
+    }
+    this.pointer = {
+      x: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.x + offset[0])),
+      y: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.y + offset[1])),
+      active: event.key === " " || this.pointer.active
+    };
+    this.send(this.pointer);
+  }
+  /**
+  Stop holding the pointer and release any browser pointer capture.
+  */
+  release() {
+    const isHeld = this.pointer.active;
+    this.pointer = { ...this.pointer, active: false };
+    const previousCapture = this.captured;
+    this.captured = void 0;
+    if (isHeld) this.send(this.pointer);
+    if (previousCapture !== void 0 && this.image.hasPointerCapture(previousCapture))
+      this.image.releasePointerCapture(previousCapture);
+  }
+  /**
+      Bind input until the panel's abort signal fires.
+  
+      @param signal - The panel's listener lifetime.
+      */
+  listen(signal) {
+    const image = this.image;
+    image.tabIndex = 0;
+    image.draggable = false;
+    image.classList.add("reactor-drag-input");
+    image.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.button !== 0 || this.captured !== void 0) return;
+        this.captured = event.pointerId;
+        image.setPointerCapture(this.captured);
+        image.focus();
+        this.position(event);
+      },
+      { signal }
+    );
+    image.addEventListener(
+      "pointermove",
+      (event) => {
+        if (this.captured === event.pointerId) this.position(event);
+      },
+      { signal }
+    );
+    for (const name of ["pointerup", "pointercancel", "lostpointercapture", "blur"])
+      image.addEventListener(name, this.release.bind(this), { signal });
+    image.addEventListener("keydown", this.keydown.bind(this), { signal });
+    image.addEventListener(
+      "keyup",
+      (event) => {
+        if (event.key !== " ") {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        this.release();
+      },
+      { signal }
+    );
+    releaseOnLeave(this.release.bind(this), signal);
+  }
+};
+
+// web/scripts/live/layout.ts
+function promptSection(title, input, apply, status) {
+  const section = element("section");
+  section.className = "reactor-prompt";
+  const label = element("label", title);
+  label.append(input);
+  const actions = element("div");
+  actions.className = "reactor-prompt-actions";
+  actions.append(status, apply);
+  section.append(label, actions);
+  return section;
+}
+function sessionHeader(title, owner, status, elapsed) {
+  const header = element("header");
+  const state = element("div");
+  state.className = "reactor-session-status";
+  state.append(status);
+  if (elapsed) state.append(elapsed);
+  const duration = message("live.duration", { seconds: owner.durationSeconds });
+  header.append(element("h2", title), element("small", duration), state);
+  return header;
+}
+
+// web/scripts/live/panel.ts
+var LivePanel = class {
+  previousFocus = document.activeElement;
+  abort = new AbortController();
+  dialog = element("dialog");
+  image = element("img");
+  promptStatus = element("p");
+  /**
+  The edited prompt that waits for the next status exchange.
+  */
+  pendingPrompt;
+  actionSequence = 0;
+  ending = false;
+  finished = false;
+  disposed = false;
+  sequence = 0;
+  previewSequence = 0;
+  /**
+      Send the edited prompt, then say that the server accepted it.
+  
+      @param prompt - The edited prompt.
+      @param sent - The message that confirms the prompt.
+      @returns When the server accepts the prompt.
+      */
+  async sendPendingPrompt(prompt, sent) {
+    await sendAction(this.fetcher, this.owner, this.actionSequence++, "prompt", { prompt }, this.abort.signal);
+    this.pendingPrompt = void 0;
+    this.promptStatus.textContent = message(sent);
+  }
+  /**
+  Release panel resources and give the final end request its own deadline.
+  */
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.ending = true;
+    this.abort.abort();
+    if (!this.finished) endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
+    this.image.removeAttribute("src");
+    this.dialog.remove();
+    this.panels.delete(this.owner.lease);
+    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) this.previousFocus.focus();
+  }
+};
+
+// web/scripts/live/pointer.ts
+var PERCENT = 100;
+var PointerPreview = class {
+  #marker = element("span");
+  #state = element("span");
+  #position = element("span");
+  #image;
+  #pointer;
+  view = element("div");
+  status = element("p");
+  /**
+      Show pointer position alongside the output image.
+  
+      @param image - The model output used for dragging.
+      @param signal - The panel's listener and observer lifetime.
+      */
+  constructor(image, signal) {
+    this.#image = image;
+    this.view.className = "reactor-pointer-preview";
+    this.#marker.className = "reactor-pointer-marker";
+    this.#marker.hidden = true;
+    this.#marker.setAttribute("aria-hidden", "true");
+    this.#state.setAttribute("role", "status");
+    this.status.hidden = true;
+    this.status.append(this.#state, this.#position);
+    this.view.append(image, this.#marker);
+    const resize = new ResizeObserver(this.#place.bind(this));
+    resize.observe(image);
+    image.addEventListener("blur", this.#place.bind(this), { signal });
+    image.addEventListener("focus", this.#place.bind(this), { signal });
+    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
+  }
+  #place() {
+    const pointer = this.#pointer;
+    const isHidden = pointer === void 0 || this.#image.hidden !== false || document.activeElement !== this.#image;
+    this.#marker.hidden = isHidden;
+    if (isHidden) return;
+    this.#marker.style.left = `${String(this.#image.offsetLeft + pointer.x * this.#image.clientWidth)}px`;
+    this.#marker.style.top = `${String(this.#image.offsetTop + pointer.y * this.#image.clientHeight)}px`;
+  }
+  /**
+      Move the marker to the user's latest pointer position.
+  
+      @param pointer - The normalized image coordinates and hold state.
+      */
+  move(pointer) {
+    this.#pointer = pointer;
+    this.status.hidden = false;
+    this.#position.textContent = message("pointer.position", {
+      x: Math.round(pointer.x * PERCENT),
+      y: Math.round(pointer.y * PERCENT)
+    });
+    this.#place();
+  }
+  /**
+      Announce a hold or release after the server accepts it.
+  
+      @param pointer - The pointer update accepted by the server.
+      */
+  confirm(pointer) {
+    const key = pointer.active ? "pointer.held" : "pointer.released";
+    if (this.#state.textContent !== message(key)) this.#state.textContent = message(key);
+  }
+  /**
+  Hide the marker and announce that pointer input has stopped.
+  */
+  stop() {
+    this.#pointer = void 0;
+    this.#marker.hidden = true;
+    if (this.status.hidden === false) this.#state.textContent = message("pointer.stopped");
+  }
+};
+
 // web/scripts/live/polling.ts
 async function pause(milliseconds, signal) {
   if (signal?.aborted === true) return;
@@ -1154,17 +1468,64 @@ async function pause(milliseconds, signal) {
   });
 }
 
-// web/scripts/dom.ts
-function element(tag, text) {
-  const node = document.createElement(tag);
-  if (text !== void 0) node.append(document.createTextNode(text));
-  return node;
-}
-function button(text, type = "button") {
-  const node = element("button", text);
-  node.type = type;
-  return node;
-}
+// web/scripts/live/sound.ts
+var SoundControls = class {
+  prompt = element("textarea");
+  apply = button(message("sound.applyPrompt"), "submit");
+  pending;
+  view = element("section");
+  status = element("p");
+  /**
+      Build the sound prompt controls in their disabled state.
+  
+      @param initialPrompt - The workflow's starting sound prompt.
+      @param promptCharacterLimit - The model's maximum sound prompt length.
+      */
+  constructor(initialPrompt, promptCharacterLimit) {
+    this.prompt.value = initialPrompt;
+    this.prompt.maxLength = promptCharacterLimit;
+    this.prompt.rows = 2;
+    const label = element("label", message("sound.prompt"));
+    label.append(this.prompt);
+    const form = element("form");
+    this.status.setAttribute("role", "status");
+    this.view.className = "reactor-prompt";
+    const actions = element("div");
+    actions.className = "reactor-prompt-actions";
+    actions.append(this.status, this.apply);
+    form.append(label, element("small", message("sound.promptNotice")), actions);
+    this.view.append(form);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.pending = this.prompt.value;
+      this.apply.disabled = true;
+    });
+    this.setReady(false);
+  }
+  /**
+      Enable sound input only when the session accepts changes.
+  
+      @param isReady - Whether the model accepts live controls.
+      */
+  setReady(isReady) {
+    this.prompt.disabled = !isReady;
+    if (!isReady) {
+      this.apply.disabled = true;
+      return;
+    }
+    this.apply.disabled = this.pending !== void 0;
+  }
+  /**
+      Consume the next sound prompt queued by the user.
+  
+      @returns The queued prompt, or undefined when none is waiting.
+      */
+  takePrompt() {
+    const value = this.pending;
+    this.pending = void 0;
+    return value;
+  }
+};
 
 // web/scripts/live/webcam.ts
 var CAMERA_ERRORS = /* @__PURE__ */ new Map([
@@ -1190,12 +1551,12 @@ async function requestCamera(selected) {
 }
 var Webcam = class {
   /**
-   * Build camera selection and a muted input preview.
-   *
-   * @param owner - The validated session invitation.
-   * @param fetcher - ComfyUI's local API client.
-   * @param fail - Request session ending if the camera disconnects.
-   */
+      Build camera selection and a muted input preview.
+  
+      @param owner - The validated session invitation.
+      @param fetcher - ComfyUI's local API client.
+      @param fail - Request session ending if the camera disconnects.
+      */
   constructor(owner, fetcher, fail) {
     this.owner = owner;
     this.fetcher = fetcher;
@@ -1242,11 +1603,6 @@ var Webcam = class {
   owner;
   fetcher;
   fail;
-  view = element("section");
-  video = element("video");
-  enable = button(message("camera.enable"));
-  select = element("select");
-  status = element("p");
   indicators = element("div");
   stream;
   closed = false;
@@ -1254,6 +1610,11 @@ var Webcam = class {
   canvas = element("canvas");
   upload;
   controller = new AbortController();
+  view = element("section");
+  video = element("video");
+  enable = button(message("camera.enable"));
+  select = element("select");
+  status = element("p");
   async start(selected) {
     try {
       if (!await this.openCamera(selected)) return;
@@ -1270,10 +1631,10 @@ var Webcam = class {
     }
   }
   /**
-   * Release the camera after it failed to open, and say why.
-   *
-   * @param error - What opening or listing the camera threw.
-   */
+      Release the camera after it failed to open, and say why.
+  
+      @param error - What opening or listing the camera threw.
+      */
   showCameraError(error) {
     this.stopCamera();
     this.enable.textContent = message("camera.enable");
@@ -1282,18 +1643,19 @@ var Webcam = class {
     this.status.textContent = message(key ?? "camera.accessFailed");
   }
   /**
-   * Open the selected camera and release any previous stream.
-   *
-   * @param selected - The selected device ID, or an empty string for the default camera.
-   * @returns Whether the camera is ready and the panel is still open.
-   */
+      Open the selected camera and release any previous stream.
+  
+      @param selected - The selected device ID, or an empty string for the default camera.
+      @returns Whether the camera is ready and the panel is still open.
+      */
   async openCamera(selected) {
     const stream = await requestCamera(selected);
     if (this.closed) {
       for (const track of stream.getTracks()) track.stop();
       return false;
     }
-    for (const track of this.stream?.getTracks() ?? []) {
+    const tracks = this.stream?.getTracks() ?? [];
+    for (const track of tracks) {
       track.stop();
     }
     this.stream = stream;
@@ -1304,10 +1666,10 @@ var Webcam = class {
     return true;
   }
   /**
-   * List cameras after permission reveals their names.
-   *
-   * @returns When the camera choices list the available cameras.
-   */
+      List cameras after permission reveals their names.
+  
+      @returns When the camera choices list the available cameras.
+      */
   async listCameras() {
     const devices = await navigator.mediaDevices.enumerateDevices();
     if (this.closed) return;
@@ -1323,37 +1685,7 @@ var Webcam = class {
       option.selected = device.deviceId === selected;
       options.append(option);
     }
-    this.select.replaceChildren();
-    this.select.append(options);
-  }
-  /**
-   * Upload a camera frame without overlapping uploads.
-   *
-   * @returns Whether the server accepted a camera frame.
-   */
-  async frame() {
-    if (this.closed || !this.stream || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return false;
-    for (const track of this.stream.getVideoTracks()) {
-      if (track.readyState === "live") continue;
-      this.fail(message("camera.disconnected"));
-      return false;
-    }
-    if (this.upload) {
-      return await this.upload;
-    }
-    const ratio = Math.min(
-      browserInput.cameraWidth / this.video.videoWidth,
-      browserInput.cameraHeight / this.video.videoHeight,
-      1
-    );
-    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
-    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
-    this.upload = this.send();
-    try {
-      return await this.upload;
-    } finally {
-      this.upload = void 0;
-    }
+    this.select.replaceChildren(options);
   }
   async send() {
     const blob = await new Promise((fulfill) => {
@@ -1383,9 +1715,48 @@ var Webcam = class {
     if (!response.ok) throw new Error(message("camera.uploadFailed"));
     return true;
   }
+  stopCamera() {
+    this.indicators.hidden = true;
+    this.video.hidden = true;
+    const tracks = this.stream?.getTracks() ?? [];
+    for (const track of tracks) {
+      track.stop();
+    }
+    this.stream = void 0;
+    this.video.srcObject = null;
+  }
   /**
-   * Stop the camera, cancel uploads, and clear the capture canvas.
-   */
+      Upload a camera frame without overlapping uploads.
+  
+      @returns Whether the server accepted a camera frame.
+      */
+  async frame() {
+    if (this.closed || !this.stream || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return false;
+    for (const track of this.stream.getVideoTracks()) {
+      if (track.readyState === "live") continue;
+      this.fail(message("camera.disconnected"));
+      return false;
+    }
+    if (this.upload) {
+      return await this.upload;
+    }
+    const ratio = Math.min(
+      browserInput.cameraWidth / this.video.videoWidth,
+      browserInput.cameraHeight / this.video.videoHeight,
+      1
+    );
+    this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * ratio));
+    this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * ratio));
+    this.upload = this.send();
+    try {
+      return await this.upload;
+    } finally {
+      this.upload = void 0;
+    }
+  }
+  /**
+  Stop the camera, cancel uploads, and clear the capture canvas.
+  */
   close() {
     this.closed = true;
     this.controller.abort();
@@ -1394,367 +1765,17 @@ var Webcam = class {
     this.view.hidden = true;
     this.canvas.width = this.canvas.height = 0;
   }
-  stopCamera() {
-    this.indicators.hidden = true;
-    this.video.hidden = true;
-    for (const track of this.stream?.getTracks() ?? []) {
-      track.stop();
-    }
-    this.stream = void 0;
-    this.video.srcObject = null;
-  }
 };
-
-// web/scripts/live/commands.ts
-async function sendAction(fetcher, owner, sequence, name, fields, signal) {
-  const response = await fetcher(browserRoutes.live.action, {
-    method: "POST",
-    cache: "no-store",
-    signal: AbortSignal.any([signal, AbortSignal.timeout(browserLimits.actionTimeoutMilliseconds)]),
-    headers: { "Content-Type": "application/json", "X-Reactor-Comfy": "1" },
-    body: JSON.stringify({
-      lease: owner.lease,
-      capability: owner.capability,
-      sequence,
-      action: name,
-      fields
-    })
-  });
-  signal.throwIfAborted();
-  if (!response.ok) {
-    let document2;
-    try {
-      document2 = await response.json();
-    } catch {
-      throw new Error(message("live.actionRejected"));
-    }
-    throw new Error(parsePublicError(document2) ?? message("live.actionRejected"));
-  }
-}
-
-// web/scripts/live/panel.ts
-var LivePanel = class {
-  previousFocus = document.activeElement;
-  abort = new AbortController();
-  dialog = element("dialog");
-  image = element("img");
-  promptStatus = element("p");
-  /** The edited prompt that waits for the next status exchange. */
-  pendingPrompt;
-  actionSequence = 0;
-  ending = false;
-  finished = false;
-  disposed = false;
-  sequence = 0;
-  previewSequence = 0;
-  /**
-   * Send the edited prompt, then say that the server accepted it.
-   *
-   * @param prompt - The edited prompt.
-   * @param sent - The message that confirms the prompt.
-   * @returns When the server accepts the prompt.
-   */
-  async sendPendingPrompt(prompt, sent) {
-    await sendAction(this.fetcher, this.owner, this.actionSequence++, "prompt", { prompt }, this.abort.signal);
-    this.pendingPrompt = void 0;
-    this.promptStatus.textContent = message(sent);
-  }
-  /** Release panel resources and give the final end request its own deadline. */
-  dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.ending = true;
-    this.abort.abort();
-    if (!this.finished) endSession(this.fetcher, this.owner, this.sequence++, this.previewSequence);
-    this.image.removeAttribute("src");
-    this.dialog.remove();
-    this.panels.delete(this.owner.lease);
-    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) this.previousFocus.focus();
-  }
-};
-
-// web/scripts/live/sound.ts
-var SoundControls = class {
-  view = element("section");
-  status = element("p");
-  prompt = element("textarea");
-  apply = button(message("sound.applyPrompt"), "submit");
-  pending;
-  /**
-   * Build the sound prompt controls in their disabled state.
-   *
-   * @param initialPrompt - The workflow's starting sound prompt.
-   * @param promptCharacterLimit - The model's maximum sound prompt length.
-   */
-  constructor(initialPrompt, promptCharacterLimit) {
-    this.prompt.value = initialPrompt;
-    this.prompt.maxLength = promptCharacterLimit;
-    this.prompt.rows = 2;
-    const label = element("label", message("sound.prompt"));
-    label.append(this.prompt);
-    const form = element("form");
-    this.status.setAttribute("role", "status");
-    this.view.className = "reactor-prompt";
-    const actions = element("div");
-    actions.className = "reactor-prompt-actions";
-    actions.append(this.status, this.apply);
-    form.append(label, element("small", message("sound.promptNotice")), actions);
-    this.view.append(form);
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      this.pending = this.prompt.value;
-      this.apply.disabled = true;
-    });
-    this.setReady(false);
-  }
-  /**
-   * Enable sound input only when the session accepts changes.
-   *
-   * @param ready - Whether the model accepts live controls.
-   */
-  setReady(ready) {
-    this.prompt.disabled = !ready;
-    if (!ready) {
-      this.apply.disabled = true;
-      return;
-    }
-    this.apply.disabled = this.pending !== void 0;
-  }
-  /**
-   * Consume the next sound prompt queued by the user.
-   *
-   * @returns The queued prompt, or undefined when none is waiting.
-   */
-  takePrompt() {
-    const value = this.pending;
-    this.pending = void 0;
-    return value;
-  }
-};
-
-// web/scripts/live/pointer.ts
-var PERCENT = 100;
-var PointerPreview = class {
-  view = element("div");
-  status = element("p");
-  #marker = element("span");
-  #state = element("span");
-  #position = element("span");
-  #image;
-  #pointer;
-  /**
-   * Show pointer position alongside the output image.
-   *
-   * @param image - The model output used for dragging.
-   * @param signal - The panel's listener and observer lifetime.
-   */
-  constructor(image, signal) {
-    this.#image = image;
-    this.view.className = "reactor-pointer-preview";
-    this.#marker.className = "reactor-pointer-marker";
-    this.#marker.hidden = true;
-    this.#marker.setAttribute("aria-hidden", "true");
-    this.#state.setAttribute("role", "status");
-    this.status.hidden = true;
-    this.status.append(this.#state, this.#position);
-    this.view.append(image, this.#marker);
-    const resize = new ResizeObserver(this.#place.bind(this));
-    resize.observe(image);
-    image.addEventListener("blur", this.#place.bind(this), { signal });
-    image.addEventListener("focus", this.#place.bind(this), { signal });
-    signal.addEventListener("abort", resize.disconnect.bind(resize), { once: true });
-  }
-  /**
-   * Move the marker to the user's latest pointer position.
-   *
-   * @param pointer - The normalized image coordinates and hold state.
-   */
-  move(pointer) {
-    this.#pointer = pointer;
-    this.status.hidden = false;
-    this.#position.textContent = message("pointer.position", {
-      x: Math.round(pointer.x * PERCENT),
-      y: Math.round(pointer.y * PERCENT)
-    });
-    this.#place();
-  }
-  /**
-   * Announce a hold or release after the server accepts it.
-   *
-   * @param pointer - The pointer update accepted by the server.
-   */
-  confirm(pointer) {
-    const key = pointer.active ? "pointer.held" : "pointer.released";
-    if (this.#state.textContent !== message(key)) this.#state.textContent = message(key);
-  }
-  /**
-   * Hide the marker and announce that pointer input has stopped.
-   */
-  stop() {
-    this.#pointer = void 0;
-    this.#marker.hidden = true;
-    if (!this.status.hidden) this.#state.textContent = message("pointer.stopped");
-  }
-  #place() {
-    const pointer = this.#pointer;
-    this.#marker.hidden = !pointer || this.#image.hidden || document.activeElement !== this.#image;
-    if (this.#marker.hidden || !pointer) return;
-    this.#marker.style.left = `${String(this.#image.offsetLeft + pointer.x * this.#image.clientWidth)}px`;
-    this.#marker.style.top = `${String(this.#image.offsetTop + pointer.y * this.#image.clientHeight)}px`;
-  }
-};
-
-// web/scripts/live/drag.ts
-var DragInput = class {
-  /**
-   * Bind input until the panel's abort signal fires.
-   *
-   * @param image - The output image that receives input.
-   * @param signal - The panel's listener lifetime.
-   * @param send - Receive pointer updates in normalized image coordinates.
-   */
-  constructor(image, signal, send) {
-    this.image = image;
-    this.send = send;
-    image.tabIndex = 0;
-    image.draggable = false;
-    image.classList.add("reactor-drag-input");
-    image.addEventListener(
-      "pointerdown",
-      (event) => {
-        if (event.button !== 0 || this.captured !== void 0) return;
-        this.captured = event.pointerId;
-        image.setPointerCapture(this.captured);
-        image.focus();
-        this.position(event);
-      },
-      { signal }
-    );
-    image.addEventListener(
-      "pointermove",
-      (event) => {
-        if (this.captured === event.pointerId) this.position(event);
-      },
-      { signal }
-    );
-    for (const name of ["pointerup", "pointercancel", "lostpointercapture", "blur"])
-      image.addEventListener(name, this.release.bind(this), { signal });
-    image.addEventListener("keydown", this.keydown.bind(this), { signal });
-    image.addEventListener(
-      "keyup",
-      (event) => {
-        if (event.key === " ") {
-          event.preventDefault();
-          event.stopPropagation();
-          this.release();
-        }
-      },
-      { signal }
-    );
-    releaseOnLeave(this.release.bind(this), signal);
-  }
-  image;
-  send;
-  pointer = {
-    x: browserInput.pointerCenter,
-    y: browserInput.pointerCenter,
-    active: false
-  };
-  captured;
-  /** Stop holding the pointer and release any browser pointer capture. */
-  release() {
-    const wasActive = this.pointer.active;
-    this.pointer = { ...this.pointer, active: false };
-    const previousCapture = this.captured;
-    this.captured = void 0;
-    if (wasActive) this.send(this.pointer);
-    if (previousCapture !== void 0 && this.image.hasPointerCapture(previousCapture))
-      this.image.releasePointerCapture(previousCapture);
-  }
-  /**
-   * Normalize a drag event to the displayed image bounds.
-   *
-   * @param event - The captured pointer event.
-   */
-  position(event) {
-    const rect = this.image.getBoundingClientRect();
-    this.pointer = {
-      x: Math.max(
-        browserInput.pointerMinimum,
-        Math.min(browserInput.pointerMaximum, (event.clientX - rect.left) / rect.width)
-      ),
-      y: Math.max(
-        browserInput.pointerMinimum,
-        Math.min(browserInput.pointerMaximum, (event.clientY - rect.top) / rect.height)
-      ),
-      active: true
-    };
-    this.send(this.pointer);
-  }
-  /**
-   * Move, hold, or release the pointer with the keyboard.
-   *
-   * @param event - A key pressed while the preview has focus.
-   */
-  keydown(event) {
-    const offsets = /* @__PURE__ */ new Map([
-      ["ArrowLeft", [-browserInput.pointerStep, 0]],
-      ["ArrowRight", [browserInput.pointerStep, 0]],
-      ["ArrowUp", [0, -browserInput.pointerStep]],
-      ["ArrowDown", [0, browserInput.pointerStep]],
-      [" ", [0, 0]],
-      ["Escape", [0, 0]]
-    ]);
-    const offset = offsets.get(event.key);
-    if (!offset) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.key === "Escape") {
-      this.release();
-      this.image.blur();
-      return;
-    }
-    this.pointer = {
-      x: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.x + offset[0])),
-      y: Math.max(browserInput.pointerMinimum, Math.min(browserInput.pointerMaximum, this.pointer.y + offset[1])),
-      active: event.key === " " || this.pointer.active
-    };
-    this.send(this.pointer);
-  }
-};
-
-// web/scripts/live/layout.ts
-function promptSection(title, input, apply, status) {
-  const section = element("section");
-  section.className = "reactor-prompt";
-  const label = element("label", title);
-  label.append(input);
-  const actions = element("div");
-  actions.className = "reactor-prompt-actions";
-  actions.append(status, apply);
-  section.append(label, actions);
-  return section;
-}
-function sessionHeader(title, owner, status, elapsed) {
-  const header = element("header");
-  const state = element("div");
-  state.className = "reactor-session-status";
-  state.append(status);
-  if (elapsed) state.append(elapsed);
-  const duration = message("live.duration", { seconds: owner.durationSeconds });
-  header.append(element("h2", title), element("small", duration), state);
-  return header;
-}
 
 // web/scripts/live/controls.ts
 var panels = /* @__PURE__ */ new Set();
 var ControlPanel = class extends LivePanel {
   /**
-   * Build only the controls supported by this session.
-   *
-   * @param owner - The validated session invitation.
-   * @param fetcher - ComfyUI's local API client.
-   */
+      Build only the controls supported by this session.
+  
+      @param owner - The validated session invitation.
+      @param fetcher - ComfyUI's local API client.
+      */
   constructor(owner, fetcher) {
     super();
     this.owner = owner;
@@ -1772,7 +1793,7 @@ var ControlPanel = class extends LivePanel {
       this.prompt.disabled = this.update.disabled = true;
       this.sound = owner.sound ? new SoundControls(owner.audioPrompt, owner.audioPromptCharacterLimit) : void 0;
       this.camera = owner.webcam ? new Webcam(owner, fetcher, this.stop.bind(this)) : void 0;
-      if (owner.pointer) new DragInput(this.image, this.abort.signal, this.queuePointer.bind(this));
+      if (owner.pointer) new DragInput(this.image, this.queuePointer.bind(this)).listen(this.abort.signal);
       this.bindActions();
       this.appendContent();
     } catch (error) {
@@ -1782,7 +1803,6 @@ var ControlPanel = class extends LivePanel {
   }
   owner;
   fetcher;
-  panels = panels;
   status = element("p", message("controls.chooseInput"));
   prompt = element("textarea");
   start = button(message("controls.start"));
@@ -1795,7 +1815,10 @@ var ControlPanel = class extends LivePanel {
   ready = false;
   startRequested = false;
   startAttempted = false;
-  /** Build the preview, supported inputs, and session actions. */
+  panels = panels;
+  /**
+  Build the preview, supported inputs, and session actions.
+  */
   appendContent() {
     const header = sessionHeader(
       message("controls.title", { model: this.owner.modelTitle }),
@@ -1837,7 +1860,9 @@ var ControlPanel = class extends LivePanel {
     }
     this.dialog.append(help, footer);
   }
-  /** Bind start, prompt, stop, and dialog cleanup actions. */
+  /**
+  Bind start, prompt, stop, and dialog cleanup actions.
+  */
   bindActions() {
     this.dialog.addEventListener("click", (event) => {
       if (event.target === this.start) {
@@ -1860,10 +1885,10 @@ var ControlPanel = class extends LivePanel {
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   /**
-   * Keep pointer releases while combining consecutive held moves.
-   *
-   * @param next - The next normalized pointer update.
-   */
+      Keep pointer releases while combining consecutive held moves.
+  
+      @param next - The next normalized pointer update.
+      */
   queuePointer(next) {
     if (!this.ready || this.ending) return;
     this.pointerPreview?.move(next);
@@ -1876,10 +1901,10 @@ var ControlPanel = class extends LivePanel {
     this.pointers.push(next);
   }
   /**
-   * Stop sending input while waiting for the server to end the session.
-   *
-   * @param reason - The reason shown in the panel.
-   */
+      Stop sending input while waiting for the server to end the session.
+  
+      @param reason - The reason shown in the panel.
+      */
   stop(reason = message("live.ending")) {
     this.ending = true;
     this.ready = false;
@@ -1890,16 +1915,16 @@ var ControlPanel = class extends LivePanel {
     this.camera?.close();
   }
   /**
-   * Apply current readiness and the latest preview.
-   *
-   * @param reply - The validated session status.
-   */
+      Apply current readiness and the latest preview.
+  
+      @param reply - The validated session status.
+      */
   display(reply) {
-    const wasReady = this.ready;
+    const isAlreadyReady = this.ready;
     this.ready = reply.controlsReady && !reply.finishing && !this.ending;
     this.prompt.disabled = !this.ready;
     this.sound?.setReady(this.ready);
-    if (this.ready && !wasReady) this.status.textContent = message("controls.recording");
+    if (this.ready && !isAlreadyReady) this.status.textContent = message("controls.recording");
     this.update.disabled = !this.ready || this.pendingPrompt !== void 0;
     if (reply.preview) {
       this.image.src = `data:image/jpeg;base64,${reply.preview}`;
@@ -1908,10 +1933,10 @@ var ControlPanel = class extends LivePanel {
     this.previewSequence = reply.previewSequence;
   }
   /**
-   * Release devices and explain how the session ended.
-   *
-   * @param reply - The terminal session status.
-   */
+      Release devices and explain how the session ended.
+  
+      @param reply - The terminal session status.
+      */
   finish(reply) {
     this.finished = true;
     this.camera?.close();
@@ -1921,17 +1946,17 @@ var ControlPanel = class extends LivePanel {
     this.pointerPreview?.stop();
     if (!reply.terminationConfirmed) this.status.textContent = message("controls.connectionClosed");
     else if (this.startAttempted) {
-      this.status.textContent = reply.failed ? message("live.discarded") : message("live.ended");
+      this.status.textContent = message(reply.failed ? "live.discarded" : "live.ended");
     } else {
       this.status.textContent = message("controls.recordingNotStarted");
     }
     this.end.textContent = message("close");
   }
   /**
-   * Upload camera input and apply a requested start once a frame is ready.
-   *
-   * @returns When this cycle's camera upload and start request finish.
-   */
+      Upload camera input and apply a requested start once a frame is ready.
+  
+      @returns When this cycle's camera upload and start request finish.
+      */
   async prepare() {
     const hasFrame = this.camera ? await this.camera.frame() : true;
     if (!this.startRequested) return;
@@ -1947,10 +1972,10 @@ var ControlPanel = class extends LivePanel {
     this.startRequested = false;
   }
   /**
-   * Send queued prompt, pointer, and sound changes in order.
-   *
-   * @returns When the server accepts this cycle's pending controls.
-   */
+      Send queued prompt, pointer, and sound changes in order.
+  
+      @returns When the server accepts this cycle's pending controls.
+      */
   async sendControls() {
     if (!this.ready) return;
     if (this.pendingPrompt !== void 0) await this.sendPendingPrompt(this.pendingPrompt, "controls.promptSent");
@@ -1960,25 +1985,26 @@ var ControlPanel = class extends LivePanel {
       this.pointerPreview?.confirm(next);
     }
     const audioPrompt = this.sound?.takePrompt();
-    if (audioPrompt !== void 0) {
-      await sendAction(
-        this.fetcher,
-        this.owner,
-        this.actionSequence++,
-        "audio_prompt",
-        {
-          prompt: audioPrompt
-        },
-        this.abort.signal
-      );
-      if (this.sound) this.sound.status.textContent = message("controls.soundSent");
+    if (audioPrompt === void 0) {
+      return;
     }
+    await sendAction(
+      this.fetcher,
+      this.owner,
+      this.actionSequence++,
+      "audio_prompt",
+      {
+        prompt: audioPrompt
+      },
+      this.abort.signal
+    );
+    if (this.sound) this.sound.status.textContent = message("controls.soundSent");
   }
   /**
-   * Read and display the session's current state.
-   *
-   * @returns The validated session status.
-   */
+      Read and display the session's current state.
+  
+      @returns The validated session status.
+      */
   async refresh() {
     const reply = await exchange(this.fetcher, this.owner, {
       sequence: this.sequence++,
@@ -1991,27 +2017,27 @@ var ControlPanel = class extends LivePanel {
     return reply;
   }
   /**
-   * Send input and check whether a rejection coincided with session completion.
-   *
-   * @param reply - The status received before sending input.
-   * @returns The current status after the server accepts the input or recording ends.
-   */
+      Send input and check whether a rejection coincided with session completion.
+  
+      @param reply - The status received before sending input.
+      @returns The current status after the server accepts the input or recording ends.
+      */
   async sendInput(reply) {
     try {
       await this.prepare();
       await this.sendControls();
       return reply;
     } catch (error) {
-      const current2 = await this.refresh();
-      if (!current2.closed && !current2.finishing) throw error;
-      return current2;
+      const current = await this.refresh();
+      if (!current.closed && !current.finishing) throw error;
+      return current;
     }
   }
   /**
-   * Exchange status, apply pending input, and handle session completion.
-   *
-   * @returns Whether the session needs another status update.
-   */
+      Exchange status, apply pending input, and handle session completion.
+  
+      @returns Whether the session needs another status update.
+      */
   async cycle() {
     let reply = await this.refresh();
     if (!this.ending && !reply.closed && !reply.finishing) reply = await this.sendInput(reply);
@@ -2023,10 +2049,10 @@ var ControlPanel = class extends LivePanel {
     return !this.finished;
   }
   /**
-   * Exchange status and input until the session ends or the panel closes.
-   *
-   * @returns When polling ends and the panel shows its final state.
-   */
+      Exchange status and input until the session ends or the panel closes.
+  
+      @returns When polling ends and the panel shows its final state.
+      */
   async poll() {
     try {
       while (!this.abort.signal.aborted && await this.cycle()) {
@@ -2041,7 +2067,9 @@ var ControlPanel = class extends LivePanel {
     }
     if (this.finished) this.dialog.classList.add("reactor-finished");
   }
-  /** Stop the camera and pointer input, then close the panel. */
+  /**
+  Stop the camera and pointer input, then close the panel.
+  */
   dispose() {
     if (this.disposed) return;
     this.ready = false;
@@ -2049,7 +2077,9 @@ var ControlPanel = class extends LivePanel {
     this.pointerPreview?.stop();
     super.dispose();
   }
-  /** Show the session panel and begin the local status exchange. */
+  /**
+  Show the session panel and begin the local status exchange.
+  */
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
@@ -2079,38 +2109,38 @@ var CameraStates = class {
   pending;
   hasIndependentAxes;
   /**
-   * Initialize idle camera movement for the selected model.
-   *
-   * @param hasIndependentAxes - Whether the model accepts independent movement axes.
-   */
+      Initialize idle camera movement for the selected model.
+  
+      @param hasIndependentAxes - Whether the model accepts independent movement axes.
+      */
   constructor(hasIndependentAxes) {
     this.hasIndependentAxes = hasIndependentAxes;
     this.current = cameraAxes(/* @__PURE__ */ new Set(), hasIndependentAxes);
     this.pending = [];
   }
   /**
-   * Queue changed camera input while preserving explicit releases.
-   *
-   * @param keys - The keys currently held or briefly pressed.
-   * @param release - Whether to clear queued movement before this update.
-   */
-  update(keys, release = false) {
+      Queue changed camera input while preserving explicit releases.
+  
+      @param keys - The keys currently held or briefly pressed.
+      @param isRelease - Whether to clear queued movement before this update.
+      */
+  update(keys, isRelease = false) {
     const axes = cameraAxes(keys, this.hasIndependentAxes);
-    if (release) this.pending = [];
-    const changed = AXIS_NAMES.some((name) => axes[name] !== this.current[name]);
-    if (release || changed) {
+    if (isRelease) this.pending = [];
+    const isChanged = AXIS_NAMES.some((name) => axes[name] !== this.current[name]);
+    if (isRelease || isChanged) {
       if (this.pending.length >= browserLimits.maxPendingInputs) {
         this.pending = [{ axes: cameraAxes(/* @__PURE__ */ new Set(), this.hasIndependentAxes), release: true }];
         if (Object.values(axes).some((value) => value !== "idle")) this.pending.push({ axes, release: false });
-      } else this.pending.push({ axes, release });
+      } else this.pending.push({ axes, release: isRelease });
     }
     this.current = axes;
   }
   /**
-   * Consume a queued camera update or keep the current held movement.
-   *
-   * @returns The axes and release flag for the next exchange.
-   */
+      Consume a queued camera update or keep the current held movement.
+  
+      @returns The axes and release flag for the next exchange.
+      */
   take() {
     const queued = this.pending.shift();
     if (queued) return queued;
@@ -2123,11 +2153,11 @@ var panels2 = /* @__PURE__ */ new Set();
 var ELAPSED_STEPS_PER_SECOND = 10;
 var ScenePanel = class extends LivePanel {
   /**
-   * Build camera controls for the invited model.
-   *
-   * @param owner - The validated camera session invitation.
-   * @param fetcher - ComfyUI's local API client.
-   */
+      Build camera controls for the invited model.
+  
+      @param owner - The validated camera session invitation.
+      @param fetcher - ComfyUI's local API client.
+      */
   constructor(owner, fetcher) {
     super();
     this.owner = owner;
@@ -2181,7 +2211,6 @@ var ScenePanel = class extends LivePanel {
   }
   owner;
   fetcher;
-  panels = panels2;
   status = element("p", message("live.connectingPanel"));
   elapsed = element("small");
   prompt = element("textarea");
@@ -2191,7 +2220,10 @@ var ScenePanel = class extends LivePanel {
   end = button(message("live.endSession"));
   states;
   release;
-  /** Build the session header, movement controls, and prompt input. */
+  panels = panels2;
+  /**
+  Build the session header, movement controls, and prompt input.
+  */
   appendContent() {
     const footer = element("footer");
     footer.append(this.end);
@@ -2219,7 +2251,9 @@ var ScenePanel = class extends LivePanel {
       footer
     );
   }
-  /** Bind prompt updates, explicit ending, and focus cleanup. */
+  /**
+  Bind prompt updates, explicit ending, and focus cleanup.
+  */
   bindActions() {
     this.apply.addEventListener("click", () => {
       if (!this.prompt.value.trim()) {
@@ -2238,10 +2272,10 @@ var ScenePanel = class extends LivePanel {
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   /**
-   * Update camera controls and the preview while the panel is visible.
-   *
-   * @param result - The validated session status.
-   */
+      Update camera controls and the preview while the panel is visible.
+  
+      @param result - The validated session status.
+      */
   display(result) {
     if (this.disposed) return;
     for (const control of this.controls.querySelectorAll("button"))
@@ -2258,10 +2292,10 @@ var ScenePanel = class extends LivePanel {
     this.displayProgress(result);
   }
   /**
-   * Describe whether the model is preparing, recording, or finishing.
-   *
-   * @param result - The validated session status.
-   */
+      Describe whether the model is preparing, recording, or finishing.
+  
+      @param result - The validated session status.
+      */
   displayProgress(result) {
     if (result.finishing && !result.closed) {
       this.release();
@@ -2269,37 +2303,39 @@ var ScenePanel = class extends LivePanel {
       this.end.disabled = true;
       this.status.textContent = message("live.ending");
     } else if (!this.ending) {
-      this.status.textContent = result.controlsReady && result.previewSequence > 0 ? message("live.previewReady") : message("live.waitingVideo");
+      this.status.textContent = message(
+        result.controlsReady && result.previewSequence > 0 ? "live.previewReady" : "live.waitingVideo"
+      );
     }
   }
   /**
-   * Show the final session result without implying unconfirmed termination.
-   *
-   * @param result - The terminal session status.
-   */
+      Show the final session result without implying unconfirmed termination.
+  
+      @param result - The terminal session status.
+      */
   finish(result) {
     this.finished = true;
     if (result.terminationConfirmed) {
-      this.status.textContent = result.failed ? message("live.discarded") : message("live.ended");
+      this.status.textContent = message(result.failed ? "live.discarded" : "live.ended");
     } else {
       this.status.textContent = message("live.unconfirmedEnd");
     }
   }
   /**
-   * Send a queued prompt only while the session accepts controls.
-   *
-   * @param result - The current session readiness.
-   * @returns When the prompt request, if any, finishes.
-   */
+      Send a queued prompt only while the session accepts controls.
+  
+      @param result - The current session readiness.
+      @returns When the prompt request, if any, finishes.
+      */
   async sendPrompt(result) {
     if (!result.controlsReady || result.finishing || this.ending || this.pendingPrompt === void 0) return;
     await this.sendPendingPrompt(this.pendingPrompt, "live.promptSent");
   }
   /**
-   * Exchange input and status until the server ends the session.
-   *
-   * @returns When polling and listener cleanup finish.
-   */
+      Exchange input and status until the server ends the session.
+  
+      @returns When polling and listener cleanup finish.
+      */
   async poll() {
     try {
       while (!this.finished) {
@@ -2333,7 +2369,9 @@ var ScenePanel = class extends LivePanel {
       this.finishPolling();
     }
   }
-  /** Leave completed panels readable without recreating labels after disposal. */
+  /**
+  Leave completed panels readable without recreating labels after disposal.
+  */
   finishPolling() {
     if (this.disposed) return;
     this.end.disabled = false;
@@ -2341,7 +2379,9 @@ var ScenePanel = class extends LivePanel {
     this.prompt.disabled = this.apply.disabled = true;
     for (const control of this.controls.querySelectorAll("button")) control.disabled = true;
   }
-  /** Show the panel, focus camera input, and begin exchanging session status. */
+  /**
+  Show the panel, focus camera input, and begin exchanging session status.
+  */
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
@@ -2455,19 +2495,19 @@ async function requestConfiguration(fetcher, signal, route = browserRoutes.setti
 }
 
 // web/scripts/settings/dialog.ts
-var current;
+var TITLE_ID = "reactor-settings-title";
 var SettingsDialog = class {
   /**
-   * Build settings forms without contacting Reactor.
-   *
-   * @param fetcher - ComfyUI's local API client.
-   */
+      Build settings forms without contacting Reactor.
+  
+      @param fetcher - ComfyUI's local API client.
+      */
   constructor(fetcher) {
     this.fetcher = fetcher;
     this.dialog.className = "reactor-dialog";
-    this.dialog.setAttribute("aria-labelledby", "reactor-settings-title");
+    this.dialog.setAttribute("aria-labelledby", TITLE_ID);
     const heading = element("h2", message("settings.title"));
-    heading.id = "reactor-settings-title";
+    heading.id = TITLE_ID;
     const close = button(message("close"));
     close.setAttribute("aria-label", message("settings.close"));
     close.addEventListener("click", this.dialog.close.bind(this.dialog, void 0));
@@ -2490,7 +2530,6 @@ var SettingsDialog = class {
     this.dialog.addEventListener("close", this.dispose.bind(this), { once: true });
   }
   fetcher;
-  dialog = element("dialog");
   previousFocus = document.activeElement;
   controller = new AbortController();
   status = element("p", message("settings.reading"));
@@ -2500,11 +2539,12 @@ var SettingsDialog = class {
   limitFields = element("fieldset");
   inputs = /* @__PURE__ */ new Map();
   configuration;
+  dialog = element("dialog");
   /**
-   * Build the private key form.
-   *
-   * @returns The form for saving or clearing the server's key.
-   */
+      Build the private key form.
+  
+      @returns The form for saving or clearing the server's key.
+      */
   credentials() {
     const form = element("form");
     this.keyFields.disabled = true;
@@ -2534,10 +2574,10 @@ var SettingsDialog = class {
     return form;
   }
   /**
-   * Build duration, timeout, and media size inputs.
-   *
-   * @returns The form for execution limits.
-   */
+      Build duration, timeout, and media size inputs.
+  
+      @returns The form for execution limits.
+      */
   limits() {
     const form = element("form");
     this.limitFields.disabled = true;
@@ -2551,10 +2591,10 @@ var SettingsDialog = class {
     return form;
   }
   /**
-   * Build fields from the backend's setting definitions.
-   *
-   * @param configuration - The validated limits.
-   */
+      Build fields from the backend's setting definitions.
+  
+      @param configuration - The validated limits.
+      */
   populateLimits(configuration) {
     this.limitFields.replaceChildren(element("legend", message("settings.limits")));
     for (const [name, definition] of Object.entries(configuration.definitions)) {
@@ -2572,10 +2612,10 @@ var SettingsDialog = class {
     this.limitFields.append(button(message("settings.saveLimits"), "submit"));
   }
   /**
-   * Save only the limits that changed after the last successful read.
-   *
-   * @param configuration - The settings and revision currently shown.
-   */
+      Save only the limits that changed after the last successful read.
+  
+      @param configuration - The settings and revision currently shown.
+      */
   saveLimits(configuration) {
     const changes = /* @__PURE__ */ new Map();
     const settings = new Map(Object.entries(configuration.settings));
@@ -2592,10 +2632,10 @@ var SettingsDialog = class {
     });
   }
   /**
-   * Show validated settings and apply the server's editing policy.
-   *
-   * @param configuration - The last successful server response.
-   */
+      Show validated settings and apply the server's editing policy.
+  
+      @param configuration - The last successful server response.
+      */
   display(configuration) {
     this.configuration = configuration;
     if (this.inputs.size === 0) this.populateLimits(configuration);
@@ -2616,13 +2656,13 @@ var SettingsDialog = class {
     if (!configuration.mutationAllowed) this.status.textContent = message("settings.readOnly");
   }
   /**
-   * Keep settings requests serial and show the server's response.
-   *
-   * @param success - The success message.
-   * @param route - The local settings route.
-   * @param method - The HTTP method.
-   * @param body - The settings change, if any.
-   */
+      Keep settings requests serial and show the server's response.
+  
+      @param success - The success message.
+      @param route - The local settings route.
+      @param method - The HTTP method.
+      @param body - The settings change, if any.
+      */
   updateSettings(success, route, method, body) {
     if (route === browserRoutes.settings.credential) this.key.value = "";
     this.keyFields.disabled = this.limitFields.disabled = true;
@@ -2631,14 +2671,14 @@ var SettingsDialog = class {
     this.requestSettings(success, route, method, body).catch(reportError);
   }
   /**
-   * Apply the server response and restore editing after a settings request.
-   *
-   * @param success - The success message.
-   * @param route - The local settings route.
-   * @param method - The HTTP method.
-   * @param body - The settings change, if any.
-   * @returns When the dialog shows the response or the error.
-   */
+      Apply the server response and restore editing after a settings request.
+  
+      @param success - The success message.
+      @param route - The local settings route.
+      @param method - The HTTP method.
+      @param body - The settings change, if any.
+      @returns When the dialog shows the response or the error.
+      */
   async requestSettings(success, route, method, body) {
     try {
       const value = await requestConfiguration(this.fetcher, this.controller.signal, route, method, body);
@@ -2655,31 +2695,36 @@ var SettingsDialog = class {
       }
     }
   }
-  /** Show the dialog and read local settings. */
+  /**
+  Clear the key input, stop requests, and return focus to the caller.
+  */
+  dispose() {
+    this.key.value = "";
+    this.controller.abort();
+    this.dialog.remove();
+    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) this.previousFocus.focus();
+  }
+  /**
+  Show the dialog and read local settings.
+  */
   show() {
     document.body.append(this.dialog);
     this.dialog.showModal();
     this.updateSettings(message("settings.reread"));
   }
-  /** Clear the key input, stop requests, and return focus to the caller. */
-  dispose() {
-    this.key.value = "";
-    this.controller.abort();
-    this.dialog.remove();
-    if (current === this) current = void 0;
-    if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) this.previousFocus.focus();
-  }
 };
 function openSettings(fetcher) {
-  if (current?.dialog.open === true) {
-    current.dialog.focus();
+  const open = document.querySelector(`dialog[aria-labelledby="${CSS.escape(TITLE_ID)}"][open]`);
+  if (open) {
+    open.focus();
     return;
   }
-  current = new SettingsDialog(fetcher);
-  current.show();
+  new SettingsDialog(fetcher).show();
 }
 
 // web/scripts/extension.ts
+import { api as api2 } from "../../scripts/api.js";
+import { app as app2 } from "../../scripts/app.js";
 app2.registerExtension({
   name: "reactor.inc.configuration",
   setup: () => {

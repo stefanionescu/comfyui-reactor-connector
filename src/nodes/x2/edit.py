@@ -37,7 +37,12 @@ class X2EditVideo(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncX2EditVideo',
             display_name='X2: Edit Video (Reactor)',
@@ -98,7 +103,23 @@ class X2EditVideo(VideoNode):
         reference_image: Input.Image | None = None,
         interactive: bool = False,
     ) -> io.NodeOutput:
-        """Edit the source video with X2 and optional reference-image or live controls."""
+        """Edit the source video with X2 and optional reference-image or live controls.
+
+        Args:
+            source: The video to edit.
+            prompt: The edit prompt.
+            duration_seconds: The requested output length in seconds.
+            keep_backlog: Whether to keep queued source frames in order.
+            pointer_active: Whether to hold the pointer while recording.
+            pointer_x: The horizontal position of the pointer.
+            pointer_y: The vertical position of the pointer.
+            reference_image: The optional image of the subject to insert or replace.
+            interactive: Whether to open the live controls.
+
+        Returns:
+            The edited video.
+
+        """
         request = X2Request(
             prompt,
             duration_seconds,
@@ -110,7 +131,12 @@ class X2EditVideo(VideoNode):
         )
 
         async def edit() -> io.NodeOutput:
-            """Encode the reference image, then prepare the source frames within the input limits and close them."""
+            """Encode the reference image, then prepare the source frames within the input limits and close them.
+
+            Returns:
+                The output of the session.
+
+            """
             settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
             image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))
             async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
@@ -123,7 +149,12 @@ class X2EditVideo(VideoNode):
 
 
 def _pointer_inputs() -> list[io.Input]:
-    """Choose whether to hold the pointer, and where to place it on each axis."""
+    """Choose whether to hold the pointer, and where to place it on each axis.
+
+    Returns:
+        The hold input, then the position input of each axis.
+
+    """
     hold = io.Boolean.Input(
         'pointer_active',
         display_name='hold pointer',

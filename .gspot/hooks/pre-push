@@ -1,3 +1,4 @@
 #!/bin/sh
-command -v bun >/dev/null 2>&1 || { echo 'bun is not installed. Install Bun, then run: bun install. Install gspot with: bun add --dev --exact @gspothq/cli@0.3.7' >&2; exit 2; }
-exec bun run --no-install gspot check --hook pre-push -- "$@"
+command -v mise >/dev/null 2>&1 || { printf 'mise is not on the PATH that this Git client gives hooks (%s). Start the client from a terminal, or add mise'"'"'s folder to its PATH.
+' "$PATH" >&2; exit 2; }
+exec mise exec -- gspot check --hook pre-push -- "$@"

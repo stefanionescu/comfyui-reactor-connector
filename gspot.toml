@@ -1,4 +1,3 @@
-#:schema ./.gspot/gspot.schema.json
 # gspot settings for this repository. Change them with gspot set, unset, add, remove, ignore, and unignore.
 
 level = "all"
@@ -14,13 +13,30 @@ setup_command = ["mise", "run", "ci:setup"]
 [format]
 quotes = "single"
 
-[[naming.override]]
+[commits]
+scopes = ["nodes", "frontend", "workflows", "docs", "hooks", "quality", "root", "deps"]
+
+[javascript]
+import_extension = "ts"
+entry_files = ["web/scripts/extension.ts"]
+
+[[naming.exception]]
 allowed_names = ["x2", "X2EditVideo", "X2Operation", "X2Request", "X2Webcam"]
 reason = "X2 is the name of Reactor's model, digit included; its packages, modules, and classes are named after it, as those of the other model families are."
+
+[[naming.exception]]
+allowed_names = ["execute"]
+reason = "ComfyUI calls each node's execute by name."
 
 [spelling.allowed_words]
 SANA = "SANA is the name of a video model that Reactor runs, written in capitals; it is not an acronym to spell out."
 LTX = "LTX is the name of a video model that Reactor runs, written in capitals; it is not an acronym to spell out."
+H3 = "H3 is the name of a video model that Reactor runs, with its digit; it is not a heading level."
+Helios = "Helios is the name of a video model that Reactor runs."
+LingBot = "LingBot is the name of a world model that Reactor runs, written with a capital B."
+LongLive = "LongLive is the name of a video model that Reactor runs, written with a capital L in the middle."
+Visko = "Visko is the name of a video model that Reactor runs."
+X2 = "X2 is the name of a video model that Reactor runs, with its digit."
 MOV = "MOV is the QuickTime video file format name, which readers know."
 AVI = "AVI is the video file format name, which readers know."
 JPEG = "JPEG is the image file format name, which readers know."
@@ -29,20 +45,12 @@ WAV = "WAV is the audio file format name, which readers know."
 MP4 = "MP4 is the video file format name, which readers know."
 
 [python]
-externals = ["comfy", "comfy_api", "comfy_execution", "comfy_extras", "folder_paths", "nodes", "server", "torch"]
-
-[tools.eslint]
-import_extension = "ts"
+externals = { value = ["comfy", "comfy_api", "comfy_execution", "comfy_extras", "folder_paths", "nodes", "server", "torch"], reason = "ComfyUI supplies these modules in its application environment." }
+docstring_convention = "google"
 
 [[tools.eslint.override]]
 paths = ["web/scripts/**"]
 runtime = "browser"
-
-[tools.commitlint]
-scopes = ["nodes", "frontend", "workflows", "docs", "hooks", "quality", "root", "deps"]
-
-[tools.knip]
-entry = ["web/scripts/extension.ts"]
 
 # The browser code in layers. Each rule lists exactly what its files may import, besides their own folder.
 [[import_rule]]
@@ -181,7 +189,7 @@ stage = "push"
 summary = "Checks that every node registers a unique ID, a display name, a description, and a Reactor category, and that every help page in web/docs names a registered node."
 help = "Name the help page web/docs/<node ID>.md, and give the node the schema fields that the message names."
 exit_codes = [1]
-output = { format = "lines" }
+output = { format = "regex", pattern = "^(?<message>.+)$" }
 
 [[command_check]]
 id = "comfy-workflows"
@@ -191,10 +199,10 @@ stage = "push"
 summary = "Checks that the example workflows match a fresh build from scripts/workflows, and that README.md links each one."
 help = "Run mise run comfy:workflows:build, then commit the example workflows."
 exit_codes = [1]
-output = { format = "lines" }
+output = { format = "regex", pattern = "^(?<message>.+)$" }
 
 [[ignore]]
-check = "duplication/jscpd"
+check = "structure/jscpd"
 paths = ["src/nodes/**"]
 reason = "Each video node repeats the ComfyUI node shape (imports, define_schema, generate); jscpd's strict mode matches that shape with names and strings set aside."
 
@@ -228,33 +236,29 @@ paths = ["ADVANCED.md"]
 reason = "ADVANCED.md is the advanced guide of every pack in the family, the name its readers and the README link know."
 
 [[ignore]]
-check = "prose/vale"
-rule = "write-good.E-Prime"
-reason = "E-Prime bans every form of 'to be'; rewriting every such sentence makes the docs harder to read, not plainer."
-
-[[ignore]]
 check = "python/vulture"
-names = ["comfy_entrypoint"]
 paths = ["__init__.py"]
 reason = "ComfyUI calls the package's comfy_entrypoint by name."
 
 [[ignore]]
 check = "python/vulture"
-names = ["cpu"]
 paths = ["scripts/nodes/export.py"]
 reason = "ComfyUI's model_management reads args.cpu when its device code loads; the schema export sets it so ComfyUI loads without a graphics card."
 
 [[ignore]]
 check = "python/vulture"
-names = ["on_load", "get_node_list"]
 paths = ["src/extension.py"]
 reason = "ComfyUI calls the extension's on_load and get_node_list by name."
 
 [[ignore]]
 check = "python/vulture"
-names = ["define_schema", "execute", "validate_inputs", "fingerprint_inputs"]
 paths = ["src/nodes/**"]
 reason = "ComfyUI calls each node's define_schema, execute, validate_inputs, and fingerprint_inputs by name."
+
+[[ignore]]
+check = "python/ruff"
+rule = "TID252"
+reason = "ComfyUI imports this pack by its folder path, so only relative imports resolve."
 
 [[ignore]]
 check = "structure/shared-prefixes"
@@ -263,24 +267,20 @@ reason = "ComfyUI's template browser reads one flat example_workflows folder, an
 
 [[ignore]]
 check = "structure/trivial-functions"
-names = ["comfy_entrypoint"]
 paths = ["__init__.py"]
 reason = "ComfyUI calls the package's comfy_entrypoint by name, so it cannot be inlined."
 
 [[ignore]]
 check = "structure/trivial-functions"
-names = ["__init__"]
 paths = ["src/errors.py"]
 reason = "ConnectorError's constructor keeps the error code beside the message that RuntimeError stores; every raise calls it."
 
 [[ignore]]
 check = "structure/trivial-functions"
-names = ["on_load", "get_node_list"]
 paths = ["src/extension.py"]
 reason = "ComfyUI calls the extension's on_load and get_node_list by name, so they cannot be inlined."
 
 [[ignore]]
 check = "structure/trivial-functions"
-names = ["define_schema", "execute", "validate_inputs", "fingerprint_inputs"]
 paths = ["src/nodes/**"]
 reason = "ComfyUI calls each node's define_schema, execute, validate_inputs, and fingerprint_inputs by name, so they cannot be inlined."

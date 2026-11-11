@@ -30,7 +30,12 @@ class X2Webcam(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncX2Webcam',
             display_name='X2: Edit Webcam Video (Reactor)',
@@ -69,10 +74,25 @@ class X2Webcam(VideoNode):
         duration_seconds: float,
         reference_image: Input.Image | None = None,
     ) -> io.NodeOutput:
-        """Open X2 webcam and dragging controls and record the resulting video."""
+        """Open X2 webcam and dragging controls and record the resulting video.
+
+        Args:
+            prompt: The edit prompt.
+            duration_seconds: The requested recording length in seconds.
+            reference_image: The optional image of the subject to insert or replace.
+
+        Returns:
+            The edited video.
+
+        """
 
         async def start() -> io.NodeOutput:
-            """Prepare media inside the owned task before starting the Reactor session."""
+            """Prepare media inside the owned task before starting the Reactor session.
+
+            Returns:
+                The output of the session.
+
+            """
             camera = WebcamFrames()
             try:
                 image = None if reference_image is None else await owned_io(partial(encode_png, reference_image))

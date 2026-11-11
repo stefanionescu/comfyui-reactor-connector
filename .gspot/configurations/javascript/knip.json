@@ -1,0 +1,63 @@
+{
+    "ignore": [
+        "**/build/**",
+        ".gspot/**",
+        ".gspot-copies/**",
+        "prettier.config.mjs",
+        "web/extension.js",
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/.venv/**",
+        "**/venv/**",
+        "**/__pycache__/**",
+        "**/.pytest_cache/**",
+        "**/.ruff_cache/**",
+        "**/.mypy_cache/**",
+        "**/coverage/**",
+        "**/.dev.vars.*",
+        "**/*.py[cod]",
+        "dist/**",
+        "**/.artifacts/**",
+        "**/.import_linter_cache/**"
+    ],
+    "ignoreDependencies": [
+        "@gspothq/cli",
+        "@eslint/js",
+        "@gspothq/eslint-plugin",
+        "ajv",
+        "eslint-config-prettier",
+        "eslint-import-resolver-typescript",
+        "eslint-plugin-boundaries",
+        "eslint-plugin-import-x",
+        "eslint-plugin-jsdoc",
+        "eslint-plugin-n",
+        "eslint-plugin-package-json",
+        "eslint-plugin-perfectionist",
+        "eslint-plugin-regexp",
+        "eslint-plugin-security",
+        "eslint-plugin-unicorn",
+        "globals",
+        "postcss-html",
+        "stylelint-config-standard",
+        "typescript-eslint"
+    ],
+    "ignoreBinaries": [],
+    "workspaces": {
+        ".": {
+            "entry": [
+                "web/scripts/extension.ts",
+                "{index,cli,main}.{js,mjs,cjs,jsx,ts,tsx,mts,cts}",
+                "src/{index,cli,main}.{js,mjs,cjs,jsx,ts,tsx,mts,cts}",
+                "**/test/**",
+                "**/tests/**",
+                "**/__tests__/**",
+                "**/*.test.*",
+                "**/*.spec.*",
+                "**/Tests/**",
+                "scripts/**",
+                "**/*.config.{js,mjs,cjs,ts}",
+                "eslint.config.mjs"
+            ]
+        }
+    }
+}

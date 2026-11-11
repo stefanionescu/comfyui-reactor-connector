@@ -1,0 +1,120 @@
+{
+    "extends": "stylelint-config-standard",
+    "rules": {
+        "import-notation": "string",
+        "function-no-unknown": true,
+        "property-disallowed-list": [
+            "/^(margin|padding|border|inset)-(left|right)/",
+            "left",
+            "right"
+        ],
+        "declaration-property-value-disallowed-list": {
+            "float": [
+                "left",
+                "right"
+            ],
+            "clear": [
+                "left",
+                "right"
+            ],
+            "text-align": [
+                "left",
+                "right"
+            ],
+            "outline": [
+                "none",
+                "0"
+            ]
+        },
+        "declaration-property-unit-allowed-list": {
+            "font-size": [
+                "rem",
+                "em",
+                "%"
+            ]
+        },
+        "selector-max-id": 0,
+        "selector-max-specificity": "0,3,0",
+        "selector-disallowed-list": [
+            "/^\\.(is|has)-[\\w-]+$/"
+        ]
+    },
+    "overrides": [
+        {
+            "files": [
+                "**/*.vue"
+            ],
+            "customSyntax": "postcss-html",
+            "rules": {
+                "selector-pseudo-class-no-unknown": [
+                    true,
+                    {
+                        "ignorePseudoClasses": [
+                            "deep",
+                            "global",
+                            "slotted"
+                        ]
+                    }
+                ],
+                "function-no-unknown": [
+                    true,
+                    {
+                        "ignoreFunctions": [
+                            "v-bind"
+                        ]
+                    }
+                ],
+                "declaration-property-value-no-unknown": [
+                    true,
+                    {
+                        "ignoreProperties": {
+                            "/.*/": [
+                                "/\\bv-bind\\(/"
+                            ]
+                        }
+                    }
+                ],
+                "value-keyword-case": [
+                    "lower",
+                    {
+                        "ignoreFunctions": [
+                            "v-bind"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": [
+                "**/*.svelte"
+            ],
+            "customSyntax": "postcss-html",
+            "rules": {
+                "selector-pseudo-class-no-unknown": [
+                    true,
+                    {
+                        "ignorePseudoClasses": [
+                            "global"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": [
+                "**/*.astro"
+            ],
+            "customSyntax": "postcss-html",
+            "rules": {
+                "selector-pseudo-class-no-unknown": [
+                    true,
+                    {
+                        "ignorePseudoClasses": [
+                            "global"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

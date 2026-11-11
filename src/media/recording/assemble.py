@@ -23,7 +23,21 @@ async def prepare_recording(
     *,
     start_seconds: float = 0,
 ) -> CaptureResult:
-    """Keep decoding terminable and remove both outputs after any failure."""
+    """Keep decoding terminable and remove both outputs after any failure.
+
+    Args:
+        source: The downloaded recording.
+        destination: The MP4 file to write.
+        duration_seconds: The length of the interval to keep.
+        start_seconds: The offset of the interval from the first frame.
+
+    Returns:
+        The video file, its frame count, its timestamp mode, and the audio file.
+
+    Raises:
+        ConnectorError: When the worker reports invalid metadata.
+
+    """
     audio = destination.with_suffix('.wav')
     worker = MediaProcess(
         [

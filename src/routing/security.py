@@ -10,7 +10,17 @@ from ..config.messages.requests import LOCAL_CONNECTION_REQUIRED
 
 
 def _is_local_target(request: web.Request, target: SplitResult, port: int) -> bool:
-    """Match a loopback peer and a bare loopback URL, without user information or suffixes, to the server socket."""
+    """Match a loopback peer and a bare loopback URL, without user information or suffixes, to the server socket.
+
+    Args:
+        request: The request whose peer and socket to check.
+        target: The URL that the request addresses.
+        port: The effective port of that URL.
+
+    Returns:
+        Whether the request reaches the server directly over loopback.
+
+    """
     peer = ipaddress.ip_address(request.remote or '')
     socket = request.transport.get_extra_info('sockname') if request.transport else None
     address = cast('tuple[object, ...]', socket) if isinstance(socket, tuple) else ()
@@ -29,7 +39,17 @@ def _is_local_target(request: web.Request, target: SplitResult, port: int) -> bo
 
 
 def _is_same_origin(origin: str, target: SplitResult, port: int) -> bool:
-    """Accept only an origin with the request's exact scheme, host, and effective port."""
+    """Accept only an origin with the request's exact scheme, host, and effective port.
+
+    Args:
+        origin: The value of the Origin header.
+        target: The URL that the request addresses.
+        port: The effective port of that URL.
+
+    Returns:
+        Whether the origin matches the target.
+
+    """
     source = urlsplit(origin)
     source_port = source.port or (443 if source.scheme == 'https' else 80)
     return all(
@@ -47,7 +67,17 @@ def _is_same_origin(origin: str, target: SplitResult, port: int) -> bool:
 
 
 def require_local_request(request: web.Request, *, is_mutation: bool, is_multi_user: bool) -> None:
-    """Reject remote peers, rebinding hosts, cross-origin requests, and unsafe writes."""
+    """Reject remote peers, rebinding hosts, cross-origin requests, and unsafe writes.
+
+    Args:
+        request: The request to check.
+        is_mutation: Whether the route changes stored state.
+        is_multi_user: Whether the host serves several users.
+
+    Raises:
+        forbidden: When the request is not a direct, local, and permitted one.
+
+    """
     forbidden = web.HTTPForbidden(text=LOCAL_CONNECTION_REQUIRED)
     try:
         # Proxy metadata means the connection is not direct, and private routes require a direct local one.

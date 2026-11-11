@@ -1,11 +1,12 @@
 [tools]
-"github:editorconfig-checker/editorconfig-checker" = {version = "3.4.0", rename_exe = "editorconfig-checker"}
+"github:dotenv-linter/dotenv-linter" = "4.0.0"
+"github:editorconfig-checker/editorconfig-checker" = "4.0.2"
 gitleaks = "8.30.1"
 lychee = "0.24.2"
-osv-scanner = "2.6.0"
+osv-scanner = "2.7.0"
 shellcheck = "0.11.0"
-shfmt = "3.12.0"
+shfmt = "3.14.1"
 taplo = "0.10.0"
-typos = "1.43.5"
-uv = "0.12.22"
-vale = "3.21.0"
+typos = "1.51.1"
+uv = "0.13.1"
+vale = "3.24.0"

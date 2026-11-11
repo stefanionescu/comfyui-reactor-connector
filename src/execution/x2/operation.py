@@ -4,16 +4,14 @@ from typing import ClassVar, override
 import asyncio
 
 from ..events import SessionEvents
-from ..inputs import VideoInputOperation
+from ..source import SourceVideoOperation
 from ...errors import ErrorCode, ConnectorError
 from ...models import MODELS
 from ..transport import SessionTransport
 from ...config.nodes import MAX_POINTER_POSITION, MIN_POINTER_POSITION
-from ...media.webcam import WebcamFrames
 from ...serialization import mapping_value, validate_json
 from ...state.session import RecordingWindow
 from ...state.settings import Settings
-from ...media.video.publish import VideoPublication
 from ...state.generation.x2 import X2Request
 from ...config.messages.live import POINTER_COORDINATES
 from ...config.messages.media import SOURCE_VIDEO_REQUIRED
@@ -21,26 +19,27 @@ from ...config.messages.inputs import XMAX_UNSUPPORTED, XMAX_PROMPT_LENGTH
 from ...config.generation.video import MAX_EDIT_PROMPT_CHARACTERS
 
 
-class X2Operation(VideoInputOperation[X2Request]):
+class X2Operation(SourceVideoOperation[X2Request]):
     """Own source publication and pointer controls for one edit.
 
     Attributes:
-        webcam: Optional browser camera that publishes source frames.
-        publication: Owned source video publisher.
+        connection_name: The provider connection of the X2 model.
 
     """
 
     connection_name: ClassVar[str] = MODELS['x2'].connection_name
 
-    def __init__(self, inputs: X2Request, *, webcam: WebcamFrames | None = None) -> None:
-        """Bind edit values, the optional webcam, and their source publication owner."""
-        super().__init__(inputs)
-        self.webcam = webcam
-        self.publication = VideoPublication()
-
     @override
     def validate(self, settings: Settings) -> None:
-        """Check the source, prompt, backlog option, and normalized pointer coordinates."""
+        """Check the source, prompt, backlog option, and normalized pointer coordinates.
+
+        Args:
+            settings: The user settings with the limits for the shared checks.
+
+        Raises:
+            ConnectorError: When the prompt, the source, or a pointer coordinate is invalid.
+
+        """
         super().validate(settings)
         inputs = self.inputs
         if len(inputs.prompt) > MAX_EDIT_PROMPT_CHARACTERS:
@@ -54,7 +53,19 @@ class X2Operation(VideoInputOperation[X2Request]):
 
     @override
     async def begin_generation(self, transport: SessionTransport, events: SessionEvents) -> RecordingWindow:
-        """Verify X2 commands, set the reference and pointer, and publish the source video."""
+        """Verify X2 commands, set the reference and pointer, and publish the source video.
+
+        Args:
+            transport: The connected transport that reads the schema and publishes the track.
+            events: The session events that send commands and receive source errors.
+
+        Returns:
+            The recording interval for the requested duration.
+
+        Raises:
+            ConnectorError: When the request has no source video or webcam.
+
+        """
         inputs = self.inputs
         if inputs.video is None and self.webcam is None:
             raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_VIDEO_REQUIRED)
@@ -80,7 +91,12 @@ class X2Operation(VideoInputOperation[X2Request]):
         return RecordingWindow(0, inputs.duration_seconds)
 
     async def release(self, transport: SessionTransport) -> None:
-        """Stop source publication and release the active pointer while connected."""
+        """Stop source publication and release the active pointer while connected.
+
+        Args:
+            transport: The transport whose client receives the pointer release.
+
+        """
         await self.publication.close()
         if self.webcam is not None:
             await self.webcam.close()
@@ -90,7 +106,16 @@ class X2Operation(VideoInputOperation[X2Request]):
 
 
 def _validate_contract(schema: object, transport: SessionTransport) -> None:
-    """Require the X2 edit commands and one send-only source video track."""
+    """Require the X2 edit commands and one send-only source video track.
+
+    Args:
+        schema: The command schema that the model declares.
+        transport: The connected transport that lists the model tracks.
+
+    Raises:
+        ConnectorError: When a command or the source track is missing.
+
+    """
     document = mapping_value(validate_json(schema))
     paths = mapping_value(document.get('paths'))
     required = {

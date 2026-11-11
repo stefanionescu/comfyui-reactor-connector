@@ -1,4 +1,4 @@
-# Fast H3: Generate Video
+# Fast H3: generate video
 
 Generates one clip with sound from Reactor's Fast H3 model. Optional images set
 the first and last frames.

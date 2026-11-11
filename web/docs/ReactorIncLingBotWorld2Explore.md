@@ -1,4 +1,4 @@
-# LingBot World 2: Explore an Image
+# LingBot World 2: explore an image
 
 Moves through a scene from your image with Reactor's LingBot World 2 model and
 saves a video. Choose camera directions before the run, or steer live with keys and

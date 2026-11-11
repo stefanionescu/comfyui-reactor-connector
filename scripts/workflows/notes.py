@@ -6,7 +6,16 @@ from .models.helios import AUTUMN_PROMPT
 
 
 def setup_steps(example: Example, model: str) -> list[str]:
-    """Write numbered setup actions using the node titles visible in this example."""
+    """Write numbered setup actions using the node titles visible in this example.
+
+    Args:
+        example: The example whose sources, plan, and mode choose the steps.
+        model: The name of the model, which chooses the prompt step.
+
+    Returns:
+        The numbered steps.
+
+    """
     steps = [SETUP['key']]
     image_key = 'portrait' if model == 'ltx2' else 'image'
     sources = (
@@ -43,7 +52,16 @@ def setup_steps(example: Example, model: str) -> list[str]:
 
 
 def live_notes(example: Example, model: str) -> list[str]:
-    """Explain the example's live start, input, and stop controls."""
+    """Explain the example's live start, input, and stop controls.
+
+    Args:
+        example: The example whose mode chooses the notes.
+        model: The name of the model, which adds its own controls.
+
+    Returns:
+        The notes, in reading order.
+
+    """
     keys: list[str] = []
     if example.mode in {'live', 'webcam'}:
         keys.append('camera' if example.mode == 'webcam' else 'start')
@@ -63,7 +81,16 @@ def live_notes(example: Example, model: str) -> list[str]:
 
 
 def model_notes(example: Example, model: str) -> list[str]:
-    """Explain the model-specific recording and control limits for this example."""
+    """Explain the model-specific recording and control limits for this example.
+
+    Args:
+        example: The example whose inputs, sources, and plan choose the limits.
+        model: The name of the model, which adds its own limits.
+
+    Returns:
+        The live notes, followed by the limits.
+
+    """
     notes = live_notes(example, model)
     clip_count = int(example.inputs.get('clip_count', 1))
     if clip_count > 1:
@@ -83,7 +110,16 @@ def model_notes(example: Example, model: str) -> list[str]:
 
 
 def sections(example: Example, model: str) -> tuple[str, str]:
-    """Separate the short setup note from additional model instructions."""
+    """Separate the short setup note from additional model instructions.
+
+    Args:
+        example: The example to describe.
+        model: The name of the model that the example runs.
+
+    Returns:
+        The setup note and the usage note.
+
+    """
     setup = '\n'.join(setup_steps(example, model))
     notes = model_notes(example, model)
     if 'source' in example.sources and example.mode == 'record':

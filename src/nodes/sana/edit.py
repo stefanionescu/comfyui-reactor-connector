@@ -25,7 +25,12 @@ class SanaEditVideo(VideoNode):
     @classmethod
     @override
     def define_schema(cls) -> io.Schema:
-        """Define the inputs and outputs saved in ComfyUI workflows."""
+        """Define the inputs and outputs saved in ComfyUI workflows.
+
+        Returns:
+            The schema of the node.
+
+        """
         return io.Schema(
             node_id='ReactorIncSanaEditVideo',
             display_name='SANA: Edit Video (Reactor)',
@@ -68,11 +73,29 @@ class SanaEditVideo(VideoNode):
         anchor_interval: int,
         interactive: bool = False,
     ) -> io.NodeOutput:
-        """Edit the source video with SANA and return the recorded result."""
+        """Edit the source video with SANA and return the recorded result.
+
+        Args:
+            source: The video to edit.
+            prompt: The edit prompt.
+            duration_seconds: The requested output length in seconds.
+            seed: The seed that the model generates from.
+            anchor_interval: The number of model chunks between returns to the source image.
+            interactive: Whether to open the live controls.
+
+        Returns:
+            The edited video.
+
+        """
         request = SanaRequest(prompt, duration_seconds, seed, anchor_interval=anchor_interval)
 
         async def edit() -> io.NodeOutput:
-            """Prepare the source frames within the input limits, and close them after the edit."""
+            """Prepare the source frames within the input limits, and close them after the edit.
+
+            Returns:
+                The output of the session.
+
+            """
             settings = await asyncio.to_thread(read_settings, get_runtime().configuration.directory)
             async with prepared_video(source, settings, Path(folder_paths.get_temp_directory())) as video:
                 return await generate_video(

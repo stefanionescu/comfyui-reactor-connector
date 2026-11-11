@@ -2,5 +2,6 @@
 case "$1" in /*|[A-Za-z]:*) message=$1 ;; *) message="$PWD/$1" ;; esac
 if command -v cygpath >/dev/null 2>&1; then message=$(cygpath -w "$message"); fi
 set -- "$message"
-command -v bun >/dev/null 2>&1 || { echo 'bun is not installed. Install Bun, then run: bun install. Install gspot with: bun add --dev --exact @gspothq/cli@0.3.7' >&2; exit 2; }
-exec bun run --no-install gspot check --hook commit-msg -- "$1"
+command -v mise >/dev/null 2>&1 || { printf 'mise is not on the PATH that this Git client gives hooks (%s). Start the client from a terminal, or add mise'"'"'s folder to its PATH.
+' "$PATH" >&2; exit 2; }
+exec mise exec -- gspot check --hook commit-msg -- "$1"

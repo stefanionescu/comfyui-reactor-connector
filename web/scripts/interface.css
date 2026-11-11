@@ -230,12 +230,12 @@
 .reactor-select::after {
     content: '';
     position: absolute;
-    right: 1rem;
+    inset-inline-end: 1rem;
     top: 50%;
     width: 0.4rem;
     height: 0.4rem;
-    border-right: 2px solid currentcolor;
-    border-bottom: 2px solid currentcolor;
+    border: solid currentcolor;
+    border-width: 0 2px 2px 0;
     transform: translateY(-70%) rotate(45deg);
     pointer-events: none;
 }
@@ -416,7 +416,7 @@
     color: var(--primary-color-text, white);
 }
 
-.reactor-dialog button:not(:disabled):hover {
+:where(.reactor-dialog) button:enabled:hover {
     filter: brightness(1.15);
 }
 

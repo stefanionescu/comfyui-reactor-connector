@@ -42,7 +42,17 @@ class WebcamFrames:
         self.task: asyncio.Task[None] | None = None
 
     def receive(self, content: bytes, sequence: int) -> None:
-        """Decode a size-limited JPEG and accept only a newer frame for an open session."""
+        """Decode a size-limited JPEG and accept only a newer frame for an open session.
+
+        Args:
+            content: The JPEG bytes of one camera frame.
+            sequence: The frame number, which must increase.
+
+        Raises:
+            ConnectorError: When the frame is empty, too large, or out of order.
+            invalid: When the image is not a JPEG within the camera dimensions.
+
+        """
         if not content or len(content) > MAX_CAMERA_JPEG_BYTES:
             raise ConnectorError(ErrorCode.INVALID_INPUT, CAMERA_FRAME_SIZE)
         invalid = ConnectorError(ErrorCode.INVALID_INPUT, CAMERA_DIMENSIONS)
@@ -65,7 +75,15 @@ class WebcamFrames:
             self.received_at = time.monotonic()
 
     def _current_frame(self) -> NDArray[np.uint8]:
-        """Read the latest camera pixels and reject a closed, empty, or stale input."""
+        """Read the latest camera pixels and reject a closed, empty, or stale input.
+
+        Returns:
+            The latest frame pixels.
+
+        Raises:
+            ConnectorError: When the input is closed, empty, or stale.
+
+        """
         with self.lock:
             pixels, age, closed = self.pixels, time.monotonic() - self.received_at, self.closed
         if closed or pixels is None or age > CAMERA_TIMEOUT_SECONDS:
@@ -73,7 +91,16 @@ class WebcamFrames:
         return pixels
 
     async def publish(self, track: Track, fail: Callable[[object], None]) -> None:
-        """Send the latest frame at the camera rate and report missing or stale input."""
+        """Send the latest frame at the camera rate and report missing or stale input.
+
+        Args:
+            track: The track that receives the latest frame.
+            fail: The callback that receives any other failure.
+
+        Raises:
+            asyncio.CancelledError: When the publisher is cancelled.
+
+        """
         try:
             while True:
                 track.push_frame(self._current_frame())

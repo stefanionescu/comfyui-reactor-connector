@@ -1,4 +1,4 @@
-# LTX: Make a Portrait Speak
+# LTX: make a portrait speak
 
 Animates one portrait speaking a script with Reactor's LTX model. The video has
 the speech; a separate audio output carries it alone.

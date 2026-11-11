@@ -37,7 +37,15 @@ if TYPE_CHECKING:
 
 
 def _owner() -> tuple[str, str]:
-    """Find the executing prompt client and reject shared or unowned sessions."""
+    """Find the executing prompt client and reject shared or unowned sessions.
+
+    Returns:
+        The client ID of the browser and the ID of the executing node.
+
+    Raises:
+        ConnectorError: When the host serves several users or no browser owns the prompt.
+
+    """
     context = get_executing_context()
     if args.multi_user or context is None:
         raise ConnectorError(ErrorCode.UNAVAILABLE, LIVE_HOST_REQUIREMENTS)
@@ -54,7 +62,16 @@ def _owner() -> tuple[str, str]:
 
 
 async def _wait_for_controls(lease: ControlLease, timeout_seconds: float) -> None:
-    """Wait for the invited client within its setup deadline and report an explicit end operation."""
+    """Wait for the invited client within its setup deadline and report an explicit end operation.
+
+    Args:
+        lease: The control lease that the invited client connects to.
+        timeout_seconds: The time allowed for the client to connect.
+
+    Raises:
+        ConnectorError: When the user ends the session or closes the panel.
+
+    """
     async with asyncio.timeout(timeout_seconds):
         while not lease.is_ready():
             if lease.read().end:
@@ -74,7 +91,22 @@ async def _invite(
     timeout_seconds: float,
     choices: dict[str, tuple[str, ...]] | None = None,
 ) -> LiveInteraction:
-    """Invite the prompt owner to the live panel and await its connection."""
+    """Invite the prompt owner to the live panel and await its connection.
+
+    Args:
+        options: The live options that the lease serves.
+        duration_seconds: The length of the session that the panel shows.
+        event: The name of the browser event that carries the invitation.
+        timeout_seconds: The time allowed for the browser to connect.
+        choices: The camera choices by axis, or None for editing controls.
+
+    Returns:
+        The interaction that owns the connected lease.
+
+    Raises:
+        BaseException: When the invitation fails, after the lease closes.
+
+    """
     client, node = _owner()
     # Queuing a camera workflow starts it; the panel does not add another start step.
     lease = ControlLease(options, choices=choices, started=choices is not None)
@@ -92,7 +124,17 @@ async def _invite(
 async def prepare_interaction(
     operation: VideoOperation, *, interactive: bool, controls: LiveOptions | None
 ) -> LiveInteraction | None:
-    """Open the camera or editing controls supported by this model operation."""
+    """Open the camera or editing controls supported by this model operation.
+
+    Args:
+        operation: The model operation that the controls serve.
+        interactive: Whether the node asks for live controls.
+        controls: The live options to use, or None to build them from the operation.
+
+    Returns:
+        The open interaction, or None when the run has no live controls.
+
+    """
     if controls is not None:
         options = controls
     elif interactive:
@@ -118,7 +160,16 @@ async def prepare_interaction(
 
 
 def build_live_options(operation: VideoOperation, *, webcam: WebcamFrames | None = None) -> LiveOptions:
-    """Translate the request of the operation into live-session options; only Visko has sound and passthrough."""
+    """Translate the request of the operation into live-session options; only Visko has sound and passthrough.
+
+    Args:
+        operation: The model operation that holds the request.
+        webcam: The webcam frames to send, or None without a webcam.
+
+    Returns:
+        The options of the live session.
+
+    """
     inputs = operation.inputs
     if isinstance(inputs, ViskoRequest):
         return LiveOptions(

@@ -1,4 +1,4 @@
-# SANA: Edit Webcam Video
+# SANA: edit webcam video
 
 Edits your camera video live with Reactor's SANA model and saves the result
 without sound. It needs a local, single-user ComfyUI with camera access, and the

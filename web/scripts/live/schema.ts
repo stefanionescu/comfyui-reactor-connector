@@ -1,6 +1,7 @@
 import * as v from 'valibot';
-import { cameraAxes } from '#web/live/input.ts';
+
 import { browserLimits, browserPatterns } from '#web/browser.ts';
+import { cameraAxes } from '#web/live/input.ts';
 
 const invitationEntries = {
     lease: v.pipe(v.string(), v.regex(browserPatterns.lease)),
@@ -13,7 +14,9 @@ const invitationEntries = {
 
 const invitationSchema = v.object(invitationEntries);
 
-/** The fields that every live session invitation holds. */
+/**
+The fields that every live session invitation holds.
+*/
 export type Invitation = {
     lease: string;
     capability: string;
@@ -21,13 +24,16 @@ export type Invitation = {
     promptKind: 'scene' | 'edit';
     durationSeconds: number;
     allowEmptyPrompt: boolean;
-    /** The choices of each camera axis; editing sessions have none. */
+    /**
+    The choices of each camera axis; editing sessions have none.
+    */
     axes: Record<string, string[]>;
 };
 
+const characterLimitSchema = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
 const promptEntries = {
     prompt: v.string(),
-    prompt_limit: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
+    prompt_limit: characterLimitSchema,
 } as const;
 
 const axisChoicesSchema = v.pipe(v.array(v.string()), v.includes('idle'));
@@ -76,7 +82,7 @@ const controlsInvitationSchema = v.pipe(
         pointer: v.boolean(),
         sound: v.boolean(),
         audio_prompt: v.string(),
-        audio_prompt_limit: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
+        audio_prompt_limit: characterLimitSchema,
     }),
     v.check((document) => {
         if (document.prompt.length > document.prompt_limit) return false;
@@ -103,6 +109,13 @@ const controlsInvitationSchema = v.pipe(
     }),
 );
 
+const elapsedSecondsSchema = v.pipe(v.number(), v.finite());
+const previewSequenceSchema = v.pipe(v.number(), v.safeInteger());
+const previewSchema = v.pipe(
+    v.string(),
+    v.maxLength(browserLimits.maxPreviewCharacters),
+    v.regex(browserPatterns.preview),
+);
 const liveStatusSchema = v.pipe(
     v.object({
         closed: v.boolean(),
@@ -110,9 +123,9 @@ const liveStatusSchema = v.pipe(
         failed: v.boolean(),
         controls_ready: v.boolean(),
         finishing: v.boolean(),
-        elapsed_seconds: v.pipe(v.number(), v.finite()),
-        preview_sequence: v.pipe(v.number(), v.safeInteger()),
-        preview: v.pipe(v.string(), v.maxLength(browserLimits.maxPreviewCharacters), v.regex(browserPatterns.preview)),
+        elapsed_seconds: elapsedSecondsSchema,
+        preview_sequence: previewSequenceSchema,
+        preview: previewSchema,
     }),
     v.transform((status) => {
         return {
@@ -133,11 +146,11 @@ export type ControlsInvitation = v.InferOutput<typeof controlsInvitationSchema>;
 export type LiveStatus = v.InferOutput<typeof liveStatusSchema>;
 
 /**
- * Validate a camera-session invitation before opening its panel.
- *
- * @param value - The untrusted ComfyUI event payload.
- * @returns The scene invitation, or undefined when it is invalid.
- */
+Validate a camera-session invitation before opening its panel.
+
+@param value - The untrusted ComfyUI event payload.
+@returns The scene invitation, or undefined when it is invalid.
+*/
 export function parseSceneInvitation(value: unknown): SceneInvitation | undefined {
     const result = v.safeParse(sceneInvitationSchema, value);
     if (!result.success) return;
@@ -145,11 +158,11 @@ export function parseSceneInvitation(value: unknown): SceneInvitation | undefine
 }
 
 /**
- * Validate an editing-session invitation before opening its panel.
- *
- * @param value - The untrusted ComfyUI event payload.
- * @returns The controls invitation, or undefined when it is invalid.
- */
+Validate an editing-session invitation before opening its panel.
+
+@param value - The untrusted ComfyUI event payload.
+@returns The controls invitation, or undefined when it is invalid.
+*/
 export function parseControlsInvitation(value: unknown): ControlsInvitation | undefined {
     const result = v.safeParse(controlsInvitationSchema, value);
     if (!result.success) return;
@@ -157,11 +170,11 @@ export function parseControlsInvitation(value: unknown): ControlsInvitation | un
 }
 
 /**
- * Validate and transform one live polling response.
- *
- * @param value - The untrusted JSON response.
- * @returns The live status, or undefined when it is invalid.
- */
+Validate and transform one live polling response.
+
+@param value - The untrusted JSON response.
+@returns The live status, or undefined when it is invalid.
+*/
 export function parseLiveStatus(value: unknown): LiveStatus | undefined {
     const result = v.safeParse(liveStatusSchema, value);
     if (!result.success) return;

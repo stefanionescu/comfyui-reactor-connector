@@ -23,14 +23,32 @@ if TYPE_CHECKING:
 
 
 class NativeAudio(TypedDict):
-    """ComfyUI audio samples with their sample rate."""
+    """ComfyUI audio samples with their sample rate.
+
+    Attributes:
+        waveform: The samples as a tensor with batch, channel, and sample axes.
+        sample_rate: The number of samples per second.
+
+    """
 
     waveform: Tensor
     sample_rate: int
 
 
 def read_audio(path: Path, maximum_bytes: int) -> NativeAudio:
-    """Load a size-limited pulse-code modulation (PCM) recording as normalized ComfyUI audio."""
+    """Load a size-limited pulse-code modulation (PCM) recording as normalized ComfyUI audio.
+
+    Args:
+        path: The WAV file to load.
+        maximum_bytes: The memory budget for the decoded samples.
+
+    Returns:
+        The waveform and its sample rate.
+
+    Raises:
+        ConnectorError: When the file has an unsupported format, exceeds the budget, or is incomplete.
+
+    """
     with wave.open(str(path), 'rb') as reader:
         count, channels = reader.getnframes(), reader.getnchannels()
         # Leave room for decoded samples and conversion buffers within the sample budget.

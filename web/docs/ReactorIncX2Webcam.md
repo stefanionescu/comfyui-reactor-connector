@@ -1,4 +1,4 @@
-# X2: Edit Webcam Video
+# X2: edit webcam video
 
 Edits your camera video live with Reactor's X2 model, and you drag on the output
 to steer the subject. It saves the result without sound. It needs a local,

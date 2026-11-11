@@ -38,7 +38,18 @@ FRAME_HEADER = struct.Struct(FRAME_HEADER_FORMAT)
 
 
 def _pixels(frame: Input.Image) -> bytes:
-    """Convert finite normalized image values to clipped red, green, and blue (RGB) bytes."""
+    """Convert finite normalized image values to clipped red, green, and blue (RGB) bytes.
+
+    Args:
+        frame: One image of the clip.
+
+    Returns:
+        The pixels as bytes in row order.
+
+    Raises:
+        ConnectorError: When a value is not finite.
+
+    """
     array = frame.detach().cpu().numpy()
     if not np.isfinite(array).all():
         raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_PIXELS)
@@ -46,7 +57,17 @@ def _pixels(frame: Input.Image) -> bytes:
 
 
 async def prepare_components(video: InputImpl.VideoFromComponents, destination: Path, settings: Settings) -> None:
-    """Use native tensor components directly; omit audio from the uploaded edit source."""
+    """Use native tensor components directly; omit audio from the uploaded edit source.
+
+    Args:
+        video: The video built from image tensors.
+        destination: The MP4 file to write.
+        settings: The settings that hold the upload size limit.
+
+    Raises:
+        ConnectorError: When the format, dimensions, or frame count are invalid, or the encoder loses frames.
+
+    """
     components = video.get_components()
     images, rate = components.images, components.frame_rate
     if (
@@ -71,7 +92,12 @@ async def prepare_components(video: InputImpl.VideoFromComponents, destination: 
         raise ConnectorError(ErrorCode.INVALID_INPUT, SOURCE_FRAME_COUNT)
 
     async def feed(writer: asyncio.StreamWriter) -> None:
-        """Send selected tensor frames with timestamps and signal the end of input."""
+        """Send selected tensor frames with timestamps and signal the end of input.
+
+        Args:
+            writer: The standard input stream of the encoder.
+
+        """
         for index in range(count):
             pixels = await owned_io(partial(_pixels, images[index]))
             # Zero selects fallback timing; keep every sender timestamp positive.

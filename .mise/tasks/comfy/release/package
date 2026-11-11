@@ -10,11 +10,11 @@ main() {
     REPO_ROOT="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
     cd "${REPO_ROOT}" || exit 1
 
-    bun run --no-install gspot check
+    mise exec -- gspot check
     comfy node pack "$@"
     unzip -l node.zip
     mise --cd .gspot exec -- gitleaks dir "${REPO_ROOT}/node.zip" \
-        --config "${REPO_ROOT}/.gspot/configurations/general/secrets/gitleaks.toml" \
+        --config "${REPO_ROOT}/.gspot/configurations/secrets/gitleaks.toml" \
         --max-archive-depth 3 \
         --no-banner \
         --redact \
