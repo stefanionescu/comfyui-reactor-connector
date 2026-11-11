@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Install the ComfyUI release the checks read, then the locked dependencies, in the CI job that gspot writes.
-# Runtime: Bash 3.2+ on Linux, with RUNNER_TEMP set.
+# Runtime: Bash 3.2+ on Linux, with RUNNER_TEMP and GITHUB_ENV set.
 #MISE description="Install the ComfyUI release the checks read, then the locked dependencies, for CI."
 set -euo pipefail
 
@@ -35,16 +35,20 @@ install_comfyui() {
     fi
 }
 
-# main: Installs ComfyUI under RUNNER_TEMP, points .mise.local.toml at it, and runs the deps task.
+# main: Installs ComfyUI under RUNNER_TEMP, points .mise.local.toml and the later CI steps at it, and runs the deps task.
 main() {
-    local repo_root comfy_path
+    local repo_root comfy_path comfy_python
 
     repo_root="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel)}"
     cd -- "${repo_root}" || exit 1
     comfy_path="${RUNNER_TEMP:?run this task in CI, where RUNNER_TEMP is set}/ComfyUI"
+    comfy_python="${comfy_path}/.venv/bin/python"
     install_comfyui "${comfy_path}"
-    printf '[env]\nCOMFYUI_PATH = "%s"\nCOMFYUI_PYTHON = "%s"\n' "${comfy_path}" "${comfy_path}/.venv/bin/python" \
+    printf '[env]\nCOMFYUI_PATH = "%s"\nCOMFYUI_PYTHON = "%s"\n' "${comfy_path}" "${comfy_python}" \
         >.mise.local.toml || exit 1
+    # The later CI steps run gspot outside mise, so its checks read both variables from the environment of the job.
+    printf 'COMFYUI_PATH=%s\nCOMFYUI_PYTHON=%s\n' "${comfy_path}" "${comfy_python}" \
+        >>"${GITHUB_ENV:?run this task in GitHub Actions, where GITHUB_ENV is set}" || exit 1
     exec mise run deps
 }
 
